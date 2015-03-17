@@ -1,0 +1,811 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>PHP 和 HTML</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="faq.passwords.html">? 密码散列</a></li>
+      <li style="float: right;"><a href="faq.com.html">PHP 和 COM ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="faq.html">FAQ</a></li>
+    <li>PHP 和 HTML</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="faq.html" class="chapter">
+  <h1>PHP 和 HTML</h1>
+
+  
+  <p class="para">PHP 和 HTML 有很多相互作用：PHP 能生成 HTML，HTML 可以向 PHP 传递信息。在阅读这些常见问题之前，先学会怎样
+  <a href="language.variables.external.html" class="link">从 PHP 之外取得变量</a>很重要。此主题的手册页也包括很多例子。还要仔细留意 
+  <em>register_globals</em>对你意味着什么。</p>
+  <div class="qandaset"><ol class="qandaset_questions"><li><a href="#faq.html.encoding">
+        当我通过表单／URL 传值时需要用什么编码／解码方法？
+      </a></li><li><a href="#faq.html.form-image">
+        我在试用 &lt;input type=&quot;image&quot;&gt; 标记，但是没有 
+        $foo.x和 
+        $foo.y变量，它们哪去了？
+      </a></li><li><a href="#faq.html.arrays">
+        怎样在 HTML 的 &lt;form&gt; 中建立数组？
+      </a></li><li><a href="#faq.html.select-multiple">
+        怎样从可多选的 HTML 的 select multiple 标记中得到所有结果？
+      </a></li><li><a href="#faq.html.javascript-variable">
+        怎样从 Javascript 传递一个变量到 PHP？
+      </a></li></ol></div>
+    <dl class="qandaentry" id="faq.html.encoding">
+      <dt><strong>
+        当我通过表单／URL 传值时需要用什么编码／解码方法？
+      </strong></dt>
+      <dd class="answer">
+        <p class="para">在几个环节上编码方式很重要。假定有 
+        <span class="type"><a href="language.types.string.html" class="type string">string</a></span>
+        <var class="varname"><var class="varname">$data</var></var>，其中包含了想通过非编码方式传递的字符串，那这是相关步骤： 
+        <ul class="itemizedlist">
+          <li class="listitem">
+            <p class="para">HTML 解析。要指定一个任意的字符串，
+            <em class="emphasis">必须</em>将其放在双引号中，并用 
+            <span class="function"><a href="function.htmlspecialchars.html" class="function">htmlspecialchars()</a></span>处理整个值。</p>
+          </li>
+          <li class="listitem">
+            <p class="para">URL：URL 由几部分组成。如果希望自己的数据被当作其中一项来解释，
+            <em class="emphasis">必须</em>用 
+            <span class="function"><a href="function.urlencode.html" class="function">urlencode()</a></span>对其编码。</p>
+          </li>
+        </ul></p>
+        <p class="para">
+          <div class="example" id="example-5577">
+            <p><strong>Example #1 隐藏的 HTML 表单单元</strong></p>
+            <div class="example-contents">
+              <div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">echo&nbsp;</span><span style="color: #DD0000">"&lt;input&nbsp;type='hidden'&nbsp;value='"&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">htmlspecialchars</span><span style="color: #007700">(</span><span style="color: #0000BB">$data</span><span style="color: #007700">)&nbsp;.&nbsp;</span><span style="color: #DD0000">"'&nbsp;/&gt;\n"</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+</div>
+
+          </div>
+          <blockquote class="note"><p><strong class="note">Note</strong>: 
+            <span class="simpara">用 
+            <span class="function"><a href="function.urlencode.html" class="function">urlencode()</a></span>来处理 
+            <var class="varname"><var class="varname">$data</var></var>是错误的，因为是浏览器的责任来 
+            <span class="function"><a href="function.urlencode.html" class="function">urlencode()</a></span>数据。所有流行的浏览器都能正确处理。注意不论何种方法（例如 GET 或 POST）都会这样。不过只会在用 GET 请求时注意到这一点，因为 POST 请求通常是隐藏的。</span>
+          </p></blockquote>
+          <div class="example" id="example-5578">
+            <p><strong>Example #2 等待用户编辑的数据</strong></p>
+            <div class="example-contents">
+              <div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">echo&nbsp;</span><span style="color: #DD0000">"&lt;textarea&nbsp;name='mydata'&gt;\n"</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #0000BB">htmlspecialchars</span><span style="color: #007700">(</span><span style="color: #0000BB">$data</span><span style="color: #007700">).</span><span style="color: #DD0000">"\n"</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"&lt;/textarea&gt;"</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+</div>
+
+          </div>
+          <blockquote class="note"><p><strong class="note">Note</strong>: 
+            <span class="simpara">数据会按照预期的显示在浏览器中，因为浏览器会解释 HTML 转义符号。</span>
+            <span class="simpara">当提交时，不论是 GET 或者 POST 方法，数据都会被浏览器进行 urlencode 来传输，并直接被 PHP urldecode。所以最终不需要自己处理任何 urlencoding/urldecoding，全都是自动处理的。</span>
+          </p></blockquote>
+          <div class="example" id="example-5579">
+            <p><strong>Example #3 URL 中的例子</strong></p>
+            <div class="example-contents">
+              <div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">echo&nbsp;</span><span style="color: #DD0000">"&lt;a&nbsp;href='"&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">htmlspecialchars</span><span style="color: #007700">(</span><span style="color: #DD0000">"/nextpage.php?stage=23&amp;data="&nbsp;</span><span style="color: #007700">.<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">urlencode</span><span style="color: #007700">(</span><span style="color: #0000BB">$data</span><span style="color: #007700">))&nbsp;.&nbsp;</span><span style="color: #DD0000">"'&gt;\n"</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+</div>
+
+          </div>
+          <blockquote class="note"><p><strong class="note">Note</strong>: 
+            <span class="simpara">事实上这在编造一个 HTML 的 GET 请求，因此需要手工对数据进行 
+            <span class="function"><a href="function.urlencode.html" class="function">urlencode()</a></span>。</span>
+          </p></blockquote>
+          <blockquote class="note"><p><strong class="note">Note</strong>: 
+            <span class="simpara">需要对整个 URL 进行 
+            <span class="function"><a href="function.htmlspecialchars.html" class="function">htmlspecialchars()</a></span>，因为 URL 是作为 HTML 属性的一个值出现的。在本例中，浏览器会首先对值进行 un-
+            <span class="function"><a href="function.htmlspecialchars.html" class="function">htmlspecialchars()</a></span>，然后再传递此 URL。PHP 将能正确理解 URL，因为对数据进行了 
+            <span class="function"><strong>urlencoded()</strong></span>。</span>
+            <span class="simpara">要注意到 URL 中的 
+            <em>&amp;</em>被替换成了 
+            <em>&amp;amp;</em>。如果忘了这一步，尽管大多数浏览器都能恢复，但也不总是这样。因此即使 URL 不是动态的，也
+            <em class="emphasis">需要</em>对 URL 进行 
+            <span class="function"><a href="function.htmlspecialchars.html" class="function">htmlspecialchars()</a></span>。</span>
+          </p></blockquote>
+        </p>
+        
+      </dd>
+    </dl>
+    <dl class="qandaentry" id="faq.html.form-image">
+      <dt><strong>
+        我在试用 &lt;input type=&quot;image&quot;&gt; 标记，但是没有 
+        <var class="varname"><var class="varname">$foo.x</var></var>和 
+        <var class="varname"><var class="varname">$foo.y</var></var>变量，它们哪去了？
+      </strong></dt>
+      <dd class="answer">
+        <p class="para">当提交表单时，可以用图片代替标准的提交按钮，用类似这样的标记： 
+        <div class="example-contents">
+          <div class="htmlcode"><pre class="htmlcode">&lt;input type=&quot;image&quot; src=&quot;image.gif&quot; name=&quot;foo&quot; /&gt;</pre>
+</div>
+</div>
+当用户点击了图片的任何部分，该表单会被发送到服务器并加上两个额外的变量：
+        <var class="varname"><var class="varname">foo.x</var></var>和 
+        <var class="varname"><var class="varname">foo.y</var></var>。</p>
+        <p class="para">因为 
+        <var class="varname"><var class="varname">foo.x</var></var>和 
+        <var class="varname"><var class="varname">foo.y</var></var>在 PHP 中会成为非法的变量名，它们被自动转换成了 
+        <var class="varname"><var class="varname">foo_x</var></var>和 
+        <var class="varname"><var class="varname">foo_y</var></var>。也就是用下划线代替了点。因此，可以按照在
+        <a href="language.variables.external.html" class="link">来自 PHP 之外的变量</a>这一节中说明的那样访问这些变量。例如，
+        <var class="varname"><var class="varname"><a href="reserved.variables.get.html" class="classname">$_GET['foo_x']</a></var></var>。 
+        <blockquote class="note"><p><strong class="note">Note</strong>: 
+          <p class="para">请求变量名中的空格被转换为下划线。</p>
+        </p></blockquote></p>
+      </dd>
+    </dl>
+    <dl class="qandaentry" id="faq.html.arrays">
+      <dt><strong>
+        怎样在 HTML 的 &lt;form&gt; 中建立数组？
+      </strong></dt>
+      <dd class="answer">
+        <p class="para">要使你的 &lt;form&gt; 结果被当成 
+        <a href="language.types.array.html" class="link">array</a>发送到 PHP 脚本，要对 &lt;input&gt;，&lt;select&gt; 或者 &lt;textarea&gt; 单元这样命名： 
+        <div class="example-contents">
+          <div class="htmlcode"><pre class="htmlcode">&lt;input name=&quot;MyArray[]&quot; /&gt;
+&lt;input name=&quot;MyArray[]&quot; /&gt;
+&lt;input name=&quot;MyArray[]&quot; /&gt;
+&lt;input name=&quot;MyArray[]&quot; /&gt;</pre>
+</div>
+</div>
+注意变量名后的方括号，这使其成为一个数组。可以通过给不同的单元分配相同的名字来把单元分组到不同的数组里： 
+        <div class="example-contents">
+          <div class="htmlcode"><pre class="htmlcode">&lt;input name=&quot;MyArray[]&quot; /&gt;
+&lt;input name=&quot;MyArray[]&quot; /&gt;
+&lt;input name=&quot;MyOtherArray[]&quot; /&gt;
+&lt;input name=&quot;MyOtherArray[]&quot; /&gt;</pre>
+</div>
+</div>
+这将产生两个数组，MyArray 和 MyOtherArray，并发送给 PHP 脚本。还可以给数组分配指定的键名： 
+        <div class="example-contents">
+          <div class="htmlcode"><pre class="htmlcode">&lt;input name=&quot;AnotherArray[]&quot; /&gt;
+&lt;input name=&quot;AnotherArray[]&quot; /&gt;
+&lt;input name=&quot;AnotherArray[email]&quot; /&gt;
+&lt;input name=&quot;AnotherArray[phone]&quot; /&gt;</pre>
+</div>
+</div>
+AnotherArray 数组将包含键名 0，1，email 和 phone。</p>
+        <p class="para">
+          <blockquote class="note"><p><strong class="note">Note</strong>: 
+            <p class="para">指定数组的键名是 HTML 的可选项。如果不指定键名，则数组被按照单元在表单中出现的顺序填充。第一个例子将包含键名 0，1，2 和 3。</p>
+          </p></blockquote>
+        </p>
+        <p class="para">参见
+        <a href="ref.array.html" class="link">数组函数</a>和
+        <a href="language.variables.external.html" class="link">来自 PHP 之外的变量</a>。</p>
+      </dd>
+    </dl>
+    <dl class="qandaentry" id="faq.html.select-multiple">
+      <dt><strong>
+        怎样从可多选的 HTML 的 select multiple 标记中得到所有结果？
+      </strong></dt>
+      <dd class="answer">
+        <p class="para">可多选的 select multiple 标记是 HTML 的一个构造，允许用户从一个列表中选择多个项目。这些项目接着被传递给该表单 action 中指定的处理程序。问题是它们都会被用同样的名字传递。例如： 
+        <div class="example-contents">
+          <div class="htmlcode"><pre class="htmlcode">&lt;select name=&quot;var&quot; multiple=&quot;yes&quot;&gt;</pre>
+</div>
+</div>
+每个被选项将这样被传递到表单处理程序： 
+        <div class="example-contents"><div class="cdata"><pre>var=option1 var=option2 var=option3</pre></div></div>
+每个选项将覆盖前面一个 
+        <var class="varname"><var class="varname">$var</var></var>变量的内容。解决方案是用 PHP 的"表单单元数组"特性。使用方法如下： 
+        <div class="example-contents">
+          <div class="htmlcode"><pre class="htmlcode">&lt;select name=&quot;var[]&quot; multiple=&quot;yes&quot;&gt;</pre>
+</div>
+</div>
+这将告诉 PHP 将 
+        <var class="varname"><var class="varname">$var</var></var>当成数组对待，每个对 var[] 的赋值都会给数组增加一项。第一项将成为 
+        <var class="varname"><var class="varname">$var[0]</var></var>，下一个是 
+        <var class="varname"><var class="varname">$var[1]</var></var>，等等。可以用 
+        <span class="function"><a href="function.count.html" class="function">count()</a></span>函数来测定选择了多少个项目，必要时可以用 
+        <span class="function"><a href="function.sort.html" class="function">sort()</a></span>函数来对选项的数组进行排序。</p>
+        <p class="para">注意如果在 JavaScript 中通过名字来引用单元，单元名字中的 
+        <em>[]</em>可能会造成问题。用表单单元中的数字序号来替代，或者将变量名用单引号括起来并用其作为单元数组的索引，例如： 
+        <div class="example-contents"><div class="cdata"><pre>variable = documents.forms[0].elements[&#039;var[]&#039;];</pre></div></div>
+</p>
+      </dd>
+    </dl>
+    <dl class="qandaentry" id="faq.html.javascript-variable">
+      <dt><strong>
+        怎样从 Javascript 传递一个变量到 PHP？
+      </strong></dt>
+      <dd class="answer">
+        <p class="para">由于 Javascript （通常情况下）是客户端技术，而 PHP （通常情况下）是服务器端技术，而且 HTTP 是一种"无状态"协议，因此两种语言之间不能直接共享变量。</p>
+        <p class="para">但是，有可能在二者之间传递变量。一种实现的方法是用 PHP 生成 Javascript 代码，并让浏览器自动刷新，将特定的变量传递回 PHP 脚本。以下例子显示了如何这样做&mdash;&mdash;让 PHP 代码取得显示屏幕的高度和宽度，通常只能在客户端这么做。</p>
+        <p class="para">
+          <div class="example-contents">
+            <div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">if&nbsp;(isset(</span><span style="color: #0000BB">$_GET</span><span style="color: #007700">[</span><span style="color: #DD0000">'width'</span><span style="color: #007700">])&nbsp;AND&nbsp;isset(</span><span style="color: #0000BB">$_GET</span><span style="color: #007700">[</span><span style="color: #DD0000">'height'</span><span style="color: #007700">]))&nbsp;{<br />&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;output&nbsp;the&nbsp;geometry&nbsp;variables<br />&nbsp;&nbsp;</span><span style="color: #007700">echo&nbsp;</span><span style="color: #DD0000">"Screen&nbsp;width&nbsp;is:&nbsp;"</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$_GET</span><span style="color: #007700">[</span><span style="color: #DD0000">'width'</span><span style="color: #007700">]&nbsp;.</span><span style="color: #DD0000">"&lt;br&nbsp;/&gt;\n"</span><span style="color: #007700">;<br />&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"Screen&nbsp;height&nbsp;is:&nbsp;"</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$_GET</span><span style="color: #007700">[</span><span style="color: #DD0000">'height'</span><span style="color: #007700">]&nbsp;.</span><span style="color: #DD0000">"&lt;br&nbsp;/&gt;\n"</span><span style="color: #007700">;<br />}&nbsp;else&nbsp;{<br />&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;pass&nbsp;the&nbsp;geometry&nbsp;variables<br />&nbsp;&nbsp;//&nbsp;(preserve&nbsp;the&nbsp;original&nbsp;query&nbsp;string<br />&nbsp;&nbsp;//&nbsp;&nbsp;&nbsp;--&nbsp;post&nbsp;variables&nbsp;will&nbsp;need&nbsp;to&nbsp;handled&nbsp;differently)<br /><br />&nbsp;&nbsp;</span><span style="color: #007700">echo&nbsp;</span><span style="color: #DD0000">"&lt;script&nbsp;language='javascript'&gt;\n"</span><span style="color: #007700">;<br />&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"&nbsp;&nbsp;location.href=\"</span><span style="color: #007700">${</span><span style="color: #0000BB">_SERVER</span><span style="color: #007700">[</span><span style="color: #DD0000">'SCRIPT_NAME'</span><span style="color: #007700">]}</span><span style="color: #DD0000">?</span><span style="color: #007700">${</span><span style="color: #0000BB">_SERVER</span><span style="color: #007700">[</span><span style="color: #DD0000">'QUERY_STRING'</span><span style="color: #007700">]}</span><span style="color: #DD0000">"<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">"&amp;width=\"&nbsp;+&nbsp;screen.width&nbsp;+&nbsp;\"&amp;height=\"&nbsp;+&nbsp;screen.height;\n"</span><span style="color: #007700">;<br />&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"&lt;/script&gt;\n"</span><span style="color: #007700">;<br />&nbsp;&nbsp;exit();<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+</div>
+
+        </p>
+      </dd>
+    </dl>
+  
+</div>
+<div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="114744""></a>
+  <div class="note">
+   <strong class="user">Jay</strong>
+   <a href="#114744" class="date">01-Apr-2014 06:25</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you have a really large form, be sure to check your max_input_vars setting.&nbsp; Your array[] will get truncated if it exceeds this.&nbsp; <a href="http://www.php.net/manual/en/info.configuration.php#ini.max-input-vars" rel="nofollow" target="_blank">http://www.php.net/manual/en/info.configuration.php#ini.max-input-vars</a></span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="107551""></a>
+  <div class="note">
+   <strong class="user">ciprian dot stingu at gmail dot com</strong>
+   <a href="#107551" class="date">17-Feb-2012 06:45</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Using jquery is even easier to send (post) data between javascript and php
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+</span><span class="comment">//make an asynchronous request
+<br />
+</span><span class="keyword">$.</span><span class="default">post</span><span class="keyword">(</span><span class="string">"somefile.php"</span><span class="keyword">, {</span><span class="string">"Param1" </span><span class="keyword">: </span><span class="default">true</span><span class="keyword">, </span><span class="string">"Param2" </span><span class="keyword">: </span><span class="default">1</span><span class="keyword">, </span><span class="string">"Param3" </span><span class="keyword">: </span><span class="string">"some text"</span><span class="keyword">}, 
+<br />
+&nbsp;&nbsp;&nbsp; function(</span><span class="default">received_data</span><span class="keyword">)
+<br />
+&nbsp;&nbsp;&nbsp; {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">//do something with received data
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">$(</span><span class="string">"#some_element"</span><span class="keyword">).</span><span class="default">html</span><span class="keyword">(</span><span class="default">received_data</span><span class="keyword">);
+<br />
+&nbsp;&nbsp;&nbsp; });
+<br />
+
+<br />
+</span><span class="comment">//make a post request
+<br />
+</span><span class="keyword">$.</span><span class="default">ajax</span><span class="keyword">({
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">type</span><span class="keyword">: </span><span class="string">"POST"</span><span class="keyword">,
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">url</span><span class="keyword">: </span><span class="string">"somefile.php"</span><span class="keyword">,
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">data</span><span class="keyword">: {</span><span class="string">"Param1" </span><span class="keyword">: </span><span class="default">true</span><span class="keyword">, </span><span class="string">"Param2" </span><span class="keyword">: </span><span class="default">1</span><span class="keyword">, </span><span class="string">"Param3" </span><span class="keyword">: </span><span class="string">"some text"</span><span class="keyword">},
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">success</span><span class="keyword">: function(</span><span class="default">received_data</span><span class="keyword">)
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {</span><span class="comment">//do something with received data},
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">async</span><span class="keyword">: </span><span class="default">false
+<br />
+</span><span class="keyword">});
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="70990""></a>
+  <div class="note">
+   <strong class="user">francesco</strong>
+   <a href="#70990" class="date">07-Nov-2006 03:41</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Another way to pass variables from JavaScript to PHP.<br />
+<br />
+&lt;script type="text/javascript" language="JavaScript"&gt;<br />
+&lt;!--<br />
+function getScreenResolution()<br />
+{<br />
+&nbsp;&nbsp;&nbsp; return document.form.ScreenResolution.value = screen.width + "x" + screen.height;<br />
+}<br />
+//--&gt;<br />
+&lt;/script&gt;<br />
+&lt;form name="form" action="screen.php?show=ok" method="post" &gt;<br />
+&lt;input name="ScreenResolution" type="text" size="20" maxlength="9" /&gt;<br />
+&lt;input name="show" type="submit" value="Submit" onclick="getScreenResolution()" /&gt;<br />
+&lt;/form&gt;<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">echo </span><span class="default">$_POST</span><span class="keyword">[</span><span class="string">'ScreenResolution'</span><span class="keyword">];<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="68831""></a>
+  <div class="note">
+   <strong class="user">tchibolecafe at freemail dot hu</strong>
+   <a href="#68831" class="date">12-Aug-2006 01:34</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Notes on question "1. What encoding/decoding do I need when I pass a value through a<br />
+form/URL?"<br />
+<br />
+Doing an htmlspecialchars() when echoing a string as an HTML attribute value is not enough to make the string safe if you have accented (non-ASCII) characters in it. See <a href="http://www.w3.org/TR/REC-html40/appendix/notes.html#non-ascii-chars " rel="nofollow" target="_blank">http://www.w3.org/TR/REC-html40/appendix/notes.html#non-ascii-chars </a><br />
+<br />
+The referred document recommends the following method to be used:<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp; </span><span class="keyword">function </span><span class="default">fs_attr</span><span class="keyword">(</span><span class="default">$path</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$retval</span><span class="keyword">=</span><span class="string">''</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; for(</span><span class="default">$i</span><span class="keyword">=</span><span class="default">0</span><span class="keyword">;</span><span class="default">$i</span><span class="keyword">&lt;</span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$path</span><span class="keyword">);</span><span class="default">$i</span><span class="keyword">++){<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$c</span><span class="keyword">=</span><span class="default">$path</span><span class="keyword">{</span><span class="default">$i</span><span class="keyword">};<br />
+&nbsp;&nbsp; &nbsp;&nbsp; if(</span><span class="default">ord</span><span class="keyword">(</span><span class="default">$c</span><span class="keyword">)&lt;</span><span class="default">128</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$retval</span><span class="keyword">.=</span><span class="default">$c</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp;&nbsp; }else{<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$retval</span><span class="keyword">.=</span><span class="default">urlencode</span><span class="keyword">(</span><span class="default">utf8_encode</span><span class="keyword">(</span><span class="default">$c</span><span class="keyword">));<br />
+&nbsp;&nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">htmlspecialchars</span><span class="keyword">(</span><span class="default">$retval</span><span class="keyword">);<br />
+&nbsp; }<br />
+<br />
+&nbsp; </span><span class="default">$img_path</span><span class="keyword">=</span><span class="string">'é?ü?.jpg'</span><span class="keyword">;<br />
+&nbsp; echo </span><span class="string">'&lt;img src="'</span><span class="keyword">.</span><span class="default">fs_attr</span><span class="keyword">(</span><span class="default">$img_path</span><span class="keyword">).</span><span class="string">'"&gt;'</span><span class="keyword">;<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+However, using utf8 encoding for path names is among others supported by Windows NT, above method fails when running for example on an Apache server on Linux.<br />
+<br />
+A more fail safe way:<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">function </span><span class="default">fs_attr</span><span class="keyword">(</span><span class="default">$path</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$retval</span><span class="keyword">=</span><span class="string">''</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; for(</span><span class="default">$i</span><span class="keyword">=</span><span class="default">0</span><span class="keyword">;</span><span class="default">$i</span><span class="keyword">&lt;</span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$path</span><span class="keyword">);</span><span class="default">$i</span><span class="keyword">++){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$c</span><span class="keyword">=</span><span class="default">$path</span><span class="keyword">{</span><span class="default">$i</span><span class="keyword">};<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">ord</span><span class="keyword">(</span><span class="default">$c</span><span class="keyword">)&lt;</span><span class="default">128</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$retval</span><span class="keyword">.=</span><span class="default">$c</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }else{<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">PHP_OS</span><span class="keyword">===</span><span class="string">'WINNT'</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$retval</span><span class="keyword">.=</span><span class="default">urlencode</span><span class="keyword">(</span><span class="default">utf8_encode</span><span class="keyword">(</span><span class="default">$c</span><span class="keyword">));<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; else<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$retval</span><span class="keyword">.=</span><span class="default">urlencode</span><span class="keyword">(</span><span class="default">$c</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">htmlspecialchars</span><span class="keyword">(</span><span class="default">$retval</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+There may be operating systems that want utf8 encoding, other than WINNT. Even this latter one won't work on those systems. I don't know about any possibility to determine immediately which encoding to be used on the file system of the server...</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="60227""></a>
+  <div class="note">
+   <strong class="user">jetboy</strong>
+   <a href="#60227" class="date">30-Dec-2005 04:06</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+While previous notes stating that square brackets in the name attribute are valid in HTML 4 are correct, according to this:<br />
+<br />
+<a href="http://www.w3.org/TR/xhtml1/#C_8" rel="nofollow" target="_blank">http://www.w3.org/TR/xhtml1/#C_8</a><br />
+<br />
+the type of the name attribute has been changed in XHTML 1.0, meaning that square brackets in XHTML's name attribute are not valid.<br />
+<br />
+Regardless, at the time of writing, the W3C's validator doesn't pick this up on a XHTML document.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="56639""></a>
+  <div class="note">
+   <strong class="user">dmsuperman at comcast dot net</strong>
+   <a href="#56639" class="date">10-Sep-2005 06:05</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Here's a great way to pass JavaScript to PHP without even leaving the page:<br />
+<br />
+&lt;script type="text/javascript"&gt;<br />
+&lt;!--<br />
+<br />
+function xmlreq(){<br />
+&nbsp; if(window.XMLHttpRequest){<br />
+&nbsp;&nbsp;&nbsp; req = new XMLHttpRequest();<br />
+&nbsp; }else if(window.ActiveXObject){<br />
+&nbsp;&nbsp;&nbsp; req = new ActiveXObject("Microsoft.XMLHTTP");<br />
+&nbsp; }<br />
+&nbsp; return(req);<br />
+}<br />
+function sendPhp(url){<br />
+&nbsp; var req = xmlreq();<br />
+&nbsp; req.onreadystatechange = stateHandler;<br />
+&nbsp; req.open("GET", url, true);<br />
+&nbsp; req.send(null);<br />
+}<br />
+<br />
+sendPhp("updatedatabase.php?username=blah&amp;displayname=whatever");<br />
+//--&gt;<br />
+&lt;/script&gt;</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="53921""></a>
+  <div class="note">
+   <strong class="user">levinb at cs dot rpi dot edu</strong>
+   <a href="#53921" class="date">17-Jun-2005 06:17</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Well, I was working on this one project, on the assumption that I could get the values of all elements with the same name from an appropriately named array.&nbsp; Well, I was *very* disappointed when I couldn't, so I made it so I did anyway.<br />
+<br />
+The following script should convert the raw post data to a $_POST variable, with form data from SELECT elements and their ilk being transformed into an array.&nbsp; It's heavily unoptimized, and I probably missed something, but it's relatively easy to read.&nbsp; I welcome corrections.<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">if (</span><span class="default">$_POST</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$postdata </span><span class="keyword">= </span><span class="default">file_get_contents</span><span class="keyword">(</span><span class="string">'php://input'</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$uglybugger </span><span class="keyword">= </span><span class="string">'/(?&lt;=&amp;)([^&amp;=]+)(?:=([^&amp;]*))/'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$matches </span><span class="keyword">= array();<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">preg_match_all</span><span class="keyword">(</span><span class="default">$uglybugger</span><span class="keyword">, </span><span class="default">$postdata</span><span class="keyword">, </span><span class="default">$matches</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$_POST </span><span class="keyword">= array();<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$match_count </span><span class="keyword">= </span><span class="default">count</span><span class="keyword">(</span><span class="default">$matches</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; for (</span><span class="default">$i </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">; </span><span class="default">$i </span><span class="keyword">&lt; </span><span class="default">$match_count</span><span class="keyword">; </span><span class="default">$i</span><span class="keyword">++) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (!isset(</span><span class="default">$_POST</span><span class="keyword">[</span><span class="default">$matches</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">][</span><span class="default">$i</span><span class="keyword">]])) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$_POST</span><span class="keyword">[</span><span class="default">$matches</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">][</span><span class="default">$i</span><span class="keyword">]] = array();<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$_POST</span><span class="keyword">[</span><span class="default">$matches</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">][</span><span class="default">$i</span><span class="keyword">]][] = </span><span class="default">$matches</span><span class="keyword">[</span><span class="default">2</span><span class="keyword">][</span><span class="default">$i</span><span class="keyword">];<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$match_count </span><span class="keyword">= </span><span class="default">count</span><span class="keyword">(</span><span class="default">$_POST</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; for (</span><span class="default">$i </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">; </span><span class="default">$i </span><span class="keyword">&lt; </span><span class="default">$match_count</span><span class="keyword">; </span><span class="default">$i</span><span class="keyword">++) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">count</span><span class="keyword">(</span><span class="default">$_POST</span><span class="keyword">[</span><span class="default">$i</span><span class="keyword">]) == </span><span class="default">1</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$_POST</span><span class="keyword">[</span><span class="default">$i</span><span class="keyword">] = </span><span class="default">$_POST</span><span class="keyword">[</span><span class="default">$i</span><span class="keyword">][</span><span class="default">0</span><span class="keyword">];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="48636""></a>
+  <div class="note">
+   <strong class="user">dreptack at op dot pl</strong>
+   <a href="#48636" class="date">02-Jan-2005 09:37</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I needed to post html form through image input element. But my problem was I had to use multiple image-buttons, each one for a single row of form table. Pressing the button was mention to tell script to delete this row from table and also (in the same request) save other data from the form table.<br />
+I wrote simple test-script to see what variable I should check for in a script:<br />
+<br />
+I have a html document:<br />
+<br />
+&lt;form action="test.php" method="post"&gt;<br />
+&lt;input type="image" name="varscalar" src="/images/no.gif" /&gt;<br />
+&lt;input type="image" name="vararray[12]" src="/images/no.gif" /&gt;<br />
+&lt;/form&gt;<br />
+<br />
+And a php script:<br />
+<span class="default">&lt;?php<br />
+&nbsp; </span><span class="keyword">if (</span><span class="default">$_POST</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"post: &lt;pre&gt;"</span><span class="keyword">; </span><span class="default">print_r</span><span class="keyword">(</span><span class="default">$_POST</span><span class="keyword">); echo </span><span class="string">'&lt;/pre&gt;'</span><span class="keyword">;<br />
+&nbsp; }<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+What I've discovered suprised me a lot!<br />
+<br />
+After hitting on varscalar: <br />
+<br />
+post: <br />
+Array<br />
+(<br />
+&nbsp;&nbsp;&nbsp; [varscalar_x] =&gt; 6<br />
+&nbsp;&nbsp;&nbsp; [varscalar_y] =&gt; 7<br />
+)<br />
+<br />
+After hitting on upper right corner of vararray:<br />
+<br />
+post: <br />
+Array<br />
+(<br />
+&nbsp;&nbsp;&nbsp; [vararray] =&gt; Array<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; (<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [12] =&gt; 2<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; )<br />
+<br />
+)<br />
+<br />
+This mean when clicking on image-type input element, which name is an array, only y-part of a value is remembered.<br />
+<br />
+The result is the same on: php 4.1.2 on Win98se, php 4.3.9-1 on linux</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="42968""></a>
+  <div class="note">
+   <strong class="user">vlad at vkelman dot com</strong>
+   <a href="#42968" class="date">05-Jun-2004 04:04</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+"4.&nbsp; How do I get all the results from a select multiple HTML tag?"<br />
+<br />
+I think that behavior of PHP which forces to use [] after a name of 'select' control with multiple attribute specified is very unfortunate. I understand it comes from old times when registerglobals = on was commonly used. But it creates incompatibility between PHP and ASP or other server-side scripting languages. The same HTML page with 'select' control cannot post to PHP and ASP server pages, because ASP does not require [] and automatically recognize when arrays are posted.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="40754""></a>
+  <div class="note">
+   <strong class="user">Kenn White kennwhite dot nospam at hotmail dot com</strong>
+   <a href="#40754" class="date">13-Mar-2004 05:18</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Concerning XHTML Strict and array notation in forms, hopefully the information below will be useful:<br />
+<br />
+If I have a form, name="f", and, say, an input text box, name="user_data[Password]", then in Javascript, to reference it I would do something like:<br />
+&nbsp;&nbsp;&nbsp; <br />
+var foo = f['user_data[Password]'].value;<br />
+<br />
+Now, say that in making the switch to XHTML strict, I decide to fully embrace standards compliance, and change my form to id="f", and the input text box to id="user_data[Password]"<br />
+<br />
+Because these have id instead of name, I discover, that all my javascript validation routines just broke.&nbsp; It seems that I have to now change all my js code to something like:<br />
+<br />
+document.getElementById( 'user_data[Password]' ).focus();<br />
+<br />
+I test this on all the major modern browsers, and it works well.&nbsp; I'm thinking, Great!&nbsp; Until I try to validate said page.&nbsp; It turns out that the bracket characters are invalid in id attributes.&nbsp; Ack!&nbsp; So I read this thread:<br />
+<br />
+<a href="http://groups.google.com/groups?hl=en&amp;lr=&amp;ie=UTF-8&amp;oe=" rel="nofollow" target="_blank">http://groups.google.com/groups?hl=en&amp;lr=&amp;ie=UTF-8&amp;oe=</a><br />
+UTF-8&amp;th=78dea36fd65d9bbe&amp;seekm=<br />
+pqx99.19%24006.13377%40news.ca.inter.net#link11<br />
+(link needs to be spliced, sorry)<br />
+<br />
+What does this mean, I start asking myself?&nbsp; Do I have to abandon my goal to migrate to XHTML strict?&nbsp; Transitional seems so unsatisfying.&nbsp; And why bother with a technique that seems to work on most browsers, if it's broken.&nbsp; Alas, there is hope.<br />
+<br />
+But then I read <a href="http://www.w3.org/TR/xhtml1/#h-4.10 carefully.&nbsp; It says " rel="nofollow" target="_blank">http://www.w3.org/TR/xhtml1/#h-4.10 carefully.&nbsp; It says </a>"name" is deprecated as a form attribute, but *NOT* specifically as an attribute in form *elements*.&nbsp; It seems my solution is to use "id" for the form itself, but I can legally use "name" for the individual form components, such as select and text input boxes.&nbsp; I get the impression that "name" as an attribute is eventually going away completely, but in extensive testing using the W3C validator, it passes "name" on form components, as long as "id" (or, strangely, nothing) is used to denote the form itself.<br />
+<br />
+So for XHTML strict, the bottom line:<br />
+&nbsp;1. form, use id, not name<br />
+&nbsp;2. input, use id if you can, but if you need to use bracketed notation (for example, passing PHP arrays), i.e., foo[], you *MUST* use name for XHTML strict validation.<br />
+&nbsp;<br />
+-kenn<br />
+<br />
+kennwhite.nospam@hotmail.com</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="38874""></a>
+  <div class="note">
+   <strong class="user">davis at risingtiger dot net</strong>
+   <a href="#38874" class="date">09-Jan-2004 09:14</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I thought this might be useful to fellow PHP heads like myself out there.
+<br />
+
+<br />
+I recently came across a need to transfer full fledged mutli-dimensional arrays from PHP to JAVASCRIPT.
+<br />
+
+<br />
+So here it is and hopefuly good things come from it.
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+</span><span class="keyword">function </span><span class="default">phparray_jscript</span><span class="keyword">(</span><span class="default">$array</span><span class="keyword">, </span><span class="default">$jsarray</span><span class="keyword">)
+<br />
+{
+<br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">loop_through</span><span class="keyword">(</span><span class="default">$array</span><span class="keyword">,</span><span class="default">$dimen</span><span class="keyword">,</span><span class="default">$localarray</span><span class="keyword">)
+<br />
+&nbsp;&nbsp;&nbsp; {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach(</span><span class="default">$array </span><span class="keyword">as </span><span class="default">$key </span><span class="keyword">=&gt; </span><span class="default">$value</span><span class="keyword">)
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">is_array</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">))
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; echo (</span><span class="default">$localarray</span><span class="keyword">.</span><span class="default">$dimen</span><span class="keyword">.</span><span class="string">"[\"</span><span class="default">$key</span><span class="string">\"] = new Array();\n"</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">loop_through</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">,(</span><span class="default">$dimen</span><span class="keyword">.</span><span class="string">"[\""</span><span class="keyword">.</span><span class="default">$key</span><span class="keyword">.</span><span class="string">"\"]"</span><span class="keyword">),</span><span class="default">$localarray</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; else
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; echo (</span><span class="default">$localarray</span><span class="keyword">.</span><span class="default">$dimen</span><span class="keyword">.</span><span class="string">"[\"</span><span class="default">$key</span><span class="string">\"] = \"</span><span class="default">$value</span><span class="string">\";\n"</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }
+<br />
+&nbsp;&nbsp;&nbsp; }
+<br />
+
+<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"&lt;script language=\"Javascript1.1\"&gt;\n"</span><span class="keyword">;
+<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"var </span><span class="default">$jsarray</span><span class="string"> = new Array();\n"</span><span class="keyword">;
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">loop_through</span><span class="keyword">(</span><span class="default">$array</span><span class="keyword">,</span><span class="string">""</span><span class="keyword">,</span><span class="default">$jsarray</span><span class="keyword">);
+<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"&lt;/script&gt;"</span><span class="keyword">;
+<br />
+}
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="30372""></a>
+  <div class="note">
+   <strong class="user">martellare at hotmail dot com</strong>
+   <a href="#30372" class="date">15-Mar-2003 09:28</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I do not think you are right about not being able to specify something for the value attribute, but I can see where you would have thought it would fail:
+<br />
+
+<br />
+A fair warning about testing to see if a variable exists...
+<br />
+when it comes to strings, the values '' and '0' are interpreted as false when tested this way...
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+</span><span class="keyword">if (</span><span class="default">$string</span><span class="keyword">) { ... }&nbsp; </span><span class="comment">//false for $string == '' || $string == '0'
+<br />
+</span><span class="default">?&gt;
+<br />
+</span>
+<br />
+The best practice for testing to see if you received a variable from the form (which in the case of a checkbox, only happens when it is checked) is to test using this...
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+</span><span class="keyword">if ( isSet(</span><span class="default">$string</span><span class="keyword">) ) { ... } </span><span class="comment">//true if and only if the variable is set
+<br />
+</span><span class="default">?&gt;
+<br />
+</span>
+<br />
+The function tests to see if the variable has been set, regardless of its contents.
+<br />
+
+<br />
+By the way, if anyone's curious, when you do make a checkbox without specifying the value attribute, the value sent from the form for that checkbox becomes 'on'.&nbsp; (That's for HTML in general, not PHP-specific).</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="27190""></a>
+  <div class="note">
+   <strong class="user">martellare at hotmail dot com</strong>
+   <a href="#27190" class="date">26-Nov-2002 08:25</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+A JavaScript Note: Using element indexes to reference form elements can cause problems when you want to add new elements to your form; it can shift the indexes of the elements that are already there.<br />
+<br />
+For example, You've got an array of checkboxes that exist at the beginning of a form:<br />
+===================<br />
+<br />
+&lt;FORM&gt;<br />
+&nbsp;&nbsp;&nbsp; &lt;INPUT type="checkbox" name="fruits[]" value="apple"&gt;apple<br />
+&nbsp;&nbsp;&nbsp; &lt;INPUT type="checkbox" name="fruits[]" value="orange"&gt;orange<br />
+&nbsp;&nbsp;&nbsp; &lt;INPUT type="checkbox" name="fruits[]" value="banana"&gt;banana<br />
+&lt;/FORM&gt;<br />
+<br />
+===================<br />
+... These elements could be referenced in JavaScript like so:<br />
+===================<br />
+<br />
+&lt;SCRIPT language="JavaScript" type="text/javascript"&gt;<br />
+&lt;!--<br />
+&nbsp;&nbsp;&nbsp; var index = 0; //could be 1 or 2 as well<br />
+&nbsp;&nbsp;&nbsp; alert(document.forms[0].elements[index]);<br />
+//--&gt;<br />
+&lt;/SCRIPT&gt;<br />
+<br />
+===================<br />
+However, if you added a new textbox before these elements, the checkboxes indexes become 1 - 3 instead of 0 - 2;&nbsp; That can mess up what ever code you create depending on those indexes.<br />
+<br />
+Instead, try referencing your html arrays in JavaScript this way.&nbsp; I know it works in Netscape 4 &amp; IE 6, I hope it to some extent is universal...<br />
+===================<br />
+<br />
+&lt;SCRIPT language="JavaScript" type="text/javascript"&gt;<br />
+&lt;!--<br />
+&nbsp;&nbsp;&nbsp; var message = "";<br />
+&nbsp;&nbsp;&nbsp; for (var i = 0; i &lt; document.forms[0].elements['fruits[]'].length; i++)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; message += "events[" + i + "]: " + document.forms[0].elements['fruits[]'][i].value + "\n";<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; alert(message);<br />
+//--&gt;<br />
+&lt;/SCRIPT&gt;<br />
+<br />
+===================</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="26086""></a>
+  <div class="note">
+   <strong class="user">bas at cipherware dot nospam dot com</strong>
+   <a href="#26086" class="date">17-Oct-2002 06:52</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Ad 3. "How do I create arrays in a HTML &lt;form&gt;?":<br />
+<br />
+You may have problems to access form elements, which have [] in their name, from JavaScript. The following syntax works in IE and Mozilla (Netscape).<br />
+<br />
+index = 0;<br />
+theForm = document.forms[0];<br />
+theTextField = theForm['elementName[]'][index];</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

@@ -1,0 +1,290 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Stored Procedures</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="mysqli.quickstart.prepared-statements.html">? Prepared Statements</a></li>
+      <li style="float: right;"><a href="mysqli.quickstart.multiple-statement.html">Multiple Statements ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="mysqli.quickstart.html">Quick start guide</a></li>
+    <li>Stored Procedures</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="mysqli.quickstart.stored-procedures" class="section">
+  <h2 class="title">Stored Procedures</h2>
+  <p class="para">
+   The MySQL database supports stored procedures. A stored procedure is a
+   subroutine stored in the database catalog. Applications can call and
+   execute the stored procedure. The <em>CALL</em>
+   SQL statement is used to execute a stored procedure.
+  </p>
+  <p class="para">
+   <em class="emphasis">Parameter</em>
+  </p>
+  <p class="para">
+   Stored procedures can have <em>IN</em>,
+   <em>INOUT</em> and <em>OUT</em> parameters,
+   depending on the MySQL version. The mysqli interface has no special
+   notion for the different kinds of parameters.
+  </p>
+  <p class="para">
+   <em class="emphasis">IN parameter</em>
+  </p>
+  <p class="para">
+   Input parameters are provided with the <em>CALL</em> statement.
+   Please, make sure values are escaped correctly.
+  </p>
+  <p class="para">
+   <div class="example" id="example-1675">
+    <p><strong>Example #1 Calling a stored procedure</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$mysqli&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">mysqli</span><span style="color: #007700">(</span><span style="color: #DD0000">"example.com"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"user"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"password"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"database"</span><span style="color: #007700">);<br />if&nbsp;(</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">connect_errno</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"Failed&nbsp;to&nbsp;connect&nbsp;to&nbsp;MySQL:&nbsp;("&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">connect_errno&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">")&nbsp;"&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">connect_error</span><span style="color: #007700">;<br />}<br /><br />if&nbsp;(!</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #DD0000">"DROP&nbsp;TABLE&nbsp;IF&nbsp;EXISTS&nbsp;test"</span><span style="color: #007700">)&nbsp;||&nbsp;!</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #DD0000">"CREATE&nbsp;TABLE&nbsp;test(id&nbsp;INT)"</span><span style="color: #007700">))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"Table&nbsp;creation&nbsp;failed:&nbsp;("&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">errno&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">")&nbsp;"&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">error</span><span style="color: #007700">;<br />}<br /><br />if&nbsp;(!</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #DD0000">"DROP&nbsp;PROCEDURE&nbsp;IF&nbsp;EXISTS&nbsp;p"</span><span style="color: #007700">)&nbsp;||<br />&nbsp;&nbsp;&nbsp;&nbsp;!</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #DD0000">"CREATE&nbsp;PROCEDURE&nbsp;p(IN&nbsp;id_val&nbsp;INT)&nbsp;BEGIN&nbsp;INSERT&nbsp;INTO&nbsp;test(id)&nbsp;VALUES(id_val);&nbsp;END;"</span><span style="color: #007700">))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"Stored&nbsp;procedure&nbsp;creation&nbsp;failed:&nbsp;("&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">errno&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">")&nbsp;"&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">error</span><span style="color: #007700">;<br />}<br /><br />if&nbsp;(!</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #DD0000">"CALL&nbsp;p(1)"</span><span style="color: #007700">))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"CALL&nbsp;failed:&nbsp;("&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">errno&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">")&nbsp;"&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">error</span><span style="color: #007700">;<br />}<br /><br />if&nbsp;(!(</span><span style="color: #0000BB">$res&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #DD0000">"SELECT&nbsp;id&nbsp;FROM&nbsp;test"</span><span style="color: #007700">)))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"SELECT&nbsp;failed:&nbsp;("&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">errno&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">")&nbsp;"&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">error</span><span style="color: #007700">;<br />}<br /><br /></span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$res</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">fetch_assoc</span><span style="color: #007700">());<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+    <div class="example-contents"><p>以上例程会输出：</p></div>
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+array(1) {
+  [&quot;id&quot;]=&gt;
+  string(1) &quot;1&quot;
+}
+</pre></div>
+    </div>
+   </div>
+  </p>
+  <p class="para">
+   <em class="emphasis">INOUT/OUT parameter</em>
+  </p>
+  <p class="para">
+   The values of <em>INOUT</em>/<em>OUT</em>
+   parameters are accessed using session variables.
+  </p>
+  <p class="para">
+   <div class="example" id="example-1676">
+    <p><strong>Example #2 Using session variables</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$mysqli&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">mysqli</span><span style="color: #007700">(</span><span style="color: #DD0000">"example.com"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"user"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"password"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"database"</span><span style="color: #007700">);<br />if&nbsp;(</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">connect_errno</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"Failed&nbsp;to&nbsp;connect&nbsp;to&nbsp;MySQL:&nbsp;("&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">connect_errno&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">")&nbsp;"&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">connect_error</span><span style="color: #007700">;<br />}<br /><br />if&nbsp;(!</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #DD0000">"DROP&nbsp;PROCEDURE&nbsp;IF&nbsp;EXISTS&nbsp;p"</span><span style="color: #007700">)&nbsp;||<br />&nbsp;&nbsp;&nbsp;&nbsp;!</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #DD0000">'CREATE&nbsp;PROCEDURE&nbsp;p(OUT&nbsp;msg&nbsp;VARCHAR(50))&nbsp;BEGIN&nbsp;SELECT&nbsp;"Hi!"&nbsp;INTO&nbsp;msg;&nbsp;END;'</span><span style="color: #007700">))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"Stored&nbsp;procedure&nbsp;creation&nbsp;failed:&nbsp;("&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">errno&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">")&nbsp;"&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">error</span><span style="color: #007700">;<br />}<br /><br /><br />if&nbsp;(!</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #DD0000">"SET&nbsp;@msg&nbsp;=&nbsp;''"</span><span style="color: #007700">)&nbsp;||&nbsp;!</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #DD0000">"CALL&nbsp;p(@msg)"</span><span style="color: #007700">))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"CALL&nbsp;failed:&nbsp;("&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">errno&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">")&nbsp;"&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">error</span><span style="color: #007700">;<br />}<br /><br />if&nbsp;(!(</span><span style="color: #0000BB">$res&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #DD0000">"SELECT&nbsp;@msg&nbsp;as&nbsp;_p_out"</span><span style="color: #007700">)))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"Fetch&nbsp;failed:&nbsp;("&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">errno&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">")&nbsp;"&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">error</span><span style="color: #007700">;<br />}<br /><br /></span><span style="color: #0000BB">$row&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$res</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">fetch_assoc</span><span style="color: #007700">();<br />echo&nbsp;</span><span style="color: #0000BB">$row</span><span style="color: #007700">[</span><span style="color: #DD0000">'_p_out'</span><span style="color: #007700">];<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+    <div class="example-contents"><p>以上例程会输出：</p></div>
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+Hi!
+</pre></div>
+    </div>
+   </div>
+  </p>
+  <p class="para">
+   Application and framework developers may be able to provide a more convenient
+   API using a mix of session variables and databased catalog inspection.
+   However, please note the possible performance impact of a custom
+   solution based on catalog inspection.
+  </p>
+  <p class="para">
+   <em class="emphasis">Handling result sets</em>
+  </p>
+  <p class="para">
+   Stored procedures can return result sets. Result sets returned from a
+   stored procedure cannot be fetched correctly using <span class="function"><a href="mysqli.query.html" class="function">mysqli_query()</a></span>.
+   The <span class="function"><a href="mysqli.query.html" class="function">mysqli_query()</a></span> function combines statement execution
+   and fetching the first result set into a buffered result set, if any.
+   However, there are additional stored procedure result sets hidden
+   from the user which cause <span class="function"><a href="mysqli.query.html" class="function">mysqli_query()</a></span> to fail
+   returning the user expected result sets.
+  </p>
+  <p class="para">
+   Result sets returned from a stored procedure are fetched using
+   <span class="function"><a href="mysqli.real-query.html" class="function">mysqli_real_query()</a></span> or <span class="function"><a href="mysqli.multi-query.html" class="function">mysqli_multi_query()</a></span>.
+   Both functions allow fetching any number of result sets returned by a
+   statement, such as <em>CALL</em>. Failing to fetch all
+   result sets returned by a stored procedure causes an error.
+  </p>
+  <p class="para">
+   <div class="example" id="example-1677">
+    <p><strong>Example #3 Fetching results from stored procedures</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$mysqli&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">mysqli</span><span style="color: #007700">(</span><span style="color: #DD0000">"example.com"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"user"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"password"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"database"</span><span style="color: #007700">);<br />if&nbsp;(</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">connect_errno</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"Failed&nbsp;to&nbsp;connect&nbsp;to&nbsp;MySQL:&nbsp;("&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">connect_errno&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">")&nbsp;"&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">connect_error</span><span style="color: #007700">;<br />}<br /><br />if&nbsp;(!</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #DD0000">"DROP&nbsp;TABLE&nbsp;IF&nbsp;EXISTS&nbsp;test"</span><span style="color: #007700">)&nbsp;||<br />&nbsp;&nbsp;&nbsp;&nbsp;!</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #DD0000">"CREATE&nbsp;TABLE&nbsp;test(id&nbsp;INT)"</span><span style="color: #007700">)&nbsp;||<br />&nbsp;&nbsp;&nbsp;&nbsp;!</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #DD0000">"INSERT&nbsp;INTO&nbsp;test(id)&nbsp;VALUES&nbsp;(1),&nbsp;(2),&nbsp;(3)"</span><span style="color: #007700">))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"Table&nbsp;creation&nbsp;failed:&nbsp;("&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">errno&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">")&nbsp;"&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">error</span><span style="color: #007700">;<br />}<br /><br />if&nbsp;(!</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #DD0000">"DROP&nbsp;PROCEDURE&nbsp;IF&nbsp;EXISTS&nbsp;p"</span><span style="color: #007700">)&nbsp;||<br />&nbsp;&nbsp;&nbsp;&nbsp;!</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #DD0000">'CREATE&nbsp;PROCEDURE&nbsp;p()&nbsp;READS&nbsp;SQL&nbsp;DATA&nbsp;BEGIN&nbsp;SELECT&nbsp;id&nbsp;FROM&nbsp;test;&nbsp;SELECT&nbsp;id&nbsp;+&nbsp;1&nbsp;FROM&nbsp;test;&nbsp;END;'</span><span style="color: #007700">))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"Stored&nbsp;procedure&nbsp;creation&nbsp;failed:&nbsp;("&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">errno&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">")&nbsp;"&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">error</span><span style="color: #007700">;<br />}<br /><br />if&nbsp;(!</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">multi_query</span><span style="color: #007700">(</span><span style="color: #DD0000">"CALL&nbsp;p()"</span><span style="color: #007700">))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"CALL&nbsp;failed:&nbsp;("&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">errno&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">")&nbsp;"&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">error</span><span style="color: #007700">;<br />}<br /><br />do&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(</span><span style="color: #0000BB">$res&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">store_result</span><span style="color: #007700">())&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">printf</span><span style="color: #007700">(</span><span style="color: #DD0000">"---\n"</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$res</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">fetch_all</span><span style="color: #007700">());<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$res</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">free</span><span style="color: #007700">();<br />&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;else&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">errno</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"Store&nbsp;failed:&nbsp;("&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">errno&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">")&nbsp;"&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">error</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}&nbsp;while&nbsp;(</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">more_results</span><span style="color: #007700">()&nbsp;&amp;&amp;&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">next_result</span><span style="color: #007700">());<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+    <div class="example-contents"><p>以上例程会输出：</p></div>
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+---
+array(3) {
+  [0]=&gt;
+  array(1) {
+    [0]=&gt;
+    string(1) &quot;1&quot;
+  }
+  [1]=&gt;
+  array(1) {
+    [0]=&gt;
+    string(1) &quot;2&quot;
+  }
+  [2]=&gt;
+  array(1) {
+    [0]=&gt;
+    string(1) &quot;3&quot;
+  }
+}
+---
+array(3) {
+  [0]=&gt;
+  array(1) {
+    [0]=&gt;
+    string(1) &quot;2&quot;
+  }
+  [1]=&gt;
+  array(1) {
+    [0]=&gt;
+    string(1) &quot;3&quot;
+  }
+  [2]=&gt;
+  array(1) {
+    [0]=&gt;
+    string(1) &quot;4&quot;
+  }
+}
+</pre></div>
+    </div>
+   </div>
+  </p>
+  <p class="para">
+   <em class="emphasis">Use of prepared statements</em>
+  </p>
+  <p class="para">
+   No special handling is required when using the prepared statement
+   interface for fetching results from the same stored procedure as above.
+   The prepared statement and non-prepared statement interfaces are similar.
+   Please note, that not every MYSQL server version may support
+   preparing the <em>CALL</em> SQL statement.
+  </p>
+  <p class="para">
+   <div class="example" id="example-1678">
+    <p><strong>Example #4 Stored Procedures and Prepared Statements</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$mysqli&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">mysqli</span><span style="color: #007700">(</span><span style="color: #DD0000">"example.com"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"user"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"password"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"database"</span><span style="color: #007700">);<br />if&nbsp;(</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">connect_errno</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"Failed&nbsp;to&nbsp;connect&nbsp;to&nbsp;MySQL:&nbsp;("&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">connect_errno&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">")&nbsp;"&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">connect_error</span><span style="color: #007700">;<br />}<br /><br />if&nbsp;(!</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #DD0000">"DROP&nbsp;TABLE&nbsp;IF&nbsp;EXISTS&nbsp;test"</span><span style="color: #007700">)&nbsp;||<br />&nbsp;&nbsp;&nbsp;&nbsp;!</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #DD0000">"CREATE&nbsp;TABLE&nbsp;test(id&nbsp;INT)"</span><span style="color: #007700">)&nbsp;||<br />&nbsp;&nbsp;&nbsp;&nbsp;!</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #DD0000">"INSERT&nbsp;INTO&nbsp;test(id)&nbsp;VALUES&nbsp;(1),&nbsp;(2),&nbsp;(3)"</span><span style="color: #007700">))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"Table&nbsp;creation&nbsp;failed:&nbsp;("&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">errno&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">")&nbsp;"&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">error</span><span style="color: #007700">;<br />}<br /><br />if&nbsp;(!</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #DD0000">"DROP&nbsp;PROCEDURE&nbsp;IF&nbsp;EXISTS&nbsp;p"</span><span style="color: #007700">)&nbsp;||<br />&nbsp;&nbsp;&nbsp;&nbsp;!</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #DD0000">'CREATE&nbsp;PROCEDURE&nbsp;p()&nbsp;READS&nbsp;SQL&nbsp;DATA&nbsp;BEGIN&nbsp;SELECT&nbsp;id&nbsp;FROM&nbsp;test;&nbsp;SELECT&nbsp;id&nbsp;+&nbsp;1&nbsp;FROM&nbsp;test;&nbsp;END;'</span><span style="color: #007700">))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"Stored&nbsp;procedure&nbsp;creation&nbsp;failed:&nbsp;("&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">errno&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">")&nbsp;"&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">error</span><span style="color: #007700">;<br />}<br /><br />if&nbsp;(!(</span><span style="color: #0000BB">$stmt&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">prepare</span><span style="color: #007700">(</span><span style="color: #DD0000">"CALL&nbsp;p()"</span><span style="color: #007700">)))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"Prepare&nbsp;failed:&nbsp;("&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">errno&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">")&nbsp;"&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">error</span><span style="color: #007700">;<br />}<br /><br />if&nbsp;(!</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">execute</span><span style="color: #007700">())&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"Execute&nbsp;failed:&nbsp;("&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">errno&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">")&nbsp;"&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">error</span><span style="color: #007700">;<br />}<br /><br />do&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(</span><span style="color: #0000BB">$res&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">get_result</span><span style="color: #007700">())&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">printf</span><span style="color: #007700">(</span><span style="color: #DD0000">"---\n"</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">mysqli_fetch_all</span><span style="color: #007700">(</span><span style="color: #0000BB">$res</span><span style="color: #007700">));<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">mysqli_free_result</span><span style="color: #007700">(</span><span style="color: #0000BB">$res</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;else&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">errno</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"Store&nbsp;failed:&nbsp;("&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">errno&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">")&nbsp;"&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">error</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}&nbsp;while&nbsp;(</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">more_results</span><span style="color: #007700">()&nbsp;&amp;&amp;&nbsp;</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">next_result</span><span style="color: #007700">());<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+   </div>
+  </p>
+  <p class="para">
+   Of course, use of the bind API for fetching is supported as well.
+  </p>
+  <p class="para">
+   <div class="example" id="example-1679">
+    <p><strong>Example #5 Stored Procedures and Prepared Statements using bind API</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">if&nbsp;(!(</span><span style="color: #0000BB">$stmt&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">prepare</span><span style="color: #007700">(</span><span style="color: #DD0000">"CALL&nbsp;p()"</span><span style="color: #007700">)))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"Prepare&nbsp;failed:&nbsp;("&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">errno&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">")&nbsp;"&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">error</span><span style="color: #007700">;<br />}<br /><br />if&nbsp;(!</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">execute</span><span style="color: #007700">())&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"Execute&nbsp;failed:&nbsp;("&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">errno&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">")&nbsp;"&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">error</span><span style="color: #007700">;<br />}<br /><br />do&nbsp;{<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$id_out&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">NULL</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(!</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">bind_result</span><span style="color: #007700">(</span><span style="color: #0000BB">$id_out</span><span style="color: #007700">))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"Bind&nbsp;failed:&nbsp;("&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">errno&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">")&nbsp;"&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">error</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;<br />&nbsp;&nbsp;&nbsp;&nbsp;while&nbsp;(</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">fetch</span><span style="color: #007700">())&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"id&nbsp;=&nbsp;</span><span style="color: #0000BB">$id_out</span><span style="color: #DD0000">\n"</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}&nbsp;while&nbsp;(</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">more_results</span><span style="color: #007700">()&nbsp;&amp;&amp;&nbsp;</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">next_result</span><span style="color: #007700">());<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+   </div>
+  </p>
+  <p class="para">
+   <em class="emphasis">See also</em>
+  </p>
+  <p class="para">
+   <ul class="simplelist">
+    <li class="member"><span class="methodname"><a href="mysqli.query.html" class="methodname">mysqli::query()</a></span></li>
+    <li class="member"><span class="methodname"><a href="mysqli.multi-query.html" class="methodname">mysqli::multi_query()</a></span></li>
+    <li class="member"><span class="methodname"><strong>mysqli_result::next-result()</strong></span></li>
+    <li class="member"><span class="methodname"><strong>mysqli_result::more-results()</strong></span></li>
+   </ul>
+  </p>
+ </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="112262""></a>
+  <div class="note">
+   <strong class="user">Jonathon</strong>
+   <a href="#112262" class="date">25-May-2013 02:30</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+<span class="default">&lt;?php <br />
+</span><span class="comment">/*<br />
+* <br />
+*Creating Session Variable with Prepared Statement<br />
+*<br />
+*for IN/OUT variable to stored procedure<br />
+*<br />
+*using Data Binding to get the data back <br />
+*<br />
+*@params<br />
+*&nbsp; &nbsp; $mysql: mysqli() instance<br />
+*&nbsp; &nbsp; $var: input and output paramater to stored procedure<br />
+*/<br />
+&nbsp;</span><span class="keyword">function </span><span class="default">stored_procedure</span><span class="keyword">(</span><span class="default">$mysql </span><span class="keyword">, &amp;</span><span class="default">$var </span><span class="keyword">= </span><span class="string">'hello world'</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$stmt </span><span class="keyword">= </span><span class="default">$mysql</span><span class="keyword">-&gt;</span><span class="default">stmt_init</span><span class="keyword">(); </span><span class="comment">// initialize statement<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if(</span><span class="default">$stmt</span><span class="keyword">-&gt;</span><span class="default">prepare</span><span class="keyword">(</span><span class="string">"SET @var = ?"</span><span class="keyword">)) </span><span class="comment">// prepare set command<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">{<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$var </span><span class="keyword">= </span><span class="default">$mysql</span><span class="keyword">-&gt;</span><span class="default">real_escape_string</span><span class="keyword">(</span><span class="default">$var</span><span class="keyword">); </span><span class="comment">// escape input<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$stmt</span><span class="keyword">-&gt;</span><span class="default">bind_param</span><span class="keyword">(</span><span class="string">'s'</span><span class="keyword">,</span><span class="default">$var</span><span class="keyword">); </span><span class="comment">// bind data<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$stmt</span><span class="keyword">-&gt;</span><span class="default">execute</span><span class="keyword">(); </span><span class="comment">// create session variable<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$stmt</span><span class="keyword">-&gt;</span><span class="default">free_result</span><span class="keyword">(); </span><span class="comment">// free resutl<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if(</span><span class="default">$stmt</span><span class="keyword">-&gt;</span><span class="default">prepare</span><span class="keyword">(</span><span class="string">"CALL stored_procedure(@var)"</span><span class="keyword">))</span><span class="comment">//call stored procedure with database server session variable<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">{<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$stmt</span><span class="keyword">-&gt;</span><span class="default">execute</span><span class="keyword">();<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$stmt</span><span class="keyword">-&gt;</span><span class="default">free_result</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">$stmt</span><span class="keyword">-&gt;</span><span class="default">prepare</span><span class="keyword">(</span><span class="string">" SELECT @var AS var "</span><span class="keyword">)) </span><span class="comment">// prepare command to select the database server session variable<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">{<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$stmt</span><span class="keyword">-&gt;</span><span class="default">execute</span><span class="keyword">(); </span><span class="comment">// execure<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$out_var </span><span class="keyword">= </span><span class="default">NULL</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$stmt</span><span class="keyword">-&gt;</span><span class="default">bind_result</span><span class="keyword">(</span><span class="default">$out_var</span><span class="keyword">); </span><span class="comment">// bind<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$stmt</span><span class="keyword">-&gt;</span><span class="default">fetch</span><span class="keyword">(); </span><span class="comment">// fetch one row<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">echo </span><span class="default">$out_var</span><span class="keyword">.</span><span class="string">'&lt;br /&gt;'</span><span class="keyword">;</span><span class="comment">// display OUT variable<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">}<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

@@ -1,0 +1,215 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Service level and consistency</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="mysqlnd-ms.filter.html">? Filter</a></li>
+      <li style="float: right;"><a href="mysqlnd-ms.gtid.html">Global transaction IDs ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="mysqlnd-ms.concepts.html">概念</a></li>
+    <li>Service level and consistency</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="mysqlnd-ms.qos-consistency" class="section">
+  <h2 class="title">Service level and consistency</h2>
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <strong>Version requirement</strong><br />
+   <p class="para">
+    Service levels have been introduced in mysqlnd_ms version 1.2.0-alpha.
+    <span class="function"><a href="function.mysqlnd-ms-set-qos.html" class="function">mysqlnd_ms_set_qos()</a></span>
+    requires PHP 5.4.0 or newer.
+   </p>
+  </p></blockquote>
+  <p class="para">
+   The plugin can be used with different kinds of MySQL database clusters.
+   Different clusters can deliver different levels of service to applications.
+   The service levels can be grouped by the data consistency levels that
+   can be achieved. The plugin knows about:
+   <ul class="itemizedlist">
+    <li class="listitem">
+     <span class="simpara">eventual consistency</span>
+    </li>
+    <li class="listitem">
+     <span class="simpara">session consistency</span>
+    </li>
+    <li class="listitem">
+     <span class="simpara">strong consistency</span>
+    </li>
+   </ul>
+  </p>
+  <p class="para">
+   Depending how a cluster is used it may be possible to achieve higher service
+   levels than the default one. For example, a read from an asynchronous
+   MySQL replication slave is eventual consistent. Thus, one may say the default
+   consistency level of a MySQL replication cluster is eventual consistency.
+   However, if the master only is used by a client for reading and writing during a
+   session, session consistency (read your writes) is given. PECL mysqlnd 1.2.0
+   abstracts the details of choosing an appropriate node for any of the above
+   service levels from the user.
+  </p>
+  <p class="para">
+   Service levels can be set through the qualify-of-service filter in the
+   <a href="mysqlnd-ms.plugin-ini-json.html" class="link">plugins configuration file</a>
+   and at runtime using the function
+   <span class="function"><a href="function.mysqlnd-ms-set-qos.html" class="function">mysqlnd_ms_set_qos()</a></span>.
+  </p>
+  <p class="para">
+   The plugin defines the different service levels as follows.
+  </p>
+  <p class="para">
+   Eventual consistency is the default service provided by an asynchronous
+   cluster, such as classical MySQL replication. A read operation executed
+   on an arbitrary node may or may not return stale data. The applications
+   view of the data is eventual consistent.
+  </p>
+  <p class="para">
+   Session consistency is given if a client can always read its own writes.
+   An asynchronous MySQL replication cluster can deliver session consistency if clients
+   always use the master after the first write or never query a slave which has
+   not yet replicated the clients write operation.
+  </p>
+  <p class="para">
+   The plugins understanding of strong consistency is that all clients always
+   see the committed writes of all other clients. This is the default when
+   using MySQL Cluster or any other cluster offering
+   synchronous data distribution.
+  </p>
+  <p class="para">
+   <em class="emphasis">Service level parameters</em>
+  </p>
+  <p class="para">
+   Eventual consistency and session consistency service level accept parameters.
+  </p>
+  <p class="para">
+   Eventual consistency is the service provided by classical MySQL replication.
+   By default, all nodes qualify for read requests. An optional <em>age</em>
+   parameter can be given to filter out nodes which lag more than a certain number of
+   seconds behind the master. The plugin is using <em>SHOW SLAVE STATUS</em>
+   to measure the lag. Please, see the MySQL reference manual to learn about accuracy and
+   reliability of the <em>SHOW SLAVE STATUS</em> command.
+  </p>
+  <p class="para">
+   Session consistency (read your writes) accepts an optional <em>GTID</em>
+   parameter to consider reading not only from the master but also from slaves
+   which already have replicated a certain write described by its transaction identifier.
+   This way, when using asynchronous MySQL replication, read requests may be load balanced
+   over slaves while still ensuring session consistency.
+  </p>
+  <p class="para">
+   The latter requires the use of
+   <a href="mysqlnd-ms.gtid.html" class="link">client-side global transaction id injection</a>.
+  </p>
+  <p class="para">
+   <em class="emphasis">Advantages of the new approach</em>
+  </p>
+  <p class="para">
+   The new approach supersedes the use of SQL hints and the configuration option
+   <em>master_on_write</em> in some respects. If an application
+   running on top of an asynchronous MySQL replication cluster cannot accept stale
+   data for certain reads, it is easier to tell the plugin to choose appropriate
+   nodes than prefixing all read statements in question with the SQL hint
+   to enforce the use of the master. Furthermore, the plugin may be able to
+   use selected slaves for reading.
+  </p>
+  <p class="para">
+   The <em>master_on_write</em> configuration option makes the plugin
+   use the master after the first write (session consistency, read your writes).
+   In some cases, session consistency may not be needed for the rest of the session
+   but only for some, few read operations. Thus, <em>master_on_write</em>
+   may result in more read load on the master than necessary. In those cases it
+   is better to request a higher than default service level only for those reads
+   that actually need it. Once the reads are done, the application can return to
+   default service level. Switching between service levels is only possible
+   using <span class="function"><a href="function.mysqlnd-ms-set-qos.html" class="function">mysqlnd_ms_set_qos()</a></span>.
+  </p>
+  <p class="para">
+   <em class="emphasis">Performance considerations</em>
+  </p>
+  <p class="para">
+   A MySQL replication cluster cannot tell clients which slaves are capable
+   of delivering which level of service. Thus, in some cases,
+   clients need to query the slaves to check their status.
+   PECL mysqlnd_ms transparently runs the necessary SQL in the
+   background. However, this is an expensive and slow operation. SQL statements
+   are run if eventual consistency is combined with an age (slave lag) limit and
+   if session consistency is combined with a global transaction ID.
+  </p>
+  <p class="para">
+   If eventual consistency is combined with an maximum age (slave lag), the plugin
+   selects candidates for statement execution and load balancing for each statement
+   as follows. If the statement is a write all masters are considered as candidates. Slaves
+   are not checked and not considered as candidates. If the statement is a read, the
+   plugin transparently executes <em>SHOW SLAVE STATUS</em> on every slaves
+   connection. It will loop over all connections, send the statement and then start
+   checking for results. Usually, this is slightly faster than a loop over all connections
+   in which for every connection a query is send and the plugin waits for its results.
+   A slave is considered a candidate if <em>SHOW SLAVE STATUS</em> reports
+   <em>Slave_IO_Running=Yes</em>,
+   <em>Slave_SQL_Running=Yes</em> and
+   <em>Seconds_Behind_Master</em> is less or equal than the allowed maximum age.
+   In case of an SQL error, the plugin emits a warning but does not set an error on
+   the connection. The error is not set to make it possible to use the plugin as a drop-in.
+  </p>
+  <p class="para">
+   If session consistency is combined with a global transaction ID, the plugin executes
+   the SQL statement set with the <em>fetch_last_gtid</em> entry of the
+   <em>global_transaction_id_injection</em> section from the plugins configuration file.
+   Further details are identical to those described above.
+  </p>
+  <p class="para">
+   In version 1.2.0 no additional optimizations are done for executing background queries.
+   Future versions may contain optimizations, depending on user demand.
+  </p>
+  <p class="para">
+   If no parameters and options are set, no SQL is needed. In that case,
+   the plugin consider all nodes of the type shown below.
+   <ul class="itemizedlist">
+    <li class="listitem">
+     <span class="simpara">eventual consistency, no further options set: all masters, all slaves</span>
+    </li>
+    <li class="listitem">
+     <span class="simpara">session consistency, no further options set: all masters</span>
+    </li>
+    <li class="listitem">
+     <span class="simpara">strong consistency (no options allowed): all masters</span>
+    </li>
+   </ul>
+  </p>
+  <p class="para">
+    <em class="emphasis">Throttling</em>
+  </p>
+  <p class="para">
+   The quality of service filter can be combined with
+   <a href="mysqlnd-ms.gtid.html" class="link">Global transaction IDs</a> to
+   throttle clients. Throttling does reduce the write load on the master
+   by slowing down clients. If session consistency is requested and
+   global transactions idenentifier are used to check the status of
+   a slave, the check can be done in two ways. By default a slave
+   is checked and skipped immediately if it does not match
+   the criteria for session consistency. Alternatively, the
+   plugin can wait for a slave to catch up to the master until
+   session consistency is possible. To enable the throttling,
+   you have to set
+   <a href="mysqlnd-ms.plugin-ini-json.html#ini.mysqlnd-ms-plugin-config-v2.gtid" class="link">wait_for_gtid_timeout</a>
+   configuration option.
+  </p>
+ </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+ <div class="note">There are no user contributed notes for this page.</div>
+</div>
+</div></div></body></html>

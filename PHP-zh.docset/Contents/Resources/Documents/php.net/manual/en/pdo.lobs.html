@@ -1,0 +1,228 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>大对象 (LOBs)</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="pdo.error-handling.html">? 错误与错误处理</a></li>
+      <li style="float: right;"><a href="class.pdo.html">PDO ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="book.pdo.html">PDO</a></li>
+    <li>大对象 (LOBs)</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="pdo.lobs" class="chapter">
+ <h1>大对象 (LOBs)</h1>
+
+ <p class="para">
+   应用程序在某一时刻，可能需要在数据库中存储"大"数据。"大"通常意味着"大约 4kb 或以上"，尽管某些数据库在数据达到"大"之前可以轻松地处理多达 32kb 的数据。大对象本质上可能是文本或二进制。在 <span class="function"><a href="pdostatement.bindparam.html" class="function">PDOStatement::bindParam()</a></span> 或 <span class="function"><a href="pdostatement.bindcolumn.html" class="function">PDOStatement::bindColumn()</a></span>)  调用中使用 <strong><code>PDO::PARAM_LOB</code></strong> 类型码可以让 PDO 使用大数据类型。<strong><code>PDO::PARAM_LOB</code></strong> 告诉 PDO 作为流来映射数据，以便能使用  <a href="ref.stream.html" class="link">PHP Streams API</a> 来操作。
+ </p>
+ <p class="para">
+  <div class="example" id="example-935">
+   <p><strong>Example #1 从数据库中显示一张图片</strong></p>
+   <div class="example-contents"><p>
+    下面例子绑定一个 LOB 到 $lob 变量，然后用  <span class="function"><a href="function.fpassthru.html" class="function">fpassthru()</a></span> 将其发送到浏览器。因为 LOB 代表一个流，所以类似 <span class="function"><a href="function.fgets.html" class="function">fgets()</a></span>、<span class="function"><a href="function.fread.html" class="function">fread()</a></span> 以及 <span class="function"><a href="function.stream-get-contents.html" class="function">stream_get_contents()</a></span> 这样的函数都可以用在它上面。
+   </p></div>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$db&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">PDO</span><span style="color: #007700">(</span><span style="color: #DD0000">'odbc:SAMPLE'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'db2inst1'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'ibmdb2'</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$stmt&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$db</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">prepare</span><span style="color: #007700">(</span><span style="color: #DD0000">"select&nbsp;contenttype,&nbsp;imagedata&nbsp;from&nbsp;images&nbsp;where&nbsp;id=?"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">execute</span><span style="color: #007700">(array(</span><span style="color: #0000BB">$_GET</span><span style="color: #007700">[</span><span style="color: #DD0000">'id'</span><span style="color: #007700">]));<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">bindColumn</span><span style="color: #007700">(</span><span style="color: #0000BB">1</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$type</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">PDO</span><span style="color: #007700">::</span><span style="color: #0000BB">PARAM_STR</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">256</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">bindColumn</span><span style="color: #007700">(</span><span style="color: #0000BB">2</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$lob</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">PDO</span><span style="color: #007700">::</span><span style="color: #0000BB">PARAM_LOB</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">fetch</span><span style="color: #007700">(</span><span style="color: #0000BB">PDO</span><span style="color: #007700">::</span><span style="color: #0000BB">FETCH_BOUND</span><span style="color: #007700">);<br /><br /></span><span style="color: #0000BB">header</span><span style="color: #007700">(</span><span style="color: #DD0000">"Content-Type:&nbsp;</span><span style="color: #0000BB">$type</span><span style="color: #DD0000">"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">fpassthru</span><span style="color: #007700">(</span><span style="color: #0000BB">$lob</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+ </p>
+ <p class="para">
+  <div class="example" id="example-936">
+   <p><strong>Example #2 插入一张图片到数据库</strong></p>
+   <div class="example-contents"><p>
+   下面例子打开一个文件并将文件句柄传给 PDO 来做为一个 LOB 插入。PDO尽可能地让数据库以最有效的方式获取文件内容。
+   </p></div>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$db&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">PDO</span><span style="color: #007700">(</span><span style="color: #DD0000">'odbc:SAMPLE'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'db2inst1'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'ibmdb2'</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$stmt&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$db</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">prepare</span><span style="color: #007700">(</span><span style="color: #DD0000">"insert&nbsp;into&nbsp;images&nbsp;(id,&nbsp;contenttype,&nbsp;imagedata)&nbsp;values&nbsp;(?,&nbsp;?,&nbsp;?)"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$id&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">get_new_id</span><span style="color: #007700">();&nbsp;</span><span style="color: #FF8000">//&nbsp;调用某个函数来分配一个新&nbsp;ID<br /><br />//&nbsp;假设处理一个文件上传<br />//&nbsp;可以在&nbsp;PHP&nbsp;文档中找到更多的信息<br /><br /></span><span style="color: #0000BB">$fp&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">fopen</span><span style="color: #007700">(</span><span style="color: #0000BB">$_FILES</span><span style="color: #007700">[</span><span style="color: #DD0000">'file'</span><span style="color: #007700">][</span><span style="color: #DD0000">'tmp_name'</span><span style="color: #007700">],&nbsp;</span><span style="color: #DD0000">'rb'</span><span style="color: #007700">);<br /><br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">bindParam</span><span style="color: #007700">(</span><span style="color: #0000BB">1</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$id</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">bindParam</span><span style="color: #007700">(</span><span style="color: #0000BB">2</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$_FILES</span><span style="color: #007700">[</span><span style="color: #DD0000">'file'</span><span style="color: #007700">][</span><span style="color: #DD0000">'type'</span><span style="color: #007700">]);<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">bindParam</span><span style="color: #007700">(</span><span style="color: #0000BB">3</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$fp</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">PDO</span><span style="color: #007700">::</span><span style="color: #0000BB">PARAM_LOB</span><span style="color: #007700">);<br /><br /></span><span style="color: #0000BB">$db</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">beginTransaction</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">execute</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">$db</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">commit</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+ </p>
+ <p class="para">
+  <div class="example" id="example-937">
+   <p><strong>Example #3  插入一张图片到数据库：Oracle</strong></p>
+   <div class="example-contents"><p>
+   对于从文件插入一个 lob，Oracle略有不同。必须在事务之后进行插入，否则当执行查询时导致新近插入 LOB 将以0长度被隐式提交：
+   </p></div>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$db&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">PDO</span><span style="color: #007700">(</span><span style="color: #DD0000">'oci:'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'scott'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'tiger'</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$stmt&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$db</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">prepare</span><span style="color: #007700">(</span><span style="color: #DD0000">"insert&nbsp;into&nbsp;images&nbsp;(id,&nbsp;contenttype,&nbsp;imagedata)&nbsp;"&nbsp;</span><span style="color: #007700">.<br /></span><span style="color: #DD0000">"VALUES&nbsp;(?,&nbsp;?,&nbsp;EMPTY_BLOB())&nbsp;RETURNING&nbsp;imagedata&nbsp;INTO&nbsp;?"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$id&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">get_new_id</span><span style="color: #007700">();&nbsp;</span><span style="color: #FF8000">//&nbsp;调用某个函数来分配一个新&nbsp;ID<br /><br />//&nbsp;假设处理一个文件上传<br />//&nbsp;可以在&nbsp;PHP&nbsp;文档中找到更多的信息<br /><br /></span><span style="color: #0000BB">$fp&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">fopen</span><span style="color: #007700">(</span><span style="color: #0000BB">$_FILES</span><span style="color: #007700">[</span><span style="color: #DD0000">'file'</span><span style="color: #007700">][</span><span style="color: #DD0000">'tmp_name'</span><span style="color: #007700">],&nbsp;</span><span style="color: #DD0000">'rb'</span><span style="color: #007700">);<br /><br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">bindParam</span><span style="color: #007700">(</span><span style="color: #0000BB">1</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$id</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">bindParam</span><span style="color: #007700">(</span><span style="color: #0000BB">2</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$_FILES</span><span style="color: #007700">[</span><span style="color: #DD0000">'file'</span><span style="color: #007700">][</span><span style="color: #DD0000">'type'</span><span style="color: #007700">]);<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">bindParam</span><span style="color: #007700">(</span><span style="color: #0000BB">3</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$fp</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">PDO</span><span style="color: #007700">::</span><span style="color: #0000BB">PARAM_LOB</span><span style="color: #007700">);<br /><br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">beginTransaction</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">execute</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">commit</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+ </p>
+</div>
+<div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="101841""></a>
+  <div class="note">
+   <strong class="user">xorinox at gmx dot ch</strong>
+   <a href="#101841" class="date">13-Jan-2011 08:11</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I find it easier to use stream_get_contens to fetch the data of a lob using the file handle.
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+$stmt </span><span class="keyword">= </span><span class="default">$pdo</span><span class="keyword">-&gt;</span><span class="default">con</span><span class="keyword">-&gt;</span><span class="default">prepare</span><span class="keyword">( </span><span class="string">'select * from filetable' </span><span class="keyword">);
+<br />
+</span><span class="default">$stmt</span><span class="keyword">-&gt;</span><span class="default">execute</span><span class="keyword">();
+<br />
+</span><span class="default">$res </span><span class="keyword">= </span><span class="default">$stmt</span><span class="keyword">-&gt;</span><span class="default">fetchAll</span><span class="keyword">( </span><span class="default">PDO</span><span class="keyword">::</span><span class="default">FETCH_ASSOC </span><span class="keyword">);
+<br />
+
+<br />
+for( </span><span class="default">$i</span><span class="keyword">=</span><span class="default">0</span><span class="keyword">; </span><span class="default">$i</span><span class="keyword">&lt;</span><span class="default">count</span><span class="keyword">(</span><span class="default">$res</span><span class="keyword">); </span><span class="default">$i</span><span class="keyword">++ ){
+<br />
+&nbsp; </span><span class="default">$filename </span><span class="keyword">= </span><span class="string">"C:/tmp/"</span><span class="keyword">.</span><span class="default">$res</span><span class="keyword">[</span><span class="default">$i</span><span class="keyword">][</span><span class="string">'FILE_ID'</span><span class="keyword">].</span><span class="string">'.xml'</span><span class="keyword">;
+<br />
+&nbsp; </span><span class="default">$content </span><span class="keyword">= </span><span class="default">stream_get_contents</span><span class="keyword">( </span><span class="default">$res</span><span class="keyword">[</span><span class="default">$i</span><span class="keyword">][</span><span class="string">'DATA_FILE'</span><span class="keyword">] );
+<br />
+&nbsp; </span><span class="default">file_put_contents</span><span class="keyword">( </span><span class="default">$filename</span><span class="keyword">, </span><span class="default">$content </span><span class="keyword">);
+<br />
+}
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="96311""></a>
+  <div class="note">
+   <strong class="user">Jeremy Cook</strong>
+   <a href="#96311" class="date">19-Feb-2010 10:31</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+There seems to be a bug that affects example 1 above. PDO::PARAM_LOB when used with pdo::bindColumn() is supposed to return a stream but it returns a string. Passing this string to fpassthru() then triggers an error with the message 'supplied argument is not a valid stream resource'. This has been reported in bug #40913. The work around is to do the following:
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+$stmt </span><span class="keyword">= </span><span class="default">$db</span><span class="keyword">-&gt;</span><span class="default">prepare</span><span class="keyword">(</span><span class="string">"select contenttype, imagedata from images where id=?"</span><span class="keyword">);
+<br />
+</span><span class="default">$stmt</span><span class="keyword">-&gt;</span><span class="default">execute</span><span class="keyword">(array(</span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">'id'</span><span class="keyword">]));
+<br />
+</span><span class="default">$stmt</span><span class="keyword">-&gt;</span><span class="default">bindColumn</span><span class="keyword">(</span><span class="default">1</span><span class="keyword">, </span><span class="default">$type</span><span class="keyword">, </span><span class="default">PDO</span><span class="keyword">::</span><span class="default">PARAM_STR</span><span class="keyword">, </span><span class="default">256</span><span class="keyword">);
+<br />
+</span><span class="default">$stmt</span><span class="keyword">-&gt;</span><span class="default">bindColumn</span><span class="keyword">(</span><span class="default">2</span><span class="keyword">, </span><span class="default">$lob</span><span class="keyword">, </span><span class="default">PDO</span><span class="keyword">::</span><span class="default">PARAM_LOB</span><span class="keyword">);
+<br />
+</span><span class="default">$stmt</span><span class="keyword">-&gt;</span><span class="default">fetch</span><span class="keyword">(</span><span class="default">PDO</span><span class="keyword">::</span><span class="default">FETCH_BOUND</span><span class="keyword">);
+<br />
+
+<br />
+</span><span class="default">header</span><span class="keyword">(</span><span class="string">"Content-Type: </span><span class="default">$type</span><span class="string">"</span><span class="keyword">);
+<br />
+echo(</span><span class="default">$lob</span><span class="keyword">);
+<br />
+</span><span class="default">?&gt;
+<br />
+</span>
+<br />
+Since the browser is expecting an image after the call to header() writing the string representation of the binary output with echo() has the same affect as calling fpassthru().</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="93218""></a>
+  <div class="note">
+   <strong class="user">http://matts.org/</strong>
+   <a href="#93218" class="date">28-Aug-2009 10:30</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+A big gotcha exists for Oracle users.<br />
+<br />
+You have to save CLOB objects using PDO::PARAM_STR, not PDO::PARAM_LOB.<br />
+<br />
+But you MUST send the 4th argument, usually strlen($subject) or you get a LONG error.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="90004""></a>
+  <div class="note">
+   <strong class="user">diogoko at gmail dot com</strong>
+   <a href="#90004" class="date">01-Apr-2009 06:33</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+PDOStatement's methods bindParam and bindValue also work with strings, as in:
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+&nbsp; $data </span><span class="keyword">= </span><span class="default">file_get_contents</span><span class="keyword">(</span><span class="default">$filename</span><span class="keyword">);
+<br />
+&nbsp; </span><span class="default">$stmt</span><span class="keyword">-&gt;</span><span class="default">bindValue</span><span class="keyword">(</span><span class="default">1</span><span class="keyword">, </span><span class="default">$data</span><span class="keyword">, </span><span class="default">PDO</span><span class="keyword">::</span><span class="default">PARAM_LOB</span><span class="keyword">);
+<br />
+&nbsp; </span><span class="comment">//...
+<br />
+</span><span class="default">?&gt;
+<br />
+</span>
+<br />
+This was the only way I could make it work with PostgreSQL.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="85897""></a>
+  <div class="note">
+   <strong class="user">knl at bitflop dot com</strong>
+   <a href="#85897" class="date">23-Sep-2008 09:07</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I spend a lot of time trying to get this to work, but no matter what I did PDO corrupted my data.<br />
+<br />
+I finally discovered that I had been using:<br />
+<br />
+$pdo-&gt;exec('SET CHARACTER SET utf8');<br />
+<br />
+in the TRY part of my connection script.<br />
+<br />
+This off course doesn't work when you feed binary input to PDO using the parameter lob.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

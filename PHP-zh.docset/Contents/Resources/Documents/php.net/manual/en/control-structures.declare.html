@@ -1,0 +1,811 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>declare</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="control-structures.switch.html">? switch</a></li>
+      <li style="float: right;"><a href="function.return.html">return ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="language.control-structures.html">流程控制</a></li>
+    <li>declare</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="control-structures.declare" class="sect1">
+ <h2 class="title"><em>declare</em></h2>
+ <p class="verinfo">(PHP 4, PHP 5)</p>
+ <p class="para">
+  <em>declare</em> 结构用来设定一段代码的执行指令。<em>declare</em>
+  的语法和其它流程控制结构相似：
+  <div class="informalexample">
+   <div class="example-contents">
+<div class="cdata"><pre>
+declare (directive)
+    statement
+</pre></div>
+   </div>
+
+  </div>
+ </p>
+ <p class="para">
+  <em>directive</em> 部分允许设定 <em>declare</em>
+  代码段的行为。目前只认识两个指令：<em>ticks</em>（更多信息见下面
+  <a href="control-structures.declare.html#control-structures.declare.ticks" class="link">ticks</a> 指令）以及 
+  <em>encoding</em>（更多信息见下面 <a href="control-structures.declare.html#control-structures.declare.encoding" class="link">encoding</a> 指令）。
+ </p>
+ <blockquote class="note"><p><strong class="note">Note</strong>: 
+  <span class="simpara">
+   encoding 是 PHP 5.3.0 新增指令。
+  </span>
+ </p></blockquote> 
+ <p class="para">
+  <em>declare</em> 代码段中的 <em>statement</em>
+  部分将被执行&mdash;&mdash;怎样执行以及执行中有什么副作用出现取决于
+  <em>directive</em> 中设定的指令。
+ </p>
+ <p class="para">
+  <em>declare</em> 结构也可用于全局范围，影响到其后的所有代码（但如果有
+  <em>declare</em> 结构的文件被其它文件包含，则对包含它的父文件不起作用）。
+  <div class="informalexample">
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">//&nbsp;these&nbsp;are&nbsp;the&nbsp;same:<br /><br />//&nbsp;you&nbsp;can&nbsp;use&nbsp;this:<br /></span><span style="color: #007700">declare(</span><span style="color: #0000BB">ticks</span><span style="color: #007700">=</span><span style="color: #0000BB">1</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;entire&nbsp;script&nbsp;here<br /></span><span style="color: #007700">}<br /><br /></span><span style="color: #FF8000">//&nbsp;or&nbsp;you&nbsp;can&nbsp;use&nbsp;this:<br /></span><span style="color: #007700">declare(</span><span style="color: #0000BB">ticks</span><span style="color: #007700">=</span><span style="color: #0000BB">1</span><span style="color: #007700">);<br /></span><span style="color: #FF8000">//&nbsp;entire&nbsp;script&nbsp;here<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+ </p>
+ 
+ <div class="sect2" id="control-structures.declare.ticks">
+  <h3 class="title">Ticks</h3>
+  <p class="para">
+   Tick（时钟周期）是一个在 <em>declare</em> 代码段中解释器每执行
+   <var class="varname"><var class="varname">N</var></var> 条可计时的低级语句就会发生的事件。<var class="varname"><var class="varname">N</var></var>
+   的值是在 <em>declare</em> 中的 <em>directive</em> 部分用
+   <code class="code">ticks=<var class="varname"><var class="varname">N</var></var></code> 来指定的。
+  </p>
+  <p class="para">
+   不是所有语句都可计时。通常条件表达式和参数表达式都不可计时。
+  </p>
+  <p class="para">
+   在每个 tick 中出现的事件是由 <span class="function"><a href="function.register-tick-function.html" class="function">register_tick_function()</a></span>
+   来指定的。更多细节见下面的例子。注意每个 tick 中可以出现多个事件。
+  </p>
+  <p class="para">
+   <div class="example" id="example-147">
+    <p><strong>Example #1 Tick 的用法示例</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /><br /></span><span style="color: #007700">declare(</span><span style="color: #0000BB">ticks</span><span style="color: #007700">=</span><span style="color: #0000BB">1</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">//&nbsp;A&nbsp;function&nbsp;called&nbsp;on&nbsp;each&nbsp;tick&nbsp;event<br /></span><span style="color: #007700">function&nbsp;</span><span style="color: #0000BB">tick_handler</span><span style="color: #007700">()<br />{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"tick_handler()&nbsp;called\n"</span><span style="color: #007700">;<br />}<br /><br /></span><span style="color: #0000BB">register_tick_function</span><span style="color: #007700">(</span><span style="color: #DD0000">'tick_handler'</span><span style="color: #007700">);<br /><br /></span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">;<br /><br />if&nbsp;(</span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">&gt;&nbsp;</span><span style="color: #0000BB">0</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">+=&nbsp;</span><span style="color: #0000BB">2</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;print(</span><span style="color: #0000BB">$a</span><span style="color: #007700">);<br />}<br /><br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+  </p>
+  <p class="para">
+   <div class="example" id="example-148">
+    <p><strong>Example #2 Ticks 的用法示例</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /><br /></span><span style="color: #007700">function&nbsp;</span><span style="color: #0000BB">tick_handler</span><span style="color: #007700">()<br />{<br />&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"tick_handler()&nbsp;called\n"</span><span style="color: #007700">;<br />}<br /><br /></span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">tick_handler</span><span style="color: #007700">();<br /><br />if&nbsp;(</span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">&gt;&nbsp;</span><span style="color: #0000BB">0</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">+=&nbsp;</span><span style="color: #0000BB">2</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">tick_handler</span><span style="color: #007700">();<br />&nbsp;&nbsp;&nbsp;&nbsp;print(</span><span style="color: #0000BB">$a</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">tick_handler</span><span style="color: #007700">();<br />}<br /></span><span style="color: #0000BB">tick_handler</span><span style="color: #007700">();<br /><br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+  </p>
+  <p class="simpara">
+   参见 <span class="function"><a href="function.register-tick-function.html" class="function">register_tick_function()</a></span> 和
+   <span class="function"><a href="function.unregister-tick-function.html" class="function">unregister_tick_function()</a></span>。
+  </p>
+ </div>
+ 
+ <div class="sect2" id="control-structures.declare.encoding">
+  <h3 class="title">Encoding</h3>
+  <p class="para">
+   可以用 encoding 指令来对每段脚本指定其编码方式。
+   <div class="example" id="example-149">
+    <p><strong>Example #3 对脚本指定编码方式</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">declare(</span><span style="color: #0000BB">encoding</span><span style="color: #007700">=</span><span style="color: #DD0000">'ISO-8859-1'</span><span style="color: #007700">);<br /></span><span style="color: #FF8000">//&nbsp;code&nbsp;here<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+   </div>
+  </p>
+  
+  <div class="caution"><strong class="caution">Caution</strong>
+   <p class="simpara">
+    当和命名空间结合起来时 declare 的唯一合法语法是
+    <em>declare(encoding=&#039;...&#039;);</em>，其中 <em>...</em>
+    是编码的值。而 <em>declare(encoding=&#039;...&#039;) {}</em>
+    将在与命名空间结合时产生解析错误。
+   </p>
+  </div>
+  <p class="para">
+   在 PHP 5.3 中除非在编译时指定了
+   <em>--enable-zend-multibyte</em>，否则 declare 中的 encoding 值会被忽略。
+  </p>
+  <p class="para">
+   注意除非用 <span class="function"><a href="function.phpinfo.html" class="function">phpinfo()</a></span>，否则 PHP
+   不会显示出是否在编译时指定了 <em>--enable-zend-multibyte</em>。
+  </p>
+  <p class="para">
+   参见 <a href="ini.core.html#ini.zend.script-encoding" class="link">zend.script_encoding</a>。
+  </p>
+  
+ </div>
+</div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="114418""></a>
+  <div class="note">
+   <strong class="user">php at niekbosch dot nl</strong>
+   <a href="#114418" class="date">19-Feb-2014 01:17</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Basically 'declare( encoding = .... );' overrides the zend.script_encoding configuration option (as set in php.ini). However, keep in mind that:<br />
+<br />
+* the file encoding must be compatible (at least in the ASCII range of characters) to the zend.script_encoding setting. If you set 'zend.script_encoding' to UTF-8 and save the file in UTF-16, PHP will not be able to interpret the file, let alone the declare statement. As long as you use ASCII compatible encodings (i.e. ISO-8859-1(5), UTF-8 etc) for both the file encoding as the zend.script_encoding, you should be fine. (However, I have not experimented with adding non-ascii characters in comments above the declare statement).<br />
+<br />
+* PHP string literals are converted from your source code encoding (either set with the declare statement or else according to zend.script_encoding) to the mbstring.internal_encoding as set in your php.ini (even if you change the setting using mb_internal_encoding). As an example:<br />
+<br />
+php.ini:<br />
+mbstring.internal_encoding = UTF-8<br />
+<br />
+test.php:<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">declare(</span><span class="default">encoding </span><span class="keyword">= </span><span class="string">'ISO-8859-15'</span><span class="keyword">);<br />
+</span><span class="default">mb_internal_encoding</span><span class="keyword">( </span><span class="string">'ISO-8859-15' </span><span class="keyword">);<br />
+echo </span><span class="string">'a?a?' </span><span class="keyword">. </span><span class="string">"\n"</span><span class="keyword">;<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+This will still output the string UTF-8 encoded; in a terminal/browser with encoding 'ISO-8859-15' the string will look (something) like this: a?�a??</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="114377""></a>
+  <div class="note">
+   <strong class="user">nospam dot narf at bofh dot bg</strong>
+   <a href="#114377" class="date">13-Feb-2014 11:43</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+This manual doesn't say what "script's encoding" means and how declaring it affects its behavior.<br />
+<br />
+Of course declare(encoding='foo') would specify the encoding - that's self-explanatory and not helpful.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="113482""></a>
+  <div class="note">
+   <strong class="user">php dot net at e-z dot name</strong>
+   <a href="#113482" class="date">17-Oct-2013 03:34</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+you can register multiple tick functions:<br />
+<br />
+<span class="default">&lt;?PHP<br />
+</span><span class="keyword">function </span><span class="default">a</span><span class="keyword">() { echo </span><span class="string">"a\n"</span><span class="keyword">; }<br />
+function </span><span class="default">b</span><span class="keyword">() { echo </span><span class="string">"b\n"</span><span class="keyword">; }<br />
+<br />
+</span><span class="default">register_tick_function</span><span class="keyword">(</span><span class="string">'a'</span><span class="keyword">);<br />
+</span><span class="default">register_tick_function</span><span class="keyword">(</span><span class="string">'b'</span><span class="keyword">);<br />
+</span><span class="default">register_tick_function</span><span class="keyword">(</span><span class="string">'b'</span><span class="keyword">);<br />
+</span><span class="default">register_tick_function</span><span class="keyword">(</span><span class="string">'b'</span><span class="keyword">);<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+will output on every tick:<br />
+a<br />
+b<br />
+b<br />
+b</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="112939""></a>
+  <div class="note">
+   <strong class="user">sawyerrken at gmail dot com</strong>
+   <a href="#112939" class="date">09-Aug-2013 03:31</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+In the following example:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">handler</span><span class="keyword">(){<br />
+&nbsp;&nbsp;&nbsp; print </span><span class="string">"hello &lt;br /&gt;"</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="default">register_tick_function</span><span class="keyword">(</span><span class="string">"handler"</span><span class="keyword">);<br />
+<br />
+declare(</span><span class="default">ticks </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$b </span><span class="keyword">= </span><span class="default">2</span><span class="keyword">;<br />
+} </span><span class="comment">//closing curly bracket tickable<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+"Hello" will be displayed twice because the closing curly bracket is also tickable. <br />
+<br />
+One may wonder why the opening curly bracket is not tickable if the closing is tickable. This is because the instruction for PHP to start ticking is given by the opening curly bracket so the ticking starts immediately after it.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="110323""></a>
+  <div class="note">
+   <strong class="user">Kamil Pawelkiewicz</strong>
+   <a href="#110323" class="date">11-Oct-2012 03:56</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I've created memory usage monitor class using tick event.<br />
+<br />
+The result is returned in a fancy graph using GD library.<br />
+<br />
+You can get the source, readme and example script at:<br />
+https://github.com/kampaw/profiler<br />
+<br />
+Usage is very simple:<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp; </span><span class="keyword">require(</span><span class="string">'profiler.php'</span><span class="keyword">);<br />
+<br />
+&nbsp; </span><span class="default">$profiler </span><span class="keyword">= new </span><span class="default">profiler</span><span class="keyword">;<br />
+&nbsp; declare(</span><span class="default">ticks </span><span class="keyword">= </span><span class="default">1000</span><span class="keyword">);<br />
+<br />
+&nbsp; </span><span class="comment">// monitor started<br />
+&nbsp; // insert your code here<br />
+<br />
+&nbsp; </span><span class="default">$profiler</span><span class="keyword">-&gt;</span><span class="default">chart</span><span class="keyword">();<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="101483""></a>
+  <div class="note">
+   <strong class="user">ramamneh at gmail dot com</strong>
+   <a href="#101483" class="date">19-Dec-2010 08:15</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+check loaded server connection 
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+$connection&nbsp; </span><span class="keyword">= </span><span class="default">false</span><span class="keyword">;
+<br />
+function </span><span class="default">checkConnection</span><span class="keyword">( </span><span class="default">$connectionWaitingTime </span><span class="keyword">= </span><span class="default">3 </span><span class="keyword">)
+<br />
+{ 
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// check connection &amp; time 
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">global </span><span class="default">$time</span><span class="keyword">,</span><span class="default">$connection</span><span class="keyword">;
+<br />
+&nbsp;&nbsp;&nbsp; if( (</span><span class="default">$t </span><span class="keyword">= (</span><span class="default">time</span><span class="keyword">() - </span><span class="default">$time</span><span class="keyword">)) &gt;= </span><span class="default">$waitingTime&nbsp; </span><span class="keyword">&amp;&amp; !</span><span class="default">$connection</span><span class="keyword">){&nbsp; 
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo (</span><span class="string">"&lt;p&gt; Server not responding&nbsp; for &lt;strong&gt;</span><span class="default">$t</span><span class="string">&lt;/strong&gt; seconds !! &lt;/p&gt;"</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; die(</span><span class="string">"Connection aborted"</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 
+<br />
+&nbsp;&nbsp;&nbsp; }
+<br />
+&nbsp;&nbsp;&nbsp; 
+<br />
+}
+<br />
+
+<br />
+</span><span class="default">register_tick_function</span><span class="keyword">(</span><span class="string">"checkConnection"</span><span class="keyword">);
+<br />
+</span><span class="default">$time </span><span class="keyword">= </span><span class="default">time</span><span class="keyword">();
+<br />
+declare (</span><span class="default">ticks</span><span class="keyword">=</span><span class="default">1</span><span class="keyword">)
+<br />
+{
+<br />
+&nbsp;&nbsp;&nbsp; while( </span><span class="default">true </span><span class="keyword">){ </span><span class="comment">// connecting to loaded server
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">}
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$connection </span><span class="keyword">= </span><span class="default">true </span><span class="keyword">;
+<br />
+}
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="100137""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#100137" class="date">27-Sep-2010 11:10</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+It's amazing how many people didn't grasp the concept here. Note the wording in the documentation. It states that the tick handler is called every n native execution cycles. That means native instructions, not including system calls (i'm guessing). This can give you a very good idea if you need to optimize a particular part of your script, since you can measure quite effectively how many native instructions are in your actual code.<br />
+<br />
+A good profiler would take that into account, and force you, the developer, to include calls to the profiler as you're entering and leaving every function. That way you'd be able to keep an eye on how many cycles it took each function to complete. Independent of time.<br />
+<br />
+That is extremely powerful, and not to be underestimated. A good solution would allow aggregate stats, so the total time in a function would be counted, including inside called functions.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="88929""></a>
+  <div class="note">
+   <strong class="user">markandrewslade at dontspamemeat dot gmail</strong>
+   <a href="#88929" class="date">13-Feb-2009 06:06</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Note that the two methods for calling declare are not identical.<br />
+<br />
+Method 1:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">// Print "tick" with a timestamp and optional suffix.<br />
+</span><span class="keyword">function </span><span class="default">do_tick</span><span class="keyword">(</span><span class="default">$str </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; list(</span><span class="default">$sec</span><span class="keyword">, </span><span class="default">$usec</span><span class="keyword">) = </span><span class="default">explode</span><span class="keyword">(</span><span class="string">' '</span><span class="keyword">, </span><span class="default">microtime</span><span class="keyword">());<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">printf</span><span class="keyword">(</span><span class="string">"[%.4f] Tick.%s\n"</span><span class="keyword">, </span><span class="default">$sec </span><span class="keyword">+ </span><span class="default">$usec</span><span class="keyword">, </span><span class="default">$str</span><span class="keyword">);<br />
+}<br />
+</span><span class="default">register_tick_function</span><span class="keyword">(</span><span class="string">'do_tick'</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// Tick once before declaring so we have a point of reference.<br />
+</span><span class="default">do_tick</span><span class="keyword">(</span><span class="string">'--start--'</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// Method 1<br />
+</span><span class="keyword">declare(</span><span class="default">ticks</span><span class="keyword">=</span><span class="default">1</span><span class="keyword">);<br />
+while(</span><span class="default">1</span><span class="keyword">) </span><span class="default">sleep</span><span class="keyword">(</span><span class="default">1</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">/* Output:<br />
+[1234544435.7160] Tick.--start--<br />
+[1234544435.7161] Tick.<br />
+[1234544435.7162] Tick.<br />
+[1234544436.7163] Tick.<br />
+[1234544437.7166] Tick.<br />
+*/<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Method 2:<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">// Print "tick" with a timestamp and optional suffix.<br />
+</span><span class="keyword">function </span><span class="default">do_tick</span><span class="keyword">(</span><span class="default">$str </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; list(</span><span class="default">$sec</span><span class="keyword">, </span><span class="default">$usec</span><span class="keyword">) = </span><span class="default">explode</span><span class="keyword">(</span><span class="string">' '</span><span class="keyword">, </span><span class="default">microtime</span><span class="keyword">());<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">printf</span><span class="keyword">(</span><span class="string">"[%.4f] Tick.%s\n"</span><span class="keyword">, </span><span class="default">$sec </span><span class="keyword">+ </span><span class="default">$usec</span><span class="keyword">, </span><span class="default">$str</span><span class="keyword">);<br />
+}<br />
+</span><span class="default">register_tick_function</span><span class="keyword">(</span><span class="string">'do_tick'</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// Tick once before declaring so we have a point of reference.<br />
+</span><span class="default">do_tick</span><span class="keyword">(</span><span class="string">'--start--'</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// Method 2<br />
+</span><span class="keyword">declare(</span><span class="default">ticks</span><span class="keyword">=</span><span class="default">1</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; while(</span><span class="default">1</span><span class="keyword">) </span><span class="default">sleep</span><span class="keyword">(</span><span class="default">1</span><span class="keyword">);<br />
+}<br />
+<br />
+</span><span class="comment">/* Output: <br />
+[1234544471.6486] Tick.--start--<br />
+[1234544472.6489] Tick.<br />
+[1234544473.6490] Tick.<br />
+[1234544474.6492] Tick.<br />
+[1234544475.6493] Tick.<br />
+*/<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Notice that when using {} after declare, do_tick wasn't auto-called until about 1 second after we entered the declare {} block.&nbsp; However when not using the {}, do_tick was auto-called not once but twice immediately after calling declare();.<br />
+<br />
+I'm assuming this is due to how PHP handles ticking internally.&nbsp; That is, declare() without the {} seems to trigger more low-level instructions which in turn fires tick a few times (if ticks=1) in the act of declaring.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="85290""></a>
+  <div class="note">
+   <strong class="user">anotheruser at example dot com</strong>
+   <a href="#85290" class="date">24-Aug-2008 01:50</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Code evaluation script which uses debug_backtrace() to get execution time in ns, relative current line number, function, file, and calling function info on each tick, and shove it all in $script_stats array.&nbsp; See debug_backtrace manual to customize what info is collected.<br />
+<br />
+Warning: this will exhaust allowed memory very easily, so adjust tick counter according to the size of your code.&nbsp; Also, array_key_exists checking on debug_backtrace arrays is removed here only to keep this example simple, but should be added to avoid a large number of resulting PHP Notice errors.<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+$script_stats </span><span class="keyword">= array();<br />
+</span><span class="default">$time </span><span class="keyword">= </span><span class="default">microtime</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">);<br />
+<br />
+function </span><span class="default">track_stats</span><span class="keyword">(){<br />
+&nbsp;&nbsp;&nbsp; global </span><span class="default">$script_stats</span><span class="keyword">,</span><span class="default">$time</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$trace </span><span class="keyword">= </span><span class="default">debug_backtrace</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$exe_time </span><span class="keyword">= (</span><span class="default">microtime</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">) - </span><span class="default">$time</span><span class="keyword">) * </span><span class="default">1000</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$func_args </span><span class="keyword">= </span><span class="default">implode</span><span class="keyword">(</span><span class="string">", "</span><span class="keyword">,</span><span class="default">$trace</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">][</span><span class="string">"args"</span><span class="keyword">]);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$script_stats</span><span class="keyword">[] = array(<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">"current_time" </span><span class="keyword">=&gt; </span><span class="default">microtime</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">),<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">"memory" </span><span class="keyword">=&gt; </span><span class="default">memory_get_usage</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">),<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">"file" </span><span class="keyword">=&gt; </span><span class="default">$trace</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">][</span><span class="string">"file"</span><span class="keyword">].</span><span class="string">': '</span><span class="keyword">.</span><span class="default">$trace</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">][</span><span class="string">"line"</span><span class="keyword">],<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">"function" </span><span class="keyword">=&gt; </span><span class="default">$trace</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">][</span><span class="string">"function"</span><span class="keyword">].</span><span class="string">'('</span><span class="keyword">.</span><span class="default">$func_args</span><span class="keyword">.</span><span class="string">')'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">"called_by" </span><span class="keyword">=&gt; </span><span class="default">$trace</span><span class="keyword">[</span><span class="default">2</span><span class="keyword">][</span><span class="string">"function"</span><span class="keyword">].</span><span class="string">' in '</span><span class="keyword">.</span><span class="default">$trace</span><span class="keyword">[</span><span class="default">2</span><span class="keyword">][</span><span class="string">"file"</span><span class="keyword">].</span><span class="string">': '</span><span class="keyword">.</span><span class="default">$trace</span><span class="keyword">[</span><span class="default">2</span><span class="keyword">][</span><span class="string">"line"</span><span class="keyword">],<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">"ns" </span><span class="keyword">=&gt; </span><span class="default">$exe_time<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$time </span><span class="keyword">= </span><span class="default">microtime</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+declare(</span><span class="default">ticks </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">);<br />
+</span><span class="default">register_tick_function</span><span class="keyword">(</span><span class="string">"track_stats"</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// the rest of your project code<br />
+<br />
+// output $script_stats into a html table or something<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="80284""></a>
+  <div class="note">
+   <strong class="user">zabmilenko at charter dot net</strong>
+   <a href="#80284" class="date">08-Jan-2008 10:49</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you misspell the directive, you won't get any error or warning.&nbsp; The declare block will simply act as a nest for statements:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">declare(</span><span class="default">tocks</span><span class="keyword">=</span><span class="string">"four hundred"</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// Has no affect on code and produces<br />
+&nbsp;&nbsp;&nbsp; // no error or warning.<br />
+</span><span class="keyword">}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Tested in php 5.2.5 on XPsp2</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="69242""></a>
+  <div class="note">
+   <strong class="user">rosen_ivanov at abv dot bg</strong>
+   <a href="#69242" class="date">28-Aug-2006 03:06</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+As Chris already noted, ticks doesn't make your script multi-threaded, but they are still great. I use them mainly for profiling - for example, placing the following at the very beginning of the script allows you to monitor its memory usage:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">function </span><span class="default">profiler</span><span class="keyword">(</span><span class="default">$return</span><span class="keyword">=</span><span class="default">false</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; static </span><span class="default">$m</span><span class="keyword">=</span><span class="default">0</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">$return</span><span class="keyword">) return </span><span class="string">"</span><span class="default">$m</span><span class="string"> bytes"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; if ((</span><span class="default">$mem</span><span class="keyword">=</span><span class="default">memory_get_usage</span><span class="keyword">())&gt;</span><span class="default">$m</span><span class="keyword">) </span><span class="default">$m </span><span class="keyword">= </span><span class="default">$mem</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="default">register_tick_function</span><span class="keyword">(</span><span class="string">'profiler'</span><span class="keyword">);<br />
+declare(</span><span class="default">ticks</span><span class="keyword">=</span><span class="default">1</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">/*<br />
+Your code here<br />
+*/<br />
+<br />
+</span><span class="keyword">echo </span><span class="default">profiler</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">);<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+This approach is more accurate than calling memory_get_usage only in the end of the script. It has some performance overhead though :)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="66812""></a>
+  <div class="note">
+   <strong class="user">aeolianmeson at NOSPAM dot blitzeclipse dot com</strong>
+   <a href="#66812" class="date">30-May-2006 09:06</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The scope of the declare() call if used without a block is a little unpredictable, in my experience. It appears that if placed in a method or function, it may not apply to the calls that ensue, like the following:
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+</span><span class="keyword">function </span><span class="default">a</span><span class="keyword">()
+<br />
+{
+<br />
+&nbsp;&nbsp; declare(</span><span class="default">ticks</span><span class="keyword">=</span><span class="default">2</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; </span><span class="default">b</span><span class="keyword">();
+<br />
+}
+<br />
+
+<br />
+function </span><span class="default">b</span><span class="keyword">()
+<br />
+{
+<br />
+&nbsp;&nbsp; </span><span class="comment">// The declare may not apply here, sometimes.
+<br />
+</span><span class="keyword">}
+<br />
+</span><span class="default">?&gt;
+<br />
+</span>
+<br />
+So, if all of a sudden the signals are getting ignored, check this. At the risk of losing the ability to make a mathematical science out of placing a number of activities at varying durations of ticks like many people have chosen to do, I've found it simple to just put this at the top of the code, and just make it global.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="59867""></a>
+  <div class="note">
+   <strong class="user">warhog at warhog dot net</strong>
+   <a href="#59867" class="date">18-Dec-2005 09:39</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+as i read about ticks the first time i thought "wtf, useless crap" - but then i discovered some usefull application...<br />
+<br />
+you can declare a tick-function which checks each n executions of your script whether the connection is still alive or not, very usefull for some kind of scripts to decrease serverload<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">function </span><span class="default">check_connection</span><span class="keyword">()<br />
+{ if (</span><span class="default">connection_aborted</span><span class="keyword">())<br />
+&nbsp;&nbsp; { </span><span class="comment">// do something here, e.g. close database connections<br />
+&nbsp;&nbsp; &nbsp;&nbsp; // (or&nbsp; use a shutdown function for this<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="keyword">exit; }<br />
+}<br />
+<br />
+</span><span class="default">register_tick_function</span><span class="keyword">(</span><span class="string">"connection"</span><span class="keyword">);<br />
+<br />
+declare (</span><span class="default">ticks</span><span class="keyword">=</span><span class="default">20</span><span class="keyword">)<br />
+{<br />
+&nbsp; </span><span class="comment">// put your PHP-Script here<br />
+&nbsp; // you may increase/decrease the number of ticks<br />
+</span><span class="keyword">}<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="50447""></a>
+  <div class="note">
+   <strong class="user">chris-at-free-source.com</strong>
+   <a href="#50447" class="date">28-Feb-2005 09:16</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Also note that PHP is run in a single thread and so everything it does will be one line of code at a time.&nbsp; I'm not aware of any true threading support in PHP, the closest you can get is to fork.<br />
+<br />
+so, declare tick doens't "multi-thread" at all, it is simply is a way to automaticaly call a function every n-lines of code.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="33788""></a>
+  <div class="note">
+   <strong class="user">fok at nho dot com dot br</strong>
+   <a href="#33788" class="date">08-Jul-2003 03:45</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+This is a very simple example using ticks to execute a external script to show rx/tx data from the server<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">function </span><span class="default">traf</span><span class="keyword">(){<br />
+&nbsp; </span><span class="default">passthru</span><span class="keyword">( </span><span class="string">'./traf.sh' </span><span class="keyword">);<br />
+&nbsp; echo </span><span class="string">"&lt;br /&gt;\n"</span><span class="keyword">;<br />
+&nbsp; </span><span class="default">flush</span><span class="keyword">(); </span><span class="comment">// keeps it flowing to the browser...<br />
+&nbsp; </span><span class="default">sleep</span><span class="keyword">( </span><span class="default">1 </span><span class="keyword">);<br />
+}<br />
+<br />
+</span><span class="default">register_tick_function</span><span class="keyword">( </span><span class="string">"traf" </span><span class="keyword">);<br />
+<br />
+declare( </span><span class="default">ticks</span><span class="keyword">=</span><span class="default">1 </span><span class="keyword">){<br />
+&nbsp; while( </span><span class="default">true </span><span class="keyword">){}&nbsp;&nbsp; </span><span class="comment">// to keep it running...<br />
+</span><span class="keyword">}<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+contents of traf.sh:<br />
+# Shows TX/RX for eth0 over 1sec<br />
+#!/bin/bash<br />
+<br />
+TX1=`cat /proc/net/dev | grep "eth0" | cut -d: -f2 | awk '{print $9}'`<br />
+RX1=`cat /proc/net/dev | grep "eth0" | cut -d: -f2 | awk '{print $1}'`<br />
+sleep 1<br />
+TX2=`cat /proc/net/dev | grep "eth0" | cut -d: -f2 | awk '{print $9}'`<br />
+RX2=`cat /proc/net/dev | grep "eth0" | cut -d: -f2 | awk '{print $1}'`<br />
+<br />
+echo -e "TX: $[ $TX2 - $TX1 ] bytes/s \t RX: $[ $RX2 - $RX1 ] bytes/s"<br />
+#--= the end. =--</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="29085""></a>
+  <div class="note">
+   <strong class="user">daniel@swn</strong>
+   <a href="#29085" class="date">01-Feb-2003 08:56</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+<span class="default">&lt;?php<br />
+ob_end_clean</span><span class="keyword">();<br />
+</span><span class="default">ob_implicit_flush</span><span class="keyword">(</span><span class="default">1</span><span class="keyword">);<br />
+<br />
+function </span><span class="default">a</span><span class="keyword">() {<br />
+&nbsp;for(</span><span class="default">$i</span><span class="keyword">=</span><span class="default">0</span><span class="keyword">;</span><span class="default">$i</span><span class="keyword">&lt;=</span><span class="default">100000</span><span class="keyword">;</span><span class="default">$i</span><span class="keyword">++) { }<br />
+&nbsp;echo </span><span class="string">"function a() "</span><span class="keyword">;<br />
+}<br />
+function </span><span class="default">b</span><span class="keyword">() {<br />
+&nbsp;for(</span><span class="default">$i</span><span class="keyword">=</span><span class="default">0</span><span class="keyword">;</span><span class="default">$i</span><span class="keyword">&lt;=</span><span class="default">100000</span><span class="keyword">;</span><span class="default">$i</span><span class="keyword">++) { }<br />
+&nbsp;echo </span><span class="string">"function b() "</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="default">register_tick_function </span><span class="keyword">(</span><span class="string">"a"</span><span class="keyword">);<br />
+</span><span class="default">register_tick_function </span><span class="keyword">(</span><span class="string">"b"</span><span class="keyword">);<br />
+<br />
+declare (</span><span class="default">ticks</span><span class="keyword">=</span><span class="default">4</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; while(</span><span class="default">true</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">sleep</span><span class="keyword">(</span><span class="default">1</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"\n&lt;br&gt;&lt;b&gt;"</span><span class="keyword">.</span><span class="default">time</span><span class="keyword">().</span><span class="string">"&lt;/b&gt;&lt;br&gt;\n"</span><span class="keyword">;;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span>You will see that a() and b() are slowing down this process. They are in fact not executed every second as expected. So this function is not a real alternative for multithreading using some slow functions..there is no difference to this way: while (true) { a(); b(); sleep(1); }</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="20012""></a>
+  <div class="note">
+   <strong class="user">rob_spamsux at rauchmedien dot ihatespam dot com</strong>
+   <a href="#20012" class="date">19-Mar-2002 11:45</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Correction to above note:
+<br />
+
+<br />
+Apparently, the end brace '}' at the end of the statement causes a tick.
+<br />
+
+<br />
+So using
+<br />
+
+<br />
+------------
+<br />
+declare (ticks=1) echo "1 tick after this prints";
+<br />
+------------
+<br />
+
+<br />
+gives the expected behavior of causing 1 tick.
+<br />
+
+<br />
+Note: the tick is issued after the statement executes.
+<br />
+
+<br />
+Also, after playing around with this, I found that it is not really the multi-tasking I had expected. It behaves the same as simply calling the functions. I.e. each function must finish before passing the baton to the next function. They do not run in parallel.
+<br />
+
+<br />
+It also seems that they always run in the order in which they were registered.
+<br />
+
+<br />
+So,
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+</span><span class="keyword">------------
+<br />
+</span><span class="comment"># register tick functions
+<br />
+</span><span class="default">register_tick_function </span><span class="keyword">(</span><span class="string">"a"</span><span class="keyword">);
+<br />
+</span><span class="default">register_tick_function </span><span class="keyword">(</span><span class="string">"b"</span><span class="keyword">);
+<br />
+
+<br />
+</span><span class="comment"># make the tick functions run
+<br />
+</span><span class="keyword">declare (</span><span class="default">ticks</span><span class="keyword">=</span><span class="default">1</span><span class="keyword">);
+<br />
+</span><span class="default">?&gt;
+<br />
+</span>------------
+<br />
+
+<br />
+is equivalent to
+<br />
+
+<br />
+------------
+<br />
+a();
+<br />
+b();
+<br />
+------------
+<br />
+
+<br />
+It is simply a convenient way to have functions called periodically while some other code is being executed. I.e. you could use it to periodically check the status of something and then exit the script or do something else based on the status.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

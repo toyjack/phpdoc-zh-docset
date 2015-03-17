@@ -1,0 +1,156 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>向后不兼容</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="migration56.html">? 从PHP 5.5.x 移植到 PHP 5.6.x</a></li>
+      <li style="float: right;"><a href="migration56.new-features.html">新特性 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="migration56.html">从PHP 5.5.x 移植到 PHP 5.6.x</a></li>
+    <li>向后不兼容</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="migration56.incompatible" class="sect1">
+ <h2 class="title">向后不兼容</h2>
+ <p class="simpara">
+  虽然大部分 PHP 5 的代码无需修改即可正常运行，
+  但是有部分代码是无法向后兼容的：
+ </p>
+
+ <div class="sect2" id="migration56.incompatible.array-keys">
+  <h3 class="title">使用数组标识符为类定义数组类型的属性石，数组的键不会被覆盖</h3>
+
+  <p class="para">
+   在 PHP 5.6 之前的版本中，为类定义数组类型的属性时，
+   如果数组中同时使用了显式数组键和隐式数组键，并且显式的键和隐式的序列键相同，
+   那么数组的键将被覆盖。例如：
+  </p>
+
+  <div class="informalexample">
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">class&nbsp;</span><span style="color: #0000BB">C&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;const&nbsp;</span><span style="color: #0000BB">ONE&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;</span><span style="color: #0000BB">$array&nbsp;</span><span style="color: #007700">=&nbsp;[<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">self</span><span style="color: #007700">::</span><span style="color: #0000BB">ONE&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #DD0000">'foo'</span><span style="color: #007700">,<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">'bar'</span><span style="color: #007700">,<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">'quux'</span><span style="color: #007700">,<br />&nbsp;&nbsp;&nbsp;&nbsp;];<br />}<br /><br /></span><span style="color: #0000BB">var_dump</span><span style="color: #007700">((new&nbsp;</span><span style="color: #0000BB">C</span><span style="color: #007700">)-&gt;</span><span style="color: #0000BB">array</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+   <p class="para">Output of the above example in PHP 5.5:</p>
+   <div class="example-contents screen">
+<div class="cdata"><pre>
+array(2) {
+  [0]=&gt;
+  string(3) &quot;bar&quot;
+  [1]=&gt;
+  string(4) &quot;quux&quot;
+}
+
+</pre></div>
+   </div>
+   <p class="para">Output of the above example in PHP 5.6:</p>
+   <div class="example-contents screen">
+<div class="cdata"><pre>
+array(3) {
+  [1]=&gt;
+  string(3) &quot;foo&quot;
+  [2]=&gt;
+  string(3) &quot;bar&quot;
+  [3]=&gt;
+  string(4) &quot;quux&quot;
+}
+</pre></div>
+   </div>
+  </div>
+ </div>
+
+ <div class="sect2" id="migration56.incompatible.json-decode">
+  <h3 class="title">严格的 <span class="function"><a href="function.json-decode.html" class="function">json_decode()</a></span></h3>
+
+  <p class="para">
+   对于 JSON 字面量 <em>true</em>，<em>false</em> 和
+   <em>null</em>，如果不采用小写格式，将会被 <span class="function"><a href="function.json-decode.html" class="function">json_decode()</a></span> 函数拒绝，
+   同时相应的设置 <span class="function"><a href="function.json-last-error.html" class="function">json_last_error()</a></span>。
+   在之前的版本中，<span class="function"><a href="function.json-decode.html" class="function">json_decode()</a></span> 函数可以接受这些字面量的
+   全部大写或者大小写混写的格式。
+  </p>
+
+  <p class="para">
+   此变更仅会影响传入到 <span class="function"><a href="function.json-decode.html" class="function">json_decode()</a></span> 
+   中的 JSON 格式无效的情况，
+   有效的 JSON 输入不会受到影响并且能够正确解析。
+  </p>
+ </div>
+
+ <div class="sect2" id="migration56.incompatible.peer-verification">
+  <h3 class="title">当使用 SSL/TLS 的时候，流封装器默认验证端点证书和主机名</h3>
+
+  
+   <p class="para">
+    All encrypted client streams now enable peer verification by default. By
+    default, this will use OpenSSL&#039;s default CA bundle to verify the peer
+    certificate. In most cases, no changes will need to be made to communicate
+    with servers with valid SSL certificates, as distributors generally
+    configure OpenSSL to use known good CA bundles.
+   </p>
+   
+   <p class="para">
+    The default CA bundle may be overridden on a global basis by setting
+    either the openssl.cafile or openssl.capath configuration setting, or on a
+    per request basis by using the
+    <a href="context.ssl.html#context.ssl.cafile" class="link"><code class="parameter">cafile</code></a> or
+    <a href="context.ssl.html#context.ssl.capath" class="link"><code class="parameter">capath</code></a>
+    context options.
+   </p>
+
+   <p class="para">
+    While not recommended in general, it is possible to disable peer
+    certificate verification for a request by setting the
+    <a href="context.ssl.html#context.ssl.verify-peer" class="link"><code class="parameter">verify_peer</code></a>
+    context option to <strong><code>FALSE</code></strong>, and to disable peer name validation by setting
+    the <a href="context.ssl.html#context.ssl.verify-peer-name" class="link"><code class="parameter">verify_peer_name</code></a>
+    context option to <strong><code>FALSE</code></strong>.
+   </p>
+
+ </div>
+
+ <div class="sect2" id="migration56.incompatible.gmp">
+  <h3 class="title"><a href="book.gmp.html" class="link">GMP</a> 资源现为对象</h3>
+
+  <p class="para">
+   <a href="book.gmp.html" class="link">GMP</a> 资源现为对象。
+   GMP 扩展中的基于函数的 API 实现不受影响，
+   只有在代码中使用 <span class="function"><a href="function.is-resource.html" class="function">is_resource()</a></span> 或类似函数
+   来显示检测是否资源类型的代码才会受到影响。
+  </p>
+ </div>
+
+ <div class="sect2" id="migration56.incompatible.mcrypt">
+  <h3 class="title"><a href="book.mcrypt.html" class="link">Mcrypt</a> 函数需要有效长度的密钥和初始向量</h3>
+
+  <p class="para">
+   <span class="function"><a href="function.mcrypt-encrypt.html" class="function">mcrypt_encrypt()</a></span>，<span class="function"><a href="function.mcrypt-decrypt.html" class="function">mcrypt_decrypt()</a></span>，
+   <span class="function"><a href="function.mcrypt-cbc.html" class="function">mcrypt_cbc()</a></span>，<span class="function"><a href="function.mcrypt-cfb.html" class="function">mcrypt_cfb()</a></span>，
+   <span class="function"><a href="function.mcrypt-ecb.html" class="function">mcrypt_ecb()</a></span>，<span class="function"><a href="function.mcrypt-generic.html" class="function">mcrypt_generic()</a></span> 以及
+   <span class="function"><a href="function.mcrypt-ofb.html" class="function">mcrypt_ofb()</a></span> 函数不再接受无效长度的密钥和初始向量，
+   对于需要初始向量的分组加密模式，如果不提供初始向量，函数调用将会失败。
+  </p>
+ </div>
+</div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+ <div class="note">There are no user contributed notes for this page.</div>
+</div>
+</div></div></body></html>

@@ -1,0 +1,330 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>与 UNIX 构建系统交互: config.m4</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="internals2.buildsys.skeleton.html">? ext_skel 脚本</a></li>
+      <li style="float: right;"><a href="internals2.buildsys.configwin.html">使用 Windows 构建系统：config.w32 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="internals2.buildsys.html">PHP 5 构建系统</a></li>
+    <li>与 UNIX 构建系统交互: config.m4</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="internals2.buildsys.configunix" class="sect1">
+  <h2 class="title">与 UNIX 构建系统交互: config.m4</h2>
+  <p class="para">
+   扩展的 <var class="filename">config.m4</var> 文件告诉 UNIX
+   构建系统哪些扩展 <var class="filename">configure</var> 选项是支持的，你需要哪些扩展库，以及哪些源文件要编译成它的一部分。对所有经常使用的 autoconf 宏，包括 PHP 特定的及
+   autoconf 内建的，请查看 <a href="internals2.apiref.html" class="xref">Zend Engine 2 API 参考</a> 章节。
+  </p>
+  
+  <div class="tip"><strong class="tip">Tip</strong>
+   <p class="para">
+    当开发 PHP 扩展时，<em class="emphasis">强烈</em>建议安装 <strong class="command">autoconf</strong>
+    2.13 版，尽管用更新的版本可使用。2.13 版被认为是在 <strong class="command">autoconf</strong>
+    中可用性，适用性及用户基础等方面最好的版本。使用最新版本有时会与所期望的
+    <strong class="command">configure</strong> 输出在样式上有所不同。
+   </p>
+  </div>
+  
+  <div class="example" id="internals2.buildsys.configunix.sample-config">
+   <p><strong>Example #1 config.m4 文件举例</strong></p>
+   <div class="example-contents"><div class="autoconfcode"><pre class="autoconfcode">dnl $Id$
+dnl config.m4 for extension example</pre>
+</div><div class="autoconfcode"><pre class="autoconfcode">PHP_ARG_WITH(example, for example support,
+[  --with-example[=FILE]       Include example support. File is the optional path to example-config])
+PHP_ARG_ENABLE(example-debug, whether to enable debugging support in example,
+[  --enable-example-debug        example: Enable debugging support in example], no, no)
+PHP_ARG_WITH(example-extra, for extra libraries for example,
+[  --with-example-extra=DIR      example: Location of extra libraries for example], no, no)
+
+dnl 检测扩展是否已启用
+if test &quot;$PHP_EXAMPLE&quot; != &quot;no&quot;; then
+  
+  dnl 检测 example-config。首先尝试所给出的路径，然后在 $PATH 中寻找
+  AC_MSG_CHECKING([for example-config])
+  EXAMPLE_CONFIG=&quot;example-config&quot;
+  if test &quot;$PHP_EXAMPLE&quot; != &quot;yes&quot;; then
+    EXAMPLE_PATH=$PHP_EXAMPLE
+  else
+    EXAMPLE_PATH=`$php_shtool path $EXAMPLE_CONFIG`
+  fi
+  
+  dnl 如果找到可用的 example-config，就使用它
+  if test -f &quot;$EXAMPLE_PATH&quot; &amp;&amp; test -x &quot;$EXAMPLE_PATH&quot; &amp;&amp; $EXAMPLE_PATH --version &gt; /dev/null 2&gt;&amp;1; then
+    AC_MSG_RESULT([$EXAMPLE_PATH])
+    EXAMPLE_LIB_NAME=`$EXAMPLE_PATH --libname`
+    EXAMPLE_INCDIRS=`$EXAMPLE_PATH --incdirs`
+    EXAMPLE_LIBS=`$EXAMPLE_PATH --libs`
+    
+    dnl 检测扩展库是否工作正常
+    PHP_CHECK_LIBRARY($EXAMPLE_LIB_NAME, example_critical_function,
+    [
+      dnl 添加所需的 include 目录
+      PHP_EVAL_INCLINE($EXAMPLE_INCDIRS)
+      dnl 添加所需的扩展库及扩展库所在目录
+      PHP_EVAL_LIBLINE($EXAMPLE_LIBS, EXAMPLE_SHARED_LIBADD)
+    ],[
+      dnl 跳出
+      AC_MSG_ERROR([example library not found. Check config.log for more information.])
+    ],[$EXAMPLE_LIBS]
+    )
+  else
+    dnl 没有可用的 example-config，跳出
+    AC_MSG_RESULT([not found])
+    AC_MSG_ERROR([Please check your example installation.])
+  fi
+  
+  dnl 检测是否启用调试
+  if test &quot;$PHP_EXAMPLE_DEBUG&quot; != &quot;no&quot;; then
+    dnl 是，则设置 C 语言宏指令
+    AC_DEFINE(USE_EXAMPLE_DEBUG,1,[Include debugging support in example])
+  fi
+  
+  dnl 检测额外的支持
+  if test &quot;$PHP_EXAMPLE_EXTRA&quot; != &quot;no&quot;; then
+    if test &quot;$PHP_EXAMPLE_EXTRA&quot; == &quot;yes&quot;; then
+      AC_MSG_ERROR([You must specify a path when using --with-example-extra])
+    fi
+    
+    PHP_CHECK_LIBRARY(example-extra, example_critical_extra_function,
+    [
+      dnl 添加所需路径
+      PHP_ADD_INCLUDE($PHP_EXAMPLE_EXTRA/include)
+      PHP_ADD_LIBRARY_WITH_PATH(example-extra, $PHP_EXAMPLE_EXTRA/lib, EXAMPLE_SHARED_LIBADD)
+      AC_DEFINE(HAVE_EXAMPLEEXTRALIB,1,[Whether example-extra support is present and requested])
+      EXAMPLE_SOURCES=&quot;$EXAMPLE_SOURCES example_extra.c&quot;
+    ],[
+      AC_MSG_ERROR([example-extra lib not found. See config.log for more information.])
+    ],[-L$PHP_EXAMPLE_EXTRA/lib]
+    )
+  fi
+  
+  dnl 最后，将扩展及其所需文件等信息传给构建系统
+  PHP_NEW_EXTENSION(example, example.c $EXAMPLE_SOURCES, $ext_shared)
+  PHP_SUBST(EXAMPLE_SHARED_LIBADD)
+fi</pre>
+</div>
+   </div>
+
+  </div>
+  
+  <div class="sect2" id="internals2.buildsys.configunix.autoconf">
+   <h3 class="title">autoconf 语法简介</h3>
+   <p class="para">
+    <var class="filename">config.m4</var> 文件使用 GNU <strong class="command">autoconf</strong>
+    语法编写。简而言之，就是用强大的宏语言增强的
+    shell 脚本。注释用字符串 <em>dnl</em> 分隔，字符串则放在左右方括号中间（例如，<em>[</em> 和
+    <em>]</em>）。字符串可按需要多次嵌套引用。完整的语法参考可参见位于
+    <a href="http://www.gnu.org/software/autoconf/manual/" class="link external" title="Link : http://www.gnu.org/software/autoconf/manual/">&raquo;&nbsp;http://www.gnu.org/software/autoconf/manual/</a> 的  <strong class="command">autoconf</strong> 手册。
+   </p>
+  </div>
+  
+  <div class="sect2" id="internals2.buildsys.configunix.php-arg">
+   <h3 class="title">PHP_ARG_*: 赋予用户可选项</h3>
+   <p class="para">
+    在以上的 <var class="filename">config.m4</var> 例子中，两条注释后，最先见到的 3
+    行代码，使用了 <span class="function"><strong>PHP_ARG_WITH()</strong></span> 和
+    <span class="function"><strong>PHP_ARG_ENABLE()</strong></span>。这些给
+    <strong class="command">configure</strong> 提供了可选项，和在运行
+    <strong class="command">./configure --help</strong> 时显示的帮助文本。就象名称所暗示的，其两者的不同点在于是创建
+    <strong class="option configure">--with-*</strong>
+ 选项还是 <strong class="option configure">--enable-*</strong>
+
+    选项。每个扩展应提供至少一个以上的选项以及扩展名称，以便用户可选择是否将扩展构建至  PHP
+    中。按惯例，<span class="function"><strong>PHP_ARG_WITH()</strong></span> 用于取得参数的选项，例如扩展所需库或程序的位置；而
+    <span class="function"><strong>PHP_ARG_ENABLE()</strong></span> 用于代表简单标志的选项。
+   </p>
+   <div class="example" id="internals2.buildsys.configunix.php-arg.configure-out">
+    <p><strong>Example #2 configure 输出举例</strong></p>
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+$ ./configure --help
+...
+  --with-example[=FILE]       Include example support. FILE is the optional path to example-config
+  --enable-example-debug        example: Enable debugging support in example
+  --with-example-extra=DIR      example: Location of extra libraries for example
+...
+
+$ ./configure --with-example=/some/library/path/example-config --disable-example-debug --with-example-extra=/another/library/path
+...
+checking for example support... yes
+checking whether to enable debugging support in example... no
+checking for extra libraries for example... /another/library/path
+...
+</pre></div>
+    </div>
+   </div>
+   <blockquote class="note"><p><strong class="note">Note</strong>: 
+    <p class="para">
+     在调用 <strong class="command">configure</strong> 时，不管选项在命令行中的顺序如何，都会按在
+     <var class="filename">config.m4</var> 中指定的顺序进行检测。
+    </p>
+   </p></blockquote>
+  </div>
+  
+  <div class="sect2" id="internals2.buildsys.configunix.processing">
+   <h3 class="title">处理用户选择</h3>
+   <p class="para">
+    <var class="filename">config.m4</var>
+    可给用户提供一些做什么的选择，现在就是做出选择的时候了。在上例中，三个选项在未指定时显然默认为
+    &quot;no&quot;。习惯上，最好用此值作为用于启用扩展的选项的默认值，为了扩展与
+    PHP 分开构建则用 <strong class="command">phpize</strong> 覆盖此值，而要构建在 PHP
+    中时则不应被默认值将扩展空间弄乱。处理这三个选项的代码要复杂得多。
+   </p>
+   
+   <div class="sect3" id="internals2.buildsys.configunix.processing.with-example">
+    <h4 class="title">处理 --with-example[=FILE] 选项</h4>
+    <p class="para">
+     首先检测是否设置了 <strong class="option configure">--with-example[=FILE]</strong>
+
+     选项。如此选项未被指定，或使用否定的格式（<strong class="option configure">--without-example</strong>
+），或赋值为 &quot;no&quot;
+     时，它会控制整个扩展的含有物其他任何事情都不会发生。在上面的例子中所指定的值为
+     <em>/some/library/path/example-config</em>，所以第一个 test 成功了。
+    </p>
+    
+    <p class="para">
+     接下来，代码调用 <span class="function"><strong>AC_MSG_CHECKING()</strong></span>，这是一个 <strong class="command">autoconf</strong> 宏，输出一行标准的如
+     &quot;checking for ...&quot; 的信息，并检测用户假定的
+     <strong class="command">example-config</strong> 是否是一个明确的路径。在这个例子中，<em>PHP_EXAMPLE</em>
+     所取到的值为 <em>/some/library/path/example-config</em>，现已复制到
+     EXAMPLE_PATH 变量中了。只有用户指定了
+     <strong class="option configure">--with-example</strong>
+，才会执行代码
+     <strong class="command">$php_shtool path $EXAMPLE_CONFIG</strong>，尝试使用用户当前的
+     <em>PATH</em> 环境变量推测 <strong class="command">example-config</strong>
+     的位置。无论如何，下一步都是检测所选的 <em>EXAMPLE_PATH</em>
+     是否是正常文件，是否可执行，及是否执行成功。如成功，则调用
+     <span class="function"><strong>AC_MSG_RESULT()</strong></span>，结束由
+     <span class="function"><strong>AC_MSG_CHECKING()</strong></span> 开始的输出行。否则，调用
+     <span class="function"><strong>AC_MSG_ERROR()</strong></span>，打印所给的信息并立即中断执行
+     <strong class="command">configure</strong>。
+    </p>
+    
+    <p class="para">
+     代码现在执行几次 <strong class="command">example-config</strong>
+     以确定一些站点特定的配置信息。下一步调用的是
+     <span class="function"><strong>PHP_CHECK_LIBRARY()</strong></span>，这是 PHP
+     构建系统提供的一个宏，包装了 <strong class="command">autoconf</strong> 的
+     <span class="function"><strong>AC_CHECK_LIB()</strong></span> 函数。<span class="function"><strong>PHP_CHECK_LIBRARY()</strong></span>
+     尝试编译、链接和执行程序，在第一个参数指定的库中调用由第二个参数指定的符号，使用第五个参数给出的字符串作为额外的链接选项。如果尝试成功了，则运行第三个参数所给出的脚本。此脚本从
+     <strong class="command">example-config</strong> 所提供的原始的选项字符串中取出头文件路径、库文件路径和库名称，告诉
+     PHP 构建系统。如果尝试失败，脚本则运行第四个参数中的脚本。此时调用
+     <span class="function"><strong>AC_MSG_ERROR()</strong></span> 来中断程序执行。
+    </p>
+   </div>
+   
+   <div class="sect3" id="internals2.buildsys.configunix.processing.enable-example-debug">
+    <h4 class="title">处理 --enable-example-debug 选项</h4>
+    <p class="para">
+     处理 <strong class="option configure">--enable-example-debug</strong>
+ 很简单。只简单地检测其真实值。如果检测成功，则调用
+     <span class="function"><strong>AC_DEFINE()</strong></span> 使 C 语言宏指令 <em>USE_EXAMPLE_DEBUG</em> 可用于扩展的源代码。第三个参数是给
+     <var class="filename">config.h</var> 的注释字符串，通常可放心的留空。
+    </p>
+   </div>
+   
+   <div class="sect3" id="internals2.buildsys.configunix.processing.with-example-extra">
+    <h4 class="title">处理 --with-example-extra=DIR 选项</h4>
+    <p class="para">
+     对于此例子来说，由 <strong class="option configure">--with-example-extra=DIR</strong>
+
+     选项所请求的假定的"额外"功能操作不会与假定的
+     <strong class="command">example-config</strong>
+     程序共享，也没有默认的搜索路径。因此，用户需要在所需的库之前提供设置程序。有点不象现实中的扩展，在这里的设置仅仅起说明性的作用。
+    </p>
+    
+    <p class="para">
+     代码开始用已熟知的方式来检测 <em>PHP_EXAMPLE_EXTRA</em>
+     的真实值。如果所提供的为否定形式，则不会进行其他处理，用户也不会请求额外的功能。如果所提供的为未提供参数的肯定形式，则调用
+     <span class="function"><strong>AC_MSG_ERROR()</strong></span> 中止处理。下一步则再次调用
+     <span class="function"><strong>PHP_CHECK_LIBRARY()</strong></span>。这一次，因为没有提供预定义编译选项，<span class="function"><strong>PHP_ADD_INCLUDE()</strong></span>
+     和 <span class="function"><strong>PHP_ADD_LIBRARY_WITH_PATH()</strong></span> 用于构建额外功能所需的头文件路径、库文件路径和库标志。也调用
+     <span class="function"><strong>AC_DEFINE()</strong></span>
+     来指示所请求的额外功能代码是可用的，设置变量来告诉以后的代码，有额外的源代码要构建。如果检测失败，则调用所熟悉的
+     <span class="function"><strong>AC_MSG_ERROR()</strong></span>。另一种不同的处理失败的方式是更换为调用
+     <span class="function"><strong>AC_MSG_WARNING()</strong></span>，例如：
+    </p>
+    <div class="informalexample">
+     <div class="example-contents">
+<div class="autoconfcode"><pre class="autoconfcode">AC_MSG_WARNING([example-extra lib not found. example will be built without extra functionality.])</pre>
+</div>
+     </div>
+
+    </div>
+    <p class="para">
+     上例中，<strong class="command">configure</strong> 会打印一段警告信息而不是错误，且继续处理。用哪种方式处理失败留给扩展开发人员在设计时决定。
+    </p>
+   </div>
+  </div>
+  
+  <div class="sect2" id="internals2.buildsys.configunix.finishing">
+   <h3 class="title">告诉构建系统要做什么</h3>
+   <p class="para">
+    有了所需的头文件和特定的库，有了全部选项处理代码及宏定义，还有一件事要做：必须告诉构建系统去构建扩展本身和被其用到的文件。为了做这些，则要调用
+    <span class="function"><strong>PHP_NEW_EXTENSION()</strong></span>
+    宏。第一个参数是扩展的名称，和包含它的目录同名。第二个参数是做为扩展的一部分的所有源文件的列表。参见
+    <span class="function"><strong>PHP_ADD_BUILD_DIR()</strong></span>
+    以获取将在子目录中源文件添加到构建过程的相关信息。第三个参数总是 <em>$ext_shared</em>，
+    当为了 <strong class="option configure">--with-example[=FILE]</strong>
+ 而调用
+    <span class="function"><strong>PHP_ARG_WITH()</strong></span>时，由 <strong class="command">configure</strong>
+    决定参数的值。第四个参数指定一个"SAPI 类"，仅用于专门需要 CGI 或 CLI SAPI
+    的扩展。其他情况下应留空。第五个参数指定了构建时要加入 <em>CFLAGS</em>
+    的标志列表。第六个参数是一个布尔值，为 &quot;yes&quot; 时会强迫整个扩展使用
+    <em>$CXX</em> 代替 <em>$CC</em> 来构建。第三个以后的所有参数都是可选的。最后，调用
+    <span class="function"><strong>PHP_SUBST()</strong></span> 来启用扩展的共享构建。参见 <a href="internals2.faq.html" class="xref">扩展相关 FAQ</a>
+    以获取更多有关禁用共享方式下构建扩展的信息。
+   </p>
+  </div>
+
+  <div class="sect2" id="internals2.buildsys.configunix.counter">
+   <h3 class="title">counter 扩展的 config.m4 文件</h3>
+   <p class="para">
+    以前编写的 counter 扩展有一个比上面所述更简单的 <var class="filename">config.m4</var>
+    文件，它不使用很多构建系统的特性。对不使用外部的或绑定的库的扩展来说，这是一个比较好的操作方式。
+   </p>
+   <div class="example" id="internals2.buildsys.configunix.counter.configunix">
+    <p><strong>Example #3 counter 的 config.m4 文件</strong></p>
+    <div class="example-contents">
+<div class="autoconfcode"><pre class="autoconfcode">dnl</pre>
+</div><div class="autoconfcode"><pre class="autoconfcode">$</pre>
+</div><div class="autoconfcode"><pre class="autoconfcode">Id$
+dnl config.m4 for extension counter
+
+PHP_ARG_ENABLE(counter, for counter support,
+[  --enable-counter            Include counter support])
+
+dnl Check whether the extension is enabled at all
+if test &quot;$PHP_COUNTER&quot; != &quot;no&quot;; then
+  dnl Finally, tell the build system about the extension and what files are needed
+  PHP_NEW_EXTENSION(counter, counter.c counter_util.c, $ext_shared)
+  PHP_SUBST(COUNTER_SHARED_LIBADD)
+fi</pre>
+</div>
+    </div>
+
+   </div>
+  </div>
+
+ </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+ <div class="note">There are no user contributed notes for this page.</div>
+</div>
+</div></div></body></html>

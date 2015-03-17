@@ -1,0 +1,372 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>预处理语句与存储过程</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="pdo.transactions.html">? 事务与自动提交</a></li>
+      <li style="float: right;"><a href="pdo.error-handling.html">错误与错误处理 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="book.pdo.html">PDO</a></li>
+    <li>预处理语句与存储过程</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="pdo.prepared-statements" class="chapter">
+ <h1>预处理语句与存储过程</h1>
+
+ <p class="para">
+  很多更成熟的数据库都支持预处理语句的概念。什么是预处理语句？可以把它看作是想要运行的 SQL 的一种编译过的模板，它可以使用变量参数进行定制。预处理语句可以带来两大好处：
+ </p>
+ <ul class="itemizedlist">
+  <li class="listitem">
+   <span class="simpara">
+    查询仅需解析（或预处理）一次，但可以用相同或不同的参数执行多次。当查询准备好后，数据库将分析、编译和优化执行该查询的计划。对于复杂的查询，此过程要花费较长的时间，如果需要以不同参数多次重复相同的查询，那么该过程将大大降低应用程序的速度。通过使用预处理语句，可以避免重复分析/编译/优化周期。简言之，预处理语句占用更少的资源，因而运行得更快。
+   </span>
+  </li>
+  <li class="listitem">
+   <span class="simpara">
+    提供给预处理语句的参数不需要用引号括起来，驱动程序会自动处理。如果应用程序只使用预处理语句，可以确保不会发生SQL 注入。（然而，如果查询的其他部分是由未转义的输入来构建的，则仍存在 SQL 注入的风险）。
+   </span>
+  </li>
+ </ul>
+ <p class="para">
+  预处理语句如此有用，以至于它们唯一的特性是在驱动程序不支持的时PDO 将模拟处理。这样可以确保不管数据库是否具有这样的功能，都可以确保应用程序可以用相同的数据访问模式。
+ </p>
+ <p class="para">
+  <div class="example" id="example-927">
+   <p><strong>Example #1 用预处理语句进行重复插入</strong></p>
+   <div class="example-contents"><p>
+    下面例子通过用 <em>name</em> 和 <em>value</em> 替代相应的命名占位符来执行一个插入查询
+   </p></div>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$stmt&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$dbh</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">prepare</span><span style="color: #007700">(</span><span style="color: #DD0000">"INSERT&nbsp;INTO&nbsp;REGISTRY&nbsp;(name,&nbsp;value)&nbsp;VALUES&nbsp;(:name,&nbsp;:value)"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">bindParam</span><span style="color: #007700">(</span><span style="color: #DD0000">':name'</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$name</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">bindParam</span><span style="color: #007700">(</span><span style="color: #DD0000">':value'</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$value</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">//&nbsp;插入一行<br /></span><span style="color: #0000BB">$name&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'one'</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$value&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">execute</span><span style="color: #007700">();<br /><br /></span><span style="color: #FF8000">//&nbsp;&nbsp;用不同的值插入另一行<br /></span><span style="color: #0000BB">$name&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'two'</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$value&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">2</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">execute</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+ </p>
+ <p class="para">
+  <div class="example" id="example-928">
+   <p><strong>Example #2 用预处理语句进行重复插入</strong></p>
+   <div class="example-contents"><p>
+   下面例子通过用 <em>name</em> 和 <em>value</em> 取代 <em>?</em> 占位符的位置来执行一条插入查询。
+   </p></div>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$stmt&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$dbh</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">prepare</span><span style="color: #007700">(</span><span style="color: #DD0000">"INSERT&nbsp;INTO&nbsp;REGISTRY&nbsp;(name,&nbsp;value)&nbsp;VALUES&nbsp;(?,&nbsp;?)"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">bindParam</span><span style="color: #007700">(</span><span style="color: #0000BB">1</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$name</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">bindParam</span><span style="color: #007700">(</span><span style="color: #0000BB">2</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$value</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">//&nbsp;插入一行<br /></span><span style="color: #0000BB">$name&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'one'</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$value&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">execute</span><span style="color: #007700">();<br /><br /></span><span style="color: #FF8000">//&nbsp;用不同的值插入另一行<br /></span><span style="color: #0000BB">$name&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'two'</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$value&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">2</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">execute</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+ </p>
+ <p class="para">
+  <div class="example" id="example-929">
+   <p><strong>Example #3 使用预处理语句获取数据</strong></p>
+   <div class="example-contents"><p>
+    下面例子获取数据基于键值已提供的形式。用户的输入被自动用引号括起来，因此不会有 SQL 注入攻击的危险。
+   </p></div>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$stmt&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$dbh</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">prepare</span><span style="color: #007700">(</span><span style="color: #DD0000">"SELECT&nbsp;*&nbsp;FROM&nbsp;REGISTRY&nbsp;where&nbsp;name&nbsp;=&nbsp;?"</span><span style="color: #007700">);<br />if&nbsp;(</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">execute</span><span style="color: #007700">(array(</span><span style="color: #0000BB">$_GET</span><span style="color: #007700">[</span><span style="color: #DD0000">'name'</span><span style="color: #007700">])))&nbsp;{<br />&nbsp;&nbsp;while&nbsp;(</span><span style="color: #0000BB">$row&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">fetch</span><span style="color: #007700">())&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">print_r</span><span style="color: #007700">(</span><span style="color: #0000BB">$row</span><span style="color: #007700">);<br />&nbsp;&nbsp;}<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+ </p>
+ <p class="para">
+ 如果数据库驱动支持，应用程序还可以绑定输出和输入参数.输出参数通常用于从存储过程获取值。输出参数使用起来比输入参数要稍微复杂一些，因为当绑定一个输出参数时，必须知道给定参数的长度。如果为参数绑定的值大于建议的长度，就会产生一个错误。
+ </p>
+
+ <p class="para">
+  <div class="example" id="example-930">
+   <p><strong>Example #4 带输出参数调用存储过程</strong></p>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$stmt&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$dbh</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">prepare</span><span style="color: #007700">(</span><span style="color: #DD0000">"CALL&nbsp;sp_returns_string(?)"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">bindParam</span><span style="color: #007700">(</span><span style="color: #0000BB">1</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$return_value</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">PDO</span><span style="color: #007700">::</span><span style="color: #0000BB">PARAM_STR</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">4000</span><span style="color: #007700">);&nbsp;<br /><br /></span><span style="color: #FF8000">//&nbsp;调用存储过程<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">execute</span><span style="color: #007700">();<br /><br />print&nbsp;</span><span style="color: #DD0000">"procedure&nbsp;returned&nbsp;</span><span style="color: #0000BB">$return_value</span><span style="color: #DD0000">\n"</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+ </p>
+
+ <p class="para">
+  还可以指定同时具有输入和输出值的参数，其语法类似于输出参数。在下一个例子中，字符串"hello"被传递给存储过程，当存储过程返回时，hello 被替换为该存储过程返回的值。
+ </p>
+
+ <p class="para">
+  <div class="example" id="example-931">
+   <p><strong>Example #5  带输入/输出参数调用存储过程</strong></p>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$stmt&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$dbh</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">prepare</span><span style="color: #007700">(</span><span style="color: #DD0000">"CALL&nbsp;sp_takes_string_returns_string(?)"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$value&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'hello'</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">bindParam</span><span style="color: #007700">(</span><span style="color: #0000BB">1</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$value</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">PDO</span><span style="color: #007700">::</span><span style="color: #0000BB">PARAM_STR</span><span style="color: #007700">|</span><span style="color: #0000BB">PDO</span><span style="color: #007700">::</span><span style="color: #0000BB">PARAM_INPUT_OUTPUT</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">4000</span><span style="color: #007700">);&nbsp;<br /><br /></span><span style="color: #FF8000">//&nbsp;调用存储过程<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">execute</span><span style="color: #007700">();<br /><br />print&nbsp;</span><span style="color: #DD0000">"procedure&nbsp;returned&nbsp;</span><span style="color: #0000BB">$value</span><span style="color: #DD0000">\n"</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+ </p>
+ <p class="para">
+  <div class="example" id="example-932">
+   <p><strong>Example #6 占位符的无效使用</strong></p>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$stmt&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$dbh</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">prepare</span><span style="color: #007700">(</span><span style="color: #DD0000">"SELECT&nbsp;*&nbsp;FROM&nbsp;REGISTRY&nbsp;where&nbsp;name&nbsp;LIKE&nbsp;'%?%'"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">execute</span><span style="color: #007700">(array(</span><span style="color: #0000BB">$_GET</span><span style="color: #007700">[</span><span style="color: #DD0000">'name'</span><span style="color: #007700">]));<br /><br /></span><span style="color: #FF8000">//&nbsp;占位符必须被用在整个值的位置<br /></span><span style="color: #0000BB">$stmt&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$dbh</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">prepare</span><span style="color: #007700">(</span><span style="color: #DD0000">"SELECT&nbsp;*&nbsp;FROM&nbsp;REGISTRY&nbsp;where&nbsp;name&nbsp;LIKE&nbsp;?"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">execute</span><span style="color: #007700">(array(</span><span style="color: #DD0000">"%</span><span style="color: #0000BB">$_GET</span><span style="color: #007700">[</span><span style="color: #0000BB">name</span><span style="color: #007700">]</span><span style="color: #DD0000">%"</span><span style="color: #007700">));<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+ </p>
+</div>
+<div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="115669""></a>
+  <div class="note">
+   <strong class="user">user at example dot 1com</strong>
+   <a href="#115669" class="date">05-Sep-2014 08:39</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@&nbsp; lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@<br />
+<br />
+&nbsp;lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@ lol :@</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="114445""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#114445" class="date">21-Feb-2014 06:40</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+/** Добавить модификации документа */<br />
+&nbsp;&nbsp;&nbsp; public function insert_doc_modification($doc_id , array $notice ,array $modification_fields)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $fields = array_keys($modification_fields);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $sql = "INSERT INTO doc_modification <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; (doc_id , " . implode( ",", $fields ) . ") <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; VALUES <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; (:doc_id , :" . implode( ", :", $fields ) . " ) <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; ON DUPLICATE KEY UPDATE <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; `hash` = :hash ; "; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $stmt = $this-&gt;pdo-&gt;prepare($sql);&nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $stmt-&gt;bindParam(':doc_id',$doc_id);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; //Создать бинды по полям<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach($modification_fields as $name =&gt; $val) <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $stmt-&gt;bindParam(':'.$name,&nbsp; $modification_fields[$name]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; //Обойти все модификации по документу<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach($notice as $value)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; foreach($modification_fields as $name =&gt; $val)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(empty($value[$name])) continue ; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $modification_fields[$name] = $value[$name];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $stmt-&gt;execute();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; }</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="112642""></a>
+  <div class="note">
+   <strong class="user">Sebastien Gourmand</strong>
+   <a href="#112642" class="date">08-Jul-2013 08:59</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Replace the query() by a prepare()/execute() for having one line like a sprintf()<br />
+<br />
+old query() renamed for remember to secure.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">MyPDO </span><span class="keyword">extends </span><span class="default">PDO</span><span class="keyword">{<br />
+<br />
+&nbsp;&nbsp;&nbsp; const </span><span class="default">DB_HOST</span><span class="keyword">=</span><span class="string">'localhost'</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; const </span><span class="default">DB_PORT</span><span class="keyword">=</span><span class="string">'3306'</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; const </span><span class="default">DB_NAME</span><span class="keyword">=</span><span class="string">'test'</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; const </span><span class="default">DB_USER</span><span class="keyword">=</span><span class="string">'root'</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; const </span><span class="default">DB_PASS</span><span class="keyword">=</span><span class="string">''</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__construct</span><span class="keyword">(</span><span class="default">$options</span><span class="keyword">=</span><span class="default">null</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">parent</span><span class="keyword">::</span><span class="default">__construct</span><span class="keyword">(</span><span class="string">'mysql:host='</span><span class="keyword">.</span><span class="default">MyPDO</span><span class="keyword">::</span><span class="default">DB_HOST</span><span class="keyword">.</span><span class="string">';port='</span><span class="keyword">.</span><span class="default">MyPDO</span><span class="keyword">::</span><span class="default">DB_PORT</span><span class="keyword">.</span><span class="string">';dbname='</span><span class="keyword">.</span><span class="default">MyPDO</span><span class="keyword">::</span><span class="default">DB_NAME</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">MyPDO</span><span class="keyword">::</span><span class="default">DB_USER</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">MyPDO</span><span class="keyword">::</span><span class="default">DB_PASS</span><span class="keyword">,</span><span class="default">$options</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">query</span><span class="keyword">(</span><span class="default">$query</span><span class="keyword">){ </span><span class="comment">//secured query with prepare and execute<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$args </span><span class="keyword">= </span><span class="default">func_get_args</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">array_shift</span><span class="keyword">(</span><span class="default">$args</span><span class="keyword">); </span><span class="comment">//first element is not an argument but the query itself, should removed<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$reponse </span><span class="keyword">= </span><span class="default">parent</span><span class="keyword">::</span><span class="default">prepare</span><span class="keyword">(</span><span class="default">$query</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$reponse</span><span class="keyword">-&gt;</span><span class="default">execute</span><span class="keyword">(</span><span class="default">$args</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$reponse</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">insecureQuery</span><span class="keyword">(</span><span class="default">$query</span><span class="keyword">){ </span><span class="comment">//you can use the old query at your risk ;) and should use secure quote() function with it<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">return </span><span class="default">parent</span><span class="keyword">::</span><span class="default">query</span><span class="keyword">(</span><span class="default">$query</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+}<br />
+<br />
+</span><span class="default">$db </span><span class="keyword">= new </span><span class="default">MyPDO</span><span class="keyword">();<br />
+</span><span class="default">$db</span><span class="keyword">-&gt;</span><span class="default">setAttribute</span><span class="keyword">(</span><span class="default">PDO</span><span class="keyword">::</span><span class="default">ATTR_DEFAULT_FETCH_MODE</span><span class="keyword">, </span><span class="default">PDO</span><span class="keyword">::</span><span class="default">FETCH_OBJ</span><span class="keyword">);<br />
+<br />
+</span><span class="default">$t1 </span><span class="keyword">= isset(</span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">"t1"</span><span class="keyword">])?</span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">"t1"</span><span class="keyword">]:</span><span class="default">1</span><span class="keyword">; </span><span class="comment">// need to be securised for injonction<br />
+</span><span class="default">$t2 </span><span class="keyword">= isset(</span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">"t2"</span><span class="keyword">])?</span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">"t2"</span><span class="keyword">]:</span><span class="default">2</span><span class="keyword">; </span><span class="comment">// need to be securised for injonction<br />
+</span><span class="default">$t3 </span><span class="keyword">= isset(</span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">"t3"</span><span class="keyword">])?</span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">"t3"</span><span class="keyword">]:</span><span class="default">3</span><span class="keyword">; </span><span class="comment">// need to be securised for injonction<br />
+<br />
+</span><span class="default">$ret </span><span class="keyword">= </span><span class="default">$db</span><span class="keyword">-&gt;</span><span class="default">query</span><span class="keyword">(</span><span class="string">"SELECT * FROM table_test WHERE t1=? AND t2=? AND t3=?"</span><span class="keyword">,</span><span class="default">$t1</span><span class="keyword">,</span><span class="default">$t2</span><span class="keyword">,</span><span class="default">$t3</span><span class="keyword">);<br />
+</span><span class="comment">//$ret = $db-&gt;insecureQuery("SELECT * FROM table_test WHERE t1=".$db-&gt;quote($t1));<br />
+<br />
+</span><span class="keyword">while (</span><span class="default">$o </span><span class="keyword">= </span><span class="default">$ret</span><span class="keyword">-&gt;</span><span class="default">fetch</span><span class="keyword">())<br />
+{<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="default">$o</span><span class="keyword">-&gt;</span><span class="default">nom</span><span class="keyword">.</span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="102018""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#102018" class="date">23-Jan-2011 01:26</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Note for MySQL: to use input/output parameters for stored procedures with PDO use PDO.Query() statement.
+<br />
+For example:
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+$dbh</span><span class="keyword">-&gt;</span><span class="default">query</span><span class="keyword">(</span><span class="string">"CAST SomeStoredProcedure(</span><span class="default">$someInParameter1</span><span class="string">, </span><span class="default">$someInParameter2</span><span class="string">, @someOutParameter)"</span><span class="keyword">);
+<br />
+</span><span class="default">$dbh</span><span class="keyword">-&gt;</span><span class="default">query</span><span class="keyword">(</span><span class="string">"SELECT @someOutParameter"</span><span class="keyword">);
+<br />
+</span><span class="default">?&gt;
+<br />
+</span>
+<br />
+Or, if you want very much to use PDO.Prepare(), insert "SELECT @someOutParameter" in your stored procedure and then use:
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+$stmt </span><span class="keyword">= </span><span class="default">$dbh</span><span class="keyword">-&gt;</span><span class="default">prepare</span><span class="keyword">(</span><span class="string">"CAST SomeStoredProcedure(?, ?)"</span><span class="keyword">);
+<br />
+</span><span class="default">$stmt </span><span class="keyword">-&gt;</span><span class="default">execute</span><span class="keyword">(array(</span><span class="default">$someInParameter1</span><span class="keyword">, </span><span class="default">$someInParameter2</span><span class="keyword">));
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="101993""></a>
+  <div class="note">
+   <strong class="user">oldmoscow dot mail dot ru</strong>
+   <a href="#101993" class="date">21-Jan-2011 11:09</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Note for MySQL: to use input/output parameters for stored procedures with PDO use PDO.Query() statement.
+<br />
+For example:
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+$dbh</span><span class="keyword">-&gt;</span><span class="default">query</span><span class="keyword">(</span><span class="string">"CAST SomeStoredProcedure(</span><span class="default">$someInParameter1</span><span class="string">, </span><span class="default">$someInParameter2</span><span class="string">, @someOutParameter)"</span><span class="keyword">);
+<br />
+</span><span class="default">$dbh</span><span class="keyword">-&gt;</span><span class="default">query</span><span class="keyword">(</span><span class="string">"SELECT @someOutParameter"</span><span class="keyword">);
+<br />
+</span><span class="default">?&gt;
+<br />
+</span>
+<br />
+Or, if you want very much to use PDO.Prepare(), insert "SELECT @someOutParameter" in your stored procedure and then use:
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+$stmt </span><span class="keyword">= </span><span class="default">$dbh</span><span class="keyword">-&gt;</span><span class="default">prepare</span><span class="keyword">(</span><span class="string">"CAST SomeStoredProcedure(?, ?)"</span><span class="keyword">);
+<br />
+</span><span class="default">$stmt </span><span class="keyword">-&gt;</span><span class="default">execute</span><span class="keyword">(array(</span><span class="default">$someInParameter1</span><span class="keyword">, </span><span class="default">$someInParameter2</span><span class="keyword">));
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="97162""></a>
+  <div class="note">
+   <strong class="user">adam at pyramidpower dot com dot au</strong>
+   <a href="#97162" class="date">06-Apr-2010 03:38</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Note that when using name parameters with bindParam, the name itself, cannot contain a dash '-'. <br />
+<br />
+example:<br />
+<span class="default">&lt;?php<br />
+$stmt </span><span class="keyword">= </span><span class="default">$dbh</span><span class="keyword">-&gt;</span><span class="default">prepare </span><span class="keyword">(</span><span class="string">"INSERT INTO user (firstname, surname) VALUES (:f-name, :s-name)"</span><span class="keyword">);<br />
+</span><span class="default">$stmt </span><span class="keyword">-&gt; </span><span class="default">bindParam</span><span class="keyword">(</span><span class="string">':f-name'</span><span class="keyword">, </span><span class="string">'John'</span><span class="keyword">);<br />
+</span><span class="default">$stmt </span><span class="keyword">-&gt; </span><span class="default">bindParam</span><span class="keyword">(</span><span class="string">':s-name'</span><span class="keyword">, </span><span class="string">'Smith'</span><span class="keyword">);<br />
+</span><span class="default">$stmt </span><span class="keyword">-&gt; </span><span class="default">execute</span><span class="keyword">();<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+The dashes in 'f-name' and 's-name' should be replaced with an underscore or no dash at all.<br />
+<br />
+See <a href="http://bugs.php.net/43130" rel="nofollow" target="_blank">http://bugs.php.net/43130</a><br />
+<br />
+Adam</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

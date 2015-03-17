@@ -1,0 +1,553 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Microsoft IIS 5.1 和 IIS 6.0</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="install.windows.iis.html">? Microsoft IIS</a></li>
+      <li style="float: right;"><a href="install.windows.iis7.html">Microsoft IIS 7.0 及更高版本 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="install.windows.html">Windows 系统下的安装</a></li>
+    <li>Microsoft IIS 5.1 和 IIS 6.0</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="install.windows.iis6" class="sect1">
+ <h2 class="title">Microsoft IIS 5.1 和 IIS 6.0</h2>
+ <p class="para">
+  本章包含有在 Windows XP 和 Windows Server 2003 下的
+  Internet 信息服务（IIS）5.1 和 IIS 6.0 中安装 PHP 的指南。有关在
+  Windows Vista，Windows Server 2008，Windows 7 以及 Windows Server 2008 R2
+  下的 IIS 7.0 以及更高版本中安装 PHP 的指南见
+  <a href="install.windows.iis7.html" class="link">Microsoft IIS 7.0 及更高版本</a>一章。
+ </p>
+ <div class="sect2" id="install.windows.iis6.fastcgi">
+  <h3 class="title">配置 IIS 以处理 PHP 请求</h3>
+  <p class="para">
+   根据<a href="install.windows.manual.html" class="link">手工安装步骤</a>的说明下载和安装 PHP。
+   <blockquote class="note"><p><strong class="note">Note</strong>: 
+    <p class="para">
+     在使用 IIS 时推荐使用非线程安全的 PHP。可以在
+     <a href="http://windows.php.net/download/" class="link external" title="Link : http://windows.php.net/download/">&raquo;&nbsp;PHP for Windows: 
+      Binaries and Sources Releases</a> 下载。
+    </p>
+   </p></blockquote>
+  </p>
+  <p class="para">
+   按以下示例在 <var class="filename">php.ini</var> 文件中配置
+   针对 CGI- 和 FastCGI- 的指令：
+   <div class="example" id="example-49">
+    <p><strong>Example #1 <var class="filename">php.ini</var> 中的 CGI 和 FastCGI 设定</strong></p>
+    <div class="example-contents">
+<div class="inicode"><pre class="inicode">fastcgi.impersonate = 1
+fastcgi.logging = 0
+cgi.fix_pathinfo=1
+cgi.force_redirect = 0</pre>
+</div>
+    </div>
+
+   </div>
+  </p>
+  <p class="para">
+   下载并安装 <a href="http://www.iis.net/extensions/fastcgi" class="link external" title="Link : http://www.iis.net/extensions/fastcgi">&raquo;&nbsp;FastCGI for
+   IIS</a>。有 32 位和 64 位平台的，根据用户平台选择相应的下载。
+  </p>
+  <p class="para">
+   用以下命令配置 FastCGI 扩展处理 PHP 请求。用指向
+   <var class="filename">php-cgi.exe</var> 文件的绝对路径替换其中的 &quot;-path&quot; 的参数。
+   <div class="example" id="example-50">
+    <p><strong>Example #2 配置 FastCGI 扩展以处理 PHP 请求</strong></p>
+    <div class="example-contents">
+<div class="cdata"><pre>
+cscript %windir%\system32\inetsrv\fcgiconfig.js -add -section:&quot;PHP&quot; ^
+-extension:php -path:&quot;C:\PHP\php-cgi.exe&quot;
+</pre></div>
+    </div>
+
+   </div>
+  </p>
+  <p class="para">
+   此命令将创建对应于 *.php 文件后缀的 IIS 脚本映射，则所有以 *.php 结尾的 URL
+   都会被 FastCGI 扩展处理。此外还配置了 FastCGI 扩展使用 <var class="filename">php-cgi.exe</var>
+   可执行文件来处理 PHP 请求。
+   <blockquote class="note"><p><strong class="note">Note</strong>: 
+    <p class="para">
+     至此所需的安装和配置步骤就完成了。以下剩余的指示是可选项，但是强烈推荐以使得在
+     IIS 上达到最佳的 PHP 功能和性能。
+    </p>
+   </p></blockquote>
+  </p>
+ </div>
+ <div class="sect2" id="install.windows.iis6.impersonation">
+  <h3 class="title">角色扮演及文件系统访问</h3>
+  <p class="para">
+   在 IIS 中使用 PHP 建议激活 FastCGI 的角色扮演功能。此功能在 <var class="filename">php.ini</var>
+   中由 <var class="varname"><var class="varname">fastcgi.impersonate</var></var> 指令控制。激活角色扮演后，PHP
+   将以 IIS 所认证的用户帐号身份进行所有的文件系统操作。这将确保即使在（同一个主机）不同的
+   IIS 网站下使用了同一个 PHP 进程，只要每个网站使用了不同的用户帐号作为 IIS
+   身份认证，则这些网站的 PHP 脚本将不能访问彼此的文件。
+  </p>
+  <p class="para">
+   例如在 IIS 5.1 和 IIS 6.0 中，默认配置下的匿名认证将使用内置的用户帐号 IUSR_&lt;MACHINE_NAME&gt;
+   作为默认身份。这意味着要使得
+   IIS 能够运行 PHP 脚本，至少要将这些脚本的读取权限授予 IUSR_&lt;MACHINE_NAME&gt; 帐号。如果 PHP
+   程序需要对某些文件或文件夹进行写入操作，那 IUSR_&lt;MACHINE_NAME&gt; 帐号也需要有相对应的写入权限。
+  </p>
+  <p class="para">
+   要查看哪个用户帐号被用作 IIS 匿名认证的身份，使用以下步骤：
+   <div class="procedure">
+    <ol type="1"><li>
+     <p class="simpara">
+      在 Windows 开始菜单中选择"运行..."，输入"inetmgr"并点击"确定"；
+     </p>
+    </li>
+    <li>
+     <p class="simpara">
+      在树形视图下展开"网站"节点，右键点击要使用的网站并选择"属性"；
+     </p>    
+    </li>
+    <li>
+     <p class="simpara">
+      点击"目录安全"面板；
+     </p>    
+    </li>
+    <li>
+     <p class="simpara">
+      记录下在"认证方式"对话框中的"用户名"字段。
+     </p>
+    </li>
+   </ol></div>
+   <div class="mediaobject">
+    
+    <div class="imageobject">
+     <img src="images/b4cf2bb34e3c20eebcf8f9e8e7949efd-iis6anonauth.png" alt="IIS 5.1 和 IIS 6.0 的匿名认证" width="654" height="461" />
+    </div>
+   </div>
+  </p>
+  <p class="para">
+   要修改文件及文件夹的权限，使用 Windows 资源管理器或者 <var class="varname"><var class="varname">icacls</var></var> 命令行。
+   <div class="example" id="example-51">
+    <p><strong>Example #3 配置文件访问权限</strong></p>
+    <div class="example-contents">
+<div class="cdata"><pre>
+icacls C:\inetpub\wwwroot\upload /grant IUSR:(OI)(CI)(M)
+</pre></div>     
+    </div>
+
+   </div>
+  </p>
+ </div>
+ <div class="sect2" id="install.windows.iis6.defaultdoc">
+  <h3 class="title">在 IIS 中把 <var class="filename">index.php</var> 设定为默认文档</h3>
+  <p class="para">
+   IIS 的默认文档用于没有指定文件名的 HTTP 请求。对于 PHP 应用来说默认文档通常为
+   <var class="filename">index.php</var>。要将 <var class="filename">index.php</var>
+   添加到 IIS 的默认文档列表中，使用以下步骤：
+   <div class="procedure">
+    <ol type="1"><li>
+     <p class="simpara">
+      在 Windows 开始菜单中选择"运行..."，输入"inetmgr"并点击"确定"；
+     </p>
+    </li>
+    <li>
+     <p class="simpara">
+      在树形视图下展开"网站"节点，右键点击要使用的网站并选择"属性"；
+     </p>
+    </li>
+    <li>
+     <p class="simpara">
+      点击"文档"面板；
+     </p>
+    </li>
+    <li>
+     <p class="simpara">
+      点击"添加..."按钮并在"默认内容页面"中输入"index.php"。
+     </p>
+    </li>
+   </ol></div>
+   <div class="mediaobject">
+    
+    <div class="imageobject">
+     <img src="images/b4cf2bb34e3c20eebcf8f9e8e7949efd-iis6defaultdoc.png" alt="将 index.php 设为 IIS 的默认文档" width="659" height="465" />
+    </div>
+   </div>
+  </p>
+ </div>
+ <div class="sect2" id="install.windows.iis6.recycling">
+  <h3 class="title">FastCGI 和 PHP 回收配置</h3>
+  <p class="para">
+   用以下命令配置 IIS FastCGI 对于 PHP 进程的回收设定。FastCGI 的设置
+   <var class="varname"><var class="varname">instanceMaxRequests</var></var> 控制了单一的 <var class="filename">php-cgi.exe</var>
+   进程处理多少个请求之后会被 IIS 关闭。PHP 环境变量 <var class="varname"><var class="varname">PHP_FCGI_MAX_REQUESTS</var></var>
+   控制了一个 <var class="filename">php-cgi.exe</var>
+   进程处理多少个请求之后会被自我回收。要确保 FastCGI 中 <var class="varname"><var class="varname">InstanceMaxRequests</var></var>
+   的值小于或等于 <var class="varname"><var class="varname">PHP_FCGI_MAX_REQUESTS</var></var> 的值。
+   <div class="example" id="example-52">
+    <p><strong>Example #4 配置 FastCGI 和 PHP 的回收</strong></p>
+    <div class="example-contents">
+<div class="cdata"><pre>
+cscript %windir%\system32\inetsrv\fcgiconfig.js -set -section:&quot;PHP&quot; ^
+-InstanceMaxRequests:10000
+
+cscript %windir%\system32\inetsrv\fcgiconfig.js -set -section:&quot;PHP&quot; ^
+-EnvironmentVars:PHP_FCGI_MAX_REQUESTS:10000
+</pre></div>     
+    </div>
+
+   </div>
+  </p>
+ </div>
+ <div class="sect2" id="install.windows.iis6.timeouts">
+  <h3 class="title">FastCGI 超时设定</h3>
+  <p class="para">
+   如果会有一些需时较长的 PHP 脚本运行，则增加超时的设定值。有两个控制超时的指令
+   <var class="varname"><var class="varname">activityTimeout</var></var> 和
+   <var class="varname"><var class="varname">requestTimeout</var></var>。有关这些设定的更多信息参见
+   <a href="http://learn.iis.net/page.aspx/248/configuring-fastcgi-extension-for-iis-60/" class="link external" title="Link : http://learn.iis.net/page.aspx/248/configuring-fastcgi-extension-for-iis-60/">&raquo;&nbsp;Configuring FastCGI Extension for IIS 6.0</a>。
+   <div class="example" id="example-53">
+    <p><strong>Example #5 配置 FastCGI 超时设定</strong></p>
+    <div class="example-contents">
+<div class="cdata"><pre>
+cscript %windir%\system32\inetsrv\fcgiconfig.js -set -section:&quot;PHP&quot; ^
+-ActivityTimeout:90
+
+cscript %windir%\system32\inetsrv\fcgiconfig.js -set -section:&quot;PHP&quot; ^
+-RequestTimeout:90
+</pre></div>     
+    </div>
+
+   </div>
+  </p>
+ </div>
+ <div class="sect2" id="install.windows.iis6.phpinilocation">
+  <h3 class="title">改变 <var class="filename">php.ini</var> 文件的位置</h3>
+  <p class="para">
+   PHP 在几个位置搜索<a href="configuration.file.html" class="link">配置文件</a>
+   <var class="filename">php.ini</var>，可以通过环境变量 <var class="varname"><var class="varname">PHPRC</var></var>
+   来改变 <var class="filename">php.ini</var> 的默认位置。要使得 PHP 从用户指定的位置加载配置文件，使用以下命令。指向
+   <var class="filename">php.ini</var> 文件的绝对路径应作为环境变量 <var class="varname"><var class="varname">PHPRC</var></var>
+   的值。
+   <div class="example" id="example-54">
+    <p><strong>Example #6 改变 <var class="filename">php.ini</var> 文件的位置</strong></p>
+    <div class="example-contents">
+<div class="cdata"><pre>
+cscript %windir%\system32\inetsrv\fcgiconfig.js -set -section:&quot;PHP&quot; ^
+-EnvironmentVars:PHPRC:&quot;C:\Some\Directory\&quot;
+</pre></div>         
+    </div>
+
+   </div>
+  </p>
+ </div>
+</div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="114466""></a>
+  <div class="note">
+   <strong class="user">pythonex12 at gmail dot com</strong>
+   <a href="#114466" class="date">24-Feb-2014 04:27</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I used Windows 2003 Server, IIS 6.0, MS SQL Server 2008, and PHP 5.3 along with FastCGI. If, after following the set up step-by-steps, you continually get a FastCGI 500 timeout error check your MS SQL Server PHP driver. <br />
+<br />
+MS SQL Server PHP driver 3.0 which was updated on 04/18 requires you have the 2012 MS SQL Server Native Client (v 11). But if you are using MS SQL Server 2008 like I was you only have the 2008 MS SQL Server Native Client (v 10). For whatever reason I could not get the 2012 Native CLient to install on the OS even though it appeared MS's website said it should be able to. <br />
+<br />
+So just downgrade to the MS SQL Server PHP driver 2.0. The site says it will be deprecated but at least you can get up and running for a while until you have to upgrade your OS and MS SQL Server. <br />
+<br />
+This kinda drove me nuts for a few hours.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="110487""></a>
+  <div class="note">
+   <strong class="user">renigade1 at can-d dot net</strong>
+   <a href="#110487" class="date">28-Oct-2012 05:01</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you still receive 404 errors... try this...<br />
+<br />
+I had to:<br />
+<br />
+1)&nbsp; &nbsp; right click on My Computer, select Manage<br />
+2)&nbsp; &nbsp; open up "Services and Applications" -&gt; "Internet Information Services" -&gt; "Web Sites" -&gt; mywebsite (where mywebsite could be "Default Web Site" or whatever my web site is named)<br />
+3)&nbsp; &nbsp; right-click on mywebsite and select Properties<br />
+&nbsp;&nbsp;&nbsp; choose the "Home Directory" tab, select Configuration... button<br />
+4)&nbsp; &nbsp; either select the .php extension and choose the Edit... button, or if .php isn't listed then press the Add... button<br />
+5)&nbsp; &nbsp; make the Executable C:\WINDOWS\system32\inetsrv\fcgiext.dll, the extension .php, and ensure Verbs are limited to GET,HEAD,POST, check the "Script engine" and "Verify that file exists" check boxes<br />
+<br />
+Once I did this I at least now get the 500 fastcgi error</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="109934""></a>
+  <div class="note">
+   <strong class="user">Simon Elms</strong>
+   <a href="#109934" class="date">04-Sep-2012 01:47</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Installing PHP 5.4 on Windows Server 2003 R2 Standard Edition with IIS 6:<br />
+<br />
+Issue: After installing PHP I was getting 404 errors on all .php pages, even if I browsed from within IIS Manager.&nbsp; <br />
+<br />
+Solution: Add a PHP Web Service Extension:<br />
+<br />
+In IIS Manager, expande the local computer node on the left and right-click on Web Service Extensions.&nbsp; From the context menu select "Add a new Web service extension..."<br />
+<br />
+In the New Web Service Extension dialog:<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; Extension name: PHP<br />
+<br />
+&nbsp;&nbsp;&nbsp; Required files: Add... path to php.exe (eg C:\PHP\php.exe)<br />
+<br />
+Set status of new web service extension to Allowed.<br />
+&nbsp; <br />
+NOTE: Seems to work equally well if you use the path to php.exe or php-cgi.exe.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="108716""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#108716" class="date">20-May-2012 10:25</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+When installing PHP 5.3 on IIS by following the manual installation steps described here (<a href="http://www.php.net/manual/en/install.windows.iis6.php" rel="nofollow" target="_blank">http://www.php.net/manual/en/install.windows.iis6.php</a>) and here (<a href="http://www.php.net/manual/en/install.windows.iis7.php" rel="nofollow" target="_blank">http://www.php.net/manual/en/install.windows.iis7.php</a>) it is possible to get the following error from FastCGI:<br />
+<br />
+HTTP Error 500.0 - Internal Server Error<br />
+<br />
+Module: FastCgiModule<br />
+<br />
+Notification: ExecuteRequestHandler<br />
+<br />
+Handler: php-5.3.6<br />
+<br />
+Error code: 0x800736b1<br />
+<br />
+The reason this error happens is because PHP 5.3 is built by using Visual C++ 2008 compiler (VC9) and hence requires Visual C++ 2008 runtime to be installed on the machine. This error does not happen when PHP 5.3 is installed by Web Platform Installer or if you already have URL Rewrite module installed.<br />
+<br />
+To fix the error download and install Visual C++ 2008 runtime from here:<br />
+<br />
+<a href="http://www.microsoft.com/downloads/en/details.aspx?familyid=9b2da534-3e03-4391-8a4d-074b9f2bc1bf&amp;displaylang=en" rel="nofollow" target="_blank">http://www.microsoft.com/downloads/en/details.aspx?familyid=9b2da534-3e03-4391-8a4d-074b9f2bc1bf&amp;displaylang=en</a><br />
+<br />
+(Make sure to use x86 version even if you have x64 environment)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="108386""></a>
+  <div class="note">
+   <strong class="user">Refrito</strong>
+   <a href="#108386" class="date">22-Apr-2012 06:57</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Using Win 2003 Server, IIS 6, PHP 5. If after running the command: <br />
+<br />
+cscript fcgiconfig.js -add -section:"PHP" -extension:"php" -path:"C:\PHP\php-cgi.exe"<br />
+(with the right quotation as pointed in a previous note)<br />
+<br />
+You get the following error/message:<br />
+C:\WINDOWS\system32\inetsrv\fcgiconfig.js(1326, 5) (null): 0xFFFFFFDF<br />
+<br />
+It may be because you have a previous version of C:\WINDOWS\system32\inetsrv\fcgiext.ini. So backup the file and make a clean one with only an empty [types] section. Run the command again and it should work.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="108359""></a>
+  <div class="note">
+   <strong class="user">stpetersn at Hotmail dot com</strong>
+   <a href="#108359" class="date">20-Apr-2012 02:50</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I used Windows 2003 Server, IIS 6.0, MS SQL Server 2008, and PHP 5.3 along with FastCGI. If, after following the set up step-by-steps, you continually get a FastCGI 500 timeout error check your MS SQL Server PHP driver. <br />
+<br />
+MS SQL Server PHP driver 3.0 which was updated on 04/18 requires you have the 2012 MS SQL Server Native Client (v 11). But if you are using MS SQL Server 2008 like I was you only have the 2008 MS SQL Server Native Client (v 10). For whatever reason I could not get the 2012 Native CLient to install on the OS even though it appeared MS's website said it should be able to. <br />
+<br />
+So just downgrade to the MS SQL Server PHP driver 2.0. The site says it will be deprecated but at least you can get up and running for a while until you have to upgrade your OS and MS SQL Server. <br />
+<br />
+This kinda drove me nuts for a few hours.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="107478""></a>
+  <div class="note">
+   <strong class="user">bjorn dot tornroth at nettitonttu dot fi</strong>
+   <a href="#107478" class="date">12-Feb-2012 06:45</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you receive:<br />
+<br />
+Input Error: There is no script engine for file extension ".js".<br />
+<br />
+When executing:<br />
+<br />
+cscript %windir%\system32\inetsrv\fcgiconfig.js -add -section:"PHP" -extension:php -path:"C:\PHP\php-cgi.exe"<br />
+<br />
+Include the switch:<br />
+<br />
+/e:jscript<br />
+<br />
+Like this:<br />
+<br />
+cscript /e:jscript %windir%\system32\inetsrv\fcgiconfig.js -add -section:"PHP" -extension:php -path:"C:\PHP\php-cgi.exe"<br />
+<br />
+Worked on freshly installed XP Pro ENG SP3(updated).</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="107458""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#107458" class="date">10-Feb-2012 11:53</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I am using Win 2003 Server SP2, IIS 6, Installing PHP 5.3.10 as FastCGI<br />
+<br />
+If you continue to receive FastCGI could not proccess your request - Access Denied Error -5 check to make sure the IIS_WPG Group has Read, Read/Execute permission to the PHP installation directory and is inherited to the php-cgi.exe file.<br />
+<br />
+Also, in researching this problem during my installation, I also found that you should have an entry in the IIS Web Extensions for the php-cgi.exe.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="105700""></a>
+  <div class="note">
+   <strong class="user">koen dot bauwens at fracarita dot org</strong>
+   <a href="#105700" class="date">08-Sep-2011 09:42</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+When executing:<br />
+<br />
+cscript %windir%\system32\inetsrv\fcgico<br />
+nfig.js -add -section:"PHP" ^<br />
+More? -extension:php -path:"C:\PHP\php-cgi.exe"<br />
+<br />
+You get this response:<br />
+<br />
+Microsoft (R) Windows Script Host Version 5.6<br />
+Copyright (C) Microsoft Corporation 1996-2001. All rights reserved.<br />
+<br />
+C:\WINDOWS\system32\inetsrv\fcgiconfig.js(1348, 5) (null): 0xFFFFFFDF<br />
+<br />
+Then check if in the C:\WINDOWS\system32\inetsrv\fcgiext.ini file the next text is present:<br />
+<br />
+[Types]<br />
+php=c:\php\php-cgi.exe<br />
+<br />
+[c:\php\php-cgi.exe]<br />
+QueueLength=999<br />
+MaxInstances=20<br />
+InstanceMaxRequests=10000<br />
+IdleTimeout=90<br />
+RequestTimeout=90<br />
+<br />
+If not, add it, worked for me!</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="102900""></a>
+  <div class="note">
+   <strong class="user">gsaarenvirta at makeplain dot com</strong>
+   <a href="#102900" class="date">14-Mar-2011 01:49</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+A note for your reference ... I was getting error 404 "file not found when trying to browse .php" files in \inetpub\wwwroot although .html files worked fine... messed around for hours until I tried this on advice of a friend.<br />
+<br />
+FYI ...<br />
+<br />
+Operating system Windows Server 2003 SP2 x64<br />
+IIS v6.0 <br />
+PHP v 5.3.5 nts windows x86<br />
+Microsoft C++ 2008 redistributable<br />
+no fastcgi<br />
+<br />
+Followed all the manual PHP configuration instructions very carefully, set php.ini directives, gave appropriate permissions to "IUSR_(machine)", set up web extensions etc. etc.<br />
+<br />
+The final fix that made everything work... renamed 'php.ini' to 'php-cgi-fcgi.ini'<br />
+<br />
+Hope this saves someone hours...</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="100989""></a>
+  <div class="note">
+   <strong class="user">crab dot crab at gmail dot com</strong>
+   <a href="#100989" class="date">19-Nov-2010 08:40</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I am using Win 2003 Server, IIS 6, PHP 5.<br />
+<br />
+If you see "You are not authorized to view this page" error when running your PHP page.<br />
+<br />
+Try one more thing:<br />
+1. Right-click {C:\php} (or your PHP installation root) and select {Properties}<br />
+2. Select {Security} tab and click {Add} button<br />
+3. Enter {ComputerName/IUSR_ComputerName} as object name and press {OK}<br />
+4. Select {Read &amp; Execute} as permissions<br />
+5. Click {Advanced} button and select {Allow inheritable permissions from the parent...} checkbox<br />
+6. Press {OK}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="99922""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#99922" class="date">15-Sep-2010 07:29</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+i`ve the same trouble after the install php 5.2.14-nts on IIS6 (Win2003Server)- try to open-dialog when php-file is opening...<br />
+<br />
+I`ve to manual add .php in "Application configuration"&nbsp; ... \system32\inetsrv\fcgiext.dll&nbsp; (even this option selected in installation - "Script executable")<br />
+<br />
+this solved the problem :)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

@@ -1,0 +1,560 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>POST 方法上传</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="features.file-upload.html">? 文件上传处理</a></li>
+      <li style="float: right;"><a href="features.file-upload.errors.html">错误信息说明 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="features.file-upload.html">文件上传处理</a></li>
+    <li>POST 方法上传</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="features.file-upload.post-method" class="sect1">
+  <h2 class="title">POST 方法上传</h2>
+
+  <p class="simpara">
+   本特性可以使用户上传文本和二进制文件。用 PHP
+   的认证和文件操作函数，可以完全控制允许哪些人上传以及文件上传后怎样处理。
+  </p>
+  <p class="simpara">
+   PHP 能够接受任何来自符合 RFC-1867 标准的浏览器（包括
+   <span class="productname">Netscape Navigator 3</span> 及更高版本，打了补丁的
+   <span class="productname">Microsoft Internet Explorer 3</span> 或者更高版本）上传的文件。
+  </p>
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <strong>相关的设置</strong><br />
+   <p class="para">
+    请参阅 <var class="filename">php.ini</var> 的 <a href="ini.core.html#ini.file-uploads" class="link">file_uploads</a>，<a href="ini.core.html#ini.upload-max-filesize" class="link">upload_max_filesize</a>，<a href="ini.core.html#ini.upload-tmp-dir" class="link">upload_tmp_dir</a><a href="ini.core.html#ini.post-max-size" class="link">post_max_size</a>
+    以及 <a href="info.configuration.html#ini.max-input-time" class="link">max_input_time</a> 设置选项。
+   </p>
+  </p></blockquote>
+  <p class="para">
+   请注意 PHP 也支持 PUT 方法的文件上传，<span class="productname">Netscape Composer</span>
+   和 W3C 的 <span class="productname">Amaya</span> 客户端使用这种方法。请参阅<a href="features.file-upload.put-method.html" class="link">对 PUT 方法的支持</a>以获取更多信息。
+  </p>
+  <p class="para">
+   <div class="example" id="example-369">
+    <p><strong>Example #1 文件上传表单</strong></p>
+    <div class="example-contents"><p>
+     可以如下建立一个特殊的表单来支持文件上传：
+    </p></div>
+    <div class="example-contents">
+    
+<div class="htmlcode"><pre class="htmlcode">&lt;!-- The data encoding type, enctype, MUST be specified as below --&gt;
+&lt;form enctype=&quot;multipart/form-data&quot; action=&quot;__URL__&quot; method=&quot;POST&quot;&gt;
+    &lt;!-- MAX_FILE_SIZE must precede the file input field --&gt;
+    &lt;input type=&quot;hidden&quot; name=&quot;MAX_FILE_SIZE&quot; value=&quot;30000&quot; /&gt;
+    &lt;!-- Name of input element determines name in $_FILES array --&gt;
+    Send this file: &lt;input name=&quot;userfile&quot; type=&quot;file&quot; /&gt;
+    &lt;input type=&quot;submit&quot; value=&quot;Send File&quot; /&gt;
+&lt;/form&gt;</pre>
+</div>
+    </div>
+
+    <div class="example-contents"><p>
+     以上范例中的 <em>__URL__</em> 应该被换掉，指向一个真实的 PHP 文件。
+    </p></div>
+    <div class="example-contents"><p>
+     <em>MAX_FILE_SIZE</em>
+     隐藏字段（单位为字节）必须放在文件输入字段之前，其值为接收文件的最大尺寸。这是对浏览器的一个建议，PHP
+     也会检查此项。在浏览器端可以简单绕过此设置，因此不要指望用此特性来阻挡大文件。实际上，PHP
+     设置中的上传文件最大值是不会失效的。但是最好还是在表单中加上此项目，因为它可以避免用户在花时间等待上传大文件之后才发现文件过大上传失败的麻烦。
+    </p></div>
+   </div>
+  </p>
+
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <p class="para">
+    要确保文件上传表单的属性是
+    <em>enctype=&quot;multipart/form-data&quot;</em>，否则文件上传不了。
+   </p>
+  </p></blockquote>
+
+  <p class="para">
+   全局变量 <a href="reserved.variables.files.html" class="link">$_FILES</a>
+   自 PHP 4.1.0 起存在（在更早的版本中用
+   <var class="varname"><var class="varname">$HTTP_POST_FILES</var></var> 替代）。此数组包含有所有上传的文件信息。
+  </p>
+
+  <p class="para">
+   以上范例中 <a href="reserved.variables.files.html" class="link">$_FILES</a>
+   数组的内容如下所示。我们假设文件上传字段的名称如上例所示，为
+   <em class="emphasis">userfile</em>。名称可随意命名。
+   <dl>
+
+    
+     <dt>
+<var class="varname"><var class="varname"><a href="reserved.variables.files.html" class="classname">$_FILES['userfile']['name']</a></var></var></dt>
+
+     <dd>
+
+      <p class="para">
+       客户端机器文件的原名称。
+      </p>
+     </dd>
+
+    
+    
+     <dt>
+<var class="varname"><var class="varname"><a href="reserved.variables.files.html" class="classname">$_FILES['userfile']['type']</a></var></var></dt>
+
+     <dd>
+
+      <p class="para">
+       文件的 MIME 类型，如果浏览器提供此信息的话。一个例子是"<em>image/gif</em>"。不过此
+       MIME 类型在 PHP 端并不检查，因此不要想当然认为有这个值。
+       </p>
+     </dd>
+
+    
+    
+     <dt>
+<var class="varname"><var class="varname"><a href="reserved.variables.files.html" class="classname">$_FILES['userfile']['size']</a></var></var></dt>
+
+     <dd>
+
+      <p class="para">
+       已上传文件的大小，单位为字节。
+      </p>
+     </dd>
+
+    
+    
+     <dt>
+<var class="varname"><var class="varname"><a href="reserved.variables.files.html" class="classname">$_FILES['userfile']['tmp_name']</a></var></var></dt>
+
+     <dd>
+
+      <p class="para">
+       文件被上传后在服务端储存的临时文件名。
+      </p>
+     </dd>
+
+    
+    
+     <dt>
+<var class="varname"><var class="varname"><a href="reserved.variables.files.html" class="classname">$_FILES['userfile']['error']</a></var></var></dt>
+
+     <dd>
+
+      <p class="para">
+       和该文件上传相关的<a href="features.file-upload.errors.html" class="link">错误代码</a>。此项目是在
+       PHP 4.2.0 版本中增加的。
+      </p>
+     </dd>
+
+    
+   </dl>
+
+  </p>
+
+  <p class="para">
+   文件被上传后，默认地会被储存到服务端的默认临时目录中，除非
+   <var class="filename">php.ini</var> 中的 <a href="ini.core.html#ini.upload-tmp-dir" class="link">upload_tmp_dir</a>
+   设置为其它的路径。服务端的默认临时目录可以通过更改 PHP
+   运行环境的环境变量 <span class="envar">TMPDIR</span> 来重新设置，但是在
+   PHP 脚本内部通过运行 <span class="function"><a href="function.putenv.html" class="function">putenv()</a></span>
+   函数来设置是不起作用的。该环境变量也可以用来确认其它的操作也是在上传的文件上进行的。
+   <div class="example" id="example-370">
+    <p><strong>Example #2 使文件上传生效</strong></p>
+    <div class="example-contents"><p>
+    请查阅函数 <span class="function"><a href="function.is-uploaded-file.html" class="function">is_uploaded_file()</a></span> 和 <span class="function"><a href="function.move-uploaded-file.html" class="function">move_uploaded_file()</a></span> 以获取进一步的信息。以下范例处理由表单提供的文件上传。
+    </p></div>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">//&nbsp;In&nbsp;PHP&nbsp;versions&nbsp;earlier&nbsp;than&nbsp;4.1.0,&nbsp;$HTTP_POST_FILES&nbsp;should&nbsp;be&nbsp;used&nbsp;instead<br />//&nbsp;of&nbsp;$_FILES.<br /><br /></span><span style="color: #0000BB">$uploaddir&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'/var/www/uploads/'</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$uploadfile&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$uploaddir&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">basename</span><span style="color: #007700">(</span><span style="color: #0000BB">$_FILES</span><span style="color: #007700">[</span><span style="color: #DD0000">'userfile'</span><span style="color: #007700">][</span><span style="color: #DD0000">'name'</span><span style="color: #007700">]);<br /><br />echo&nbsp;</span><span style="color: #DD0000">'&lt;pre&gt;'</span><span style="color: #007700">;<br />if&nbsp;(</span><span style="color: #0000BB">move_uploaded_file</span><span style="color: #007700">(</span><span style="color: #0000BB">$_FILES</span><span style="color: #007700">[</span><span style="color: #DD0000">'userfile'</span><span style="color: #007700">][</span><span style="color: #DD0000">'tmp_name'</span><span style="color: #007700">],&nbsp;</span><span style="color: #0000BB">$uploadfile</span><span style="color: #007700">))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"File&nbsp;is&nbsp;valid,&nbsp;and&nbsp;was&nbsp;successfully&nbsp;uploaded.\n"</span><span style="color: #007700">;<br />}&nbsp;else&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"Possible&nbsp;file&nbsp;upload&nbsp;attack!\n"</span><span style="color: #007700">;<br />}<br /><br />echo&nbsp;</span><span style="color: #DD0000">'Here&nbsp;is&nbsp;some&nbsp;more&nbsp;debugging&nbsp;info:'</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">print_r</span><span style="color: #007700">(</span><span style="color: #0000BB">$_FILES</span><span style="color: #007700">);<br /><br />print&nbsp;</span><span style="color: #DD0000">"&lt;/pre&gt;"</span><span style="color: #007700">;<br /><br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+   </div>
+  </p>
+  <p class="simpara">
+   接受上传文件的 PHP
+   脚本为了决定接下来要对该文件进行哪些操作，应该实现任何逻辑上必要的检查。例如可以用
+   <var class="varname"><var class="varname"><a href="reserved.variables.files.html" class="classname">$_FILES['userfile']['size']</a></var></var>
+   变量来排除过大或过小的文件，也可以通过
+   <var class="varname"><var class="varname"><a href="reserved.variables.files.html" class="classname">$_FILES['userfile']['type']</a></var></var>
+   变量来排除文件类型和某种标准不相符合的文件，但只把这个当作一系列检查中的第一步，因为此值完全由客户端控制而在
+   PHP 端并不检查。自 PHP 4.2.0 起，还可以通过
+   <var class="varname"><var class="varname"><a href="reserved.variables.files.html" class="classname">$_FILES['userfile']['error']</a></var></var> 变量来根据不同的<a href="features.file-upload.errors.html" class="link">错误代码</a>来计划下一步如何处理。不管怎样，要么将该文件从临时目录中删除，要么将其移动到其它的地方。
+  </p>
+  <p class="simpara">
+   如果表单中没有选择上传的文件，则 PHP 变量
+   <var class="varname"><var class="varname"><a href="reserved.variables.files.html" class="classname">$_FILES['userfile']['size']</a></var></var> 的值将为
+   0，<var class="varname"><var class="varname"><a href="reserved.variables.files.html" class="classname">$_FILES['userfile']['tmp_name']</a></var></var> 将为空。
+  </p>
+  <p class="simpara">
+   如果该文件没有被移动到其它地方也没有被改名，则该文件将在表单请求结束时被删除。
+  </p>
+
+  <div class="example" id="example-371">
+   <p><strong>Example #3 上传一组文件</strong></p>
+   <div class="example-contents"><p>
+    PHP 的 <a href="faq.html.html#faq.html.arrays" class="link">HTML 数组特性</a>甚至支持文件类型。
+   </p></div>
+   <div class="example-contents">
+<div class="htmlcode"><pre class="htmlcode">&lt;form action=&quot;&quot; method=&quot;post&quot; enctype=&quot;multipart/form-data&quot;&gt;
+&lt;p&gt;Pictures:
+&lt;input type=&quot;file&quot; name=&quot;pictures[]&quot; /&gt;
+&lt;input type=&quot;file&quot; name=&quot;pictures[]&quot; /&gt;
+&lt;input type=&quot;file&quot; name=&quot;pictures[]&quot; /&gt;
+&lt;input type=&quot;submit&quot; value=&quot;Send&quot; /&gt;
+&lt;/p&gt;
+&lt;/form&gt;</pre>
+</div>
+   </div>
+
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">foreach&nbsp;(</span><span style="color: #0000BB">$_FILES</span><span style="color: #007700">[</span><span style="color: #DD0000">"pictures"</span><span style="color: #007700">][</span><span style="color: #DD0000">"error"</span><span style="color: #007700">]&nbsp;as&nbsp;</span><span style="color: #0000BB">$key&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #0000BB">$error</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(</span><span style="color: #0000BB">$error&nbsp;</span><span style="color: #007700">==&nbsp;</span><span style="color: #0000BB">UPLOAD_ERR_OK</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$tmp_name&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$_FILES</span><span style="color: #007700">[</span><span style="color: #DD0000">"pictures"</span><span style="color: #007700">][</span><span style="color: #DD0000">"tmp_name"</span><span style="color: #007700">][</span><span style="color: #0000BB">$key</span><span style="color: #007700">];<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$name&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$_FILES</span><span style="color: #007700">[</span><span style="color: #DD0000">"pictures"</span><span style="color: #007700">][</span><span style="color: #DD0000">"name"</span><span style="color: #007700">][</span><span style="color: #0000BB">$key</span><span style="color: #007700">];<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">move_uploaded_file</span><span style="color: #007700">(</span><span style="color: #0000BB">$tmp_name</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"data/</span><span style="color: #0000BB">$name</span><span style="color: #DD0000">"</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+ </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="116393""></a>
+  <div class="note">
+   <strong class="user">bimal at sanjaal dot com</strong>
+   <a href="#116393" class="date">26-Dec-2014 08:44</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Some suggestions here:<br />
+<br />
+1. It is always better to check for your error status. If MAX_FILE_SIZE is active and the uploaded file crossed the limit, it will set the error. So, only when error is zero (0), move the file.<br />
+<br />
+2. If possible, never allow your script to upload in the path where file can be downloaded. Point your upload path to outside of public_html area or prevent direct browsing (using .htaccess restrictions). Think, if someone uploads malicious code, specially php codes, they will be executed on the server.<br />
+<br />
+3. Do not use the file name sent by the client. Regenerate a new name for newly uploaded file. This prevents overwriting your old files.<br />
+<br />
+4. Regularly track the disk space consumed, if you are running out of storage.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116246""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#116246" class="date">30-Nov-2014 02:19</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+For the love of god, don't do what michael suggests in <a href="http://php.net/manual/en/features.file-upload.post-method.php#94973 or you will be instantly pwned by someone uploading a php-shell to your script dir." rel="nofollow" target="_blank">http://php.net/manual/en/features.file-upload.post-method.php#94973 or you will be instantly pwned by someone uploading a php-shell to your script dir.</a><br />
+<br />
+When the mods come to delete this note for violating the don't-refer-to-another-note rule, please please /please/ delete michael's note too.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="111561""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#111561" class="date">05-Mar-2013 03:05</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Normalizing $_FILES structure:<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; $files </span><span class="keyword">= [];<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$fix </span><span class="keyword">= function (&amp;</span><span class="default">$files</span><span class="keyword">, </span><span class="default">$values</span><span class="keyword">, </span><span class="default">$prop</span><span class="keyword">) use (&amp;</span><span class="default">$fix</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach (</span><span class="default">$values </span><span class="keyword">as </span><span class="default">$key </span><span class="keyword">=&gt; </span><span class="default">$value</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">is_array</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$fix</span><span class="keyword">(</span><span class="default">$files</span><span class="keyword">[</span><span class="default">$key</span><span class="keyword">], </span><span class="default">$value</span><span class="keyword">, </span><span class="default">$prop</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$files</span><span class="keyword">[</span><span class="default">$key</span><span class="keyword">][</span><span class="default">$prop</span><span class="keyword">] = </span><span class="default">$value</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; };<br />
+&nbsp;&nbsp;&nbsp; foreach (</span><span class="default">$_FILES </span><span class="keyword">as </span><span class="default">$name </span><span class="keyword">=&gt; </span><span class="default">$props</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach (</span><span class="default">$props </span><span class="keyword">as </span><span class="default">$prop </span><span class="keyword">=&gt; </span><span class="default">$value</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">is_array</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$fix</span><span class="keyword">(</span><span class="default">$files</span><span class="keyword">[</span><span class="default">$name</span><span class="keyword">], </span><span class="default">$value</span><span class="keyword">, </span><span class="default">$prop</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$files</span><span class="keyword">[</span><span class="default">$name</span><span class="keyword">][</span><span class="default">$prop</span><span class="keyword">] = </span><span class="default">$value</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="105308""></a>
+  <div class="note">
+   <strong class="user">gustavo at roskus dot com</strong>
+   <a href="#105308" class="date">08-Aug-2011 09:21</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Some hosting does not have permission to use the move_uploaded_file function should replace the copy function</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="104349""></a>
+  <div class="note">
+   <strong class="user">Age Bosma</strong>
+   <a href="#104349" class="date">10-Jun-2011 11:49</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+"If no file is selected for upload in your form, PHP will return $_FILES['userfile']['size'] as 0, and $_FILES['userfile']['tmp_name'] as none."<br />
+<br />
+Note that the situation above is the same when a file exceeding the MAX_FILE_SIZE hidden field is being uploaded. In this case $_FILES['userfile']['size'] is also set to 0, and $_FILES['userfile']['tmp_name'] is also empty. The difference would only be the error code.<br />
+Simply checking for these two conditions and assuming no file upload has been attempted is incorrect.<br />
+<br />
+Instead, check if $_FILES['userfile']['name'] is set or not. If it is, a file upload has at least been attempted (a failed attempt or not). If it is not set, no attempt has been made.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="102213""></a>
+  <div class="note">
+   <strong class="user">zingaburga at hotmail dot com</strong>
+   <a href="#102213" class="date">03-Feb-2011 04:09</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The documentation is a little unclear about the MAX_FILE_SIZE value sent in the form with multiple file input fields.&nbsp; The following is what I have found through testing - hopefully it may clarify it for others.<br />
+<br />
+The MAX_FILE_SIZE is applied to each file (not the total size of all files) and to all file inputs which appear after it.&nbsp; This means that it can be overridden for different file fields.&nbsp; You can also disable it by sending no number, or sending 0 (probably anything that == '0' if you think about it).<br />
+<br />
+Example:<br />
+<br />
+&lt;form enctype="multipart/form-data" action="." method="POST"&gt;<br />
+&nbsp; &lt;!-- no maximum size for userfile0 --&gt;<br />
+&nbsp; &lt;input name="userfile0" type="file" /&gt;<br />
+<br />
+&nbsp; &lt;input type="hidden" name="MAX_FILE_SIZE" value="1000" /&gt;<br />
+&nbsp; &lt;!-- maximum size for userfile1 is 1000 bytes --&gt;<br />
+&nbsp; &lt;input name="userfile1" type="file" /&gt;<br />
+&nbsp; &lt;!-- maximum size for userfile2 is 1000 bytes --&gt;<br />
+&nbsp; &lt;input name="userfile2" type="file" /&gt;<br />
+<br />
+&nbsp; &lt;input type="hidden" name="MAX_FILE_SIZE" value="2000" /&gt;<br />
+&nbsp; &lt;!-- maximum size for userfile3 is 2000 bytes --&gt;<br />
+&nbsp; &lt;input name="userfile3" type="file" /&gt;<br />
+<br />
+&nbsp; &lt;input type="hidden" name="MAX_FILE_SIZE" value="0" /&gt;<br />
+&nbsp; &lt;!-- no maximum size for userfile4 --&gt;<br />
+&nbsp; &lt;input name="userfile4" type="file" /&gt;<br />
+&lt;/form&gt;</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="101761""></a>
+  <div class="note">
+   <strong class="user">mail at markuszeller dot com</strong>
+   <a href="#101761" class="date">10-Jan-2011 09:34</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you want to increase the upload size, it could make sense to allow it only to a specified directory and not in the php.ini for the whole domain or server. In my case it worked very well placing that into the .htaccess file like this:<br />
+<br />
+php_value&nbsp; &nbsp; upload_max_filesize&nbsp; &nbsp; 100M<br />
+php_value&nbsp; &nbsp; post_max_size&nbsp; &nbsp; 101M<br />
+<br />
+Remember, post_max_size must be bigger than the upload_max_filesize.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="100187""></a>
+  <div class="note">
+   <strong class="user">Mark</strong>
+   <a href="#100187" class="date">30-Sep-2010 01:12</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+$_FILES will be empty if a user attempts to upload a file greater than post_max_size in your php.ini<br />
+<br />
+post_max_size should be &gt;= upload_max_filesize in your php.ini.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="94973""></a>
+  <div class="note">
+   <strong class="user">michael</strong>
+   <a href="#94973" class="date">05-Dec-2009 06:19</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Just a little note, when I was trying to get this to work on my webserver I got error telling me the permissions were wrong, I checked and couldn't see anything wrong then I thought to try "./" for my upload directory instead of the full address which was something like "home/username/public_html/uploaddir". This will save it in the same directory as your script for the program above thats something like<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">// In PHP versions earlier than 4.1.0, $HTTP_POST_FILES should be used instead<br />
+// of $_FILES.<br />
+<br />
+</span><span class="default">$uploaddir </span><span class="keyword">= </span><span class="string">'./'</span><span class="keyword">;</span><span class="comment">//&lt;----This is all I changed<br />
+</span><span class="default">$uploadfile </span><span class="keyword">= </span><span class="default">$uploaddir </span><span class="keyword">. </span><span class="default">basename</span><span class="keyword">(</span><span class="default">$_FILES</span><span class="keyword">[</span><span class="string">'userfile'</span><span class="keyword">][</span><span class="string">'name'</span><span class="keyword">]);<br />
+<br />
+echo </span><span class="string">'&lt;pre&gt;'</span><span class="keyword">;<br />
+if (</span><span class="default">move_uploaded_file</span><span class="keyword">(</span><span class="default">$_FILES</span><span class="keyword">[</span><span class="string">'userfile'</span><span class="keyword">][</span><span class="string">'tmp_name'</span><span class="keyword">], </span><span class="default">$uploadfile</span><span class="keyword">)) {<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"File is valid, and was successfully uploaded.\n"</span><span class="keyword">;<br />
+} else {<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"Possible file upload attack!\n"</span><span class="keyword">;<br />
+}<br />
+<br />
+echo </span><span class="string">'Here is some more debugging info:'</span><span class="keyword">;<br />
+</span><span class="default">print_r</span><span class="keyword">(</span><span class="default">$_FILES</span><span class="keyword">);<br />
+<br />
+print </span><span class="string">"&lt;/pre&gt;"</span><span class="keyword">;<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+I know something trivial but when your new to this, those kind of things elude you.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="91479""></a>
+  <div class="note">
+   <strong class="user">daevid at daevid dot com</strong>
+   <a href="#91479" class="date">11-Jun-2009 11:35</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I think the way an array of attachments works is kind of cumbersome. Usually the PHP guys are right on the money, but this is just counter-intuitive. It should have been more like:<br />
+<br />
+Array<br />
+(<br />
+&nbsp;&nbsp;&nbsp; [0] =&gt; Array<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; (<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [name] =&gt; facepalm.jpg<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [type] =&gt; image/jpeg<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [tmp_name] =&gt; /tmp/phpn3FmFr<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [error] =&gt; 0<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [size] =&gt; 15476<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; )<br />
+<br />
+&nbsp;&nbsp;&nbsp; [1] =&gt; Array<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; (<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [name] =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [type] =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [tmp_name] =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [error] =&gt; 4<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [size] =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; )<br />
+)<br />
+<br />
+and not this<br />
+Array<br />
+(<br />
+&nbsp;&nbsp;&nbsp; [name] =&gt; Array<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; (<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [0] =&gt; facepalm.jpg<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [1] =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; )<br />
+<br />
+&nbsp;&nbsp;&nbsp; [type] =&gt; Array<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; (<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [0] =&gt; image/jpeg<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [1] =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; )<br />
+<br />
+&nbsp;&nbsp;&nbsp; [tmp_name] =&gt; Array<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; (<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [0] =&gt; /tmp/phpn3FmFr<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [1] =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; )<br />
+<br />
+&nbsp;&nbsp;&nbsp; [error] =&gt; Array<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; (<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [0] =&gt; 0<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [1] =&gt; 4<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; )<br />
+<br />
+&nbsp;&nbsp;&nbsp; [size] =&gt; Array<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; (<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [0] =&gt; 15476<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [1] =&gt; 0<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; )<br />
+)<br />
+<br />
+Anyways, here is a fuller example than the sparce one in the documentation above:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">foreach (</span><span class="default">$_FILES</span><span class="keyword">[</span><span class="string">"attachment"</span><span class="keyword">][</span><span class="string">"error"</span><span class="keyword">] as </span><span class="default">$key </span><span class="keyword">=&gt; </span><span class="default">$error</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp; &nbsp; &nbsp; </span><span class="default">$tmp_name </span><span class="keyword">= </span><span class="default">$_FILES</span><span class="keyword">[</span><span class="string">"attachment"</span><span class="keyword">][</span><span class="string">"tmp_name"</span><span class="keyword">][</span><span class="default">$key</span><span class="keyword">];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; if (!</span><span class="default">$tmp_name</span><span class="keyword">) continue;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; </span><span class="default">$name </span><span class="keyword">= </span><span class="default">basename</span><span class="keyword">(</span><span class="default">$_FILES</span><span class="keyword">[</span><span class="string">"attachment"</span><span class="keyword">][</span><span class="string">"name"</span><span class="keyword">][</span><span class="default">$key</span><span class="keyword">]);<br />
+<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">$error </span><span class="keyword">== </span><span class="default">UPLOAD_ERR_OK</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ( </span><span class="default">move_uploaded_file</span><span class="keyword">(</span><span class="default">$tmp_name</span><span class="keyword">, </span><span class="string">"/tmp/"</span><span class="keyword">.</span><span class="default">$name</span><span class="keyword">) )<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$uploaded_array</span><span class="keyword">[] .= </span><span class="string">"Uploaded file '"</span><span class="keyword">.</span><span class="default">$name</span><span class="keyword">.</span><span class="string">"'.&lt;br/&gt;\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; else<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$errormsg </span><span class="keyword">.= </span><span class="string">"Could not move uploaded file '"</span><span class="keyword">.</span><span class="default">$tmp_name</span><span class="keyword">.</span><span class="string">"' to '"</span><span class="keyword">.</span><span class="default">$name</span><span class="keyword">.</span><span class="string">"'&lt;br/&gt;\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; else </span><span class="default">$errormsg </span><span class="keyword">.= </span><span class="string">"Upload error. ["</span><span class="keyword">.</span><span class="default">$error</span><span class="keyword">.</span><span class="string">"] on file '"</span><span class="keyword">.</span><span class="default">$name</span><span class="keyword">.</span><span class="string">"'&lt;br/&gt;\n"</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="89938""></a>
+  <div class="note">
+   <strong class="user">eslindsey at gmail dot com</strong>
+   <a href="#89938" class="date">30-Mar-2009 08:09</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Also note that since MAX_FILE_SIZE hidden field is supplied by the browser doing the submitting, it is easily overridden from the clients' side.&nbsp; You should always perform your own examination and error checking of the file after it reaches you, instead of relying on information submitted by the client.&nbsp; This includes checks for file size (always check the length of the actual data versus the reported file size) as well as file type (the MIME type submitted by the browser can be inaccurate at best, and intentionally set to an incorrect value at worst).</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="89697""></a>
+  <div class="note">
+   <strong class="user">claude dot pache at gmail dot com</strong>
+   <a href="#89697" class="date">19-Mar-2009 06:26</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Note that the MAX_FILE_SIZE hidden field is only used by the PHP script which receives the request, as an instruction to reject files larger than the given bound. This field has no significance for the browser, it does not provide a client-side check of the file-size, and it has nothing to do with web standards or browser features.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

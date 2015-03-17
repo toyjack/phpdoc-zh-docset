@@ -1,0 +1,206 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>对象序列化</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="language.oop5.references.html">? 对象和引用</a></li>
+      <li style="float: right;"><a href="language.oop5.changelog.html">OOP 变更日志 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="language.oop5.html">类与对象</a></li>
+    <li>对象序列化</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="language.oop5.serialization" class="sect1">
+  <h2 class="title">对象序列化</h2>
+  <h2 class="title">序列化对象 - 在会话中存放对象</h2>
+
+  <p class="para">
+   所有php里面的值都可以使用函数<span class="function"><a href="function.serialize.html" class="function">serialize()</a></span>来返回一个包含字节流的字符串来表示。<span class="function"><a href="function.unserialize.html" class="function">unserialize()</a></span>函数能够重新把字符串变回php原来的值。
+   序列化一个对象将会保存对象的所有变量，但是不会保存对象的方法，只会保存类的名字。
+  </p>
+  
+  <p class="para">
+   为了能够<span class="function"><a href="function.unserialize.html" class="function">unserialize()</a></span>一个对象，这个对象的类必须已经定义过。如果序列化类A的一个对象，将会返回一个跟类A相关，而且包含了对象所有变量值的字符串。
+   如果要想在另外一个文件中解序列化一个对象，这个对象的类必须在解序列化之前定义，可以通过包含一个定义该类的文件或使用函数<span class="function"><a href="function.spl-autoload-register.html" class="function">spl_autoload_register()</a></span>来实现。
+  </p>
+  
+  <div class="informalexample">
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">//&nbsp;classa.inc:<br />&nbsp;&nbsp;<br />&nbsp;&nbsp;</span><span style="color: #007700">class&nbsp;</span><span style="color: #0000BB">A&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;</span><span style="color: #0000BB">$one&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">show_one</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #0000BB">$this</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">one</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;}<br />&nbsp;&nbsp;<br /></span><span style="color: #FF8000">//&nbsp;page1.php:<br /><br />&nbsp;&nbsp;</span><span style="color: #007700">include(</span><span style="color: #DD0000">"classa.inc"</span><span style="color: #007700">);<br />&nbsp;&nbsp;<br />&nbsp;&nbsp;</span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">A</span><span style="color: #007700">;<br />&nbsp;&nbsp;</span><span style="color: #0000BB">$s&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">serialize</span><span style="color: #007700">(</span><span style="color: #0000BB">$a</span><span style="color: #007700">);<br />&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;把变量$s保存起来以便文件page2.php能够读到<br />&nbsp;&nbsp;</span><span style="color: #0000BB">file_put_contents</span><span style="color: #007700">(</span><span style="color: #DD0000">'store'</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$s</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">//&nbsp;page2.php:<br />&nbsp;&nbsp;<br />&nbsp;&nbsp;//&nbsp;要正确了解序列化，必须包含下面一个文件<br />&nbsp;&nbsp;</span><span style="color: #007700">include(</span><span style="color: #DD0000">"classa.inc"</span><span style="color: #007700">);<br /><br />&nbsp;&nbsp;</span><span style="color: #0000BB">$s&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">file_get_contents</span><span style="color: #007700">(</span><span style="color: #DD0000">'store'</span><span style="color: #007700">);<br />&nbsp;&nbsp;</span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">unserialize</span><span style="color: #007700">(</span><span style="color: #0000BB">$s</span><span style="color: #007700">);<br /><br />&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;现在可以使用对象$a里面的函数&nbsp;show_one()<br />&nbsp;&nbsp;</span><span style="color: #0000BB">$a</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">show_one</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+  
+  <p class="para">
+   当一个应用程序使用函数<span class="function"><a href="function.session-register.html" class="function">session_register()</a></span>来保存对象到会话中时，在每个页面结束的时候这些对象都会自动序列化，而在每个页面开始的时候又自动解序列化。
+   所以一旦对象被保存在会话中，整个应用程序的页面都能使用这些对象。但是，<span class="function"><a href="function.session-register.html" class="function">session_register()</a></span>这个函数在php5.3.0已经废弃，而且在php6.0.0就不再支持，所以不要依赖这个函数。
+  </p>
+  
+  <p class="para">
+   在应用程序中序列化对象以便在之后使用，强烈推荐在整个应用程序都包含对象的类的定义。
+   不然有可能出现在解序列化对象的时候，没有找到该对象的类的定义，从而把没有方法的类<strong class="classname">__PHP_Incomplete_Class_Name</strong>作为该对象的类，导致返回一个没有用的对象。
+  </p>
+  
+  <p class="para">
+   所以在上面的例子中，当运行<em>session_register(&quot;a&quot;)</em>，把变量<var class="varname"><var class="varname">$a</var></var>放在会话里之后，需要在每个页面都包含文件<em>classa.inc</em>，而不是只有文件<var class="filename">page1.php</var>和<var class="filename">page2.php</var>。
+  </p>
+ </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="116756""></a>
+  <div class="note">
+   <strong class="user">michael at smith-li dot com</strong>
+   <a href="#116756" class="date">24-Feb-2015 04:28</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Reading this page you'd be left with the impression that a class's `serialize` and `unserialize` methods are unrelated to the `serialize` and `unserialize` core functions; that only `__sleep` and `__unsleep` allow you to customize an object's serialization interface. But look at <a href="http://php.net/manual/en/class.serializable.php and you" rel="nofollow" target="_blank">http://php.net/manual/en/class.serializable.php and you</a>'ll see that there is a more straightforward way to control how a user-defined object is serialized and unserialized.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="95238""></a>
+  <div class="note">
+   <strong class="user">wbcarts at juno dot com</strong>
+   <a href="#95238" class="date">20-Dec-2009 09:39</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+PHP OBJECT SERIALIZATION<br />
+<br />
+I use a database to store info rather than storing PHP Objects themselves. However, I find that having a PHP Object acting as an interface to my db is way useful. For example, suppose I have a TABLE called 'user' that looks like this.<br />
+<br />
+CREATE TABLE user {<br />
+&nbsp; user_id MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT,<br />
+&nbsp; user_first VARCHAR(24) NOT NULL,<br />
+&nbsp; user_last VARCHAR(24) NOT NULL,<br />
+&nbsp; PRIMARY KEY (user_id)<br />
+);<br />
+<br />
+Then I would create a PHP Class definition like so:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">require(</span><span class="string">'includes/db_connect.php'</span><span class="keyword">);<br />
+<br />
+class </span><span class="default">User<br />
+</span><span class="keyword">{<br />
+&nbsp; protected </span><span class="default">$user_id</span><span class="keyword">;<br />
+&nbsp; protected </span><span class="default">$user_first</span><span class="keyword">;<br />
+&nbsp; protected </span><span class="default">$user_last</span><span class="keyword">;<br />
+<br />
+&nbsp; public function </span><span class="default">__construct</span><span class="keyword">(</span><span class="default">$id</span><span class="keyword">, </span><span class="default">$first</span><span class="keyword">, </span><span class="default">$last</span><span class="keyword">)<br />
+&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">user_id </span><span class="keyword">= </span><span class="default">$id</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">user_first </span><span class="keyword">= </span><span class="default">$first</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">user_last </span><span class="keyword">= </span><span class="default">$last</span><span class="keyword">;<br />
+&nbsp; }<br />
+<br />
+&nbsp; </span><span class="comment"># FUNCTIONS TO RETRIEVE INFO - DESERIALIZE.<br />
+&nbsp; </span><span class="keyword">public static function </span><span class="default">db_user_by_id</span><span class="keyword">(</span><span class="default">$dbc</span><span class="keyword">, </span><span class="default">$id</span><span class="keyword">)<br />
+&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$query </span><span class="keyword">= </span><span class="string">"SELECT * FROM user WHERE user_id=</span><span class="default">$id</span><span class="string"> LIMIT 1"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">User</span><span class="keyword">::</span><span class="default">db_select</span><span class="keyword">(</span><span class="default">$dbc</span><span class="keyword">, </span><span class="default">$query</span><span class="keyword">); <br />
+&nbsp; }<br />
+<br />
+&nbsp; public static function </span><span class="default">db_user_by_name</span><span class="keyword">(</span><span class="default">$dbc</span><span class="keyword">, </span><span class="default">$first</span><span class="keyword">, </span><span class="default">$last</span><span class="keyword">)<br />
+&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$query </span><span class="keyword">= </span><span class="string">"SELECT * FROM user WHERE user_first='</span><span class="default">$first</span><span class="string">' AND user_last='</span><span class="default">$last</span><span class="string">' LIMIT 1"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">User</span><span class="keyword">::</span><span class="default">db_select</span><span class="keyword">(</span><span class="default">$dbc</span><span class="keyword">, </span><span class="default">$query</span><span class="keyword">);<br />
+&nbsp; }<br />
+<br />
+&nbsp; protected static function </span><span class="default">db_select</span><span class="keyword">(</span><span class="default">$dbc</span><span class="keyword">, </span><span class="default">$query</span><span class="keyword">);<br />
+&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">= </span><span class="default">mysqli_query</span><span class="keyword">(</span><span class="default">$dbc</span><span class="keyword">, </span><span class="default">$query</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; if(</span><span class="default">mysqli_num_rows</span><span class="keyword">(</span><span class="default">$result</span><span class="keyword">) &gt; </span><span class="default">0</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$row </span><span class="keyword">= </span><span class="default">mysqli_fetch_array</span><span class="keyword">(</span><span class="default">$result</span><span class="keyword">, </span><span class="default">MYSQLI_NUM</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp;&nbsp; return new </span><span class="default">User</span><span class="keyword">(</span><span class="default">$row</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">], </span><span class="default">$row</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="default">$row</span><span class="keyword">[</span><span class="default">2</span><span class="keyword">]);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp; }<br />
+<br />
+&nbsp; </span><span class="comment"># FUNCTIONS TO SAVE INFO - SERIALIZE.<br />
+&nbsp; </span><span class="keyword">public function </span><span class="default">insert</span><span class="keyword">(</span><span class="default">$dbc</span><span class="keyword">)<br />
+&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$query </span><span class="keyword">= </span><span class="string">"INSERT INTO user VALUES (NULL, '</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">user_first</span><span class="string">', '</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">user_last</span><span class="string">')"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">= </span><span class="default">mysqli_query</span><span class="keyword">(</span><span class="default">$dbc</span><span class="keyword">, </span><span class="default">$query</span><span class="keyword">);<br />
+&nbsp; }<br />
+<br />
+&nbsp; public function </span><span class="default">update</span><span class="keyword">(</span><span class="default">$dbc</span><span class="keyword">)<br />
+&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$query </span><span class="keyword">= </span><span class="string">"UPDATE user SET user_first='</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">user_first</span><span class="string">', user_last='</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">user_last</span><span class="string">' WHERE user_id=</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">id</span><span class="string"> LIMIT 1"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">= </span><span class="default">mysqli_query</span><span class="keyword">(</span><span class="default">$dbc</span><span class="keyword">, </span><span class="default">$query</span><span class="keyword">);<br />
+&nbsp; }<br />
+<br />
+&nbsp; </span><span class="comment"># GETTER and SETTER FUNCTIONS - DO NOT ALLOW SETTING OF ID<br />
+&nbsp; </span><span class="keyword">public function </span><span class="default">getId</span><span class="keyword">() {return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">user_id</span><span class="keyword">;)<br />
+&nbsp; public function </span><span class="default">getFirst</span><span class="keyword">() {return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">user_first</span><span class="keyword">;)<br />
+&nbsp; public function </span><span class="default">getLast</span><span class="keyword">() {return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">user_last</span><span class="keyword">;)<br />
+&nbsp; public function </span><span class="default">setFirst</span><span class="keyword">(</span><span class="default">$first</span><span class="keyword">) {</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">user_first </span><span class="keyword">= </span><span class="default">$first</span><span class="keyword">;}<br />
+&nbsp; public function </span><span class="default">setLast</span><span class="keyword">(</span><span class="default">$last</span><span class="keyword">) {</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">user_last </span><span class="keyword">= </span><span class="default">$last</span><span class="keyword">;}<br />
+<br />
+&nbsp; </span><span class="comment"># CUSTOM FUNCTIONS<br />
+&nbsp; </span><span class="keyword">public function </span><span class="default">getFullName</span><span class="keyword">() {return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">user_first </span><span class="keyword">. </span><span class="string">' ' </span><span class="keyword">. </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">user_last</span><span class="keyword">;}<br />
+&nbsp; public function </span><span class="default">getLastFirst</span><span class="keyword">() {return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">user_last </span><span class="keyword">. </span><span class="string">', ' </span><span class="keyword">. </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">user_first</span><span class="keyword">;}<br />
+}<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Using PHP Objects for SERIALIZATION and DESERIALIZATION is now super-easy, for example:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">require(</span><span class="string">'User.php'</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// INSERT a new user.<br />
+</span><span class="default">$user </span><span class="keyword">= new </span><span class="default">User</span><span class="keyword">(</span><span class="default">0</span><span class="keyword">, </span><span class="string">'Frank'</span><span class="keyword">, </span><span class="string">'American'</span><span class="keyword">);<br />
+</span><span class="default">$user</span><span class="keyword">-&gt;</span><span class="default">insert</span><span class="keyword">(</span><span class="default">$dbc</span><span class="keyword">);&nbsp; </span><span class="comment">// done!<br />
+<br />
+// UPDATE an existing user.<br />
+</span><span class="default">$user </span><span class="keyword">= </span><span class="default">User</span><span class="keyword">::</span><span class="default">db_user_by_id</span><span class="keyword">(</span><span class="default">$dbc</span><span class="keyword">, </span><span class="default">223</span><span class="keyword">);<br />
+</span><span class="default">$user</span><span class="keyword">-&gt;</span><span class="default">setFirst</span><span class="keyword">(</span><span class="string">'Johnny'</span><span class="keyword">);<br />
+</span><span class="default">$user</span><span class="keyword">-&gt;</span><span class="default">update</span><span class="keyword">(</span><span class="default">$dbc</span><span class="keyword">);&nbsp; </span><span class="comment">// done!<br />
+<br />
+</span><span class="default">mysqli_close</span><span class="keyword">(</span><span class="default">$dbc</span><span class="keyword">);<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="94139""></a>
+  <div class="note">
+   <strong class="user">php at lanar dot com dot au</strong>
+   <a href="#94139" class="date">19-Oct-2009 01:47</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Note that static members of an object are not serialized.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

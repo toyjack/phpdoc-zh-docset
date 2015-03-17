@@ -1,0 +1,121 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>新对象模型</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="migration5.databases.html">? 数据库</a></li>
+      <li style="float: right;"><a href="migrating5.errorrep.html">错误报告 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="migration5.html">从 PHP 4 移植到 PHP 5</a></li>
+    <li>新对象模型</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="migration5.oop" class="section">
+   <h2 class="title">新对象模型</h2>
+   <p class="para">
+    PHP 5 中有个新对象模型（Object Model）。PHP
+    处理对象的方式完全重写了，允许更佳性能和更多特性。之前版本的
+    PHP，对象处理方式和原始类型（例如整型和字符串）相同。此方法的缺点是当变量被赋值或作为参数传递给方法时语义上整个对象都被拷贝。在新方法中，对象通过句柄引用，而不是值（可以将句柄当成是对象的标识符）。
+   </p>
+   <p class="para">
+    很多 PHP 程序员根本没意识到旧的对象模型的这种拷贝怪癖，因此大多数 PHP
+    应用程序拿来就能运行，或者只做很小的修改。
+   </p>
+   <p class="para">
+    新对象模型的文档见<a href="language.oop5.html" class="link">语言参考</a>。
+   </p>
+   <p class="para">
+    与 PHP 4 的兼容性参见 <a href="ini.core.html#ini.zend.ze1-compatibility-mode" class="link">zend.ze1_compatibility_mode</a>。
+   </p>
+  </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="78336""></a>
+  <div class="note">
+   <strong class="user">zzo38</strong>
+   <a href="#78336" class="date">07-Oct-2007 05:06</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+You should be able to clone a object in compatibility of PHP4,PHP5 with:<br />
+<span class="default">&lt;?php<br />
+&nbsp;$x</span><span class="keyword">=</span><span class="default">unserialize</span><span class="keyword">(</span><span class="default">serialize</span><span class="keyword">(</span><span class="default">$y</span><span class="keyword">));<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="75366""></a>
+  <div class="note">
+   <strong class="user">bdas at premiergroup dot uk dot com</strong>
+   <a href="#75366" class="date">25-May-2007 04:49</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Since PHP5 upgraded PHP to an OOP language, they CHANGED the metaphor so that when you copy an object, you just get a pointer to it (as in C# and Java) and so therefore they needed to make a way to CLONE objects as well in case you need a REAL copy of the object.<br />
+<br />
+Most cases, clone is not needed, simply because a real copy of an object is usually not mandatory.&nbsp; In special cases, object cloning can be used to save time in porting.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="66348""></a>
+  <div class="note">
+   <strong class="user">quinn at strangecode dot com</strong>
+   <a href="#66348" class="date">19-May-2006 05:53</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Here is another possible solution for migrating code to php 5 when using $this = 'something' reassignments. In my case, I had several classes&nbsp; with methods that were self-instantiating with static calls. I was able to simply use a different variable: I changed $this to $_this and it worked the same because I copied an instance of the original object by reference using an instantiation factory method:<br />
+<br />
+class DB {<br />
+&nbsp;&nbsp;&nbsp; function &amp;getInstance()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; static $instance = null;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ($instance === null) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $instance = new DB();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return $instance;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; ...<br />
+<br />
+In every method needing access to this object I assigned it to a temporary variable by reference:<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; function doSomething ()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $_this =&amp; DB::getInstance();<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $_this-&gt;doSomethingElse();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $_this-&gt;param['id'] = 123;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+Which allows method calls or saving data back to the original object.<br />
+<br />
+I originally created classes like this so I didn't need to keep track of instantiations or global objects. I could just call DB::doSomething() and the object is created dynamically or referenced from an already existing object.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

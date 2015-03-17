@@ -1,0 +1,669 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Submits a command to the server and waits for the result, with the ability to pass parameters separately from the SQL command text.</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="function.pg-put-line.html">? pg_put_line</a></li>
+      <li style="float: right;"><a href="function.pg-query.html">pg_query ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="ref.pgsql.html">PostgreSQL 函数</a></li>
+    <li>Submits a command to the server and waits for the result, with the ability to pass parameters separately from the SQL command text.</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="function.pg-query-params" class="refentry">
+ <div class="refnamediv">
+  <h1 class="refname">pg_query_params</h1>
+  <p class="verinfo">(PHP 5 &gt;= 5.1.0)</p><p class="refpurpose"><span class="refname">pg_query_params</span> &mdash; <span class="dc-title">Submits a command to the server and waits for the result, with the ability to pass parameters separately from the SQL command text.</span></p>
+
+ </div>
+
+ <div class="refsect1 description" id="refsect1-function.pg-query-params-description">
+  <h3 class="title">说明</h3>
+  <div class="methodsynopsis dc-description">
+   <span class="type">resource</span> <span class="methodname"><strong>pg_query_params</strong></span>
+    ([ <span class="methodparam"><span class="type">resource</span> <code class="parameter">$connection</code></span>
+   ], <span class="methodparam"><span class="type">string</span> <code class="parameter">$query</code></span>
+   , <span class="methodparam"><span class="type">array</span> <code class="parameter">$params</code></span>
+   )</div>
+
+  <p class="para rdfs-comment">
+    Submits a command to the server and waits for the result, with the ability 
+    to pass parameters separately from the SQL command text.
+  </p>
+  <p class="para">
+    <span class="function"><strong>pg_query_params()</strong></span> is like <span class="function"><a href="function.pg-query.html" class="function">pg_query()</a></span>, 
+    but offers additional functionality: parameter 
+    values can be specified separately from the command string proper. 
+    <span class="function"><strong>pg_query_params()</strong></span> is supported only against PostgreSQL 7.4 or
+    higher connections; it will fail when using earlier versions.
+  </p>
+  <p class="para">
+    If parameters are used, they are referred to in the
+    <code class="parameter">query</code> string as $1, $2, etc. The same parameter may
+    appear more than once in the <code class="parameter">query</code>; the same value
+    will be used in that case. <code class="parameter">params</code> specifies the
+    actual values of the parameters. A <strong><code>NULL</code></strong> value in this array means the
+    corresponding parameter is SQL <em>NULL</em>.
+  </p>
+  <p class="para">
+    The primary advantage of <span class="function"><strong>pg_query_params()</strong></span> over <span class="function"><a href="function.pg-query.html" class="function">pg_query()</a></span> 
+    is that parameter values 
+    may be separated from the <code class="parameter">query</code> string, thus avoiding the need for tedious 
+    and error-prone quoting and escaping. Unlike <span class="function"><a href="function.pg-query.html" class="function">pg_query()</a></span>, 
+    <span class="function"><strong>pg_query_params()</strong></span> allows at 
+    most one SQL command in the given string. (There can be semicolons in it, 
+    but not more than one nonempty command.)
+  </p>
+ </div>
+
+
+ <div class="refsect1 parameters" id="refsect1-function.pg-query-params-parameters">
+  <h3 class="title">参数</h3>
+  <p class="para">
+   <dl>
+
+    
+     <dt>
+<code class="parameter">connection</code></dt>
+
+     <dd>
+
+      <p class="para">
+       PostgreSQL database connection resource.  When 
+       <code class="parameter">connection</code> is not present, the default connection 
+       is used. The default connection is the last connection made by 
+       <span class="function"><a href="function.pg-connect.html" class="function">pg_connect()</a></span> or <span class="function"><a href="function.pg-pconnect.html" class="function">pg_pconnect()</a></span>.
+      </p>
+     </dd>
+
+    
+    
+     <dt>
+<code class="parameter">query</code></dt>
+
+     <dd>
+
+      <p class="para">
+       The parameterized SQL statement.  Must contain only a single statement.
+       (multiple statements separated by semi-colons are not allowed.)  If any parameters 
+       are used, they are referred to as $1, $2, etc.
+      </p>
+      <p class="para">
+       User-supplied values should always be passed as parameters, not
+       interpolated into the query string, where they form possible
+       <a href="security.database.sql-injection.html" class="link"> SQL injection</a>
+       attack vectors and introduce bugs when handling data containing quotes.
+       If for some reason you cannot use a parameter, ensure that interpolated
+       values are <a href="function.pg-escape-string.html" class="link">properly escaped</a>.
+      </p>
+     </dd>
+
+    
+    
+     <dt>
+<code class="parameter">params</code></dt>
+
+     <dd>
+
+      <p class="para">
+        An array of parameter values to substitute for the $1, $2, etc. placeholders
+        in the original prepared query string.  The number of elements in the array
+        must match the number of placeholders.
+      </p>
+      <p class="para">
+       Values intended for <em>bytea</em> fields are not supported as
+       parameters. Use <span class="function"><a href="function.pg-escape-bytea.html" class="function">pg_escape_bytea()</a></span> instead, or use the
+       large object functions.
+      </p>
+     </dd>
+
+    
+   </dl>
+
+  </p>
+ </div>
+
+
+ <div class="refsect1 returnvalues" id="refsect1-function.pg-query-params-returnvalues">
+  <h3 class="title">返回值</h3>
+  <p class="para">
+    A query result resource on success 或者在失败时返回 <strong><code>FALSE</code></strong>.</p>
+ </div>
+
+ 
+ <div class="refsect1 examples" id="refsect1-function.pg-query-params-examples">
+  <h3 class="title">范例</h3>
+  <p class="para">
+   <div class="example" id="example-2130">
+    <p><strong>Example #1 Using <span class="function"><strong>pg_query_params()</strong></span></strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">//&nbsp;Connect&nbsp;to&nbsp;a&nbsp;database&nbsp;named&nbsp;"mary"<br /></span><span style="color: #0000BB">$dbconn&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">pg_connect</span><span style="color: #007700">(</span><span style="color: #DD0000">"dbname=mary"</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">//&nbsp;Find&nbsp;all&nbsp;shops&nbsp;named&nbsp;Joe's&nbsp;Widgets.&nbsp;&nbsp;Note&nbsp;that&nbsp;it&nbsp;is&nbsp;not&nbsp;necessary&nbsp;to<br />//&nbsp;escape&nbsp;"Joe's&nbsp;Widgets"<br /></span><span style="color: #0000BB">$result&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">pg_query_params</span><span style="color: #007700">(</span><span style="color: #0000BB">$dbconn</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'SELECT&nbsp;*&nbsp;FROM&nbsp;shops&nbsp;WHERE&nbsp;name&nbsp;=&nbsp;$1'</span><span style="color: #007700">,&nbsp;array(</span><span style="color: #DD0000">"Joe's&nbsp;Widgets"</span><span style="color: #007700">));<br /><br /></span><span style="color: #FF8000">//&nbsp;Compare&nbsp;against&nbsp;just&nbsp;using&nbsp;pg_query<br /></span><span style="color: #0000BB">$str&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">pg_escape_string</span><span style="color: #007700">(</span><span style="color: #DD0000">"Joe's&nbsp;Widgets"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$result&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">pg_query</span><span style="color: #007700">(</span><span style="color: #0000BB">$dbconn</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"SELECT&nbsp;*&nbsp;FROM&nbsp;shops&nbsp;WHERE&nbsp;name&nbsp;=&nbsp;'</span><span style="color: #007700">{</span><span style="color: #0000BB">$str</span><span style="color: #007700">}</span><span style="color: #DD0000">'"</span><span style="color: #007700">);<br /><br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+   </div>
+  </p>
+ </div>
+
+ 
+ <div class="refsect1 seealso" id="refsect1-function.pg-query-params-seealso">
+  <h3 class="title">参见</h3>
+  <p class="para">
+   <ul class="simplelist">
+    <li class="member"><span class="function"><a href="function.pg-query.html" class="function" rel="rdfs-seeAlso">pg_query()</a> - 执行查询</span></li>
+   </ul>
+  </p>
+ </div>
+
+</div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="115076""></a>
+  <div class="note">
+   <strong class="user">php at richardneill dot org</strong>
+   <a href="#115076" class="date">23-May-2014 11:55</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+For a parameterised date, the value NOW() is not allowed (it gets turned into a literal string and makes postgres choke),&nbsp; however 'now'<br />
+is allowed as a parameter, and has the same effect.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115064""></a>
+  <div class="note">
+   <strong class="user">php at richardneill dot org</strong>
+   <a href="#115064" class="date">21-May-2014 01:53</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Debugging parameterised queries can be tedious, if you want to paste the query directly into PSQL. Here is a trick that helps:<br />
+<br />
+<span class="default">&lt;?php<br />
+$sql </span><span class="keyword">= </span><span class="string">"SELECT * from table WHERE col_a = $1 and col_b=$2 and col_c=$3"</span><span class="keyword">;<br />
+</span><span class="default">$params </span><span class="keyword">= array (</span><span class="default">42</span><span class="keyword">, </span><span class="string">"a string"</span><span class="keyword">, </span><span class="default">NULL</span><span class="keyword">);<br />
+<br />
+</span><span class="default">$debug </span><span class="keyword">= </span><span class="default">preg_replace_callback</span><span class="keyword">( <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'/\$(\d+)\b/'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; function(</span><span class="default">$match</span><span class="keyword">) use (</span><span class="default">$params</span><span class="keyword">) { <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$key</span><span class="keyword">=(</span><span class="default">$match</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">]-</span><span class="default">1</span><span class="keyword">); return ( </span><span class="default">is_null</span><span class="keyword">(</span><span class="default">$params</span><span class="keyword">[</span><span class="default">$key</span><span class="keyword">])?</span><span class="string">'NULL'</span><span class="keyword">:</span><span class="default">pg_escape_literal</span><span class="keyword">(</span><span class="default">$params</span><span class="keyword">[</span><span class="default">$key</span><span class="keyword">]) ); <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; },<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$sql</span><span class="keyword">);<br />
+<br />
+echo </span><span class="string">"</span><span class="default">$debug</span><span class="string">"</span><span class="keyword">;<br />
+</span><span class="comment">//prints:&nbsp;&nbsp; SELECT * from table WHERE col_a = '42' and col_b='a string' and col_c=NULL<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+This works correctly, except in the (unusual) case where we have a literal $N;&nbsp; the regexp replaces it where it shouldn't.&nbsp; For example:<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">//Both&nbsp; ' ... $1 ... '&nbsp;&nbsp; and&nbsp; $1&nbsp;&nbsp; get replaced; the former is wrong, the latter is right.<br />
+</span><span class="default">$sql </span><span class="keyword">= </span><span class="string">"SELECT 'Your bill is for $1' AS invoice WHERE 7 = $1"</span><span class="keyword">;<br />
+</span><span class="default">$params </span><span class="keyword">= array(</span><span class="default">7</span><span class="keyword">);<br />
+</span><span class="comment">//$debug:&nbsp; SELECT 'Your bill is for $7' AS invoice WHERE 7 = '7'"<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115063""></a>
+  <div class="note">
+   <strong class="user">php at richardneill dot org</strong>
+   <a href="#115063" class="date">21-May-2014 01:35</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+A note on type-juggling of booleans:<br />
+pg_query_params() and friends do seamless, automatic conversion between PHP-NULL and SQL-NULL and back again, where appropriate.<br />
+Hoever, everything else goes in (and comes out) as a string.<br />
+The following approach may be helpful when handling boolean fields:<br />
+<br />
+<span class="default">&lt;?php<br />
+$sql </span><span class="keyword">= </span><span class="string">" ... "</span><span class="keyword">;<br />
+</span><span class="default">$params </span><span class="keyword">= array (</span><span class="default">1</span><span class="keyword">, </span><span class="default">2</span><span class="keyword">, </span><span class="default">3</span><span class="keyword">, </span><span class="default">true</span><span class="keyword">, </span><span class="default">false</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">//Convert booleans to 'true' and 'false'.&nbsp; [NULLS are already handled].<br />
+</span><span class="keyword">foreach (</span><span class="default">$params </span><span class="keyword">as &amp;</span><span class="default">$value</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">is_bool</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">)){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$value </span><span class="keyword">= (</span><span class="default">$value</span><span class="keyword">) ? </span><span class="string">'true'</span><span class="keyword">:</span><span class="string">'false'</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="comment">//Now do the query:<br />
+</span><span class="default">$result </span><span class="keyword">= </span><span class="default">pg_query_params </span><span class="keyword">(</span><span class="default">$sql</span><span class="keyword">, </span><span class="default">$params</span><span class="keyword">);<br />
+</span><span class="default">$row </span><span class="keyword">= </span><span class="default">pg_fetch_assoc </span><span class="keyword">(</span><span class="default">$result</span><span class="keyword">,</span><span class="default">0</span><span class="keyword">)&nbsp; </span><span class="comment">//first row<br />
+<br />
+//For booleans, convert 't' and 'f' back to true and false. Check the column type so we don't accidentally convert the wrong thing.<br />
+</span><span class="keyword">foreach (</span><span class="default">$row </span><span class="keyword">as </span><span class="default">$key </span><span class="keyword">=&gt; &amp;</span><span class="default">$value</span><span class="keyword">){ <br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$type </span><span class="keyword">= </span><span class="default">pg_field_type</span><span class="keyword">(</span><span class="default">$result</span><span class="keyword">,</span><span class="default">pg_field_num</span><span class="keyword">(</span><span class="default">$result</span><span class="keyword">, </span><span class="default">$key</span><span class="keyword">));<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">$type </span><span class="keyword">== </span><span class="string">'bool'</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$value </span><span class="keyword">= (</span><span class="default">$value </span><span class="keyword">== </span><span class="string">'t'</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="comment">//$row[] now contains booleans, NULLS, and strings.<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115062""></a>
+  <div class="note">
+   <strong class="user">php at richardneill dot org</strong>
+   <a href="#115062" class="date">21-May-2014 01:20</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+pg_query_params() *does* accept NULLs.&nbsp; They will automatically be transformed, correctly, into SQL NULL. Thus, for example:<br />
+<br />
+<span class="default">&lt;?php<br />
+$sql </span><span class="keyword">= </span><span class="string">"UPDATE tbl_example SET column_a = $1, column_b=$2"</span><span class="keyword">;<br />
+</span><span class="default">$params </span><span class="keyword">= array(</span><span class="default">NULL</span><span class="keyword">,&nbsp; </span><span class="default">42</span><span class="keyword">);<br />
+</span><span class="default">$result </span><span class="keyword">= </span><span class="default">pg_params </span><span class="keyword">(</span><span class="default">$sql</span><span class="keyword">, </span><span class="default">$params</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">//is equivalent to:<br />
+</span><span class="default">$result </span><span class="keyword">= </span><span class="default">pg_query </span><span class="keyword">(</span><span class="string">"UPDATE tbl_example SET column_a = NULL column_b&nbsp; = '42')"</span><span class="keyword">;<br />
+<br />
+</span><span class="comment">//and not, as one might fear,&nbsp; either of these (incorrect) things:<br />
+// ... column_a = ''&nbsp; &nbsp; &nbsp; ...<br />
+// ... column_a = 'NULL'&nbsp; ...<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Note that you can use NULLs this way in an UPDATE or INSERT statement, but NOT in a WHERE clause. This isn't a restriction of pg_query_params(), but rather it is a consquence of the SQL language.<br />
+So, if you want a query of the type:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">//depending on data,&nbsp; the where-test parameter may or may not be NULL<br />
+//the following is WRONG for $1.<br />
+</span><span class="default">$sql </span><span class="keyword">= </span><span class="string">"SELECT * from&nbsp; tbl_example WHERE column_a = $1 and column_b = $2"</span><span class="keyword">;<br />
+</span><span class="default">$params </span><span class="keyword">= array(</span><span class="default">NULL</span><span class="keyword">,&nbsp; </span><span class="default">42</span><span class="keyword">);<br />
+</span><span class="default">$result </span><span class="keyword">= </span><span class="default">pg_params </span><span class="keyword">(</span><span class="default">$sql</span><span class="keyword">, </span><span class="default">$params</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+This will fail as invalid SQL:&nbsp; because you should use "= 42" but "IS NULL".&nbsp; The solution is to use the SQL construct "IS [NOT] DISTINCT FROM".&nbsp; <br />
+<br />
+<span class="default">&lt;?php<br />
+$sql </span><span class="keyword">= </span><span class="string">"SELECT ... WHERE column IS NOT DISTINCT FROM $1"<br />
+</span><span class="default">$params </span><span class="keyword">= array (</span><span class="default">42</span><span class="keyword">);&nbsp; &nbsp; </span><span class="comment">//this works, the same as&nbsp; "where column = 42"<br />
+</span><span class="default">$params </span><span class="keyword">= array (</span><span class="default">NULL</span><span class="keyword">);&nbsp; </span><span class="comment">//this works, the same as "where column is null"<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+(Aside: though this is annoying, the behaviour is correct. There is a postgresql compatibility option "transform_null_equals", but it won't help you here, even though you might expect it to.)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="110467""></a>
+  <div class="note">
+   <strong class="user">peter dot kehl+nospam at gmail dot com</strong>
+   <a href="#110467" class="date">25-Oct-2012 06:39</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Third parameter $params of pg_query_params() ignores nay part of the string values after a zero byte character - PHP "\0" or chr(0). That may be a result of serialize().
+<br />
+
+<br />
+See https://bugs.php.net/bug.php?id=63344</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="108335""></a>
+  <div class="note">
+   <strong class="user">alec at smecher dot bc dot ca</strong>
+   <a href="#108335" class="date">18-Apr-2012 12:17</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Note that due to your locale's number formatting settings, you may not be able to pass a numeric value in as a parameter and have it arrive in PostgreSQL still a number.<br />
+<br />
+If your system locale uses "," as a decimal separator, the following will result in a database error:<br />
+<br />
+pg_query_params($conn, 'SELECT $1::numeric', array(3.5));<br />
+<br />
+For this to work, it's necessary to manually convert 3.5 to a string using e.g. number_format.<br />
+<br />
+(I filed this as bug #46408, but apparently it's expected behavior.)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="104434""></a>
+  <div class="note">
+   <strong class="user">victor dot engmark at terreactive dot ch</strong>
+   <a href="#104434" class="date">15-Jun-2011 12:00</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+You can't run multiple statements with pg_query_params, but you can still have transaction support without falling back to pg_query:<br />
+<br />
+<span class="default">&lt;?php<br />
+$connection </span><span class="keyword">= </span><span class="default">pg_connect</span><span class="keyword">(</span><span class="string">"host=127.0.0.1 port=5432 dbname=foo user=bar password=baz"</span><span class="keyword">);<br />
+</span><span class="default">pg_query</span><span class="keyword">(</span><span class="default">$connection</span><span class="keyword">, </span><span class="string">'DROP TABLE IF EXISTS example'</span><span class="keyword">);<br />
+</span><span class="default">pg_query</span><span class="keyword">(</span><span class="default">$connection</span><span class="keyword">, </span><span class="string">'CREATE TABLE example (col char(1))'</span><span class="keyword">);<br />
+</span><span class="default">pg_query</span><span class="keyword">(</span><span class="default">$connection</span><span class="keyword">, </span><span class="string">'INSERT INTO example (col) VALUES (\'a\')'</span><span class="keyword">);<br />
+</span><span class="comment">// 'SELECT col FROM example' in another session returns "a"<br />
+</span><span class="default">pg_query</span><span class="keyword">(</span><span class="default">$connection</span><span class="keyword">, </span><span class="string">'BEGIN'</span><span class="keyword">);<br />
+</span><span class="default">pg_query_params</span><span class="keyword">(</span><span class="default">$connection</span><span class="keyword">, </span><span class="string">'UPDATE example SET col = $1'</span><span class="keyword">, array(</span><span class="string">'b'</span><span class="keyword">));<br />
+</span><span class="comment">// 'SELECT col FROM example' in another session still returns "a"<br />
+</span><span class="default">pg_query_params</span><span class="keyword">(</span><span class="default">$connection</span><span class="keyword">, </span><span class="string">'UPDATE example SET col = $1'</span><span class="keyword">, array(</span><span class="string">'c'</span><span class="keyword">));<br />
+</span><span class="comment">// 'SELECT col FROM example' in another session still returns "a"<br />
+</span><span class="default">pg_query</span><span class="keyword">(</span><span class="default">$connection</span><span class="keyword">, </span><span class="string">'COMMIT'</span><span class="keyword">);<br />
+</span><span class="comment">// 'SELECT col FROM example' in another session returns "c"<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="99025""></a>
+  <div class="note">
+   <strong class="user">travismowens at gmail dot com</strong>
+   <a href="#99025" class="date">22-Jul-2010 08:38</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Unfortunately the params will not respect string representations of NULL or NOW().&nbsp; If your code pushes these values, they be considered a string and inserted literally as "NULL" and "NOW()".
+<br />
+
+<br />
+Ideally, there should be an additional parameter that you can assign to force this text as pgSQL functions/reserved words and not wrap them up as strings (assuming pgSQL's parameterized queries support this.
+<br />
+
+<br />
+This same problem also occurs for comma lists used in "WHERE column IN (1,2,3,4)", params treats "1,2,3,4" as a string, not a list of numbers, and runs it with quotes also.
+<br />
+
+<br />
+For debugging, I use this function to simulate params, keep in mind this is not 100% accurate, it only attempts to simulate the actual SQL that param queries create.
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">function </span><span class="default">pg_query_params_return_sql</span><span class="keyword">(</span><span class="default">$query</span><span class="keyword">, </span><span class="default">$array</span><span class="keyword">)
+<br />
+&nbsp;&nbsp;&nbsp; {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$query_parsed </span><span class="keyword">= </span><span class="default">$query</span><span class="keyword">;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; 
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; for (</span><span class="default">$a </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">, </span><span class="default">$b </span><span class="keyword">= </span><span class="default">sizeof</span><span class="keyword">(</span><span class="default">$array</span><span class="keyword">); </span><span class="default">$a </span><span class="keyword">&lt; </span><span class="default">$b</span><span class="keyword">; </span><span class="default">$a</span><span class="keyword">++)
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if ( </span><span class="default">is_numeric</span><span class="keyword">(</span><span class="default">$array</span><span class="keyword">[</span><span class="default">$a</span><span class="keyword">]) )
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$query_parsed </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">((</span><span class="string">'$'</span><span class="keyword">.(</span><span class="default">$a</span><span class="keyword">+</span><span class="default">1</span><span class="keyword">)), </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">"'"</span><span class="keyword">,</span><span class="string">"''"</span><span class="keyword">, </span><span class="default">$array</span><span class="keyword">[</span><span class="default">$a</span><span class="keyword">]), </span><span class="default">$query_parsed </span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; else
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$query_parsed </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">((</span><span class="string">'$'</span><span class="keyword">.(</span><span class="default">$a</span><span class="keyword">+</span><span class="default">1</span><span class="keyword">)), </span><span class="string">"'"</span><span class="keyword">.</span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">"'"</span><span class="keyword">,</span><span class="string">"''"</span><span class="keyword">, </span><span class="default">$array</span><span class="keyword">[</span><span class="default">$a</span><span class="keyword">]).</span><span class="string">"'"</span><span class="keyword">, </span><span class="default">$query_parsed </span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; 
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$query_parsed</span><span class="keyword">;
+<br />
+&nbsp;&nbsp;&nbsp; }
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="95408""></a>
+  <div class="note">
+   <strong class="user">ac at esilo dot com</strong>
+   <a href="#95408" class="date">01-Jan-2010 07:45</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+pg_query and pg_query_params can be combined into a single function.&nbsp; This also removes the need to construct a parameter array for pg_query_params:
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+</span><span class="keyword">function </span><span class="default">my_query</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">, </span><span class="default">$query</span><span class="keyword">)
+<br />
+{
+<br />
+&nbsp; if(</span><span class="default">func_num_args</span><span class="keyword">() == </span><span class="default">2</span><span class="keyword">)
+<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">pg_query</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">, </span><span class="default">$query</span><span class="keyword">);
+<br />
+
+<br />
+&nbsp; </span><span class="default">$args </span><span class="keyword">= </span><span class="default">func_get_args</span><span class="keyword">();
+<br />
+&nbsp; </span><span class="default">$params </span><span class="keyword">= </span><span class="default">array_splice</span><span class="keyword">(</span><span class="default">$args</span><span class="keyword">, </span><span class="default">2</span><span class="keyword">);
+<br />
+&nbsp; return </span><span class="default">pg_query_params</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">, </span><span class="default">$query</span><span class="keyword">, </span><span class="default">$params</span><span class="keyword">);
+<br />
+}
+<br />
+</span><span class="default">?&gt;
+<br />
+</span>
+<br />
+Usage:
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+</span><span class="comment">/* non-parameterized example */
+<br />
+</span><span class="default">my_query</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">, </span><span class="string">"SELECT </span><span class="default">$val1</span><span class="string"> + </span><span class="default">$val2</span><span class="string">"</span><span class="keyword">);
+<br />
+
+<br />
+</span><span class="comment">/* parameterized example */
+<br />
+</span><span class="default">my_query</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">, </span><span class="string">"SELECT $1 + $2"</span><span class="keyword">, </span><span class="default">$val1</span><span class="keyword">, </span><span class="default">$val2</span><span class="keyword">);
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="91083""></a>
+  <div class="note">
+   <strong class="user">strata_ranger at hotmail dot com</strong>
+   <a href="#91083" class="date">24-May-2009 06:03</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Regarding boolean values, just typecast them as (integer) when passing them in your query -- '0' and '1' are perfectly acceptable literals for SQL boolean input:<br />
+<br />
+- <a href="http://www.postgresql.org/docs/8.2/interactive/datatype-boolean.html" rel="nofollow" target="_blank">http://www.postgresql.org/docs/8.2/interactive/datatype-boolean.html</a><br />
+<br />
+It is also safe to write your paramerized query in double-quotes, which allows you to mix constant values and placeholders in your query without having to worry about how whether PHP will attempt to substitute any variables in your parameterized string.<br />
+<br />
+Of course this also means that unlike PHP's double-quoted string syntax, you CAN include literal $1, $2, etc. inside SQL strings, e.g:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">// Works ($1 is a placeholder, $2 is meant literally)<br />
+</span><span class="default">pg_query_params</span><span class="keyword">(</span><span class="string">"INSERT INTO foo (col1, col2) VALUES ($1, 'costs $2')"</span><span class="keyword">, Array(</span><span class="default">$data1</span><span class="keyword">));<br />
+<br />
+</span><span class="comment">// Throws an E_WARNING (passing too many parameters)<br />
+</span><span class="default">pg_query_params</span><span class="keyword">(</span><span class="string">"INSERT INTO foo (col1, col2) VALUES ($1, 'costs $2')"</span><span class="keyword">, Array(</span><span class="default">$data1</span><span class="keyword">, </span><span class="default">$data2</span><span class="keyword">));<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="78072""></a>
+  <div class="note">
+   <strong class="user">jsnell at e-normous dot com</strong>
+   <a href="#78072" class="date">27-Sep-2007 12:57</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+When inserting into a pg column of type bool, you cannot supply a PHP type of bool.&nbsp; You must instead use a string "t" or "f". PHP attempts to change boolean values supplied as parameters to strings, and then attempts to use a blank string for false.<br />
+<br />
+Example of Failure:<br />
+pg_query_params('insert into table1 (bool_column) values ($1)', array(false));<br />
+<br />
+Works:<br />
+pg_query_params('insert into lookup_permissions (system) values ($1)', array(false ? 't' : 'f'));</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="71912""></a>
+  <div class="note">
+   <strong class="user">dt309 at f2s dot com</strong>
+   <a href="#71912" class="date">22-Dec-2006 09:11</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you need to provide multiple possible values for a field in a select query, then the following will help.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">// Assume that $values[] is an array containing the values you are interested in.<br />
+</span><span class="default">$values </span><span class="keyword">= array(</span><span class="default">1</span><span class="keyword">, </span><span class="default">4</span><span class="keyword">, </span><span class="default">5</span><span class="keyword">, </span><span class="default">8</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// To select a variable number of arguments using pg_query() you can use:<br />
+</span><span class="default">$valuelist </span><span class="keyword">= </span><span class="default">implode</span><span class="keyword">(</span><span class="string">', '</span><span class="keyword">, </span><span class="default">$values</span><span class="keyword">);<br />
+</span><span class="default">$query </span><span class="keyword">= </span><span class="string">"SELECT * FROM table1 WHERE col1 IN (</span><span class="default">$valuelist</span><span class="string">)"</span><span class="keyword">;<br />
+</span><span class="default">$result </span><span class="keyword">= </span><span class="default">pg_query</span><span class="keyword">(</span><span class="default">$query</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; or die(</span><span class="default">pg_last_error</span><span class="keyword">());<br />
+<br />
+</span><span class="comment">// You may therefore assume that the following will work.<br />
+</span><span class="default">$query </span><span class="keyword">= </span><span class="string">'SELECT * FROM table1 WHERE col1 IN ($1)'</span><span class="keyword">;<br />
+</span><span class="default">$result </span><span class="keyword">= </span><span class="default">pg_query_params</span><span class="keyword">(</span><span class="default">$query</span><span class="keyword">, array(</span><span class="default">$valuelist</span><span class="keyword">))<br />
+&nbsp;&nbsp;&nbsp; or die(</span><span class="default">pg_last_error</span><span class="keyword">());<br />
+</span><span class="comment">// Produces error message: 'ERROR: invalid input syntax for integer'<br />
+// It only works when a SINGLE value specified.<br />
+<br />
+// Instead you must use the following approach:<br />
+</span><span class="default">$valuelist </span><span class="keyword">= </span><span class="string">'{' </span><span class="keyword">. </span><span class="default">implode</span><span class="keyword">(</span><span class="string">', '</span><span class="keyword">, </span><span class="default">$values </span><span class="keyword">. </span><span class="string">'}'<br />
+</span><span class="default">$query </span><span class="keyword">= </span><span class="string">'SELECT * FROM table1 WHERE col1 = ANY ($1)'</span><span class="keyword">;<br />
+</span><span class="default">$result </span><span class="keyword">= </span><span class="default">pg_query_params</span><span class="keyword">(</span><span class="default">$query</span><span class="keyword">, array(</span><span class="default">$valuelist</span><span class="keyword">));<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+The error produced in this example is generated by PostGreSQL.<br />
+<br />
+The last method works by creating a SQL array containing the desired values. 'IN (...)' and ' = ANY (...)' are equivalent, but ANY is for working with arrays, and IN is for working with simple lists.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="70129""></a>
+  <div class="note">
+   <strong class="user">mledford</strong>
+   <a href="#70129" class="date">04-Oct-2006 05:18</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you are trying to replicate the function pg_query_params, you might also want to support NULL values. While is_int returns true for a NULL value, the formatting for the SQL.<br />
+<br />
+function pg_query_params( $db, $query, $parameters ) {<br />
+&nbsp;&nbsp;&nbsp; // Escape parameters as required &amp; build parameters for callback function<br />
+&nbsp;&nbsp;&nbsp; global $pg_query_params__parameters;<br />
+&nbsp;&nbsp;&nbsp; foreach( $parameters as $k=&gt;$v ) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ( is_null($v) ) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $parameters[$k] = 'NULL';<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $parameters[$k] = ( is_int( $v ) ? $v : "'".pg_escape_string( $v )."'" );<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; $pg_query_params__parameters = $parameters;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; // Call using pg_query<br />
+&nbsp;&nbsp;&nbsp; return pg_query( $db, preg_replace_callback( '/\$([0-9]+)/', 'pg_query_params__callback', $query));<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="69364""></a>
+  <div class="note">
+   <strong class="user">cc+php at c2se dot com</strong>
+   <a href="#69364" class="date">02-Sep-2006 02:17</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+This is a useful function for preventing SQL injection attacks, so, for those of us who are not yet able to upgrade to PHP5.1, here is a replacement function which works similarly on older versions of PHP...<br />
+<br />
+<span class="default">&lt;?php&nbsp;&nbsp; </span><span class="comment"># Parameterised query implementation for Postgresql and older versions of PHP<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if( !</span><span class="default">function_exists</span><span class="keyword">( </span><span class="string">'pg_query_params' </span><span class="keyword">) ) {<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; function </span><span class="default">pg_query_params__callback</span><span class="keyword">( </span><span class="default">$at </span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; global </span><span class="default">$pg_query_params__parameters</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$pg_query_params__parameters</span><span class="keyword">[ </span><span class="default">$at</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">]-</span><span class="default">1 </span><span class="keyword">];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; function </span><span class="default">pg_query_params</span><span class="keyword">( </span><span class="default">$db</span><span class="keyword">, </span><span class="default">$query</span><span class="keyword">, </span><span class="default">$parameters </span><span class="keyword">) {<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Escape parameters as required &amp; build parameters for callback function<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">global </span><span class="default">$pg_query_params__parameters</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; foreach( </span><span class="default">$parameters </span><span class="keyword">as </span><span class="default">$k</span><span class="keyword">=&gt;</span><span class="default">$v </span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$parameters</span><span class="keyword">[</span><span class="default">$k</span><span class="keyword">] = ( </span><span class="default">is_int</span><span class="keyword">( </span><span class="default">$v </span><span class="keyword">) ? </span><span class="default">$v </span><span class="keyword">: </span><span class="string">"'"</span><span class="keyword">.</span><span class="default">pg_escape_string</span><span class="keyword">( </span><span class="default">$v </span><span class="keyword">).</span><span class="string">"'" </span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$pg_query_params__parameters </span><span class="keyword">= </span><span class="default">$parameters</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Call using pg_query<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">return </span><span class="default">pg_query</span><span class="keyword">( </span><span class="default">$db</span><span class="keyword">, </span><span class="default">preg_replace_callback</span><span class="keyword">( </span><span class="string">'/\$([0-9]+)/'</span><span class="keyword">, </span><span class="string">'pg_query_params__callback'</span><span class="keyword">, </span><span class="default">$query </span><span class="keyword">) );<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Example: pg_query_params( $db_resource, "SELECT * FROM table WHERE col1=$1 AND col2=$2", array( 42, "It's ok" ) );<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

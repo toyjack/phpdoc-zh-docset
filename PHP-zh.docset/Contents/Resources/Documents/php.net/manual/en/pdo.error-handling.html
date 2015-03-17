@@ -1,0 +1,112 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>错误与错误处理</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="pdo.prepared-statements.html">? 预处理语句与存储过程</a></li>
+      <li style="float: right;"><a href="pdo.lobs.html">大对象 (LOBs) ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="book.pdo.html">PDO</a></li>
+    <li>错误与错误处理</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="pdo.error-handling" class="chapter">
+ <h1>错误与错误处理</h1>
+
+ <p class="para">
+ PDO 提供了三种不同的错误处理模式，以满足不同风格的应用开发：
+ </p>
+ <ul class="itemizedlist">
+  <li class="listitem">
+   <p class="para">
+    <strong><code>PDO::ERRMODE_SILENT</code></strong>
+   </p>
+   <p class="para">
+     此为默认模式。 PDO 将只简单地设置错误码，可使用 <span class="function"><a href="pdo.errorcode.html" class="function">PDO::errorCode()</a></span> 和 <span class="function"><a href="pdo.errorinfo.html" class="function">PDO::errorInfo()</a></span> 方法来检查语句和数据库对象。如果错误是由于对语句对象的调用而产生的，那么可以调用那个对象的 <span class="function"><a href="pdostatement.errorcode.html" class="function">PDOStatement::errorCode()</a></span> 或 <span class="function"><a href="pdostatement.errorinfo.html" class="function">PDOStatement::errorInfo()</a></span> 方法。如果错误是由于调用数据库对象而产生的，那么可以在数据库对象上调用上述两个方法。
+    </p>
+  </li>
+  <li class="listitem">
+   <p class="para">
+    <strong><code>PDO::ERRMODE_WARNING</code></strong>
+   </p>
+   <p class="para">
+    除设置错误码之外，PDO 还将发出一条传统的 E_WARNING 信息。如果只是想看看发生了什么问题且不中断应用程序的流程，那么此设置在调试/测试期间非常有用。
+    </p>
+   </li>
+   <li class="listitem">
+    <p class="para">
+     <strong><code>PDO::ERRMODE_EXCEPTION</code></strong>
+    </p>
+    <p class="para">
+     除设置错误码之外，PDO 还将抛出一个 <a href="class.pdoexception.html" class="classname">PDOException</a> 异常类并设置它的属性来反射错误码和错误信息。此设置在调试期间也非常有用，因为它会有效地放大脚本中产生错误的点，从而可以非常快速地指出代码中有问题的潜在区域（记住：如果异常导致脚本终止，则事务被自动回滚）。
+    </p>
+    <p class="para">
+     异常模式另一个非常有用的是，相比传统 PHP 风格的警告，可以更清晰地构建自己的错误处理，而且比起静默模式和显式地检查每种数据库调用的返回值，异常模式需要的代码/嵌套更少。
+    </p>
+    <p class="para">
+     See <a href="language.exceptions.html" class="link">Exceptions</a> for more
+     information about Exceptions in PHP.
+    </p>
+   </li>
+ </ul>
+ <p class="para">
+ PDO 使用 SQL-92 SQLSTATE 来规范错误码字符串；不同 PDO 驱动程序负责将它们的本地代码映射为适当的 SQLSTATE 代码。<span class="function"><a href="pdo.errorcode.html" class="function">PDO::errorCode()</a></span> 方法返回一个单独的 SQLSTATE 码。如果需要更多此错误的细节信息，PDO 还提供了一个 <span class="function"><a href="pdo.errorinfo.html" class="function">PDO::errorInfo()</a></span> 方法来返回一个包含 SQLSTATE 码、特定驱动错误码以及此驱动的错误字符串的数组。
+ </p>
+ 
+ <p class="para">
+  <div class="example" id="example-933">
+   <p><strong>Example #1 创建 PDO 实例并设置错误模式</strong></p>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$dsn&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'mysql:dbname=testdb;host=127.0.0.1'</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$user&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'dbuser'</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$password&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'dbpass'</span><span style="color: #007700">;<br /><br />try&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$dbh&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">PDO</span><span style="color: #007700">(</span><span style="color: #0000BB">$dsn</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$user</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$password</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$dbh</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">setAttribute</span><span style="color: #007700">(</span><span style="color: #0000BB">PDO</span><span style="color: #007700">::</span><span style="color: #0000BB">ATTR_ERRMODE</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">PDO</span><span style="color: #007700">::</span><span style="color: #0000BB">ERRMODE_EXCEPTION</span><span style="color: #007700">);<br />}&nbsp;catch&nbsp;(</span><span style="color: #0000BB">PDOException&nbsp;$e</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'Connection&nbsp;failed:&nbsp;'&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$e</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">getMessage</span><span style="color: #007700">();<br />}<br /><br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+ </p>
+ <blockquote class="note"><p><strong class="note">Note</strong>: 
+  <p class="para">
+   不管当前是否设置了 <strong><code>PDO::ATTR_ERRMODE</code></strong> ，如果连接失败，<span class="function"><a href="pdo.construct.html" class="function">PDO::__construct()</a></span> 将总是抛出一个 <a href="class.pdoexception.html" class="classname">PDOException</a> 异常。未捕获异常是致命的。
+  </p>
+ </p></blockquote>
+ <p class="para">
+  <div class="example" id="example-934">
+   <p><strong>Example #2 创建 PDO 实例并在构造函数中设置错误模式</strong></p>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$dsn&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'mysql:dbname=test;host=127.0.0.1'</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$user&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'googleguy'</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$password&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'googleguy'</span><span style="color: #007700">;<br /><br /></span><span style="color: #FF8000">/*<br />&nbsp;&nbsp;&nbsp;&nbsp;使用&nbsp;try/catch&nbsp;围绕构造函数仍然有效，即使设置了&nbsp;ERRMODE&nbsp;为&nbsp;WARNING，<br />&nbsp;&nbsp;&nbsp;&nbsp;因为如果连接失败，PDO::__construct&nbsp;将总是抛出一个&nbsp;&nbsp;PDOException&nbsp;异常。<br />*/<br /></span><span style="color: #007700">try&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$dbh&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">PDO</span><span style="color: #007700">(</span><span style="color: #0000BB">$dsn</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$user</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$password</span><span style="color: #007700">,&nbsp;array(</span><span style="color: #0000BB">PDO</span><span style="color: #007700">::</span><span style="color: #0000BB">ATTR_ERRMODE&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #0000BB">PDO</span><span style="color: #007700">::</span><span style="color: #0000BB">ERRMODE_WARNING</span><span style="color: #007700">));<br />}&nbsp;catch&nbsp;(</span><span style="color: #0000BB">PDOException&nbsp;$e</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'Connection&nbsp;failed:&nbsp;'&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$e</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">getMessage</span><span style="color: #007700">();<br />&nbsp;&nbsp;&nbsp;&nbsp;exit;<br />}<br /><br /></span><span style="color: #FF8000">//&nbsp;这里将导致&nbsp;PDO&nbsp;抛出一个&nbsp;E_WARNING&nbsp;级别的错误，而不是&nbsp;一个异常&nbsp;（当数据表不存在时）<br /></span><span style="color: #0000BB">$dbh</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #DD0000">"SELECT&nbsp;wrongcolumn&nbsp;FROM&nbsp;wrongtable"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+    <div class="example-contents"><p>以上例程会输出：</p></div>
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+Warning: PDO::query(): SQLSTATE[42S02]: Base table or view not found: 1146 Table &#039;test.wrongtable&#039; doesn&#039;t exist in
+/tmp/pdo_test.php on line 18
+</pre></div>
+    </div>
+  </div>
+ </p>
+</div>
+<div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+ <div class="note">There are no user contributed notes for this page.</div>
+</div>
+</div></div></body></html>

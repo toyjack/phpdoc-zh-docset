@@ -1,0 +1,443 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>OCI8 and DTrace Dynamic Tracing</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="oci8.fan.html">? OCI8 Fast Application Notification (FAN) Support</a></li>
+      <li style="float: right;"><a href="oci8.datatypes.html">Supported Datatypes ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="book.oci8.html">OCI8</a></li>
+    <li>OCI8 and DTrace Dynamic Tracing</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="oci8.dtrace" class="chapter">
+ <h1>OCI8 and DTrace Dynamic Tracing</h1>
+
+ <div class="section">
+  <p class="para">
+   OCI8 2.0 introduced static DTrace probes that can be used on
+   operating systems that support DTrace.
+   See <a href="features.dtrace.html" class="link">DTrace Dynamic Tracing</a>
+   for an overview of PHP and DTrace.
+  </p>
+ </div>
+
+<div class="section">
+ <h2 class="title">Installing OCI8 with DTrace Support</h2>
+  <p class="para">
+   To enable DTrace support in PHP OCI8, build OCI8 as a shared
+   extension after setting <em>PHP_DTRACE</em>.
+  </p>
+  <p class="para">
+   <div class="informalexample">
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+$ export PHP_DTRACE=yes
+$ pecl install oci8
+</pre></div>
+    </div>
+   </div>
+  </p>
+  <p class="para">
+   Edit php.ini,
+   set <a href="ini.core.html#ini.extension-dir" class="link">extension_dir</a> to the
+   directory with the created <var class="filename">oci8.so</var> and also
+   enable the extension by adding:
+  </p>
+  <p class="para">
+   <div class="informalexample">
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+extension=oci8.so
+</pre></div>
+    </div>
+   </div>
+  </p>
+  <p class="para">
+   If you install PHP OCI8 2.0 from PECL using <var class="filename">phpize</var> and
+   <var class="filename">configure</var> (instead
+   of <var class="filename">pecl</var>), you will still need to set
+   <em>PHP_DTRACE=yes</em>. This is because
+   the <em>--enable-dtrace</em> option will be ignored by the
+   limited <var class="filename">configure</var> script of a PECL bundle.
+  </p>
+
+  <p class="para">
+   See <a href="install.pecl.html" class="link">Installation of PECL
+   extensions</a> for general PECL installation instructions.
+  </p>
+ </div>
+
+ <div class="section">
+  <h2 class="title">DTrace Static Probes in PHP OCI8</h2>
+  <table class="doctable table">
+   <caption><strong>The following static probes are available in PHP OCI8</strong></caption>
+   
+    <thead>
+     <tr>
+      <th>Probe Name</th>
+      <th>Probe Description</th>
+      <th>Probe Arguments</th>
+     </tr>
+
+    </thead>
+
+    <tbody class="tbody">
+     <tr>
+      <td><em>oci8-connect-entry</em></td>
+      <td>Initiated by oci_connect(), oci_pconnect() and oci_new_connect(). Fires before database connection is established.</td>
+      <td>char *<var class="varname"><var class="varname">username</var></var>, char *<var class="varname"><var class="varname">dbname</var></var>, char *<var class="varname"><var class="varname">charset</var></var>, long <var class="varname"><var class="varname">session_mode</var></var>, int <var class="varname"><var class="varname">persistent</var></var>, int <var class="varname"><var class="varname">exclusive</var></var></td>
+     </tr>
+
+     <tr>
+      <td><em>oci8-connect-return</em></td>
+      <td>Fires at the end of connection.</td>
+      <td>void *<var class="varname"><var class="varname">connection</var></var></td>
+     </tr>
+
+     <tr>
+      <td><em>oci8-check-connection</em></td>
+      <td>Fires if an Oracle error might have caused the connection to become invalid.</td>
+      <td>void *<var class="varname"><var class="varname">connection</var></var>, char *<var class="varname"><var class="varname">client_id</var></var>, int <var class="varname"><var class="varname">is_open</var></var>, long <var class="varname"><var class="varname">errcode</var></var>, unsigned long <var class="varname"><var class="varname">server_status</var></var></td>
+     </tr>
+
+     <tr>
+      <td><em>oci8-sqltext</em></td>
+      <td>Fires when oci_parse() is executed.</td>
+      <td>void *<var class="varname"><var class="varname">connection</var></var>, char *<var class="varname"><var class="varname">client_id</var></var>, void *<var class="varname"><var class="varname">statement</var></var>, char *<var class="varname"><var class="varname">sql</var></var></td>
+     </tr>
+
+     <tr>
+      <td><em>oci8-connection-close</em></td>
+      <td>Fires when the connection to the database is completely destroyed.</td>
+      <td>void *<var class="varname"><var class="varname">connection</var></var></td>
+     </tr>
+
+     <tr>
+      <td><em>oci8-error</em></td>
+      <td>Fires if an Oracle error occurs.</td>
+      <td>int <var class="varname"><var class="varname">status</var></var>, long <var class="varname"><var class="varname">errcode</var></var></td>
+     </tr>
+
+     <tr>
+      <td><em>oci8-execute-mode</em></td>
+      <td>Fires at <span class="function"><a href="function.oci-execute.html" class="function">oci_execute()</a></span> to show the execution mode.</td>
+      <td>void *<var class="varname"><var class="varname">connection</var></var>, char *<var class="varname"><var class="varname">client_id</var></var>, void *<var class="varname"><var class="varname">statement</var></var>, unsigned int <var class="varname"><var class="varname">mode</var></var></td>
+     </tr>
+
+    </tbody>
+   
+  </table>
+
+  <p class="para">
+   These probes are useful for tracing OCI8 scripts.
+  </p>
+
+  <p class="para">
+   The <var class="varname"><var class="varname">connection</var></var> and <var class="varname"><var class="varname">statement</var></var>
+   are the pointers to internal structures used for tracking PHP
+   connections and executed statements.
+  </p>
+
+  <p class="para">
+    The <var class="varname"><var class="varname">client_id</var></var> is the value set
+    by <span class="function"><a href="function.oci-set-client-identifier.html" class="function">oci_set_client_identifier()</a></span>.
+  </p>
+
+  <p class="para">
+  </p>
+
+  <p class="para">
+  </p>
+
+  <p class="para">
+  </p>
+
+
+  <p class="para">
+   Core PHP also has static probes.
+   See <a href="features.dtrace.dtrace.html#features.dtrace.static-probes" class="link">DTrace Static
+   Probes in Core PHP</a>.
+  </p>
+
+  <table class="doctable table">
+   <caption><strong>Internal Debugging DTrace Probes in OCI8</strong></caption>
+   
+    <thead>
+     <tr>
+      <th>Probe Name</th>
+     </tr>
+
+    </thead>
+
+    <tbody class="tbody">
+     <tr>
+      <td><em>oci8-connect-expiry</em></td>
+     </tr>
+
+     <tr>
+      <td><em>oci8-connect-lookup</em></td>
+     </tr>
+
+     <tr>
+      <td><em>oci8-connect-p-dtor-close</em></td>
+     </tr>
+
+     <tr>
+      <td><em>oci8-connect-p-dtor-release</em></td>
+     </tr>
+
+     <tr>
+      <td><em>oci8-connect-type</em></td>
+     </tr>
+
+     <tr>
+      <td><em>oci8-sesspool-create</em></td>
+     </tr>
+
+     <tr>
+      <td><em>oci8-sesspool-stats</em></td>
+     </tr>
+
+     <tr>
+      <td><em>oci8-sesspool-type</em></td>
+     </tr>
+
+    </tbody>
+   
+  </table>
+
+  <p class="para">
+   These probes are useful for OCI8 maintainers.  Refer to the OCI8 source code for arguments and to see when the will fire.
+  </p>
+ </div>
+
+ <div class="section">
+  <h2 class="title">Listing DTrace Static Probes in PHP OCI8</h2>
+  <p class="para">
+   To list available probes, start a PHP process and then run:
+   <div class="informalexample">
+    <div class="example-contents">
+<div class="cdata"><pre>
+# dtrace -l
+</pre></div>
+    </div>
+
+   </div>
+  </p>
+  
+  <p class="para">
+   The output will be similar to:
+   <div class="informalexample">
+    <div class="example-contents">
+<div class="cdata"><pre>
+   ID   PROVIDER            MODULE                          FUNCTION NAME
+   [ . . . ]
+   17 phpoci22116           oci8.so   php_oci_dtrace_check_connection oci8-check-connection
+   18 phpoci22116           oci8.so                php_oci_do_connect oci8-connect-entry
+   19 phpoci22116           oci8.so         php_oci_persistent_helper oci8-connect-expiry
+   20 phpoci22116           oci8.so             php_oci_do_connect_ex oci8-connect-lookup
+   21 phpoci22116           oci8.so  php_oci_pconnection_list_np_dtor oci8-connect-p-dtor-close
+   22 phpoci22116           oci8.so  php_oci_pconnection_list_np_dtor oci8-connect-p-dtor-release
+   23 phpoci22116           oci8.so                php_oci_do_connect oci8-connect-return
+   24 phpoci22116           oci8.so             php_oci_do_connect_ex oci8-connect-type
+   25 phpoci22116           oci8.so          php_oci_connection_close oci8-connection-close
+   26 phpoci22116           oci8.so                     php_oci_error oci8-error
+   27 phpoci22116           oci8.so         php_oci_statement_execute oci8-execute-mode
+   28 phpoci22116           oci8.so              php_oci_create_spool oci8-sesspool-create
+   29 phpoci22116           oci8.so            php_oci_create_session oci8-sesspool-stats
+   30 phpoci22116           oci8.so            php_oci_create_session oci8-sesspool-type
+   31 phpoci22116           oci8.so          php_oci_statement_create oci8-sqltext
+</pre></div>
+    </div>
+
+   </div>
+  </p>
+
+   <p class="para">
+    The Provider column values consist of <em>phpoci</em> and
+    the process id of the currently running PHP process.
+   </p>
+
+   <p class="para">
+    The Function column refers to PHP&#039;s internal C implementation
+    function names where each provider is located.
+   </p>
+
+   <p class="para">
+    If a PHP process is not running, then no PHP probes will be shown.
+   </p>
+ </div>
+
+ <div class="section">
+  <h2 class="title">DTrace with PHP OCI8 Example</h2>
+  <p class="para">
+   This example shows the basics of the DTrace D scripting language.
+   <div class="example" id="example-1996">
+    <p><strong>Example #1 <var class="filename">user_oci8_probes.d</var> for tracing all user-level PHP OCI8 Static Probes with DTrace</strong></p>
+    <div class="example-contents">
+<div class="cdata"><pre>
+#!/usr/sbin/dtrace -Zs
+
+#pragma D option quiet
+
+php*:::oci8-connect-entry
+{
+    printf(&quot;%lld: PHP connect-entry\n&quot;, walltimestamp);
+    printf(&quot;  credentials=\&quot;%s@%s\&quot;\n&quot;, arg0 ? copyinstr(arg0) : &quot;&quot;, arg1 ? copyinstr(arg1) : &quot;&quot;);
+    printf(&quot;  charset=\&quot;%s\&quot;\n&quot;, arg2 ? copyinstr(arg2) : &quot;&quot;);
+    printf(&quot;  session_mode=%ld\n&quot;, (long)arg3);
+    printf(&quot;  persistent=%d\n&quot;, (int)arg4);
+    printf(&quot;  exclusive=%d\n&quot;, (int)arg5);
+}
+
+php*:::oci8-connect-return
+{
+    printf(&quot;%lld: PHP oci8-connect-return\n&quot;, walltimestamp);
+    printf(&quot;  connection=0x%p\n&quot;, (void *)arg0);
+}
+
+php*:::oci8-connection-close
+{
+    printf(&quot;%lld: PHP oci8-connect-close\n&quot;, walltimestamp);
+    printf(&quot;  connection=0x%p\n&quot;, (void *)arg0);
+}
+
+php*:::oci8-error
+{
+    printf(&quot;%lld: PHP oci8-error\n&quot;, walltimestamp);
+    printf(&quot;  status=%d\n&quot;, (int)arg0);
+    printf(&quot;  errcode=%ld\n&quot;, (long)arg1);
+}
+
+php*:::oci8-check-connection
+{
+    printf(&quot;%lld: PHP oci8-check-connection\n&quot;, walltimestamp);
+    printf(&quot;  connection=0x%p\n&quot;, (void *)arg0);
+    printf(&quot;  client_id=\&quot;%s\&quot;\n&quot;, arg1 ? copyinstr(arg1) : &quot;&quot;);
+    printf(&quot;  is_open=%d\n&quot;, arg2);
+    printf(&quot;  errcode=%ld\n&quot;, (long)arg3);
+    printf(&quot;  server_status=%lu\n&quot;, (unsigned long)arg4);
+}
+
+php*:::oci8-sqltext
+{
+    printf(&quot;%lld: PHP oci8-sqltext\n&quot;, walltimestamp);
+    printf(&quot;  connection=0x%p\n&quot;, (void *)arg0);
+    printf(&quot;  client_id=\&quot;%s\&quot;\n&quot;, arg1 ? copyinstr(arg1) : &quot;&quot;);
+    printf(&quot;  statement=0x%p\n&quot;, (void *)arg2);
+    printf(&quot;  sql=\&quot;%s\&quot;\n&quot;, arg3 ? copyinstr(arg3) : &quot;&quot;);
+}
+
+php*:::oci8-execute-mode
+{
+    printf(&quot;%lld: PHP oci8-execute-mode\n&quot;, walltimestamp);
+    printf(&quot;  connection=0x%p\n&quot;, (void *)arg0);
+    printf(&quot;  client_id=\&quot;%s\&quot;\n&quot;, arg1 ? copyinstr(arg1) : &quot;&quot;);
+    printf(&quot;  statement=0x%p\n&quot;, (void *)arg2);
+    printf(&quot;  mode=0x%x\n&quot;, arg3);
+}
+</pre></div>
+    </div>
+
+   </div>
+  </p>
+
+  <p class="para">
+   This script uses the <em>-Z</em> option to
+   <var class="filename">dtrace</var>, allowing it to be run when there is no
+   PHP process executing.  If this option were omitted the script
+   would immediately terminate when no PHP executable was running
+   because it knows none of the probes to be monitored are in
+   existence.
+  </p>
+
+  <p class="para">
+   On multi-CPU machines the probe ordering might not appear to be
+   sequential. This depends on which CPU was processing the probes,
+   and how threads migrate across CPUs.  Displaying probe time stamps
+   helps reduce confusion.
+  </p>
+
+  <p class="para">
+   The script traces all user-level PHP OCI8 static probe points
+   throughout the duration of a running PHP script. Run the D script:
+   <div class="informalexample">
+    <div class="example-contents">
+<div class="cdata"><pre>
+# ./user_oci8_probes.d
+</pre></div>
+    </div>
+
+   </div>
+  </p>
+
+  <p class="para">
+   Run a PHP script or application.  The monitoring D script will
+   output each probe&#039;s arguments as it fires.  For example, a simple
+   PHP script that queries a table might produce the following trace
+   output:
+   <div class="informalexample">
+    <div class="example-contents">
+<div class="cdata"><pre>
+1381794982092854582: PHP connect-entry
+  credentials=&quot;hr@localhost/pdborcl&quot;
+  charset=&quot;&quot;
+  session_mode=0
+  persistent=0
+  exclusive=0
+1381794982183158766: PHP oci8-connect-return
+  connection=0x7f4a7907bfb8
+1381794982183594576: PHP oci8-sqltext
+  connection=0x7f4a7907bfb8
+  client_id=&quot;Chris&quot;
+  statement=0x7f4a7907c2a0
+  sql=&quot;select * from employees&quot;
+1381794982183783706: PHP oci8-execute-mode
+  connection=0x7f4a7907bfb8
+  client_id=&quot;Chris&quot;
+  statement=0x7f4a7907c2a0
+  mode=0x20
+1381794982444344390: PHP oci8-connect-close
+  connection=0x7f4a7907bfb8
+</pre></div>
+    </div>
+
+   </div>
+  </p>
+  
+  <p class="para">
+   When monitoring is complete, the D script can be terminated with a
+   <em>^C</em>.
+  </p>
+
+ </div>
+
+ <div class="section">
+ <h2 class="title">See Also</h2>
+ <ul class="simplelist">
+  <li class="member"><a href="features.dtrace.html" class="link">DTrace Dynamic Tracing</a></li>
+ </ul>
+</div>
+
+</div>
+<div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+ <div class="note">There are no user contributed notes for this page.</div>
+</div>
+</div></div></body></html>

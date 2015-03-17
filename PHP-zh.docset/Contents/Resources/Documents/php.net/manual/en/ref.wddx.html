@@ -1,0 +1,324 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>WDDX 函数</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="wddx.examples-serialize.html">? wddx examples</a></li>
+      <li style="float: right;"><a href="function.wddx-add-vars.html">wddx_add_vars ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="book.wddx.html">WDDX</a></li>
+    <li>WDDX 函数</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="ref.wddx" class="reference">
+ <h1 class="title">WDDX 函数</h1>
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h2>Table of Contents</h2><ul class="chunklist chunklist_reference"><li><a href="function.wddx-add-vars.html">wddx_add_vars</a> &mdash; Add variables to a WDDX packet with the specified ID</li><li><a href="function.wddx-deserialize.html">wddx_deserialize</a> &mdash; Unserializes a WDDX packet</li><li><a href="function.wddx-packet-end.html">wddx_packet_end</a> &mdash; Ends a WDDX packet with the specified ID</li><li><a href="function.wddx-packet-start.html">wddx_packet_start</a> &mdash; Starts a new WDDX packet with structure inside it</li><li><a href="function.wddx-serialize-value.html">wddx_serialize_value</a> &mdash; Serialize a single value into a WDDX packet</li><li><a href="function.wddx-serialize-vars.html">wddx_serialize_vars</a> &mdash; Serialize variables into a WDDX packet</li></ul>
+</div>
+<div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="81810""></a>
+  <div class="note">
+   <strong class="user">iGEL</strong>
+   <a href="#81810" class="date">14-Mar-2008 11:03</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+As of version 5.2.5, this is wrong:<br />
+<br />
+&gt; Note: If you want to serialize non-ASCII characters you <br />
+&gt; have to convert your data to UTF-8 first (see utf8_encode() <br />
+&gt; and iconv()). <br />
+<br />
+Serializing a string with WDDX will always convert it from ISO-8859-1 to UTF-8, no matter what the original encoding is. So if your data already are UTF-8, you get just gibberish.<br />
+<br />
+You can restore the original encoding by using utf8_decode on the serialized wddx data, even though your original data may use chars not included in ISO-8859-1:<br />
+<br />
+<span class="default">&lt;?php<br />
+header</span><span class="keyword">(</span><span class="string">"Content-Type: text/xml;encoding=utf-8"</span><span class="keyword">);<br />
+echo </span><span class="default">utf8_decode</span><span class="keyword">(</span><span class="default">wddx_serialize_value</span><span class="keyword">(</span><span class="string">"?? ???"</span><span class="keyword">));<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+(This is why I dislike PHP, sorry)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="81345""></a>
+  <div class="note">
+   <strong class="user">egbert teeselink</strong>
+   <a href="#81345" class="date">23-Feb-2008 07:49</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If your PHP doesn't have wddx support installed, and you need it, and you don't want to install PEAR just for wddx, try this short piece of code, based on SimpleXML:<br />
+<br />
+//can read any wddx file generated from php arrays. assumes var elements are only inside struct elements and that only one packet exists.<br />
+function wddx_read_node($node, $type)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; switch($type)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; case "boolean":<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return (string)$node;<br />
+&nbsp;&nbsp;&nbsp; case "number":<br />
+&nbsp;&nbsp;&nbsp; case "binary":<br />
+&nbsp;&nbsp;&nbsp; case "string":<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return (string)$node;<br />
+&nbsp;&nbsp;&nbsp; case "null":<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return null;<br />
+&nbsp;&nbsp;&nbsp; case "array":<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $a = array();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach($node as $subtype =&gt; $subnode)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $a[] = wddx_read_node($subnode, $subtype);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return $a;<br />
+&nbsp;&nbsp;&nbsp; case "struct":<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $a = array();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach($node as $subtype =&gt; $subnode)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; list($key, $value) = wddx_read_node($subnode, $subtype); //must be a var element<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $a[$key] = $value;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return $a;<br />
+&nbsp;&nbsp;&nbsp; case "var":<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; list($subnode, $subtype) = getchild($node);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return array((string)$node["name"], wddx_read_node($subnode, $subtype));<br />
+&nbsp;&nbsp;&nbsp; case "data":<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; list($subnode, $subtype) = getchild($node);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return wddx_read_node($subnode, $subtype);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+function wddx_read($string)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; $xml = simplexml_load_string($string);<br />
+&nbsp;&nbsp;&nbsp; $d = wddx_read_node($xml-&gt;data, "data");<br />
+&nbsp;&nbsp;&nbsp; return $d;<br />
+}<br />
+<br />
+important notice: this one may not work with all wddx input. multiple packets or variables outside a "struct" are not supported. basically, you always get a PHP (associative) array, never something else. feel free to make additions.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="77045""></a>
+  <div class="note">
+   <strong class="user">no at spam dot thx</strong>
+   <a href="#77045" class="date">12-Aug-2007 11:09</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+To bradburn at kiwi dot de:<br />
+<br />
+PHP is only capable of serializing properly variables which match one of its native (scalar) types (See <a href="http://php.net/types" rel="nofollow" target="_blank">http://php.net/types</a>). Which means that only variables of type booleans, integers, floating point numbers, string and NULL will be serialized properly.<br />
+<br />
+I think there are two exceptions though:<br />
+- arrays are serialized by processing them recursively, so if its only composed of the above mentioned types, you should be fine.<br />
+- floating point numbers and integers may use the same representation while serialized in WDDX (I don't know much about WDDX, so I'm not 100% sure about this statement).<br />
+<br />
+An interesting case would be whether objects can be serialized or not...</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="44136""></a>
+  <div class="note">
+   <strong class="user">Jimmy Wimenta</strong>
+   <a href="#44136" class="date">16-Jul-2004 02:53</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+PHP's WDDX is useful only for exchanging data between PHP applications, but definetly not for exchanging data between different languages (which actually defeats the purpose of WDDX).<br />
+<br />
+For example:<br />
+<br />
+$hash1 = array ("2" =&gt; "Two", "4" =&gt; "Four", "5" =&gt; "Five");<br />
+$hash2 = array ("0" =&gt; "Zero", "1" =&gt; "One", "2" =&gt; "Two");<br />
+<br />
+$hash1 will be serialized as hash, but <br />
+$hash2 will be serialized as array/list, because the key happen to be a sequence starting from 0.<br />
+<br />
+Unless the library provide a way for users to specify the type, it can never be used for cross-platform data exchange.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="37627""></a>
+  <div class="note">
+   <strong class="user">Q1tum at hotmail dot com</strong>
+   <a href="#37627" class="date">21-Nov-2003 02:08</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+To insert arrays into a wddx variable here is a fine way to do it:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+$sql </span><span class="keyword">= </span><span class="string">'SELECT * FROM example'</span><span class="keyword">;<br />
+</span><span class="default">$query </span><span class="keyword">= </span><span class="default">mysql_query</span><span class="keyword">(</span><span class="default">$sql</span><span class="keyword">, </span><span class="default">$db</span><span class="keyword">) or die(</span><span class="default">mysql_error</span><span class="keyword">());<br />
+<br />
+while(</span><span class="default">$result </span><span class="keyword">= </span><span class="default">mysql_fetch_array</span><span class="keyword">(</span><span class="default">$query</span><span class="keyword">)) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$id</span><span class="keyword">[] = </span><span class="default">$result</span><span class="keyword">[ </span><span class="string">'id'</span><span class="keyword">];<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$name</span><span class="keyword">[] = </span><span class="default">$result</span><span class="keyword">[</span><span class="string">'name'</span><span class="keyword">];<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$description</span><span class="keyword">[] = </span><span class="default">$result</span><span class="keyword">[</span><span class="default">$prefix </span><span class="keyword">. </span><span class="string">'description'</span><span class="keyword">];<br />
+}<br />
+<br />
+</span><span class="default">mysql_free_result</span><span class="keyword">(</span><span class="default">$query</span><span class="keyword">);<br />
+<br />
+</span><span class="default">wddx_add_vars</span><span class="keyword">(</span><span class="default">$packet_id</span><span class="keyword">, </span><span class="string">"id"</span><span class="keyword">);<br />
+</span><span class="default">wddx_add_vars</span><span class="keyword">(</span><span class="default">$packet_id</span><span class="keyword">, </span><span class="string">"name"</span><span class="keyword">);<br />
+</span><span class="default">wddx_add_vars</span><span class="keyword">(</span><span class="default">$packet_id</span><span class="keyword">, </span><span class="string">"description"</span><span class="keyword">);<br />
+<br />
+</span><span class="default">$wddxSerializeValue </span><span class="keyword">= </span><span class="default">wddx_packet_end</span><span class="keyword">(</span><span class="default">$packet_id</span><span class="keyword">);<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="23853""></a>
+  <div class="note">
+   <strong class="user">bradburn at kiwi dot de</strong>
+   <a href="#23853" class="date">30-Jul-2002 04:02</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+With ref to the above comment about typing, I have found that -- oddly enough -- PHP's WDDX supports the following WDDX types: null, boolean (true/false), number and string, *but* not date-time.<br />
+<br />
+as an example, use the following values in an array that you then serialize:<br />
+<br />
+$number = 5,<br />
+$null = NULL,<br />
+$bool = true,<br />
+$string = 'this is a string'.<br />
+<br />
+they will all serialize correctly, e.g. the third entry comes out as:<br />
+<br />
+&lt;var name='bool'&gt;&lt;boolean value='true'/&gt;&lt;/var&gt;<br />
+<br />
+i have tried with the 'official' format for WDDX 'datetime', e.g. '1998-9-15T09:05:32+4:0' (from the DTD @ <a href="http://www.openwddx.org/downloads/dtd/wddx_dtd_10.txt" rel="nofollow" target="_blank">http://www.openwddx.org/downloads/dtd/wddx_dtd_10.txt</a>)&nbsp; but have only succeeded in getting this encoded as a 'string' type.<br />
+<br />
+if anyone else has any more information on this, it would be welcome. i would like to store the variables in 'appropriate' fields in a database, and the fact that only datetime is not supported is slightly irritating -- otherwise it would be a very useful function.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="1972""></a>
+  <div class="note">
+   <strong class="user">djm at web dot us dot uu dot net</strong>
+   <a href="#1972" class="date">19-Oct-1999 05:45</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Since there aren't any examples of reversing the process, here's one. If you had the packet produced by the above example (without the htmlentities() call), you could retrieve the values like this:
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+$value </span><span class="keyword">= </span><span class="default">wddx_deserialize</span><span class="keyword">(</span><span class="default">$packet</span><span class="keyword">);
+<br />
+print </span><span class="string">"pi is:&lt;br&gt;" </span><span class="keyword">. </span><span class="default">$value</span><span class="keyword">[</span><span class="string">"pi"</span><span class="keyword">] . </span><span class="string">"&lt;p&gt;\n"</span><span class="keyword">;
+<br />
+print </span><span class="string">"cities is:&lt;br&gt;\n"</span><span class="keyword">;
+<br />
+while (list(</span><span class="default">$key</span><span class="keyword">, </span><span class="default">$val</span><span class="keyword">) = </span><span class="default">each</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">[</span><span class="string">"cities"</span><span class="keyword">])) {
+<br />
+&nbsp;&nbsp;&nbsp; print </span><span class="string">"</span><span class="default">$key</span><span class="string"> =&gt; </span><span class="default">$val</span><span class="string">&lt;br&gt;\n"</span><span class="keyword">;
+<br />
+}
+<br />
+</span><span class="default">?&gt;
+<br />
+</span>
+<br />
+which outputs:
+<br />
+
+<br />
+&lt;pre&gt;
+<br />
+pi is:
+<br />
+3.1415926
+<br />
+
+<br />
+cities is:
+<br />
+0 =&gt; Austin
+<br />
+1 =&gt; Novato
+<br />
+2 =&gt; Seattle
+<br />
+&lt;/pre&gt;</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

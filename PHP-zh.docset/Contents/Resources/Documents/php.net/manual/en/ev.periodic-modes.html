@@ -1,0 +1,161 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Periodic watcher operation modes</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="ev.watcher-callbacks.html">? Watcher callbacks</a></li>
+      <li style="float: right;"><a href="class.ev.html">Ev ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="book.ev.html">Ev</a></li>
+    <li>Periodic watcher operation modes</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="ev.periodic-modes" class="chapter">
+ <h1>Periodic watcher operation modes</h1>
+
+ <p class="para">
+  <a href="class.evperiodic.html" class="classname">EvPeriodic</a>
+  watcher works in different modes depending on the
+  <code class="parameter">offset</code>
+  ,
+  <code class="parameter">interval</code>
+  and
+  <code class="parameter">reschedule_cb</code>
+  parameters.
+ </p>
+ <ol type="1">
+  <li class="listitem">
+   <p class="para">
+    <em class="emphasis">Absolute timer</em>
+    . In this mode
+    <code class="parameter">interval</code>
+    =
+    <strong><code>0</code></strong>
+    ,
+    <code class="parameter">reschedule_cb</code>
+    = <strong><code>NULL</code></strong>. This time simply fires at the wallclock time
+    <code class="parameter">offset</code>
+    and doesn&#039;t repeat. It will not adjust when a time jump occurs, that is,
+    if it is to be run at
+    <em class="emphasis">January
+   1st 2014</em>
+    then it will run when the system time reaches or surpasses this time.
+   </p>
+  </li>
+  <li class="listitem">
+   <p class="para">
+    <em class="emphasis">Repeating interval timer</em>
+    . In this mode
+    <code class="parameter">interval</code>
+    &gt;
+    <strong><code>0</code></strong>
+    ,
+    <code class="parameter">reschedule_cb</code>
+    = <strong><code>NULL</code></strong>; the watcher will always be scheduled to timeout at the next
+    <code class="parameter">offset</code>
+    +
+    <strong><code>N</code></strong>
+    *
+    <code class="parameter">interval</code>
+    time(for some integer
+    <strong><code>N</code></strong>
+    ) and then repeat, regardless of any time jumps.
+   </p>
+   <p class="para">
+    This can be used to create timers that do not drift with respect to system
+    time:
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$hourly&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">EvPeriodic</span><span style="color: #007700">(</span><span style="color: #0000BB">0</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">3600</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">NULL</span><span style="color: #007700">,&nbsp;function&nbsp;()&nbsp;{<br />&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"once&nbsp;per&nbsp;hour\n"</span><span style="color: #007700">;<br />};<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+    That doesn&#039;t mean there will always be
+    <strong><code>3600</code></strong>
+    seconds in between triggers, but only that the callback will be called
+    when the system time shows a full hour(
+    <em class="emphasis">UTC</em>
+    ).
+   </p>
+   <p class="para">
+    <a href="class.evperiodic.html" class="classname">EvPeriodic</a>
+    will try to run the callback in this mode at the next possible time where
+    <var class="varname"><var class="varname">time</var></var>
+    =
+    <code class="parameter">offset</code>
+    (
+    <em>mod</em>
+    <code class="parameter">interval</code>
+    ), regardless of any time jumps.
+   </p>
+  </li>
+  <li class="listitem">
+   <p class="para">
+    <em class="emphasis">Manual reschedule mode</em>
+    . In this mode
+    <code class="parameter">reschedule_cb</code>
+    is a
+    <span class="type"><a href="language.types.callable.html" class="type callable">callable</a></span>
+    .
+   </p>
+   <p class="para">
+    <code class="parameter">interval</code>
+    and
+    <code class="parameter">offset</code>
+    are both being ignored. Instead, each time the periodic watcher gets
+    scheduled, the reschedule callback (
+    <code class="parameter">reschedule_cb</code>
+    ) will be called with the watcher as first, and the current time as second
+    argument.
+   </p>
+   <p class="para">
+    This callback
+    <em class="emphasis">must not</em>
+    stop or destroy this or any other periodic watchers, ever, and
+    <em class="emphasis">must not</em>
+    call any event loop functions or methods. To stop it return
+    <strong><code>1e30</code></strong>
+    and stop it afterwards. An
+    <a href="class.evprepare.html" class="classname">EvPrepare</a>
+    watcher may be used for this task.
+   </p>
+   <p class="para">
+    It must return the next time to trigger, based on the passed time value
+    (that is, the lowest time value larger than or equal to the second
+    argument). It will usually be called just before the callback will be
+    triggered, but might be called at other times, too.
+   </p>
+   <div class="example" id="example-3614">
+    <p><strong>Example #1 Using reschedule callback</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">//&nbsp;Tick&nbsp;each&nbsp;10.5&nbsp;seconds<br /><br /></span><span style="color: #007700">function&nbsp;</span><span style="color: #0000BB">reschedule_cb&nbsp;</span><span style="color: #007700">(</span><span style="color: #0000BB">$watcher</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$now</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;return&nbsp;</span><span style="color: #0000BB">$now&nbsp;</span><span style="color: #007700">+&nbsp;(</span><span style="color: #0000BB">10.5</span><span style="color: #007700">.&nbsp;-&nbsp;</span><span style="color: #0000BB">fmod</span><span style="color: #007700">(</span><span style="color: #0000BB">$now</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">10.5</span><span style="color: #007700">));<br />}<br /><br /></span><span style="color: #0000BB">$w&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">EvPeriodic</span><span style="color: #007700">(</span><span style="color: #0000BB">0.</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">0.</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"reschedule_cb"</span><span style="color: #007700">,&nbsp;function&nbsp;(</span><span style="color: #0000BB">$w</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$revents</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #0000BB">time</span><span style="color: #007700">(),&nbsp;</span><span style="color: #0000BB">PHP_EOL</span><span style="color: #007700">;<br />});<br /><br /></span><span style="color: #0000BB">Ev</span><span style="color: #007700">::</span><span style="color: #0000BB">run</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+   </div>
+  </li>
+ </ol>
+</div>
+<div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+ <div class="note">There are no user contributed notes for this page.</div>
+</div>
+</div></div></body></html>

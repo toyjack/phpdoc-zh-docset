@@ -1,0 +1,455 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Readline 函数</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="readline.constants.html">? 预定义常量</a></li>
+      <li style="float: right;"><a href="function.readline-add-history.html">readline_add_history ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="book.readline.html">Readline</a></li>
+    <li>Readline 函数</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="ref.readline" class="reference">
+ <h1 class="title">Readline 函数</h1>
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h2>Table of Contents</h2><ul class="chunklist chunklist_reference"><li><a href="function.readline-add-history.html">readline_add_history</a> &mdash; 添加一行命令行历史记录</li><li><a href="function.readline-callback-handler-install.html">readline_callback_handler_install</a> &mdash; 初始化一个 readline 回调接口，然后终端输出提示信息并立即返回</li><li><a href="function.readline-callback-handler-remove.html">readline_callback_handler_remove</a> &mdash; 移除上一个安装的回调函数句柄并且恢复终端设置</li><li><a href="function.readline-callback-read-char.html">readline_callback_read_char</a> &mdash; 当一个行被接收时读取一个字符并且通知 readline 调用回调函数</li><li><a href="function.readline-clear-history.html">readline_clear_history</a> &mdash; 清除历史</li><li><a href="function.readline-completion-function.html">readline_completion_function</a> &mdash; 注册一个完成函数</li><li><a href="function.readline-info.html">readline_info</a> &mdash; 获取/设置readline内部的各个变量</li><li><a href="function.readline-list-history.html">readline_list_history</a> &mdash; 获取命令历史列表</li><li><a href="function.readline-on-new-line.html">readline_on_new_line</a> &mdash; 通知readline将光标移动到新行</li><li><a href="function.readline-read-history.html">readline_read_history</a> &mdash; 读取命令历史</li><li><a href="function.readline-redisplay.html">readline_redisplay</a> &mdash; 重绘显示区</li><li><a href="function.readline-write-history.html">readline_write_history</a> &mdash; 写入历史记录</li><li><a href="function.readline.html">readline</a> &mdash; 读取一行</li></ul>
+</div>
+<div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="73543""></a>
+  <div class="note">
+   <strong class="user">david at acz dot org</strong>
+   <a href="#73543" class="date">28-Feb-2007 06:07</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Readline only reads the window size on startup or on SIGWINCH.&nbsp; This means if the window is resized when not in a readline() call, the next call will have odd behavior due to confusion about the window size.<br />
+<br />
+The work-around is to force Readline to re-read the window size by sending it SIGWINCH.&nbsp; This is accomplished using the async interface, which installs the signal handler but returns control to PHP.<br />
+<br />
+The following function is a drop-in replacement for readline(), but re-reads the window size every time:<br />
+<br />
+&lt;?<br />
+&nbsp;&nbsp;&nbsp; function xreadline($prompt)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; global $xreadline, $xreadline_line;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $code = '$GLOBALS["xreadline"] = false;' .<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; '$GLOBALS["xreadline_line"] = $line;' .<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 'readline_callback_handler_remove();';<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $cb = create_function('$line', $code);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; readline_callback_handler_install($prompt, $cb);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $signal = defined("SIGWINCH") ? SIGWINCH : 28;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; posix_kill(posix_getpid(), $signal);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $xreadline = true;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; while ($xreadline)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; readline_callback_read_char();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return is_null($xreadline_line) ? false : $xreadline_line;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+?&gt;</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="65329""></a>
+  <div class="note">
+   <strong class="user">flobee</strong>
+   <a href="#65329" class="date">28-Apr-2006 07:29</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+re to: ds at NOSPAM dot undesigned dot org dot za<br />
+<br />
+cool program! note when trying to exec() something:<br />
+in the while loop you need to reset exec() returns or you will get all results of all executions (on my my windows and or cygwin :-( <br />
+like:<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">// your class prompt()<br />
+<br />
+</span><span class="keyword">echo </span><span class="string">"Enter something or 'exit' to quit\n"</span><span class="keyword">;<br />
+do {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$cmdline </span><span class="keyword">= new </span><span class="default">prompt</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">$cmdline</span><span class="keyword">-&gt;</span><span class="default">get</span><span class="keyword">(</span><span class="string">'shell command: '</span><span class="keyword">);<br />
+</span><span class="comment">// init/ reset first!<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$data </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$return </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">;<br />
+</span><span class="comment">// now start:<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">echo </span><span class="string">"You said: </span><span class="default">$buffer</span><span class="string">\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; if (!empty(</span><span class="default">$buffer</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$x </span><span class="keyword">= </span><span class="default">exec</span><span class="keyword">(</span><span class="default">$buffer</span><span class="keyword">, </span><span class="default">$data</span><span class="keyword">, </span><span class="default">$return</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">print_r</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+} while (</span><span class="default">$buffer </span><span class="keyword">!== </span><span class="string">"exit"</span><span class="keyword">);<br />
+echo </span><span class="string">"Goodbye\n"</span><span class="keyword">;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="50233""></a>
+  <div class="note">
+   <strong class="user">jeffrey at thompsonic dot com</strong>
+   <a href="#50233" class="date">22-Feb-2005 03:18</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Here's an easy way without readline() if you don't have it compiled in already:<br />
+<br />
+&nbsp;&nbsp; $fp = fopen("php://stdin","r");<br />
+&nbsp;&nbsp; $line = rtrim(fgets($fp, 1024);</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="47639""></a>
+  <div class="note">
+   <strong class="user">jcl atNOSPAM jcl dot name</strong>
+   <a href="#47639" class="date">23-Nov-2004 06:40</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Even better than 'plz at dont dot spam' in only one line :) :<br />
+<br />
+@c:\\php\\cli\\php.exe script.php %*<br />
+<br />
+Cheers,<br />
+Jean-Charles</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="44507""></a>
+  <div class="note">
+   <strong class="user">plz at dont dot spam</strong>
+   <a href="#44507" class="date">08-Aug-2004 10:50</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+To get all arguments passed to a batch file in one variable<br />
+rather than using %1 %2 %3 etc;<br />
+<br />
+:LOOP<br />
+if "%1" == "" goto DONE<br />
+set args=%args% %1<br />
+shift<br />
+goto LOOP<br />
+:DONE<br />
+@c:\\php\\cli\\php.exe script.php %args%<br />
+set args=</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="38022""></a>
+  <div class="note">
+   <strong class="user">ds at NOSPAM dot undesigned dot org dot za</strong>
+   <a href="#38022" class="date">05-Dec-2003 05:04</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+You can open /dev/tty on unix systems or \con in windows, with ob_implicit_flush(true) to write output unbuffered.&nbsp; Works like a charm :-)<br />
+<br />
+-------------------------------<br />
+<br />
+#!/usr/local/bin/php -q<br />
+<span class="default">&lt;?php<br />
+<br />
+set_time_limit</span><span class="keyword">(</span><span class="default">0</span><span class="keyword">);<br />
+@</span><span class="default">ob_end_flush</span><span class="keyword">();<br />
+</span><span class="default">ob_implicit_flush</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">);<br />
+<br />
+class </span><span class="default">prompt </span><span class="keyword">{<br />
+&nbsp; var </span><span class="default">$tty</span><span class="keyword">;<br />
+<br />
+&nbsp; function </span><span class="default">prompt</span><span class="keyword">() {<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">substr</span><span class="keyword">(</span><span class="default">PHP_OS</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">, </span><span class="default">3</span><span class="keyword">) == </span><span class="string">"WIN"</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">tty </span><span class="keyword">= </span><span class="default">fOpen</span><span class="keyword">(</span><span class="string">"\con"</span><span class="keyword">, </span><span class="string">"rb"</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; if (!(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">tty </span><span class="keyword">= </span><span class="default">fOpen</span><span class="keyword">(</span><span class="string">"/dev/tty"</span><span class="keyword">, </span><span class="string">"r"</span><span class="keyword">))) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">tty </span><span class="keyword">= </span><span class="default">fOpen</span><span class="keyword">(</span><span class="string">"php://stdin"</span><span class="keyword">, </span><span class="string">"r"</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp; }<br />
+<br />
+&nbsp; function </span><span class="default">get</span><span class="keyword">(</span><span class="default">$string</span><span class="keyword">, </span><span class="default">$length </span><span class="keyword">= </span><span class="default">1024</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="default">$string</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">= </span><span class="default">trim</span><span class="keyword">(</span><span class="default">fGets</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">tty</span><span class="keyword">, </span><span class="default">$length</span><span class="keyword">));<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$result</span><span class="keyword">;<br />
+&nbsp; }<br />
+}<br />
+<br />
+echo </span><span class="string">"Enter something or 'exit' to quit\n"</span><span class="keyword">;<br />
+do {<br />
+&nbsp; </span><span class="default">$cmdline </span><span class="keyword">= new </span><span class="default">prompt</span><span class="keyword">();<br />
+&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">$cmdline</span><span class="keyword">-&gt;</span><span class="default">get</span><span class="keyword">(</span><span class="string">"Something: "</span><span class="keyword">);<br />
+&nbsp; echo </span><span class="string">"You said: </span><span class="default">$buffer</span><span class="string">\n"</span><span class="keyword">;<br />
+} while (</span><span class="default">$buffer </span><span class="keyword">!== </span><span class="string">"exit"</span><span class="keyword">);<br />
+echo </span><span class="string">"Goodbye\n"</span><span class="keyword">;<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="22209""></a>
+  <div class="note">
+   <strong class="user">jewfish at jewfish dot net</strong>
+   <a href="#22209" class="date">11-Jun-2002 01:05</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+There is a simpler way to do a multiline read than above:<br />
+<br />
+function multiline() {<br />
+&nbsp;&nbsp;&nbsp; while(($in = readline("")) != ".")<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $story .= ($PHP_OS == "WINNT") ? "\r\n".$in :<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "\n".$in;<br />
+<br />
+&nbsp;&nbsp;&nbsp; return $story;<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="20906""></a>
+  <div class="note">
+   <strong class="user">joshua at neocodesoftware.com</strong>
+   <a href="#20906" class="date">21-Apr-2002 12:17</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Here's an example simple readline-like way to input from command line on windows - the single line is from <a href="http://www.phpbuilder.com/columns/darrell20000319.php3, the multiline is something I added..." rel="nofollow" target="_blank">http://www.phpbuilder.com/columns/darrell20000319.php3, the multiline is something I added...</a><br />
+<br />
+&lt;?<br />
+function read () {<br />
+&nbsp;&nbsp;&nbsp; # 4092 max on win32 fopen<br />
+<br />
+&nbsp;&nbsp;&nbsp; $fp=fopen("php://stdin", "r");<br />
+&nbsp;&nbsp;&nbsp; $in=fgets($fp,4094);<br />
+&nbsp;&nbsp;&nbsp; fclose($fp);<br />
+<br />
+&nbsp;&nbsp;&nbsp; # strip newline<br />
+&nbsp;&nbsp;&nbsp; (PHP_OS == "WINNT") ? ($read = str_replace("\r\n", "", $in)) : ($read = str_replace("\n", "", $in));<br />
+<br />
+&nbsp;&nbsp;&nbsp; return $read;<br />
+}<br />
+<br />
+function multilineread () {<br />
+&nbsp;&nbsp;&nbsp; do {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $in = read();<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; # test exit<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ($in == ".") return $read;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; # concat input<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; (PHP_OS == "WINNT") ? ($read = $read . ($read ? "\r\n" : "") . $in) : ($read = $read . "\n" . $in);<br />
+<br />
+&nbsp;&nbsp;&nbsp; } while ($inp != ".");<br />
+<br />
+&nbsp;&nbsp;&nbsp; return $read;<br />
+}<br />
+<br />
+print("End input with . on line by itself.\n");<br />
+<br />
+print("What is your first name?\n");<br />
+$first_name = multilineread();<br />
+<br />
+print("What is your last name?\n");<br />
+$last_name = read();<br />
+<br />
+print("\nHello, $first_name $last_name! Nice to meet you! \n");<br />
+?&gt;</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="20727""></a>
+  <div class="note">
+   
+   <a href="#20727" class="date">14-Apr-2002 04:17</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+[Ed. note: you can use fopen("php://stdin", "w") to achieve the same thing, works on both Windows and Unix)]
+<br />
+
+<br />
+I wanted to get console input in a PHP script running on windows, so I made a little hack, which is so simple, it is clearly public domain.&nbsp; What I did was write a C++ program to get a line, then output it.&nbsp; Then all that is needed is to exec() that program and capture the output - readline() for windows.&nbsp; The C++ source is as follows:
+<br />
+
+<br />
+#include &lt;iostream.h&gt;
+<br />
+#include &lt;string&gt;
+<br />
+void main()
+<br />
+{
+<br />
+&nbsp;&nbsp;&nbsp; string input;
+<br />
+&nbsp;&nbsp;&nbsp; cin &gt;&gt; input;
+<br />
+&nbsp;&nbsp;&nbsp; cout &lt;&lt; input;
+<br />
+}
+<br />
+
+<br />
+It works wonderfully for my purposes, since I love the PHP language and want to have console input.
+<br />
+
+<br />
+Justin Henck</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

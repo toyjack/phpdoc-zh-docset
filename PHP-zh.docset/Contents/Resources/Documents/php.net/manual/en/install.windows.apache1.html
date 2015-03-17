@@ -1,0 +1,295 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Microsoft Windows 下的 Apache 1.3.x</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="install.windows.iis7.html">? Microsoft IIS 7.0 及更高版本</a></li>
+      <li style="float: right;"><a href="install.windows.apache2.html">Microsoft Windows 下的 Apache 2.x ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="install.windows.html">Windows 系统下的安装</a></li>
+    <li>Microsoft Windows 下的 Apache 1.3.x</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="install.windows.apache1" class="sect1">
+ <h2 class="title">Microsoft Windows 下的 Apache 1.3.x</h2>
+ <p class="para">
+  本节包括在 Microsoft Windows 平台的 Apache 下安装 PHP 的说明和提示。在另外的页面也有 
+  <a href="install.windows.apache2.html" class="link">Apache 2 的安装和说明</a>。
+ </p>
+ <blockquote class="note"><p><strong class="note">Note</strong>: 
+  <p class="para">
+   请先阅读<a href="install.windows.manual.html" class="link">手动安装步骤</a>！
+  </p>
+ </p></blockquote>
+ <p class="simpara">
+  有两种方式让 PHP 工作在 Windows 下的 Apache 1.3.x 中。首先是使用 CGI
+  可执行程序（PHP 4 下为 <var class="filename">php.exe</var>，PHP 5 下为 
+  <var class="filename">php-cgi.exe</var>），另外一种方式是使用 Apache 模块
+  DLL。无论是那种方式，都需要修改 <var class="filename">httpd.conf</var> 来配置 Apache，使 PHP
+  能够在其上运行，然后都需要重启服务。
+ </p>
+ <p class="simpara">
+  值得注意的是，现在 Windows 下的 SAPI 模块已经稳定得多，我们建议首先考虑使用
+  SAPI 而不要使用 CGI 可执行程序。因为 SAPI 更加透明和安全。
+ </p>
+ <p class="simpara">
+  虽然还有些其它的方法来在 Apache 下配置 PHP，下面介绍的方法是最简单并适用于新手的。请参考
+  Apache 的文档以获得更多的配置参数。
+ </p>
+ <p class="simpara">
+  在修改完配置文件后，请记得重启 Apache 服务。例如，如果把 Apache 作为 Windows
+  的一个服务来运行，那么在命令提示行下使用
+  <strong class="command">NET STOP APACHE</strong>命令然后再使用 
+  <strong class="command">NET START APACHE</strong>命令便可重启服务。也可以使用重启 Apache 服务的快捷方式来重启。
+ </p>
+ 
+ <blockquote class="note"><p><strong class="note">Note</strong>: <span class="simpara">记住当在
+Windows 环境下的 Apache 配置文件中添加路径值时，所有的反斜线，如
+<var class="filename">c:\directory\file.ext</var>，应转换为正斜线：
+<var class="filename">c:/directory/file.ext</var>。对目录来说，也必须由斜线结尾。</span></p></blockquote>
+
+ <div class="sect2" id="install.windows.apache1.module">
+  <h3 class="title">作为 Apache 的模块安装</h3>
+  <p class="para">
+   应该将下面几行加入 Apache 的 <var class="filename">httpd.conf</var> 文件：
+  </p>
+  <p class="para">
+   <div class="example" id="example-64">
+    <p><strong>Example #1 PHP 作为 Apache 1.3.x 的一个模块</strong></p>
+    <div class="example-contents"><p>
+     这里假设 PHP 安装在 
+     <var class="filename">c:\php</var>。如果不是这样请根据情况修改路径。
+    </p></div>
+    <div class="example-contents"><p>
+     对于 PHP 4：
+    </p></div>
+    <div class="example-contents">
+<div class="apache-confcode"><pre class="apache-confcode"># 在 LoadModule 一节的末尾添加
+# 不要忘记将该文件从 sapi 复制出来
+LoadModule php4_module &quot;C:/php/php4apache.dll&quot;
+
+# 在 AddModule 一节的末尾添加
+AddModule mod_php4.c</pre>
+</div>
+    </div>
+
+    <div class="example-contents"><p>
+     对于 PHP 5：
+    </p></div>
+    <div class="example-contents">
+<div class="apache-confcode"><pre class="apache-confcode"># 在 LoadModule 一节的末尾添加
+LoadModule php5_module &quot;C:/php/php5apache.dll&quot;
+
+# 在 AddModule 一节的末尾添加
+AddModule mod_php5.c</pre>
+</div>
+    </div>
+
+    <div class="example-contents"><p>
+     两个 PHP 版本都需要添加的内容：
+    </p></div>
+    <div class="example-contents">
+<div class="apache-confcode"><pre class="apache-confcode"># 将下面这行添加到 &lt;IfModule mod_mime.c&gt; 条件块中
+AddType application/x-httpd-php .php
+
+# 如果要使用语法高亮的 .phps 文件，需要添加
+AddType application/x-httpd-php-source .phps</pre>
+</div>
+    </div>
+
+   </div>
+  </p>
+ </div>
+
+ <div class="sect2" id="install.windows.apache1.cgi">
+  <h3 class="title">作为 CGI 可执行文件的安装</h3>
+  <p class="para">
+   如果按照<a href="install.windows.manual.html" class="link">手工安装步骤</a>将 PHP
+   解压到 <var class="filename">C:\php\</var>，需要在 Apache 的配置文件中添加如下内容以使
+   PHP 按照 CGI 方式运行: 
+   <div class="example" id="example-65">
+    <p><strong>Example #2 PHP 以 CGI 方式运行在 Apache 1.3.x</strong></p>
+    <div class="example-contents">
+<div class="apache-confcode"><pre class="apache-confcode">ScriptAlias /php/ &quot;c:/php/&quot;
+AddType application/x-httpd-php .php
+
+# 对于 PHP 4
+Action application/x-httpd-php &quot;/php/php.exe&quot;
+
+# 对于 PHP 5
+Action application/x-httpd-php &quot;/php/php-cgi.exe&quot;
+
+# 指定 php.ini 所在目录
+SetEnv PHPRC C:/php</pre>
+</div>
+    </div>
+
+   </div>
+   请注意第二行的配置可以在默认的 <var class="filename">httpd.conf</var> 中找到，但是是被注释掉的。也请记得将 
+   <var class="filename">c:/php/</var>替换为 PHP 所在的真实路径。
+  </p>
+  
+  <div class="warning"><strong class="warning">Warning</strong><p class="para">服务器使用 CGI 方式进行部署可能存在几个公开的缺陷。请阅读
+<a href="security.cgi-bin.html" class="link">CGI 安全</a>一章 以学习 如何抵御这些攻击。</p></div>
+
+  <p class="simpara">
+   如果想发布语法高亮的 php 文件，没有类似于模块方式下 PHP 那种方便的方法。如果选择了 CGI
+   方式运行 PHP，需要使用 <span class="function"><a href="function.highlight-file.html" class="function">highlight_file()</a></span> 函数来进行语法高亮。创建一个
+   PHP 文件，加入下述代码即可：<em>&lt;?php highlight_file(&#039;some_php_script.php&#039;); ?&gt;</em>。
+  </p>
+ </div>
+
+</div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="85832""></a>
+  <div class="note">
+   <strong class="user">frank at circuitdata dot dk</strong>
+   <a href="#85832" class="date">19-Sep-2008 05:43</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Entries to httpd.conf for PHP 5:<br />
+<br />
+&nbsp; AddType application/x-httpd-php .php<br />
+<br />
+&nbsp; AddType application/x-httpd-php-source .phps<br />
+<br />
+must appear BEFORE<br />
+<br />
+&nbsp; LoadModule php5_module "C:/php/php5apache.dll"<br />
+<br />
+This should NOT be added:<br />
+<br />
+&nbsp; AddModule mod_php5.c<br />
+<br />
+It makes no sense since AddModule means activation of a module compiled staticly into the Apache. We ofcourse do not have that!</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="75567""></a>
+  <div class="note">
+   <strong class="user">david</strong>
+   <a href="#75567" class="date">05-Jun-2007 09:10</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Note that if you place php in the c:\php5 director your ScriptAlias line should read<br />
+<br />
+ScriptAlias /php/ "c:/php5/"<br />
+<br />
+This may be obvious to regular Apache users, but I changed all sorts of things around before realizing this was the issue. I thought<br />
+<br />
+Action application/x-httpd-php "/php/php-cgi.exe"<br />
+<br />
+was a path and was changing it to "/php5/php-cgi.exe" which didn't work.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="60947""></a>
+  <div class="note">
+   <strong class="user">BCarr</strong>
+   <a href="#60947" class="date">20-Jan-2006 10:35</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+To Besta and 'j dot b..dot sk':<br />
+<br />
+'Add Module mod_php4.c' or 'AddModule mod_php5.c'&nbsp; may or may not be necessary depending on your environment and version of Apache. <br />
+<br />
+In my situation, this add module DID NOT work or it wasn't necessary.&nbsp; The LoadModule was enough to do the trick.&nbsp; I tried it with PHP4 on Apache 1.3.34 and Apache 2.0.<br />
+<br />
+All in all, your notes have been helpful.&nbsp; Thanks.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="57231""></a>
+  <div class="note">
+   <strong class="user">j dot b at inmail dot sk</strong>
+   <a href="#57231" class="date">27-Sep-2005 09:42</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+DO NOT FORGET to add "index.php" into<br />
+&lt;IfModule mod_dir.c&gt;<br />
+&nbsp;&nbsp;&nbsp; DirectoryIndex index.html<br />
+&lt;/IfModule&gt; <br />
+<br />
+so you get index.php processed;multiple values separate by space:<br />
+&lt;IfModule mod_dir.c&gt;<br />
+&nbsp;&nbsp;&nbsp; DirectoryIndex index.html index.php<br />
+&lt;/IfModule&gt;</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="56225""></a>
+  <div class="note">
+   
+   <a href="#56225" class="date">27-Aug-2005 10:51</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+On contrary to user "Besta"'s post<br />
+<br />
+AddModule mod_php5.c<br />
+<br />
+should be added to the addmodule section. I installed php5 and apache 1.3.3 and without the above line it is not recognizing the .php files</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="55557""></a>
+  <div class="note">
+   <strong class="user">Besta</strong>
+   <a href="#55557" class="date">07-Aug-2005 11:16</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Do not add this line to apache http.conf. It does not work. <br />
+AddModule mod_php5.c<br />
+<br />
+Also, remember to edit the system variables, edit the PATH and add the path to the php directory and restart windows.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="50409""></a>
+  <div class="note">
+   <strong class="user">psychosos at gmx dot at</strong>
+   <a href="#50409" class="date">27-Feb-2005 02:59</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Please note that the SetEnv PHPRC "directory/to/phpini/" only works when using PHP as CGI, but _not_ when you use the PHP Apache Module!</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

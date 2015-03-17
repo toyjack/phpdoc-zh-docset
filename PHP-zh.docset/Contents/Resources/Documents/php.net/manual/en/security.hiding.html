@@ -1,0 +1,780 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>隐藏 PHP</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="security.magicquotes.disabling.html">? 关闭魔术引号</a></li>
+      <li style="float: right;"><a href="security.current.html">保持更新 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="security.html">安全</a></li>
+    <li>隐藏 PHP</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="security.hiding" class="chapter">
+   <h1>隐藏 PHP</h1>
+
+   <p class="para">
+    一般而言，通过隐藏的手段提高安全性被认为是作用不大的做法。但某些情况下，尽可能的多增加一份安全性都是值得的。
+   </p>
+   <p class="para">
+    一些简单的方法可以帮助隐藏 PHP，这样做可以提高攻击者发现系统弱点的难度。在
+    <var class="filename">php.ini</var> 文件里设置 expose_php = off ，可以减少他们能获得的有用信息。
+   </p>
+   <p class="para">
+    另一个策略就是让 web 服务器用 PHP 解析不同扩展名。无论是通过
+    <var class="filename">.htaccess</var> 文件还是 Apache 的配置文件，都可以设置能误导攻击者的文件扩展名：
+    <div class="example" id="example-361">
+     <p><strong>Example #1 把 PHP 隐藏为另一种语言</strong></p>
+     <div class="example-contents">
+<div class="apache-confcode"><pre class="apache-confcode"># 使PHP看上去像其它的编程语言
+AddType application/x-httpd-php .asp .py .pl</pre>
+</div>
+     </div>
+
+    </div>
+    或者干脆彻底隐藏它：
+    <div class="example" id="example-362">
+     <p><strong>Example #2 使用未知的扩展名作为 PHP 的扩展名</strong></p>
+     <div class="example-contents">
+<div class="apache-confcode"><pre class="apache-confcode"># 使 PHP 看上去像未知的文件类型
+AddType application/x-httpd-php .bop .foo .133t</pre>
+</div>
+     </div>
+
+    </div>
+    或者把它隐藏为 HTML 页面，这样所有的 HTML 文件都会通过 PHP
+    引擎，会为服务器增加一些负担：
+    <div class="example" id="example-363">
+     <p><strong>Example #3 用 HTML 做 PHP 的文件后缀</strong></p>
+     <div class="example-contents">
+<div class="apache-confcode"><pre class="apache-confcode"># 使 PHP 代码看上去像 HTML 页面
+AddType application/x-httpd-php .htm .html</pre>
+</div>
+     </div>
+
+    </div>
+    要让此方法生效，必须把 PHP
+    文件的扩展名改为以上的扩展名。这样就通过隐藏来提高了安全性，虽然防御能力很低而且有些缺点。
+   </p>
+  </div>
+<div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="113970""></a>
+  <div class="note">
+   <strong class="user">anon at example dot com</strong>
+   <a href="#113970" class="date">24-Dec-2013 07:48</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The session name defaults to PHPSESSID.&nbsp; This is used as the name of the session cookie that is sent to the user's web browser / client. (Example: PHPSESSID=kqjqper294faui343o98ts8k77).<br />
+<br />
+To hide this, call session_name() with the $name parameter set to a generic name, before calling session_start().&nbsp; Example:<br />
+<br />
+session_name("id");<br />
+session_start();<br />
+<br />
+Cheers.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="106359""></a>
+  <div class="note">
+   <strong class="user">Ryan</strong>
+   <a href="#106359" class="date">31-Oct-2011 03:22</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Another way to hide php is by removing the extension completely, like so:<br />
+<br />
+Options +FollowSymlinks<br />
+RewriteEngine On<br />
+RewriteBase /<br />
+RewriteCond %{REQUEST_FILENAME} !-f<br />
+RewriteCond %{REQUEST_FILENAME} !-d<br />
+RewriteCond %{REQUEST_FILENAME}.php -f<br />
+RewriteRule ^(.+)$ /$1.php [L,QSA]<br />
+<br />
+Hope this helps!</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="99001""></a>
+  <div class="note">
+   <strong class="user">CD001</strong>
+   <a href="#99001" class="date">21-Jul-2010 06:03</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+It's a good idea to "hide" PHP anyway so you can write a RESTful web application.<br />
+<br />
+Using Apache Mod Rewrite:<br />
+<br />
+RewriteEngine On<br />
+RewriteRule ^control/([^/]+)/(.*)$ sitecontroller.php?control=$1&amp;query=$2<br />
+<br />
+You then use a function like the following as a way to retrieve data (in a zero indexed fashion) from the $_GET superglobal.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">myGET</span><span class="keyword">() {<br />
+&nbsp; </span><span class="default">$aGet </span><span class="keyword">= array();<br />
+<br />
+&nbsp; if(isset(</span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">'query'</span><span class="keyword">])) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$aGet </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">(</span><span class="string">'/'</span><span class="keyword">, </span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">'query'</span><span class="keyword">]);<br />
+&nbsp; }<br />
+<br />
+&nbsp; return </span><span class="default">$aGet</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+This is only a really basic example of course - you can do a lot with Mod Rewrite and a custom 'GET' function.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="94690""></a>
+  <div class="note">
+   <strong class="user">altan at javam dot org</strong>
+   <a href="#94690" class="date">18-Nov-2009 06:42</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+You can use this trick for non-direct used PHP files, eg. setting, class, ajax-related ones.
+<br />
+
+<br />
+For abcde.php:
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+</span><span class="keyword">if (</span><span class="string">'abcde.php' </span><span class="keyword">== </span><span class="default">basename</span><span class="keyword">(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'SCRIPT_FILENAME'</span><span class="keyword">])) die (</span><span class="string">'What?'</span><span class="keyword">);
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="86623""></a>
+  <div class="note">
+   <strong class="user">sandaimespaceman at gmail dot com</strong>
+   <a href="#86623" class="date">27-Oct-2008 01:51</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Set INI directive "expose_php" to "off" will also help.<br />
+You can spoof your PHP to ASP.NET by using:<br />
+<span class="default">&lt;?php<br />
+error_reporting</span><span class="keyword">(</span><span class="default">0</span><span class="keyword">);<br />
+</span><span class="default">header</span><span class="keyword">(</span><span class="string">"X-Powered-By: ASP.NET"</span><span class="keyword">);<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="86286""></a>
+  <div class="note">
+   <strong class="user">Pyornide</strong>
+   <a href="#86286" class="date">11-Oct-2008 02:57</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The idea of hiding the X-Powered-By in PHP is a flawed attempt at establishing security. As the manual indicates, obscurity is not security. If I were exploiting a site, I wouldn't check what scripting language the site runs on, because all that would matter to me is exploiting it. Hiding the fact that you use [x] language isn't going to prevent me from bypassing poor security.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="78013""></a>
+  <div class="note">
+   <strong class="user">Raz</strong>
+   <a href="#78013" class="date">24-Sep-2007 12:07</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+May some servers not allow you to put this line (i.e this not work)<br />
+<br />
+AddType application/x-httpd-php .asp .py .pl<br />
+or<br />
+DefaultType application/x-httpd-php<br />
+<br />
+so, the alternative method that really a good one is:<br />
+<br />
+1- In your .htaccess file write:<br />
+<br />
+RewriteEngine&nbsp; on<br />
+RewriteBase&nbsp; /dire/ or just /<br />
+RewriteRule&nbsp; securename&nbsp;&nbsp; yourfile\.php&nbsp; [T=application/x-httpd-php]<br />
+<br />
+example: all url like<br />
+www.example.com/securename&nbsp; parsed as <br />
+www.example.com/yourfile.php<br />
+<br />
+2- but here the $_GET not work, but $_POST work, so for dynamic pages like <br />
+www.example.com/yourfile.php?page=1 you use<br />
+www.example.com/securename?page=1<br />
+<br />
+now: instead of using $_GET use <br />
+<span class="default">&lt;?php<br />
+$uri&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">= </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'REQUEST_URI'</span><span class="keyword">];<br />
+</span><span class="default">$page&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="keyword">= </span><span class="default">strstr</span><span class="keyword">(</span><span class="default">$uri</span><span class="keyword">, </span><span class="string">'='</span><span class="keyword">);<br />
+</span><span class="default">$page&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="keyword">= </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$page</span><span class="keyword">, </span><span class="default">1</span><span class="keyword">);<br />
+</span><span class="default">$valid_pages </span><span class="keyword">= array(</span><span class="string">'1'</span><span class="keyword">, </span><span class="string">'2'</span><span class="keyword">,</span><span class="string">'...'</span><span class="keyword">);<br />
+</span><span class="default">$page&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="keyword">= </span><span class="default">in_array</span><span class="keyword">(</span><span class="default">$page</span><span class="keyword">, </span><span class="default">$valid_pages</span><span class="keyword">) ? </span><span class="default">$page </span><span class="keyword">: </span><span class="string">'1'</span><span class="keyword">;<br />
+</span><span class="comment">//....<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+and for bad URL you can add this code to .htaccess file<br />
+of coarse below the first code in .htaccess<br />
+#-- <br />
+RewriteCond %{REQUEST_FILENAME} !-f<br />
+RewriteCond %{REQUEST_FILENAME} !-d<br />
+RewriteRule ^.*$ <a href="http://www.example.com/securename [L]" rel="nofollow" target="_blank">http://www.example.com/securename [L]</a></span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="72630""></a>
+  <div class="note">
+   <strong class="user">rustamabd at google mail</strong>
+   <a href="#72630" class="date">26-Jan-2007 09:05</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+So far I haven't seen a working rewriter of /foo/bar into /foo/bar.php, so I created my own. It does work in top-level directory AND subdirectories and it doesn't need hardcoding the RewriteBase.<br />
+<br />
+.htaccess:<br />
+<br />
+RewriteEngine on<br />
+<br />
+# Rewrite /foo/bar to /foo/bar.php<br />
+RewriteRule ^([^.?]+)$ %{REQUEST_URI}.php [L]<br />
+<br />
+# Return 404 if original request is /foo/bar.php<br />
+RewriteCond %{THE_REQUEST} "^[^ ]* .*?\.php[? ].*$"<br />
+RewriteRule .* - [L,R=404]<br />
+<br />
+# NOTE! FOR APACHE ON WINDOWS: Add [NC] to RewriteCond like this:<br />
+# RewriteCond %{THE_REQUEST} "^[^ ]* .*?\.php[? ].*$" [NC]</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="68777""></a>
+  <div class="note">
+   <strong class="user">simon at carbontwelevedesign dot co dot uk</strong>
+   <a href="#68777" class="date">10-Aug-2006 02:31</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I use the following in the .htaccess document<br />
+<br />
+&lt;IfModule mod_rewrite.c&gt;<br />
+RewriteEngine On<br />
+RewriteBase /<br />
+RewriteCond %{REQUEST_FILENAME} !-f<br />
+RewriteCond %{REQUEST_FILENAME} !-d<br />
+RewriteRule . /index.php [L]<br />
+&lt;/IfModule&gt;<br />
+<br />
+then the following simple code<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+$permalinks </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">(</span><span class="string">"/"</span><span class="keyword">,</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'REQUEST_URI'</span><span class="keyword">]);<br />
+<br />
+</span><span class="default">$varone </span><span class="keyword">= </span><span class="default">$permalinks</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">];<br />
+</span><span class="default">$vartwo </span><span class="keyword">= </span><span class="default">$permalinks</span><span class="keyword">[</span><span class="default">2</span><span class="keyword">];<br />
+<br />
+...<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="64278""></a>
+  <div class="note">
+   <strong class="user">marpetr at NOSPAM dot gmail dot com</strong>
+   <a href="#64278" class="date">11-Apr-2006 02:18</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I think the best way to hide PHP on Apache and Apache itself is this:<br />
+<br />
+httpd.conf<br />
+-------------<br />
+# ...<br />
+# Minimize 'Server' header information<br />
+ServerTokens Prod<br />
+# Disable server signature on server generated pages<br />
+ServerSignature Off<br />
+# ...<br />
+# Set default file type to PHP<br />
+DefaultType application/x-httpd-php<br />
+# ...<br />
+<br />
+php.ini<br />
+------------<br />
+; ...<br />
+expose_php = Off<br />
+; ...<br />
+<br />
+Now the URLs will look like this:<br />
+<a href="http://my.server.com/forums/post?forumid=15" rel="nofollow" target="_blank">http://my.server.com/forums/post?forumid=15</a><br />
+<br />
+Now hacker knows only that you are using Apache.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="54313""></a>
+  <div class="note">
+   <strong class="user">jtw90210</strong>
+   <a href="#54313" class="date">30-Jun-2005 10:19</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+In order to get the PATH_INFO to work in order to pass parameters using a hidden program/trailing slash/"pretty url" in more recent versions of PHP you MUST add "AcceptPathInfo On" to your httpd.conf. 
+<br />
+
+<br />
+AddType application/x-httpd-php .php .html
+<br />
+AcceptPathInfo On
+<br />
+
+<br />
+Try it out with your phpinfo page and you'll be able to search for PATH_INFO. 
+<br />
+
+<br />
+<a href="http://example.com/myphpinfo.php/showmetheway" rel="nofollow" target="_blank">http://example.com/myphpinfo.php/showmetheway</a>
+<br />
+
+<br />
+If you want to drop the .php use one or both of these:
+<br />
+DefaultType application/x-httpd-php
+<br />
+ForceType application/x-httpd-php</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="53144""></a>
+  <div class="note">
+   <strong class="user">benjamin at sonntag dot fr</strong>
+   <a href="#53144" class="date">24-May-2005 06:14</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+In response to the previous messages, for apache, there is a easier way to set files without "." to be executed by PHP, just put this in a ".htaccess" file : <br />
+<br />
+DefaultType&nbsp; application/x-httpd-php</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="45896""></a>
+  <div class="note">
+   <strong class="user">Nikolai-Zujev-(at)-Gmail-dot-Com</strong>
+   <a href="#45896" class="date">22-Sep-2004 09:22</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Assign files w/o extension to php interpreter<br />
+without using ReWrite module<br />
+<br />
+[clip httpd.conf]<br />
+<br />
+&lt;Files ~ "^[^\.]+$"&gt;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; ForceType application/x-httpd-php<br />
+&lt;/Files&gt;<br />
+<br />
+[/clip]</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="43240""></a>
+  <div class="note">
+   <strong class="user">php at vfmedia dot de</strong>
+   <a href="#43240" class="date">15-Jun-2004 03:21</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I?ve found an easy way to hide php code and the uri is searchable by google and others...(only for unix or linux)<br />
+<br />
+At first I have some rules in my hide.conf (i made an extra .conf for it (apache 2.0))<br />
+<br />
+For example when I want to mask the index.php<br />
+<br />
+&lt;Files index&gt;<br />
+&nbsp;ForceType application/x-httpd-php<br />
+&nbsp;&lt;/Files&gt;<br />
+<br />
+My problem is, that my code should be readable...<br />
+<br />
+so I made an extra folder for example srv/www/htdocs/static_output<br />
+<br />
+My phpcode is in the includefolder....(for ex. mnt/source/index.php)<br />
+<br />
+Then I made a link in the shell&nbsp; &gt; ln mnt/source/index.php srv/www/htdocs/static_output/index<br />
+<br />
+So the code is readable (with .php extension) in my includefolder and there is only the link in the srv folder without extension(which is called by the browser...).</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="42332""></a>
+  <div class="note">
+   
+   <a href="#42332" class="date">12-May-2004 05:20</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Keep in mind, if your really freaked out over hiding PHP, GD will expose you.<br />
+<br />
+Go ahead - make an image with GD and open with a text editor.. Somewhere in there you'll see a comment with gd &amp; php all over it.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="41458""></a>
+  <div class="note">
+   <strong class="user">php at user dot net</strong>
+   <a href="#41458" class="date">11-Apr-2004 03:36</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+What about this in a .htaccess file :<br />
+<br />
+RewriteEngine on<br />
+RewriteRule&nbsp; &nbsp; ^$&nbsp; &nbsp; /index.php&nbsp; &nbsp; [L]<br />
+RewriteRule&nbsp; &nbsp; ^([a-zA-Z0-9\-\_/]*)/$&nbsp; &nbsp; /$1/index.php&nbsp; &nbsp; [L]<br />
+RewriteRule&nbsp; &nbsp; ^([a-zA-Z0-9\-\_/]*)\.(html|htm)$&nbsp; &nbsp; /$1.php&nbsp; &nbsp; [L]<br />
+RewriteRule&nbsp; &nbsp; ^([a-zA-Z0-9\-\_/]*)$&nbsp; &nbsp; /$1.php&nbsp; &nbsp; [L]<br />
+<br />
+Typing "sub.domain.foo/anything" loads "/anything/index.php" if 'anything' is a directory, else it loads "/anything.php".<br />
+<br />
+I'm sure you can find mutch better, but it works great on my site :)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="40772""></a>
+  <div class="note">
+   <strong class="user">mmj</strong>
+   <a href="#40772" class="date">14-Mar-2004 02:58</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+You can see if somebody's using PHP just by adding the following to the end of the URL:<br />
+?=PHPB8B5F2A0-3C92-11d3-A3A9-4C7B08C10000<br />
+If the page is using PHP, this will show the PHP credits.<br />
+<br />
+Setting expose_php to Off in php.ini prevents this.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="36936""></a>
+  <div class="note">
+   <strong class="user">ldemailly at qualysNOSPAM dot com</strong>
+   <a href="#36936" class="date">28-Oct-2003 05:17</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+adding MultiViews to your apache Options config<br />
+lets you hide/omit .php in the url without any rewriting, etc...</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="34285""></a>
+  <div class="note">
+   <strong class="user">l0rdphi1 at liquefyr dot com</strong>
+   <a href="#34285" class="date">21-Jul-2003 01:02</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+More fun includes files without file extensions.
+<br />
+
+<br />
+Simply add that ForceType application/x-httpd-php bit to an Apache .htaccess and you're set.
+<br />
+
+<br />
+Oh yea, it gets even better when you play with stuff like the following:
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+substr</span><span class="keyword">(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PATH_INFO'</span><span class="keyword">],</span><span class="default">1</span><span class="keyword">);
+<br />
+</span><span class="default">?&gt;
+<br />
+</span>
+<br />
+e.g. www.example.com/somepage/55
+<br />
+
+<br />
+And:
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+</span><span class="keyword">foreach ( </span><span class="default">explode</span><span class="keyword">(</span><span class="string">'/'</span><span class="keyword">,</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PATH_INFO'</span><span class="keyword">]) as </span><span class="default">$pair </span><span class="keyword">) {
+<br />
+&nbsp;&nbsp;&nbsp; list(</span><span class="default">$key</span><span class="keyword">,</span><span class="default">$value</span><span class="keyword">) = </span><span class="default">split</span><span class="keyword">(</span><span class="string">'='</span><span class="keyword">,</span><span class="default">$pair</span><span class="keyword">,</span><span class="default">2</span><span class="keyword">);
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$param</span><span class="keyword">[</span><span class="default">$key</span><span class="keyword">] = </span><span class="default">stripslashes</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">);
+<br />
+}
+<br />
+</span><span class="default">?&gt;
+<br />
+</span>
+<br />
+e.g. www.example.com/somepage/param1=value1/param2=value2/etc=etc
+<br />
+
+<br />
+Enjoy =)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="30751""></a>
+  <div class="note">
+   <strong class="user">Bryce Nesbitt at Obviously.COM</strong>
+   <a href="#30751" class="date">27-Mar-2003 05:24</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Using the .php extension for all your scripts is not necessary, and in fact can be harmful (by exposing too much information about your server, and by limiting what you can do in the future without breaking links). There are several ways to hide your .php script extension:<br />
+<br />
+(1) Don't hard code file types at all.&nbsp; Don't specify any dots, and most web servers will automatically find your .php, .html, .pdf, .gif or other matching file. This is called canonical URL format:<br />
+&nbsp;&nbsp; &nbsp; www.xxxxxx.com/page<br />
+&nbsp;&nbsp;&nbsp; www.xxxxxx.com/directory/<br />
+This gives you great flexibility to change your mind in the future, and prevents Windows browsers from making improper assumptions about the file type.<br />
+<br />
+(2) In an Apache .htaccess file use:<br />
+&nbsp;&nbsp;&nbsp; RewriteEngine on<br />
+&nbsp;&nbsp;&nbsp; RewriteRule page.html page.php<br />
+<br />
+(3) Force the webserver to interpret ALL .html files as .php:<br />
+&nbsp;&nbsp;&nbsp; AddType application/x-httpd-php .php3 .php .html</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="29887""></a>
+  <div class="note">
+   <strong class="user">bminton at efn dot org</strong>
+   <a href="#29887" class="date">27-Feb-2003 09:05</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Another technique is to have every file be named index.php and be in it's own directory.&nbsp; Then instead of using for instance <a href="http://example.com/foo.php you could use http://example.com/foo/ where foo is a directory with a file called index.php in it." rel="nofollow" target="_blank">http://example.com/foo.php you could use http://example.com/foo/ where foo is a directory with a file called index.php in it.</a></span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="28980""></a>
+  <div class="note">
+   
+   <a href="#28980" class="date">29-Jan-2003 07:53</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+PS. If you want to use pretty URLs (i.e. hide your .php extensions) AND you have safe-mode=on, the previous example (ForceType) won't work for you.&nbsp; The problem is that safe-mode forces Apache to honor trailing characters in a requested URL.&nbsp; This means that:
+<br />
+
+<br />
+<a href="http://www.example.com/home " rel="nofollow" target="_blank">http://www.example.com/home </a>
+<br />
+
+<br />
+would still be processed by the home script in our doc root, but for:
+<br />
+
+<br />
+<a href="http://www.example.com/home/contact_us.html" rel="nofollow" target="_blank">http://www.example.com/home/contact_us.html</a>
+<br />
+
+<br />
+apache would actually look for the /home/contact_us.html file in our doc root.
+<br />
+
+<br />
+The best solution I've found is to set up a virtual host (which I do for everything, even the default doc root) and override the trailing characters handling within the virtual host.&nbsp; So, for a virtual host listening on port 8080, the apache directives would look like this:
+<br />
+
+<br />
+&lt;VirtualHost *:8080&gt;
+<br />
+&nbsp;&nbsp;&nbsp; DocumentRoot /web/doc_root
+<br />
+&nbsp;&nbsp;&nbsp; Alias /home "/web/doc_root/home.php"
+<br />
+&nbsp;&nbsp;&nbsp; AcceptPathInfo On
+<br />
+&lt;/VirtualHost&gt;
+<br />
+
+<br />
+Some people might question why we are overriding the trailing characters handling (with the AcceptPathInfo directive) instead of just turning safe-mode=off.&nbsp; The reason is that safe mode sets global limitations on the entire server, which can then be turned on or left off for each specific virtual host.&nbsp; This is the equivilent of blocking all connections on a firewall, and then opening up only the ones you want, which is a lot safer than leaving everything open globally, and assuming your programmers will never overlook a possible security hole.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="28768""></a>
+  <div class="note">
+   <strong class="user">Kevin Vincent</strong>
+   <a href="#28768" class="date">23-Jan-2003 02:43</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Just a thought but if you have changed the extensions that php interprets I would assume you've also changed header.php and footer.php files to the new extension.<br />
+<br />
+EG:<br />
+<br />
+index.php, somefile.php, header.php, footer.php...<br />
+<br />
+Change the Apache directive so PHP interprets .kev files and rename your files:<br />
+<br />
+index.kev, somefile.kev, header.kev, footer.kev<br />
+<br />
+If you leave header and footer as PHP files then it won't understand how to interpret them.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="24027""></a>
+  <div class="note">
+   <strong class="user">sth at panix dot com</strong>
+   <a href="#24027" class="date">04-Aug-2002 09:45</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The flipside to this is, if you're running a version of <br />
+PHP/Apache which is not known to have exploitable bugs (usually the latest stable version at the time), and an attacker sees this, they may give up before even trying. If they don't, they may continue to attempt their exploit(s).<br />
+<br />
+It really depends on the type of attacker. The educated, security advisory reading attacker vs. script kiddie on the street.<br />
+<br />
+If you're keeping up on patches, version exposition should not be a problem for you.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="23561""></a>
+  <div class="note">
+   <strong class="user">m1tk4 at hotmail dot com</strong>
+   <a href="#23561" class="date">23-Jul-2002 02:53</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I usually do:<br />
+<br />
+&lt;code&gt;<br />
+RewriteEngine on&lt;br&gt;<br />
+RewriteOptions inherit&lt;br&gt;<br />
+RewriteRule (.*)\.htm[l]?(.*) $1.php$2 [nocase]&lt;br&gt;<br />
+&lt;/code&gt;<br />
+<br />
+in .htaccess. You'll need mod_rewrite installed for this .</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="18520""></a>
+  <div class="note">
+   <strong class="user">yasuo_ohgaki at yahoo dot com</strong>
+   <a href="#18520" class="date">26-Jan-2002 12:59</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+To hide PHP, you need following php.ini settings<br />
+<br />
+expose_php=Off <br />
+display_errors=Off<br />
+<br />
+and in httpd.conf<br />
+<br />
+ServerSignature Off<br />
+(min works, but I prefer off)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="17872""></a>
+  <div class="note">
+   <strong class="user">istvan dot takacsNOSPAM at hungax dot com</strong>
+   <a href="#17872" class="date">30-Dec-2001 06:42</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+And use the
+<br />
+ServerTokens min
+<br />
+directive in your httpd.conf to hide installed PHP modules in apache.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

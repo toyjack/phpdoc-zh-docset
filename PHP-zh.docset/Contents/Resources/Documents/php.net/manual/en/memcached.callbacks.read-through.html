@@ -1,0 +1,79 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>通读缓存回调</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="memcached.callbacks.result.html">? 结果回调</a></li>
+      <li style="float: right;"><a href="memcached.sessions.html">Sessions支持 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="memcached.callbacks.html">回调</a></li>
+    <li>通读缓存回调</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="memcached.callbacks.read-through" class="section">
+  <h2 class="title">通读缓存回调</h2>
+  <p class="para">
+  通读缓存回调在一个元素没有从服务端检索到的时候被调用。这个回调函数会接收到Memcached对象，请求的key以及
+  一个引用方式传递的值变量等三个参数。此回调函数负责通过返回true或false来决定在key没有值时设置一个默认值。
+  如果回调返回true，Memcached会存储&quot;传出参数&quot;(引用传递的值变量)存储的值到memcached服务端并将其返回到原来
+  的调用函数中。仅仅<span class="methodname"><a href="memcached.get.html" class="methodname">Memcached::get()</a></span>和<span class="methodname"><a href="memcached.getbykey.html" class="methodname">Memcached::getByKey()</a></span>
+  支持这类回调，因为Memcache协议不支持在请求多个key时提供未检索到key的信息。
+  </p>
+  <div class="example" id="example-4433">
+   <p><strong>Example #1 通读回调示例</strong></p>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$m&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">Memcached</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">$m</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">addServer</span><span style="color: #007700">(</span><span style="color: #DD0000">'localhost'</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">11211</span><span style="color: #007700">);<br /><br /></span><span style="color: #0000BB">$profile_info&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$m</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">get</span><span style="color: #007700">(</span><span style="color: #DD0000">'user:'</span><span style="color: #007700">.</span><span style="color: #0000BB">$user_id</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'user_info_cb'</span><span style="color: #007700">);<br /><br />function&nbsp;</span><span style="color: #0000BB">user_info_cb</span><span style="color: #007700">(</span><span style="color: #0000BB">$memc</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$key</span><span style="color: #007700">,&nbsp;&amp;</span><span style="color: #0000BB">$value</span><span style="color: #007700">)<br />{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$user_id&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">substr</span><span style="color: #007700">(</span><span style="color: #0000BB">$key</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">5</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;从数据库读取个人信息&nbsp;*/<br />&nbsp;&nbsp;&nbsp;&nbsp;/*&nbsp;...&nbsp;*/<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$value&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$profile_info</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;</span><span style="color: #0000BB">true</span><span style="color: #007700">;<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+ </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="107003""></a>
+  <div class="note">
+   <strong class="user">chadkouse</strong>
+   <a href="#107003" class="date">27-Dec-2011 10:24</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Or just set the value within the callback with your own custom expiration time and return false.&nbsp; I think it's cleaner.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="89746""></a>
+  <div class="note">
+   <strong class="user">oorza2k5 at gmail dot com</strong>
+   <a href="#89746" class="date">21-Mar-2009 02:40</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+This isn't specified anywhere, so I had a gander at the source...<br />
+<br />
+The expiry on read-through cache set values is set to 0, or forever.&nbsp; This means if you want your key to implicitly expire, don't use the callback methods, instead check for boolean false as a return and manually set the value, at least for now.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

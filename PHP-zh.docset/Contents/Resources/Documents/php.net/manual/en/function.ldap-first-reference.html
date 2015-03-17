@@ -1,0 +1,86 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Return first reference</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="function.ldap-first-entry.html">? ldap_first_entry</a></li>
+      <li style="float: right;"><a href="function.ldap-free-result.html">ldap_free_result ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="ref.ldap.html">LDAP 函数</a></li>
+    <li>Return first reference</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="function.ldap-first-reference" class="refentry">
+ <div class="refnamediv">
+  <h1 class="refname">ldap_first_reference</h1>
+  <p class="verinfo">(PHP 4 &gt;= 4.0.5, PHP 5)</p><p class="refpurpose"><span class="refname">ldap_first_reference</span> &mdash; <span class="dc-title">Return first reference</span></p>
+
+ </div>
+ 
+ <div class="refsect1 description" id="refsect1-function.ldap-first-reference-description">
+  <h3 class="title">说明</h3>
+  <div class="methodsynopsis dc-description">
+   <span class="type">resource</span> <span class="methodname"><strong>ldap_first_reference</strong></span>
+    ( <span class="methodparam"><span class="type">resource</span> <code class="parameter">$link</code></span>
+   , <span class="methodparam"><span class="type">resource</span> <code class="parameter">$result</code></span>
+   )</div>
+
+  <div class="warning"><strong class="warning">Warning</strong><p class="simpara">本函数还未编写文档，仅有参数列表。</p></div>
+ </div>
+
+
+</div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="47432""></a>
+  <div class="note">
+   <strong class="user">sami at sipponen dot com</strong>
+   <a href="#47432" class="date">16-Nov-2004 12:56</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Hopefully the code below help you to loop through references with LDAP3 servers. It took me a significant amount of time to figure out how this thing works and now I have successfully used this with Active Directory to loop through severial subdomains.<br />
+<br />
+Special thanks to Stig Venaas who helped me to get started. (the original problem was that ldap_parse_reference function was missing in Windows builds. At least it will now work with Windows PHP versions 5.1.0-DEV and higher after I made a bug report)<br />
+<br />
+function crawlRefs($user, $passw, $host, $dn, $port, $filter) {<br />
+<br />
+&nbsp; //Create the basic connection for fetching referrals<br />
+&nbsp; $adConn = ldap_connect($host, $port) or die("System couldn't connect!");<br />
+&nbsp; ldap_set_option($adConn, LDAP_OPT_PROTOCOL_VERSION, 3) or die ("System couldn't make first protocol option setting!");<br />
+&nbsp; ldap_set_option($adConn, LDAP_OPT_REFERRALS, 0) or die ("System couldn't make second protocol option setting!");<br />
+&nbsp; $bd = ldap_bind($adConn, $user, $passw) or die ("System couldn't bind the connection!");<br />
+&nbsp; $search = ldap_search($adConn, $dn, $filter);<br />
+<br />
+&nbsp; //Find referrals<br />
+&nbsp; $ref = ldap_first_reference($adConn, $search);<br />
+&nbsp; while ($ref) {<br />
+&nbsp;&nbsp;&nbsp; if (ldap_parse_reference($adConn, $ref, $referrals)) {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; while ($referral = array_shift($referrals)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo $referral . "&lt;br&gt;\n";<br />
+&nbsp;&nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp; $ref = ldap_next_reference($adConn, $ref);<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

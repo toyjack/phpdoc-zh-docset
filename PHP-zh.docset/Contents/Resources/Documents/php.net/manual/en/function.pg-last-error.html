@@ -1,0 +1,158 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>得到某连接的最后一条错误信息</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="function.pg-insert.html">? pg_insert</a></li>
+      <li style="float: right;"><a href="function.pg-last-notice.html">pg_last_notice ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="ref.pgsql.html">PostgreSQL 函数</a></li>
+    <li>得到某连接的最后一条错误信息</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="function.pg-last-error" class="refentry">
+   <div class="refnamediv">
+    <h1 class="refname">pg_last_error</h1>
+    <p class="verinfo">(PHP 4 &gt;= 4.2.0, PHP 5)</p><p class="refpurpose"><span class="refname">pg_last_error</span> &mdash; <span class="dc-title">得到某连接的最后一条错误信息</span></p>
+
+   </div>
+   <div class="refsect1 unknown-seealsp" id="refsect1-function.pg-last-error-unknown-seealsp">
+    <h3 class="title">说明</h3>
+     <div class="methodsynopsis dc-description">
+      <span class="type">string</span> <span class="methodname"><strong>pg_last_error</strong></span>
+       ([ <span class="methodparam"><span class="type">resource</span> <code class="parameter">$connection</code></span>
+     ] )</div>
+
+    <p class="para rdfs-comment">
+     <span class="function"><strong>pg_last_error()</strong></span> 返回指定连接 <code class="parameter">connection</code> 的最后一条错误信息。
+    </p>
+    <p class="para">
+     错误信息可能会被 PostgreSQL(libpq) 的内部函数调用所覆盖。如果 PostgreSQL 的内部模块函数产生了多个错误，则可能不能返回适当的错误信息。
+    </p>
+    <p class="para">
+     使用 <span class="function"><a href="function.pg-result-error.html" class="function">pg_result_error()</a></span>，<span class="function"><a href="function.pg-result-status.html" class="function">pg_result_status()</a></span> 和 <span class="function"><a href="function.pg-connection-status.html" class="function">pg_connection_status()</a></span> 来取得更好的错误处理。
+    </p>
+    <blockquote class="note"><p><strong class="note">Note</strong>: 
+     <p class="para">
+      本函数以前的名字为 <em>pg_errormessage()</em>。
+     </p>
+    </p></blockquote>
+    <p class="para">
+     参见 <span class="function"><a href="function.pg-result-error.html" class="function">pg_result_error()</a></span>。
+    </p>
+   </div>
+
+  </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="99626""></a>
+  <div class="note">
+   <strong class="user">Tamas Bolner</strong>
+   <a href="#99626" class="date">27-Aug-2010 07:48</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+From a practical view there are two types of error messages when using transactions:<br />
+<br />
+-"Normal" errors: in this case, the application should stop the current process and show an error message to the user.<br />
+<br />
+-Deadlock errors. This shows that the deadlock detection process of PostgreSQL found a circle of dependency, and broke it by rolling back the transaction in one of the processes, which gets this error msg. In this case, the application should not stop, but repeat the transaction.<br />
+<br />
+I found no discrete way to find out which case are we dealing with. This interface doesn't support error codes, so we have to search for patterns in the message text.<br />
+<br />
+Here is an example for PostgreSQL database connection class. It throws a PostgresException on "normal" errors, and DependencyException in the case of a broken deadlock, when we have to repeat the transaction.<br />
+<br />
+postgres.php:<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">PostgresException </span><span class="keyword">extends </span><span class="default">Exception </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">__construct</span><span class="keyword">(</span><span class="default">$msg</span><span class="keyword">) { </span><span class="default">parent</span><span class="keyword">::</span><span class="default">__construct</span><span class="keyword">(</span><span class="default">$msg</span><span class="keyword">); }<br />
+}<br />
+<br />
+class </span><span class="default">DependencyException </span><span class="keyword">extends </span><span class="default">PostgresException </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">__construct</span><span class="keyword">() { </span><span class="default">parent</span><span class="keyword">::</span><span class="default">__construct</span><span class="keyword">(</span><span class="string">"deadlock"</span><span class="keyword">); }<br />
+}<br />
+<br />
+class </span><span class="default">pg </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public static </span><span class="default">$connection</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; private static function </span><span class="default">connect</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">self</span><span class="keyword">::</span><span class="default">$connection </span><span class="keyword">= @</span><span class="default">pg_connect</span><span class="keyword">(</span><span class="string">"dbname=foodb user=foouser password=foopasswd"</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">self</span><span class="keyword">::</span><span class="default">$connection </span><span class="keyword">=== </span><span class="default">FALSE</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; throw(new </span><span class="default">PostgresException</span><span class="keyword">(</span><span class="string">"Can't connect to database server."</span><span class="keyword">));<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public static function </span><span class="default">query</span><span class="keyword">(</span><span class="default">$sql</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (!isset(</span><span class="default">self</span><span class="keyword">::</span><span class="default">$connection</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">self</span><span class="keyword">::</span><span class="default">connect</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">= @</span><span class="default">pg_query</span><span class="keyword">(</span><span class="default">self</span><span class="keyword">::</span><span class="default">$connection</span><span class="keyword">, </span><span class="default">$sql</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$result </span><span class="keyword">=== </span><span class="default">FALSE</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$error </span><span class="keyword">= </span><span class="default">pg_last_error</span><span class="keyword">(</span><span class="default">self</span><span class="keyword">::</span><span class="default">$connection</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">stripos</span><span class="keyword">(</span><span class="default">$error</span><span class="keyword">, </span><span class="string">"deadlock detected"</span><span class="keyword">) !== </span><span class="default">false</span><span class="keyword">) throw(new </span><span class="default">DependencyException</span><span class="keyword">());<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; throw(new </span><span class="default">PostgresException</span><span class="keyword">(</span><span class="default">$error</span><span class="keyword">.</span><span class="string">": "</span><span class="keyword">.</span><span class="default">$sql</span><span class="keyword">));<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$out </span><span class="keyword">= array();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; while ( (</span><span class="default">$d </span><span class="keyword">= </span><span class="default">pg_fetch_assoc</span><span class="keyword">(</span><span class="default">$result</span><span class="keyword">)) !== </span><span class="default">FALSE</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$out</span><span class="keyword">[] = </span><span class="default">$d</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$out</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+It should be used in this way:<br />
+<br />
+test.php:<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">include(</span><span class="string">"postgres.php"</span><span class="keyword">);<br />
+<br />
+do {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$repeat </span><span class="keyword">= </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; try {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">pg</span><span class="keyword">::</span><span class="default">query</span><span class="keyword">(</span><span class="string">"begin"</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; ...<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">= </span><span class="default">pg</span><span class="keyword">::</span><span class="default">query</span><span class="keyword">(</span><span class="string">"SELECT * FROM public.kitten"</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; ...<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">pg</span><span class="keyword">::</span><span class="default">query</span><span class="keyword">(</span><span class="string">"commit"</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; catch (</span><span class="default">DependencyException $e</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">pg</span><span class="keyword">::</span><span class="default">query</span><span class="keyword">(</span><span class="string">"rollback"</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$repeat </span><span class="keyword">= </span><span class="default">true</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+} while (</span><span class="default">$repeat</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+The normal errors should be caught at the frontend.<br />
+<br />
+Tamas</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

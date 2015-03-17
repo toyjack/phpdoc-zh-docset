@@ -1,0 +1,304 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>引用计数基本知识</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="features.gc.html">? 垃圾回收机制</a></li>
+      <li style="float: right;"><a href="features.gc.collecting-cycles.html">回收周期(Collecting Cycles) ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="features.gc.html">垃圾回收机制</a></li>
+    <li>引用计数基本知识</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="features.gc.refcounting-basics" class="sect1">
+   <h2 class="title">引用计数基本知识</h2>
+   <p class="para">
+    每个php变量存在一个叫&quot;zval&quot;的变量容器中。一个zval变量容器，除了包含变量的类型和值，还包括两个字节的额外信息。第一个是&quot;is_ref&quot;，是个bool值，用来标识这个变量是否是属于引用集合(reference set)。通过这个字节，php引擎才能把普通变量和引用变量区分开来，由于php允许用户通过使用&amp;来使用自定义引用，zval变量容器中还有一个内部引用计数机制，来优化内存使用。第二个额外字节是&quot;refcount&quot;，用以表示指向这个zval变量容器的变量(也称符号即symbol)个数。所有的符号存在一个符号表中，其中每个符号都有作用域(scope)，那些主脚本(比如：通过浏览器请求的的脚本)和每个函数或者方法也都有作用域。
+   </p>
+   <p class="para">
+    当一个变量被赋常量值时，就会生成一个zval变量容器，如下例这样：
+    <div class="example" id="example-381">
+     <p><strong>Example #1 Creating a new zval container</strong></p>
+     <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$a&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">"new&nbsp;string"</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+     </div>
+
+    </div>
+   </p>
+   <p class="para">
+    在上例中，新的变量<em>a</em>，是在当前作用域中生成的。并且生成了类型为 <span class="type"><a href="language.types.string.html" class="type string">string</a></span> 和值为<em>new string</em>的变量容器。在额外的两个字节信息中，&quot;is_ref&quot;被默认设置为 <strong><code>FALSE</code></strong>，因为没有任何自定义的引用生成。&quot;refcount&quot; 被设定为 <em>1</em>，因为这里只有一个变量使用这个变量容器. 注意到当&quot;refcount&quot;的值是<em>1</em>时，&quot;is_ref&quot;的值总是<strong><code>FALSE</code></strong>. 如果你已经安装了<a href="http://xdebug.org/" class="link external" title="Link : http://xdebug.org/">&raquo;&nbsp;Xdebug</a>，你能通过调用函数 <span class="function"><strong>xdebug_debug_zval()</strong></span>显示&quot;refcount&quot;和&quot;is_ref&quot;的值。
+   </p>
+   <p class="para">
+    <div class="example" id="example-382">
+     <p><strong>Example #2 Displaying zval information</strong></p>
+     <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />xdebug_debug_zval</span><span style="color: #007700">(</span><span style="color: #DD0000">'a'</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+     </div>
+
+     <div class="example-contents"><p>以上例程会输出：</p></div>
+     <div class="example-contents screen">
+<div class="cdata"><pre>
+a: (refcount=1, is_ref=0)=&#039;new string&#039;
+</pre></div>
+     </div>
+    </div>
+   </p>
+   <p class="para">
+    把一个变量赋值给另一变量将增加引用次数(refcount).
+   </p>
+   <p class="para">
+    <div class="example" id="example-383">
+     <p><strong>Example #3 Increasing refcount of a zval</strong></p>
+     <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$a&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">"new&nbsp;string"</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$b&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$a</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">xdebug_debug_zval</span><span style="color: #007700">(&nbsp;</span><span style="color: #DD0000">'a'&nbsp;</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+     </div>
+
+     <div class="example-contents"><p>以上例程会输出：</p></div>
+     <div class="example-contents screen">
+<div class="cdata"><pre>
+a: (refcount=2, is_ref=0)=&#039;new string&#039;
+</pre></div>
+     </div>
+    </div>
+   </p>
+   <p class="para">
+    这时，引用次数是<em>2</em>，因为同一个变量容器被变量 <var class="varname"><var class="varname">a</var></var> 和变量 <var class="varname"><var class="varname">b</var></var>关联.当没必要时，php不会去复制已生成的变量容器。变量容器在"refcount"变成0时就被销毁. 当任何关联到某个变量容器的变量离开它的作用域(比如：函数执行结束)，或者对变量调用了函数 <span class="function"><a href="function.unset.html" class="function">unset()</a></span>时，"refcount"就会减1，下面的例子就能说明:
+   </p>
+   <p class="para">
+    <div class="example" id="example-384">
+     <p><strong>Example #4 Decreasing zval refcount</strong></p>
+     <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$a&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">"new&nbsp;string"</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$c&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$b&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$a</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">xdebug_debug_zval</span><span style="color: #007700">(&nbsp;</span><span style="color: #DD0000">'a'&nbsp;</span><span style="color: #007700">);<br />unset(&nbsp;</span><span style="color: #0000BB">$b</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$c&nbsp;</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">xdebug_debug_zval</span><span style="color: #007700">(&nbsp;</span><span style="color: #DD0000">'a'&nbsp;</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+     </div>
+
+     <div class="example-contents"><p>以上例程会输出：</p></div>
+     <div class="example-contents screen">
+<div class="cdata"><pre>
+a: (refcount=3, is_ref=0)=&#039;new string&#039;
+a: (refcount=1, is_ref=0)=&#039;new string&#039;
+</pre></div>
+     </div>
+    </div>
+   </p>
+   <p class="para">
+    如果我们现在执行 <em>unset($a);</em>，包含类型和值的这个变量容器就会从内存中删除。
+   </p>
+
+   <div class="sect2" id="features.gc.compound-types">
+    <h3 class="title">复合类型(Compound Types)</h3>
+
+    <p class="para">
+     当考虑像 <span class="type"><a href="language.types.array.html" class="type array">array</a></span>和<span class="type"><a href="language.types.object.html" class="type object">object</a></span>这样的复合类型时，事情就稍微有点复杂. 与 <span class="type"><span class="type 标量(scalar)">标量(scalar)</span></span>类型的值不同，<span class="type"><a href="language.types.array.html" class="type array">array</a></span>和 <span class="type"><a href="language.types.object.html" class="type object">object</a></span>类型的变量把它们的成员或属性存在自己的符号表中。这意味着下面的例子将生成三个zval变量容器。
+    </p>
+    <p class="para">
+     <div class="example" id="example-385">
+      <p><strong>Example #5 Creating a <span class="type"><a href="language.types.array.html" class="type array">array</a></span> zval</strong></p>
+      <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$a&nbsp;</span><span style="color: #007700">=&nbsp;array(&nbsp;</span><span style="color: #DD0000">'meaning'&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #DD0000">'life'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'number'&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #0000BB">42&nbsp;</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">xdebug_debug_zval</span><span style="color: #007700">(&nbsp;</span><span style="color: #DD0000">'a'&nbsp;</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+      </div>
+
+      <div class="example-contents"><p>以上例程的输出类似于：</p></div>
+      <div class="example-contents screen">
+<div class="cdata"><pre>
+a: (refcount=1, is_ref=0)=array (
+   &#039;meaning&#039; =&gt; (refcount=1, is_ref=0)=&#039;life&#039;,
+   &#039;number&#039; =&gt; (refcount=1, is_ref=0)=42
+)
+</pre></div>
+      </div>
+      <div class="example-contents"><p>Or graphically</p></div>
+      <div class="mediaobject">
+       
+       <div class="imageobject">
+        <img src="images/12f37b1c6963c1c5c18f30495416a197-simple-array.png" alt="Zvals for a simple array" width="593" height="143" />
+       </div>
+      </div>
+     </div>
+    </p>
+    <p class="para">
+     这三个zval变量容器是: <var class="varname"><var class="varname">a</var></var>，<var class="varname"><var class="varname">meaning</var></var>和 <var class="varname"><var class="varname">number</var></var>。增加和减少"refcount"的规则和上面提到的一样. 下面, 我们在数组中再添加一个元素,并且把它的值设为数组中已存在元素的值:
+    </p>
+    <p class="para">
+     <div class="example" id="example-386">
+      <p><strong>Example #6 Adding already existing element to an array</strong></p>
+      <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$a&nbsp;</span><span style="color: #007700">=&nbsp;array(&nbsp;</span><span style="color: #DD0000">'meaning'&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #DD0000">'life'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'number'&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #0000BB">42&nbsp;</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$a</span><span style="color: #007700">[</span><span style="color: #DD0000">'life'</span><span style="color: #007700">]&nbsp;=&nbsp;</span><span style="color: #0000BB">$a</span><span style="color: #007700">[</span><span style="color: #DD0000">'meaning'</span><span style="color: #007700">];<br /></span><span style="color: #0000BB">xdebug_debug_zval</span><span style="color: #007700">(&nbsp;</span><span style="color: #DD0000">'a'&nbsp;</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+      </div>
+
+      <div class="example-contents"><p>以上例程的输出类似于：</p></div>
+      <div class="example-contents screen">
+<div class="cdata"><pre>
+a: (refcount=1, is_ref=0)=array (
+   &#039;meaning&#039; =&gt; (refcount=2, is_ref=0)=&#039;life&#039;,
+   &#039;number&#039; =&gt; (refcount=1, is_ref=0)=42,
+   &#039;life&#039; =&gt; (refcount=2, is_ref=0)=&#039;life&#039;
+)
+</pre></div>
+      </div>
+      <div class="example-contents"><p>Or graphically</p></div>
+      <div class="mediaobject">
+       
+       <div class="imageobject">
+        <img src="images/12f37b1c6963c1c5c18f30495416a197-simple-array2.png" alt="Zvals for a simple array with a reference" width="593" height="143" />
+       </div>
+      </div>
+     </div>
+    </p>
+    <p class="para">
+     从以上的xdebug输出信息，我们看到原有的数组元素和新添加的数组元素关联到同一个&quot;refcount&quot;<em>2</em>的zval变量容器. 尽管 Xdebug的输出显示两个值为<em>&#039;life&#039;</em>的 zval 变量容器，其实是同一个。 函数<span class="function"><strong>xdebug_debug_zval()</strong></span>不显示这个信息，但是你能通过显示内存指针信息来看到。
+    </p>
+    <p class="para">
+     删除数组中的一个元素，就是类似于从作用域中删除一个变量. 删除后,数组中的这个元素所在的容器的"refcount"值减少，同样，当"refcount"为0时，这个变量容器就从内存中被删除，下面又一个例子可以说明：
+    </p>
+    <p class="para">
+     <div class="example" id="example-387">
+      <p><strong>Example #7 Removing an element from an array</strong></p>
+      <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$a&nbsp;</span><span style="color: #007700">=&nbsp;array(&nbsp;</span><span style="color: #DD0000">'meaning'&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #DD0000">'life'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'number'&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #0000BB">42&nbsp;</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$a</span><span style="color: #007700">[</span><span style="color: #DD0000">'life'</span><span style="color: #007700">]&nbsp;=&nbsp;</span><span style="color: #0000BB">$a</span><span style="color: #007700">[</span><span style="color: #DD0000">'meaning'</span><span style="color: #007700">];<br />unset(&nbsp;</span><span style="color: #0000BB">$a</span><span style="color: #007700">[</span><span style="color: #DD0000">'meaning'</span><span style="color: #007700">],&nbsp;</span><span style="color: #0000BB">$a</span><span style="color: #007700">[</span><span style="color: #DD0000">'number'</span><span style="color: #007700">]&nbsp;);<br /></span><span style="color: #0000BB">xdebug_debug_zval</span><span style="color: #007700">(&nbsp;</span><span style="color: #DD0000">'a'&nbsp;</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+      </div>
+
+      <div class="example-contents"><p>以上例程的输出类似于：</p></div>
+      <div class="example-contents screen">
+<div class="cdata"><pre>
+a: (refcount=1, is_ref=0)=array (
+   &#039;life&#039; =&gt; (refcount=1, is_ref=0)=&#039;life&#039;
+)
+</pre></div>
+      </div>
+     </div>
+    </p>
+    <p class="para">
+     现在，当我们添加一个数组本身作为这个数组的元素时，事情就变得有趣，下个例子将说明这个。例中我们加入了引用操作符，否则php将生成一个复制。
+    </p>
+    <p class="para">
+     <div class="example" id="example-388">
+      <p><strong>Example #8 Adding the array itself as an element of it self</strong></p>
+      <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$a&nbsp;</span><span style="color: #007700">=&nbsp;array(&nbsp;</span><span style="color: #DD0000">'one'&nbsp;</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$a</span><span style="color: #007700">[]&nbsp;=&amp;&nbsp;</span><span style="color: #0000BB">$a</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">xdebug_debug_zval</span><span style="color: #007700">(&nbsp;</span><span style="color: #DD0000">'a'&nbsp;</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+      </div>
+
+      <div class="example-contents"><p>以上例程的输出类似于：</p></div>
+      <div class="example-contents screen">
+<div class="cdata"><pre>
+a: (refcount=2, is_ref=1)=array (
+   0 =&gt; (refcount=1, is_ref=0)=&#039;one&#039;,
+   1 =&gt; (refcount=2, is_ref=1)=...
+)
+</pre></div>
+      </div>
+      <div class="example-contents"><p>Or graphically</p></div>
+      <div class="mediaobject">
+       
+       <div class="imageobject">
+        <img src="images/12f37b1c6963c1c5c18f30495416a197-loop-array.png" alt="Zvals for an array with a circular reference" width="533" height="144" />
+       </div>
+      </div>
+     </div>
+    </p>
+    <p class="para">
+     能看到数组变量 (<var class="varname"><var class="varname">a</var></var>) 同时也是这个数组的第二个元素(<var class="varname"><var class="varname">1</var></var>) 指向的变量容器中"refcount"为 <em>2</em>。上面的输出结果中的&quot;...&quot;说明发生了递归操作, 显然在这种情况下意味着&quot;...&quot;指向原始数组。
+    </p>
+    <p class="para">
+     跟刚刚一样，对一个变量调用unset，将删除这个符号，且它指向的变量容器中的引用次数也减1。所以，如果我们在执行完上面的代码后，对变量<var class="varname"><var class="varname">$a</var></var>调用unset, 那么变量 <var class="varname"><var class="varname">$a</var></var> 和数组元素 &quot;1&quot; 所指向的变量容器的引用次数减1, 从&quot;2&quot;变成&quot;1&quot;. 下例可以说明:
+    </p>
+    <p class="para">
+     <div class="example" id="example-389">
+      <p><strong>Example #9 Unsetting <var class="varname"><var class="varname">$a</var></var></strong></p>
+      <div class="example-contents screen">
+<div class="cdata"><pre>
+(refcount=1, is_ref=1)=array (
+   0 =&gt; (refcount=1, is_ref=0)=&#039;one&#039;,
+   1 =&gt; (refcount=1, is_ref=1)=...
+)
+</pre></div>
+      </div>
+      <div class="example-contents"><p>Or graphically</p></div>
+      <div class="mediaobject">
+       
+       <div class="imageobject">
+        <img src="images/12f37b1c6963c1c5c18f30495416a197-leak-array.png" alt="Zvals after removal of array with a circular reference demonstrating the memory leak" width="463" height="144" />
+       </div>
+      </div>
+     </div>
+    </p>
+   </div>
+
+   <div class="sect2" id="features.gc.cleanup-problems">
+    <h3 class="title">清理变量容器的问题(Cleanup Problems)</h3>
+    <p class="para">
+     尽管不再有某个作用域中的任何符号指向这个结构(就是变量容器)，由于数组元素"1"仍然指向数组本身，所以这个容器不能被清除 。因为没有另外的符号指向它，用户没有办法清除这个结构，结果就会导致内存泄漏。庆幸的是，php将在请求结束时清除这个数据结构，但是在php清除之前，将耗费不少空间的内存。如果你要实现分析算法，或者要做其他像一个子元素指向它的父元素这样的事情，这种情况就会经常发生。当然，同样的情况也会发生在对象上，实际上对象更有可能出现这种情况，因为对象总是隐式的被引用。
+    </p>
+    <p class="para">
+     如果上面的情况发生仅仅一两次倒没什么，但是如果出现几千次，甚至几十万次的内存泄漏，这显然是个大问题。在长时间运行的脚本，比如请求基本上不会结束的守护进程(deamons)或者单元测试中的大的套件(sets)中，在给 eZ 组件库的模板组件做单元测试时，后者(指单元测试中的大的套件)就会出现问题.它将需要耗用2GB的内存，而一般的测试服务器没有这么大的内存空间。
+    </p>
+   </div>
+  </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="116295""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#116295" class="date">08-Dec-2014 11:49</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+There seems to be no way to inspect the reference count of a specific class variable but you can view the reference count of all variables in the current class instance with xdebug_debug_zval('this');</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116294""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#116294" class="date">08-Dec-2014 11:15</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If a variable is not present in the current scope xdebug_debug_zval　will return null.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

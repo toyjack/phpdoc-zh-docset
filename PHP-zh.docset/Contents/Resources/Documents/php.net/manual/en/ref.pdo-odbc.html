@@ -1,0 +1,557 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>ODBC and DB2 Functions (PDO_ODBC)</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="ref.pdo-oci.connection.html">? PDO_OCI DSN</a></li>
+      <li style="float: right;"><a href="ref.pdo-odbc.connection.html">PDO_ODBC DSN ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="pdo.drivers.html">PDO 驱动</a></li>
+    <li>ODBC and DB2 Functions (PDO_ODBC)</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="ref.pdo-odbc" class="reference">
+  
+  <h1 class="title">ODBC and DB2 Functions (PDO_ODBC)</h1>
+  
+  <div class="partintro">
+
+   <div class="section" id="pdo-odbc.intro">
+   <h2 class="title">简介</h2>
+    <p class="para">
+     PDO_ODBC is a driver that implements the <a href="intro.pdo.html" class="link">PHP Data
+     Objects (PDO) interface</a>
+     to enable access from PHP to databases through ODBC drivers or through the
+     IBM DB2 Call Level Interface (DB2 CLI) library. PDO_ODBC currently supports
+     three different &quot;flavours&quot; of database drivers:
+     <dl>
+
+      
+       <dt>
+ibm-db2</dt>
+
+       <dd>
+
+        <p class="para">
+         Supports access to IBM DB2 Universal Database, Cloudscape, and Apache
+         Derby servers through the free DB2 client.
+        </p>
+       </dd>
+
+      
+      
+       <dt>
+unixODBC</dt>
+
+       <dd>
+
+        <p class="para">
+         Supports access to database servers through the unixODBC driver
+         manager and the database&#039;s own ODBC drivers. 
+        </p>
+       </dd>
+
+      
+      
+       <dt>
+generic</dt>
+
+       <dd>
+
+        <p class="para">
+         Offers a compile option for ODBC driver managers that are not
+         explicitly supported by PDO_ODBC.
+        </p>
+       </dd>
+
+      
+     </dl>
+
+    </p>
+    <p class="para">
+     On Windows, PDO_ODBC is built into the PHP core by default. It is linked
+     against the Windows ODBC Driver Manager so that PHP can connect to any
+     database cataloged as a System DSN, and is the recommended driver for
+     connecting to Microsoft SQL Server databases.
+    </p>
+   </div>
+
+   
+   
+
+<div class="section" id="ref.pdo-odbc.installation">
+ <h2 class="title">安装</h2>
+ <div class="procedure">
+  <strong class="title">PDO_ODBC on UNIX systems</strong>
+  <ol type="1"><li>
+   <p class="para">
+    As of PHP 5.1, PDO_ODBC is included in the PHP source. You can compile the
+    PDO_ODBC extension as either a static or shared module using the following
+    <strong class="command">configure</strong> commands.
+    <dl>
+
+     
+      <dt>
+ibm_db2</dt>
+
+      <dd>
+
+       <p class="para">
+        <div class="example-contents screen"><div class="cdata"><pre>
+./configure --with-pdo-odbc=ibm-db2,/opt/IBM/db2/V8.1/
+</pre></div></div>
+        To build PDO_ODBC with the ibm-db2 flavour, you have to have
+        previously installed the DB2 application development headers on the
+        same machine on which you are compiling PDO_ODBC. The DB2 application
+        development headers are an installable option in the DB2 servers, and
+        are also available as part of the DB2 Application Development Client
+        freely available for download from the IBM DB2 Universal Database
+        <a href="http://www-306.ibm.com/software/data/db2/udb/support/downloadv8.html" class="link external" title="Link : http://www-306.ibm.com/software/data/db2/udb/support/downloadv8.html">&raquo;&nbsp;support site</a>.
+       </p>
+       <p class="para">
+        If you do not supply a location for the DB2 libraries and headers to
+        the <strong class="command">configure</strong> command, PDO_ODBC defaults to
+        <var class="filename">/home/db2inst1/sqllib</var>.
+       </p>
+      </dd>
+
+     
+     
+      <dt>
+unixODBC</dt>
+
+      <dd>
+
+       <p class="para">
+        <div class="example-contents screen"><div class="cdata"><pre>
+./configure --with-pdo-odbc=unixODBC,/usr/local
+</pre></div></div>
+        If you do not supply a location for the unixODBC libraries and
+        headers to the <strong class="command">configure</strong> command, PDO_ODBC
+        defaults to <var class="filename">/usr/local</var>.
+       </p>
+      </dd>
+
+     
+     
+      <dt>
+generic</dt>
+
+      <dd>
+
+       <div class="example-contents screen"><div class="cdata"><pre>
+./configure --with-pdo-odbc=generic,/usr/local,libname,ldflags,cflags
+</pre></div></div>
+      </dd>
+
+     
+    </dl>
+
+   </p>
+  </li>
+ </ol></div>
+</div>
+
+
+
+  
+   
+
+<div class="section" id="pdo-odbc.configuration">
+ <h2 class="title">运行时配置</h2>
+ <p class="simpara">
+这些函数的行为受 <var class="filename">php.ini</var> 中的设置影响。
+</p>
+ <p class="para">
+  <table class="doctable table">
+   <caption><strong>PDO_ODBC Configuration Options</strong></caption>
+   
+    <thead>
+     <tr>
+      <th>名字</th>
+      <th>默认</th>
+      <th>可修改范围</th>
+      <th>更新日志</th>
+     </tr>
+
+    </thead>
+
+    <tbody class="tbody">
+     <tr>
+      <td><a href="ref.pdo-odbc.html#ini.pdo-odbc.connection-pooling" class="link">pdo_odbc.connection_pooling</a></td>
+      <td>&quot;strict&quot;</td>
+      <td>PHP_INI_ALL</td>
+      <td>Available since PHP 5.1.0.</td>
+     </tr>
+
+     <tr>
+      <td><a href="ref.pdo-odbc.html#ini.pdo-odbc.db2-instance-name" class="link">pdo_odbc.db2_instance_name</a></td>
+      <td>NULL</td>
+      <td>PHP_INI_SYSTEM</td>
+      <td>Available since PHP 5.1.1. 本过时特性<em class="emphasis">将</em>肯定会在未来被<em class="emphasis">移除</em>。</td>
+     </tr>
+
+    </tbody>
+   
+  </table>
+
+  有关 PHP_INI_* 样式的更多详情与定义，见 <a href="configuration.changes.modes.html" class="xref">配置可被设定范围</a>。
+</p>
+
+<p class="para">这是配置指令的简短说明。</p>
+
+<p class="para">
+ <dl>
+
+   
+   <dt id="ini.pdo-odbc.connection-pooling">
+    <code class="parameter">pdo_odbc.connection_pooling</code>
+    <span class="type"><a href="language.types.string.html" class="type string">string</a></span>
+   </dt>
+
+   <dd>
+
+    <p class="para">
+     Whether to pool ODBC connections. Can be one of <em>&quot;strict&quot;</em>,
+     <em>&quot;relaxed&quot;</em> or <em>&quot;off&quot;</em> (equals to
+     <em>&quot;&quot;</em>). The parameter describes how strict the connection
+     manager should be when matching connection parameters to existing pooled
+     connections.  <strong class="userinput"><code>strict</code></strong> is the recommend default, and
+     will result in the use of cached connections only when all the connection
+     parameters match exactly.  <strong class="userinput"><code>relaxed</code></strong> will result in
+     the use of cached connections when similar connection parameters are
+     used.  This can result in increased use of the cache, at the risk of
+     bleeding connection information between (for example) virtual hosts.
+    </p>
+    <p class="para">
+     This setting can only be changed from the <var class="filename">php.ini</var>
+     file, and affects the entire process; any other modules loaded into the
+     process that use the same ODBC libraries will be affected too, including
+     the <a href="ref.uodbc.html" class="link">Unified ODBC extension</a>.
+    </p>
+    <div class="warning"><strong class="warning">Warning</strong>
+     <p class="para">
+      <strong class="userinput"><code>relaxed</code></strong> matching should not be used on a shared
+      server, for security reasons.
+     </p>
+    </div>
+    <div class="tip"><strong class="tip">Tip</strong>
+     <p class="para">
+      Leave this setting at the default <strong class="userinput"><code>strict</code></strong> setting
+      unless you have good reason to change it.
+     </p>
+    </div>
+   </dd>
+
+  
+  
+   <dt id="ini.pdo-odbc.db2-instance-name">
+    <code class="parameter">pdo_odbc.db2_instance_name</code>
+    <span class="type"><a href="language.types.string.html" class="type string">string</a></span>
+   </dt>
+
+   <dd>
+
+    <p class="para">
+     If you compile PDO_ODBC using the <em>db2</em> flavour,
+     this setting sets the value of the DB2INSTANCE environment variable on
+     Linux and UNIX operating systems to the specified name of the DB2
+     instance. This enables PDO_ODBC to resolve the location of the DB2
+     libraries and make cataloged connections to DB2 databases.
+    </p>
+    <p class="para">
+     This setting can only be changed from the <var class="filename">php.ini</var>
+     file, and affects the entire process; any other modules loaded into the
+     process that use the same ODBC libraries will be affected too, including
+     the <a href="ref.uodbc.html" class="link">Unified ODBC extension</a>.
+    </p>
+    <p class="para">
+     This setting has no effect on Windows.
+    </p>
+   </dd>
+
+  
+  
+ </dl>
+
+ </p>
+</div>
+
+
+
+  </div>
+
+  
+
+ <h2>Table of Contents</h2><ul class="chunklist chunklist_reference"><li><a href="ref.pdo-odbc.connection.html">PDO_ODBC DSN</a> &mdash; Connecting to ODBC or DB2 databases</li></ul>
+</div>
+<div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="107128""></a>
+  <div class="note">
+   <strong class="user">Ariz Jacinto</strong>
+   <a href="#107128" class="date">09-Jan-2012 10:50</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Using SQL Server Native Client 11.0 on Linux as a PDO_ODBC driver:
+<br />
+
+<br />
+Download the SQL Server Native Client 11.0 on Linux ODBC Driver:
+<br />
+<a href="http://www.microsoft.com/download/en/details.aspx?id=28160" rel="nofollow" target="_blank">http://www.microsoft.com/download/en/details.aspx?id=28160</a>
+<br />
+
+<br />
+Configuration ODBC:
+<br />
+
+<br />
+/usr/local/etc/odbcsys.ini
+<br />
+--
+<br />
+[SQL Server Native Client 11.0]
+<br />
+Description = Microsoft SQL Server ODBC Driver V1.0 for Linux
+<br />
+Driver = /opt/microsoft/sqlncli/lib64/libsqlncli-11.0.so.1720.0
+<br />
+UsageCount = 1
+<br />
+
+<br />
+/usr/local/etc/odbc.ini
+<br />
+--
+<br />
+[MSSQLServer]
+<br />
+Driver = SQL Server Native Client 11.0
+<br />
+Description = Sample Database
+<br />
+Trace = Yes
+<br />
+Server = 
+<br />
+Port = 1433
+<br />
+Database = 
+<br />
+
+<br />
+Test the connection:
+<br />
+mssqltest.php
+<br />
+--
+<br />
+<span class="default">&lt;?php
+<br />
+&nbsp;&nbsp;&nbsp; putenv</span><span class="keyword">(</span><span class="string">'ODBCSYSINI=/usr/local/etc'</span><span class="keyword">);
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">putenv</span><span class="keyword">(</span><span class="string">'ODBCINI=/usr/local/etc/odbc.ini'</span><span class="keyword">);
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$username </span><span class="keyword">= </span><span class="string">""</span><span class="keyword">;
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$password </span><span class="keyword">= </span><span class="string">""</span><span class="keyword">;
+<br />
+&nbsp;&nbsp;&nbsp; try {
+<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$dbh </span><span class="keyword">= new </span><span class="default">PDO</span><span class="keyword">(</span><span class="string">"odbc:MSSQLServer"</span><span class="keyword">,
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">"</span><span class="default">$username</span><span class="string">"</span><span class="keyword">,
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">"</span><span class="default">$password</span><span class="string">"
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="keyword">);
+<br />
+&nbsp;&nbsp;&nbsp; } catch (</span><span class="default">PDOException $exception</span><span class="keyword">) {
+<br />
+&nbsp;&nbsp; &nbsp;&nbsp; echo </span><span class="default">$exception</span><span class="keyword">-&gt;</span><span class="default">getMessage</span><span class="keyword">();
+<br />
+&nbsp;&nbsp; &nbsp;&nbsp; exit;
+<br />
+&nbsp;&nbsp;&nbsp; }
+<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$dbh</span><span class="keyword">);
+<br />
+&nbsp;&nbsp;&nbsp; unset(</span><span class="default">$dbh</span><span class="keyword">);
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="98716""></a>
+  <div class="note">
+   <strong class="user">harry dot forum at p-boss dot com</strong>
+   <a href="#98716" class="date">02-Jul-2010 01:03</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+MSSQL - PHP on Apache - Linux Redhat<br />
+<br />
+When using php 5.2.10 please beaware of this error:<br />
+<br />
+<a href="http://bugs.php.net/bug.php?id=42068" rel="nofollow" target="_blank">http://bugs.php.net/bug.php?id=42068</a><br />
+<br />
+Standard odbc_connect will not work, you must use pdo_odbc<br />
+<br />
+Connecting to MSSQL using pdo odbc - walkthrough.. <br />
+<br />
+1. Download and configure FreeTDS with-unixodbc<br />
+<br />
+./configure --prefix=/opt/SYSfreetds --with-unixodbc<br />
+<br />
+make;make test; make install<br />
+<br />
+2. install php-odbc and unixODBC<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; php-odbc-5.2.10-1.x86_64.rpm<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; unixODBC.x86_64.x86x64<br />
+<br />
+3. Setup ODBC links<br />
+<br />
+a)<br />
+Create a tds.driver file with the following contents<br />
+<br />
+&nbsp; [FreeTDS]<br />
+&nbsp; Description&nbsp; &nbsp;&nbsp; = v0.63 with protocol v8.0<br />
+&nbsp; Driver&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; = /opt/SYSfreetds/lib/libtdsodbc.so<br />
+<br />
+Register the ODBC driver - the tds.driver file<br />
+<br />
+&nbsp; odbcinst -i -d -f tds.driver<br />
+<br />
+b)<br />
+Creating a tds.datasource file - ODBC Data Source with contents:<br />
+<br />
+&nbsp; [SOURCENAME]<br />
+&nbsp; Driver=FreeTDS<br />
+&nbsp; Description=Test MS SQL Database with FreeTDS<br />
+&nbsp; Trace=No<br />
+&nbsp; Server=BobTheServer<br />
+&nbsp; Port=1433<br />
+&nbsp; TDS Version=8.0<br />
+&nbsp; Database=youDBname<br />
+<br />
+Register the ODBC data source<br />
+<br />
+&nbsp; odbcinst -i -s -f tds.datasource<br />
+<br />
+Beware that the odbc.ini file will be installed in the current users home directory. This may need to be used if you are using a webserver as the apache home directory could be different.<br />
+<br />
+Ensure .odbc.ini is in apaches home directory, possibly "/var/www"<br />
+<br />
+4. Test the ODBC link on the command line<br />
+<br />
+&nbsp; isql -v SOURCENAME 'username' 'password'<br />
+<br />
+&nbsp; +---------------------------------------+<br />
+&nbsp; | Connected!&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; |<br />
+&nbsp; |&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; |<br />
+&nbsp; | sql-statement&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; |<br />
+&nbsp; | help [tablename]&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; |<br />
+&nbsp; | quit&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; |<br />
+&nbsp; |&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; |<br />
+&nbsp; +---------------------------------------+<br />
+&nbsp;SQL&gt;<br />
+<br />
+5. Edit /etc/php.ini<br />
+<br />
+&nbsp; Make sure the following is set:<br />
+&nbsp;&nbsp; &nbsp; mssql.secure_connection = On<br />
+&nbsp;<br />
+<br />
+6. Restart apache gracefully<br />
+<br />
+7. PHP to run:<br />
+<br />
+&nbsp; &lt;?<br />
+&nbsp; $dbh= new PDO('odbc:SOURCENAME', 'username', 'password');<br />
+&nbsp; $stmt = $dbh-&gt;prepare("$query");<br />
+&nbsp; $stmt-&gt;execute();<br />
+&nbsp; while ($row = $stmt-&gt;fetch()) {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; print_r($row);<br />
+&nbsp; }<br />
+&nbsp; unset($dbh); unset($stmt);<br />
+&nbsp; ?&gt;<br />
+<br />
+Trouble-shooting:<br />
+<br />
+Please try strace/ truss if you encounter issues. It could be you are referencing wrong libraries somewhere.<br />
+<br />
+Ensure you have restarted apache once the odbc files are in place</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="93646""></a>
+  <div class="note">
+   <strong class="user">tuomas</strong>
+   <a href="#93646" class="date">21-Sep-2009 09:11</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you want to avoid installing DB2 Connect and/or PECL modules ibm_db2 and PDO_IBM, you can also use IBM DB2 databases trough unixODBC.<br />
+<br />
+If you have DB2 database on a i server you need to install IBM iAccess (<a href="http://www.ibm.com/systems/i/software/access/linux/index.html" rel="nofollow" target="_blank">http://www.ibm.com/systems/i/software/access/linux/index.html</a>) and unixODBC. Just install the libraries (rpm) and modify configurations in /etc/odbcinst.ini (sample configuration in /opt/ibm/iSeriesAccess/unixodbcregistration) and /etc/odbc.ini.<br />
+<br />
+To my experience this is much easier way than installing DB2 Connect.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="81488""></a>
+  <div class="note">
+   <strong class="user">ethan dot nelson at ltd dot org</strong>
+   <a href="#81488" class="date">29-Feb-2008 11:15</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Using SQL 2005, PDO_ODBC and datetime fields is a royal pain.&nbsp; MSDN documentation on CAST CONVERT shows that there is supposed to be an implicit convert between character types and datetime types.&nbsp; That's true... until you put it in a stored procedure and use variable declarations.<br />
+<br />
+For instance this fails:<br />
+<br />
+declare @date varchar;<br />
+SET @date = '20080101';<br />
+SELECT cast(@date AS datetime) AS poo<br />
+<br />
+While this succeeds:<br />
+declare @date varchar(19);<br />
+SET @date = '20080101';<br />
+SELECT cast(@date AS datetime) AS poo<br />
+<br />
+The PDO Driver appears to attempt an implicit conversion and so it fails whenever you try to insert data into datetime column types.<br />
+<br />
+So to workaround this nuance in SQL, declare a character column type with explicit width.&nbsp; Then your implicit type conversion will work.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

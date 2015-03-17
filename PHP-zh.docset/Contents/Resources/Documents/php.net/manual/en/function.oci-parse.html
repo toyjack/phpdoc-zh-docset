@@ -1,0 +1,333 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>配置 Oracle 语句预备执行</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="function.oci-num-rows.html">? oci_num_rows</a></li>
+      <li style="float: right;"><a href="function.oci-password-change.html">oci_password_change ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="ref.oci8.html">OCI8 函数</a></li>
+    <li>配置 Oracle 语句预备执行</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="function.oci-parse" class="refentry">
+ <div class="refnamediv">
+  <h1 class="refname">oci_parse</h1>
+  <p class="verinfo">(PHP 5, PECL OCI8 &gt;= 1.1.0)</p><p class="refpurpose"><span class="refname">oci_parse</span> &mdash; <span class="dc-title">配置 Oracle 语句预备执行</span></p>
+
+ </div>
+ <div class="refsect1 unknown-unknown-unknown-unknown-unknown-seealst" id="refsect1-function.oci-parse-unknown-unknown-unknown-unknown-unknown-seealst">
+  <h3 class="title">说明</h3>
+  <div class="methodsynopsis dc-description">
+   <span class="type">resource</span> <span class="methodname"><strong>oci_parse</strong></span>
+    ( <span class="methodparam"><span class="type">resource</span> <code class="parameter">$connection</code></span>
+   , <span class="methodparam"><span class="type">string</span> <code class="parameter">$query</code></span>
+   )</div>
+
+  <p class="para rdfs-comment">
+   <span class="function"><strong>oci_parse()</strong></span> 在 <code class="parameter">connection</code>
+   上配置 <code class="parameter">query</code> 并返回语句标识符以用于
+   <span class="function"><a href="function.oci-bind-by-name.html" class="function">oci_bind_by_name()</a></span>，<span class="function"><a href="function.oci-execute.html" class="function">oci_execute()</a></span>
+   以及其它函数。
+  </p>
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <p class="para">
+    本函数<em class="emphasis">并不</em>验证
+    <code class="parameter">query</code>。要知道 <code class="parameter">query</code>
+    是否是合法的 SQL 或 PL/SQL 语句的唯一方法是执行它。
+   </p>
+  </p></blockquote>
+  <p class="para">
+   <span class="function"><strong>oci_parse()</strong></span> 在出错时返回 <strong><code>FALSE</code></strong>。
+  </p>
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <p class="para">
+    在 PHP 5.0.0 之前的版本必须使用 <span class="function"><a href="function.ociparse.html" class="function">ociparse()</a></span>
+    替代本函数。该函数名仍然可用，为向下兼容作为
+    <span class="function"><strong>oci_parse()</strong></span> 的别名。不过其已被废弃，不推荐使用。
+   </p>
+  </p></blockquote>
+ </div>
+
+</div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="102313""></a>
+  <div class="note">
+   <strong class="user">falundir at gmail dot com</strong>
+   <a href="#102313" class="date">08-Feb-2011 02:38</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+When you want to call stored function (and want to read its result) which executes DML queries (insert, update, delete) inside its body you can't use "select your_stored_function(:param1, :param2) from dual" because you will receive "ORA-14551: cannot perform a DML operation inside a query" error.<br />
+<br />
+In order to call such function and get its result you need to wrap it into nested procedure with OUT parameter like this:<br />
+<br />
+DECLARE<br />
+&nbsp; PROCEDURE caller(return_value OUT NUMBER) AS<br />
+&nbsp; BEGIN<br />
+&nbsp;&nbsp;&nbsp; return_value := your_stored_function(:param1, :param2);<br />
+&nbsp; END;<br />
+BEGIN<br />
+&nbsp; caller(:return_value);<br />
+END;<br />
+<br />
+and bind to :return_value variable to get the result of function.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="79584""></a>
+  <div class="note">
+   <strong class="user">michael dot virnstein at brodos dot de</strong>
+   <a href="#79584" class="date">04-Dec-2007 05:43</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+A neat way to parse a query only once per script, if the query is done inside a function:
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+</span><span class="keyword">function </span><span class="default">querySomething</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">, </span><span class="default">$id</span><span class="keyword">)
+<br />
+{
+<br />
+&nbsp;&nbsp;&nbsp; static </span><span class="default">$stmt</span><span class="keyword">;
+<br />
+
+<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">is_null</span><span class="keyword">(</span><span class="default">$stmt</span><span class="keyword">)) {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$stmt </span><span class="keyword">= </span><span class="default">oci_parse</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">, </span><span class="string">'select * from t where pk = :id'</span><span class="keyword">);
+<br />
+&nbsp;&nbsp;&nbsp; }
+<br />
+
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">oci_bind_by_name</span><span class="keyword">(</span><span class="default">$stmt</span><span class="keyword">, </span><span class="string">':id'</span><span class="keyword">, </span><span class="default">$id</span><span class="keyword">, -</span><span class="default">1</span><span class="keyword">);
+<br />
+
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">oci_execute</span><span class="keyword">(</span><span class="default">$stmt</span><span class="keyword">, </span><span class="default">OCI_DEFAULT</span><span class="keyword">);
+<br />
+
+<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">oci_fetch_array</span><span class="keyword">(</span><span class="default">$stmt</span><span class="keyword">, </span><span class="default">OCI_ASSOC</span><span class="keyword">);
+<br />
+
+<br />
+}
+<br />
+
+<br />
+</span><span class="default">?&gt;
+<br />
+</span>
+<br />
+With the static variable, the statment handle isn't closed after the function has terminated. Very nice for functions that are called e.g. in loops. Unfortunately this only works for static sql. If you have dynamic sql, you can do the following:
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+
+<br />
+</span><span class="keyword">function </span><span class="default">querySomething</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">, </span><span class="default">$data</span><span class="keyword">)
+<br />
+{
+<br />
+&nbsp;&nbsp;&nbsp; static </span><span class="default">$stmt </span><span class="keyword">= array();
+<br />
+&nbsp;&nbsp;&nbsp; 
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$first </span><span class="keyword">= </span><span class="default">true</span><span class="keyword">;
+<br />
+&nbsp;&nbsp;&nbsp; 
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$query </span><span class="keyword">= </span><span class="string">'select * from t'</span><span class="keyword">;
+<br />
+
+<br />
+&nbsp;&nbsp;&nbsp; foreach (</span><span class="default">$data </span><span class="keyword">as </span><span class="default">$key </span><span class="keyword">=&gt; </span><span class="default">$value</span><span class="keyword">) {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$first</span><span class="keyword">) {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$first </span><span class="keyword">= </span><span class="default">false</span><span class="keyword">;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$query </span><span class="keyword">.= </span><span class="string">' where '</span><span class="keyword">;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; } else {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$query </span><span class="keyword">.= </span><span class="string">' and '</span><span class="keyword">;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; 
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$query </span><span class="keyword">.= </span><span class="string">"</span><span class="default">$key</span><span class="string"> = :b</span><span class="default">$key</span><span class="string">"</span><span class="keyword">;
+<br />
+&nbsp;&nbsp;&nbsp; }
+<br />
+&nbsp;&nbsp;&nbsp; 
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$queryhash </span><span class="keyword">= </span><span class="default">md5</span><span class="keyword">(</span><span class="default">$query</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; 
+<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">is_null</span><span class="keyword">(</span><span class="default">$stmt</span><span class="keyword">[</span><span class="default">$queryhash</span><span class="keyword">])) {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$stmt</span><span class="keyword">[</span><span class="default">$queryhash</span><span class="keyword">] = </span><span class="default">oci_parse</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">, </span><span class="default">$query</span><span class="keyword">);&nbsp; &nbsp; 
+<br />
+&nbsp;&nbsp;&nbsp; }
+<br />
+
+<br />
+&nbsp;&nbsp;&nbsp; foreach (</span><span class="default">$data </span><span class="keyword">as </span><span class="default">$key </span><span class="keyword">=&gt; </span><span class="default">$value</span><span class="keyword">) {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// don't use $value, because we bind memory addresses here.
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; // this would result in every bind pointing at the same value after foreach
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">oci_bind_by_name</span><span class="keyword">(</span><span class="default">$stmt</span><span class="keyword">[</span><span class="default">$queryhash</span><span class="keyword">], </span><span class="string">":b</span><span class="default">$key</span><span class="string">"</span><span class="keyword">, </span><span class="default">$data</span><span class="keyword">[</span><span class="default">$key</span><span class="keyword">], -</span><span class="default">1</span><span class="keyword">);
+<br />
+&nbsp;&nbsp;&nbsp; }
+<br />
+&nbsp;&nbsp;&nbsp; 
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">oci_execute</span><span class="keyword">(</span><span class="default">$stmt</span><span class="keyword">[</span><span class="default">$queryhash</span><span class="keyword">], </span><span class="default">OCI_DEFAULT</span><span class="keyword">);
+<br />
+
+<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">oci_fetch_array</span><span class="keyword">(</span><span class="default">$stmt</span><span class="keyword">[</span><span class="default">$queryhash</span><span class="keyword">], </span><span class="default">OCI_ASSOC</span><span class="keyword">);
+<br />
+
+<br />
+}
+<br />
+
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="42128""></a>
+  <div class="note">
+   <strong class="user">kurt at kovac dot ch</strong>
+   <a href="#42128" class="date">04-May-2004 05:40</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+For those that are having trouble with error checking, i have noticed on a lot of sites that people are trying to check the statement handle for error messages with OCIParse. Since the statement handle ($sth) is not created yet, you need to check the database handle ($dbh) for any errors with OCIParse. For example:
+<br />
+
+<br />
+instead of:
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+$stmt </span><span class="keyword">= </span><span class="default">OCIParse</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">, </span><span class="default">$query</span><span class="keyword">);
+<br />
+if (!</span><span class="default">$stmt</span><span class="keyword">) {
+<br />
+&nbsp;&nbsp; </span><span class="default">$oerr </span><span class="keyword">= </span><span class="default">OCIError</span><span class="keyword">(</span><span class="default">$stmt</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; echo </span><span class="string">"Fetch Code 1:"</span><span class="keyword">.</span><span class="default">$oerr</span><span class="keyword">[</span><span class="string">"message"</span><span class="keyword">];
+<br />
+&nbsp;&nbsp; exit;
+<br />
+} 
+<br />
+</span><span class="default">?&gt;
+<br />
+</span>
+<br />
+use:
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+$stmt </span><span class="keyword">= </span><span class="default">OCIParse</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">, </span><span class="default">$query</span><span class="keyword">);
+<br />
+if (!</span><span class="default">$stmt</span><span class="keyword">) {
+<br />
+&nbsp;&nbsp; </span><span class="default">$oerr </span><span class="keyword">= </span><span class="default">OCIError</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; echo </span><span class="string">"Fetch Code 1:"</span><span class="keyword">.</span><span class="default">$oerr</span><span class="keyword">[</span><span class="string">"message"</span><span class="keyword">];
+<br />
+&nbsp;&nbsp; exit;
+<br />
+} 
+<br />
+</span><span class="default">?&gt;
+<br />
+</span>
+<br />
+Hope this helps someone.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="36557""></a>
+  <div class="note">
+   <strong class="user">egypt at nmt dot edu</strong>
+   <a href="#36557" class="date">15-Oct-2003 04:31</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Whereas MySQL doesn't care what kind of quotes are around a LIKE clause, ociexecute gives the error:
+<br />
+&nbsp;&nbsp;&nbsp; ociexecute(): OCIStmtExecute: ORA-00904: "NM": invalid identifier 
+<br />
+for the following.
+<br />
+<span class="default">&lt;?php
+<br />
+$sql&nbsp; </span><span class="keyword">= </span><span class="string">"SELECT * FROM addresses "
+<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="keyword">. </span><span class="string">"WHERE state LIKE \"NM\""</span><span class="keyword">;&nbsp; </span><span class="comment">// error!
+<br />
+</span><span class="default">$stmt </span><span class="keyword">= </span><span class="default">ociparse</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">, </span><span class="default">$sql</span><span class="keyword">);
+<br />
+</span><span class="default">ociexecute</span><span class="keyword">(</span><span class="default">$stmt</span><span class="keyword">);
+<br />
+</span><span class="default">?&gt;
+<br />
+</span>
+<br />
+it's fine if you just use single quotes:
+<br />
+&nbsp;&nbsp;&nbsp; . "WHERE state LIKE 'NM'";
+<br />
+but i think it's interesting that ociparse doesn't say anything</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

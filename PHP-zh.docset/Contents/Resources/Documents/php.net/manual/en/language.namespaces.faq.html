@@ -1,0 +1,505 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>FAQ: things you need to know about namespaces</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="language.namespaces.rules.html">? 名称解析规则</a></li>
+      <li style="float: right;"><a href="language.exceptions.html">异常处理 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="language.namespaces.html">命名空间</a></li>
+    <li>FAQ: things you need to know about namespaces</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="language.namespaces.faq" class="sect1">
+  <h2 class="title">FAQ: things you need to know about namespaces</h2>
+  <p class="para">
+   This FAQ is split into two sections: common questions, and some specifics of
+   implementation that are helpful to understand fully.
+  </p>
+  <p class="para">
+   First, the common questions.
+   <ol type="1">
+    <li class="listitem">
+     <span class="simpara">
+      <a href="language.namespaces.faq.html#language.namespaces.faq.shouldicare" class="link">If I don&#039;t use namespaces, should
+      I care about any of this?</a>
+     </span>
+    </li>
+    <li class="listitem">
+     <span class="simpara">
+      <a href="language.namespaces.faq.html#language.namespaces.faq.globalclass" class="link">How do I use internal or global
+      classes in a namespace?</a>
+     </span>
+    </li>
+    <li class="listitem">
+     <span class="simpara">
+      <a href="language.namespaces.faq.html#language.namespaces.faq.innamespace" class="link">How do I use namespaces classes
+      functions, or constants in their own namespace?</a>
+     </span>
+    </li>
+    <li class="listitem">
+     <span class="simpara">
+      <a href="language.namespaces.faq.html#language.namespaces.faq.full" class="link">
+       How does a name like <em>\my\name</em> or <em>\name</em>
+       resolve?
+      </a>
+     </span>
+    </li>
+    <li class="listitem">
+     <span class="simpara">
+      <a href="language.namespaces.faq.html#language.namespaces.faq.qualified" class="link">How does a name like
+      <em>my\name</em> resolve?</a>
+     </span>
+    </li>
+    <li class="listitem">
+     <span class="simpara">
+      <a href="language.namespaces.faq.html#language.namespaces.faq.shortname1" class="link">How does an unqualified class name
+      like <em>name</em> resolve?</a>
+     </span>
+    </li>
+    <li class="listitem">
+     <span class="simpara">
+      <a href="language.namespaces.faq.html#language.namespaces.faq.shortname2" class="link">How does an unqualified function
+      name or unqualified constant name
+      like <em>name</em> resolve?</a>
+     </span>
+    </li>
+   </ol>
+  </p>
+  <p class="para">
+   There are a few implementation details of the namespace implementations
+   that are helpful to understand.
+   <ol type="1">
+    <li class="listitem">
+     <span class="simpara">
+      <a href="language.namespaces.faq.html#language.namespaces.faq.conflict" class="link">Import names cannot conflict with
+      classes defined in the same file.</a>
+     </span>
+    </li>
+    <li class="listitem">
+     <span class="simpara">
+      <a href="language.namespaces.faq.html#language.namespaces.faq.nested" class="link">Nested namespaces are not allowed.
+      </a>
+     </span>
+    </li>
+    <li class="listitem">
+     <span class="simpara">
+      <a href="language.namespaces.faq.html#language.namespaces.faq.nofuncconstantuse" class="link">Neither functions nor
+      constants can be imported via the <em>use</em>
+      statement.</a>
+     </span>
+    </li>
+    <li class="listitem">
+     <span class="simpara">
+      <a href="language.namespaces.faq.html#language.namespaces.faq.quote" class="link">Dynamic namespace names (quoted
+      identifiers) should escape backslash.</a>
+     </span>
+    </li>
+    <li class="listitem">
+     <span class="simpara">
+      <a href="language.namespaces.faq.html#language.namespaces.faq.constants" class="link">Undefined Constants referenced
+      using any backslash die with fatal error</a>
+     </span>
+    </li>
+    <li class="listitem">
+     <span class="simpara">
+      <a href="language.namespaces.faq.html#language.namespaces.faq.builtinconst" class="link">Cannot override special
+      constants NULL, TRUE, FALSE, ZEND_THREAD_SAFE or ZEND_DEBUG_BUILD</a>
+     </span>
+    </li>
+   </ol>
+  </p>
+  <div class="sect2" id="language.namespaces.faq.shouldicare">
+   <h3 class="title">If I don&#039;t use namespaces, should I care about any of this?</h3>
+   <p class="para">
+    No.  Namespaces do not affect any existing code in any way, or any
+    as-yet-to-be-written code that does not contain namespaces.  You can
+    write this code if you wish:
+   </p>
+   <p class="para">
+    <div class="example" id="example-272">
+     <p><strong>Example #1 Accessing global classes outside a namespace</strong></p>
+     <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$a&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;\</span><span style="color: #0000BB">stdClass</span><span style="color: #007700">;</span>
+</span>
+</code></div>
+     </div>
+
+    </div>
+   </p>
+   <p class="para">
+    This is functionally equivalent to:
+   </p>
+   <p class="para">
+    <div class="example" id="example-273">
+     <p><strong>Example #2 Accessing global classes outside a namespace</strong></p>
+     <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$a&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">stdClass</span><span style="color: #007700">;</span>
+</span>
+</code></div>
+     </div>
+
+    </div>
+   </p>
+  </div>
+  <div class="sect2" id="language.namespaces.faq.globalclass">
+   <h3 class="title">How do I use internal or global classes in a namespace?</h3>
+   <p class="para">
+    <div class="example" id="example-274">
+     <p><strong>Example #3 Accessing internal classes in namespaces</strong></p>
+     <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">namespace&nbsp;</span><span style="color: #0000BB">foo</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;\</span><span style="color: #0000BB">stdClass</span><span style="color: #007700">;<br /><br />function&nbsp;</span><span style="color: #0000BB">test</span><span style="color: #007700">(\</span><span style="color: #0000BB">ArrayObject&nbsp;$typehintexample&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">null</span><span style="color: #007700">)&nbsp;{}<br /><br /></span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">=&nbsp;\</span><span style="color: #0000BB">DirectoryIterator</span><span style="color: #007700">::</span><span style="color: #0000BB">CURRENT_AS_FILEINFO</span><span style="color: #007700">;<br /><br /></span><span style="color: #FF8000">//&nbsp;extending&nbsp;an&nbsp;internal&nbsp;or&nbsp;global&nbsp;class<br /></span><span style="color: #007700">class&nbsp;</span><span style="color: #0000BB">MyException&nbsp;</span><span style="color: #007700">extends&nbsp;\</span><span style="color: #0000BB">Exception&nbsp;</span><span style="color: #007700">{}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+     </div>
+
+    </div>
+   </p>
+  </div>
+  <div class="sect2" id="language.namespaces.faq.innamespace">
+   <h3 class="title">
+    How do I use namespaces classes, functions, or constants in their own
+    namespace?
+   </h3>
+   <p class="para">
+    <div class="example" id="example-275">
+     <p><strong>Example #4 Accessing internal classes, functions or constants in namespaces</strong></p>
+     <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">namespace&nbsp;</span><span style="color: #0000BB">foo</span><span style="color: #007700">;<br /><br />class&nbsp;</span><span style="color: #0000BB">MyClass&nbsp;</span><span style="color: #007700">{}<br /><br /></span><span style="color: #FF8000">//&nbsp;using&nbsp;a&nbsp;class&nbsp;from&nbsp;the&nbsp;current&nbsp;namespace&nbsp;as&nbsp;a&nbsp;type&nbsp;hint<br /></span><span style="color: #007700">function&nbsp;</span><span style="color: #0000BB">test</span><span style="color: #007700">(</span><span style="color: #0000BB">MyClass&nbsp;$typehintexample&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">null</span><span style="color: #007700">)&nbsp;{}<br /></span><span style="color: #FF8000">//&nbsp;another&nbsp;way&nbsp;to&nbsp;use&nbsp;a&nbsp;class&nbsp;from&nbsp;the&nbsp;current&nbsp;namespace&nbsp;as&nbsp;a&nbsp;type&nbsp;hint<br /></span><span style="color: #007700">function&nbsp;</span><span style="color: #0000BB">test</span><span style="color: #007700">(\</span><span style="color: #0000BB">foo</span><span style="color: #007700">\</span><span style="color: #0000BB">MyClass&nbsp;$typehintexample&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">null</span><span style="color: #007700">)&nbsp;{}<br /><br /></span><span style="color: #FF8000">//&nbsp;extending&nbsp;a&nbsp;class&nbsp;from&nbsp;the&nbsp;current&nbsp;namespace<br /></span><span style="color: #007700">class&nbsp;</span><span style="color: #0000BB">Extended&nbsp;</span><span style="color: #007700">extends&nbsp;</span><span style="color: #0000BB">MyClass&nbsp;</span><span style="color: #007700">{}<br /><br /></span><span style="color: #FF8000">//&nbsp;accessing&nbsp;a&nbsp;global&nbsp;function<br /></span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">=&nbsp;\</span><span style="color: #0000BB">globalfunc</span><span style="color: #007700">();<br /><br /></span><span style="color: #FF8000">//&nbsp;accessing&nbsp;a&nbsp;global&nbsp;constant<br /></span><span style="color: #0000BB">$b&nbsp;</span><span style="color: #007700">=&nbsp;\</span><span style="color: #0000BB">INI_ALL</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+     </div>
+
+    </div>
+   </p>
+  </div>
+  <div class="sect2" id="language.namespaces.faq.full">
+   <h3 class="title">
+     How does a name like <em>\my\name</em> or <em>\name</em>
+     resolve?
+   </h3>
+   <p class="para">
+    Names that begin with a <em>\</em> always resolve to what they
+    look like, so <em>\my\name</em> is in fact <em>my\name</em>,
+    and <em>\Exception</em> is <em>Exception</em>.
+    <div class="example" id="example-276">
+     <p><strong>Example #5 Fully Qualified names</strong></p>
+     <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">namespace&nbsp;</span><span style="color: #0000BB">foo</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;\</span><span style="color: #0000BB">my</span><span style="color: #007700">\</span><span style="color: #0000BB">name</span><span style="color: #007700">();&nbsp;</span><span style="color: #FF8000">//&nbsp;instantiates&nbsp;"my\name"&nbsp;class<br /></span><span style="color: #007700">echo&nbsp;\</span><span style="color: #0000BB">strlen</span><span style="color: #007700">(</span><span style="color: #DD0000">'hi'</span><span style="color: #007700">);&nbsp;</span><span style="color: #FF8000">//&nbsp;calls&nbsp;function&nbsp;"strlen"<br /></span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">=&nbsp;\</span><span style="color: #0000BB">INI_ALL</span><span style="color: #007700">;&nbsp;</span><span style="color: #FF8000">//&nbsp;$a&nbsp;is&nbsp;set&nbsp;to&nbsp;the&nbsp;value&nbsp;of&nbsp;constant&nbsp;"INI_ALL"<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+     </div>
+
+    </div>
+   </p>
+  </div>
+  <div class="sect2" id="language.namespaces.faq.qualified">
+   <h3 class="title">How does a name like <em>my\name</em> resolve?</h3>
+   <p class="para">
+    Names that contain a backslash but do not begin with a backslash like
+    <em>my\name</em> can be resolved in 2 different ways.
+   </p>
+   <p class="para">
+    If there is
+    an import statement that aliases another name to <em>my</em>, then
+    the import alias is applied to the <em>my</em> in <em>my\name</em>.
+   </p>
+   <p class="para">
+    Otherwise, the current namespace name is prepended to <em>my\name</em>.
+   </p>
+   <p class="para">
+    <div class="example" id="example-277">
+     <p><strong>Example #6 Qualified names</strong></p>
+     <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">namespace&nbsp;</span><span style="color: #0000BB">foo</span><span style="color: #007700">;<br />use&nbsp;</span><span style="color: #0000BB">blah</span><span style="color: #007700">\</span><span style="color: #0000BB">blah&nbsp;</span><span style="color: #007700">as&nbsp;</span><span style="color: #0000BB">foo</span><span style="color: #007700">;<br /><br /></span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">my</span><span style="color: #007700">\</span><span style="color: #0000BB">name</span><span style="color: #007700">();&nbsp;</span><span style="color: #FF8000">//&nbsp;instantiates&nbsp;"foo\my\name"&nbsp;class<br /></span><span style="color: #0000BB">foo</span><span style="color: #007700">\</span><span style="color: #0000BB">bar</span><span style="color: #007700">::</span><span style="color: #0000BB">name</span><span style="color: #007700">();&nbsp;</span><span style="color: #FF8000">//&nbsp;calls&nbsp;static&nbsp;method&nbsp;"name"&nbsp;in&nbsp;class&nbsp;"blah\blah\bar"<br /></span><span style="color: #0000BB">my</span><span style="color: #007700">\</span><span style="color: #0000BB">bar</span><span style="color: #007700">();&nbsp;</span><span style="color: #FF8000">//&nbsp;calls&nbsp;function&nbsp;"foo\my\bar"<br /></span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">my</span><span style="color: #007700">\</span><span style="color: #0000BB">BAR</span><span style="color: #007700">;&nbsp;</span><span style="color: #FF8000">//&nbsp;sets&nbsp;$a&nbsp;to&nbsp;the&nbsp;value&nbsp;of&nbsp;constant&nbsp;"foo\my\BAR"<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+     </div>
+
+    </div>
+   </p>
+  </div>
+  <div class="sect2" id="language.namespaces.faq.shortname1">
+   <h3 class="title">How does an unqualified class name like <em>name</em> resolve?</h3>
+   <p class="para">
+    Class names that do not contain a backslash like
+    <em>name</em> can be resolved in 2 different ways.
+   </p>
+   <p class="para">
+    If there is
+    an import statement that aliases another name to <em>name</em>, then
+    the import alias is applied.
+   </p>
+   <p class="para">
+    Otherwise, the current namespace name is prepended to <em>name</em>.
+   </p>
+   <p class="para">
+    <div class="example" id="example-278">
+     <p><strong>Example #7 Unqualified class names</strong></p>
+     <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">namespace&nbsp;</span><span style="color: #0000BB">foo</span><span style="color: #007700">;<br />use&nbsp;</span><span style="color: #0000BB">blah</span><span style="color: #007700">\</span><span style="color: #0000BB">blah&nbsp;</span><span style="color: #007700">as&nbsp;</span><span style="color: #0000BB">foo</span><span style="color: #007700">;<br /><br /></span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">name</span><span style="color: #007700">();&nbsp;</span><span style="color: #FF8000">//&nbsp;instantiates&nbsp;"foo\name"&nbsp;class<br /></span><span style="color: #0000BB">foo</span><span style="color: #007700">::</span><span style="color: #0000BB">name</span><span style="color: #007700">();&nbsp;</span><span style="color: #FF8000">//&nbsp;calls&nbsp;static&nbsp;method&nbsp;"name"&nbsp;in&nbsp;class&nbsp;"blah\blah"<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+     </div>
+
+    </div>
+   </p>
+  </div>
+  <div class="sect2" id="language.namespaces.faq.shortname2">
+   <h3 class="title">
+    How does an unqualified function name or unqualified constant name
+    like <em>name</em> resolve?
+   </h3>
+   <p class="para">
+    Function or constant names that do not contain a backslash like
+    <em>name</em> can be resolved in 2 different ways.
+   </p>
+   <p class="para">
+    First, the current namespace name is prepended to <em>name</em>.
+   </p>
+   <p class="para">
+    Finally, if the constant or function <em>name</em> does not exist
+    in the current namespace, a global constant or function <em>name</em>
+    is used if it exists.
+   </p>
+   <p class="para">
+    <div class="example" id="example-279">
+     <p><strong>Example #8 Unqualified function or constant names</strong></p>
+     <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">namespace&nbsp;</span><span style="color: #0000BB">foo</span><span style="color: #007700">;<br />use&nbsp;</span><span style="color: #0000BB">blah</span><span style="color: #007700">\</span><span style="color: #0000BB">blah&nbsp;</span><span style="color: #007700">as&nbsp;</span><span style="color: #0000BB">foo</span><span style="color: #007700">;<br /><br />const&nbsp;</span><span style="color: #0000BB">FOO&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">;<br /><br />function&nbsp;</span><span style="color: #0000BB">my</span><span style="color: #007700">()&nbsp;{}<br />function&nbsp;</span><span style="color: #0000BB">foo</span><span style="color: #007700">()&nbsp;{}<br />function&nbsp;</span><span style="color: #0000BB">sort</span><span style="color: #007700">(&amp;</span><span style="color: #0000BB">$a</span><span style="color: #007700">)<br />{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">sort</span><span style="color: #007700">(</span><span style="color: #0000BB">$a</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">array_flip</span><span style="color: #007700">(</span><span style="color: #0000BB">$a</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;</span><span style="color: #0000BB">$a</span><span style="color: #007700">;<br />}<br /><br /></span><span style="color: #0000BB">my</span><span style="color: #007700">();&nbsp;</span><span style="color: #FF8000">//&nbsp;calls&nbsp;"foo\my"<br /></span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">strlen</span><span style="color: #007700">(</span><span style="color: #DD0000">'hi'</span><span style="color: #007700">);&nbsp;</span><span style="color: #FF8000">//&nbsp;calls&nbsp;global&nbsp;function&nbsp;"strlen"&nbsp;because&nbsp;"foo\strlen"&nbsp;does&nbsp;not&nbsp;exist<br /></span><span style="color: #0000BB">$arr&nbsp;</span><span style="color: #007700">=&nbsp;array(</span><span style="color: #0000BB">1</span><span style="color: #007700">,</span><span style="color: #0000BB">3</span><span style="color: #007700">,</span><span style="color: #0000BB">2</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$b&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">sort</span><span style="color: #007700">(</span><span style="color: #0000BB">$arr</span><span style="color: #007700">);&nbsp;</span><span style="color: #FF8000">//&nbsp;calls&nbsp;function&nbsp;"foo\sort"<br /></span><span style="color: #0000BB">$c&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">foo</span><span style="color: #007700">();&nbsp;</span><span style="color: #FF8000">//&nbsp;calls&nbsp;function&nbsp;"foo\foo"&nbsp;-&nbsp;import&nbsp;is&nbsp;not&nbsp;applied<br /><br /></span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">FOO</span><span style="color: #007700">;&nbsp;</span><span style="color: #FF8000">//&nbsp;sets&nbsp;$a&nbsp;to&nbsp;value&nbsp;of&nbsp;constant&nbsp;"foo\FOO"&nbsp;-&nbsp;import&nbsp;is&nbsp;not&nbsp;applied<br /></span><span style="color: #0000BB">$b&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">INI_ALL</span><span style="color: #007700">;&nbsp;</span><span style="color: #FF8000">//&nbsp;sets&nbsp;$b&nbsp;to&nbsp;value&nbsp;of&nbsp;global&nbsp;constant&nbsp;"INI_ALL"<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+     </div>
+
+    </div>
+   </p>
+  </div>
+  <div class="sect2" id="language.namespaces.faq.conflict">
+   <h3 class="title">Import names cannot conflict with classes defined in the same file.</h3>
+   <p class="para">
+    The following script combinations are legal:
+    <div class="informalexample">
+     <p class="simpara">file1.php</p>
+     <div class="example-contents">
+     <div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">namespace&nbsp;</span><span style="color: #0000BB">my</span><span style="color: #007700">\</span><span style="color: #0000BB">stuff</span><span style="color: #007700">;<br />class&nbsp;</span><span style="color: #0000BB">MyClass&nbsp;</span><span style="color: #007700">{}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+     </div>
+
+     <p class="simpara">another.php</p>
+     <div class="example-contents">
+     <div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">namespace&nbsp;</span><span style="color: #0000BB">another</span><span style="color: #007700">;<br />class&nbsp;</span><span style="color: #0000BB">thing&nbsp;</span><span style="color: #007700">{}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+     </div>
+
+     <p class="simpara">file2.php</p>
+     <div class="example-contents">
+     <div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">namespace&nbsp;</span><span style="color: #0000BB">my</span><span style="color: #007700">\</span><span style="color: #0000BB">stuff</span><span style="color: #007700">;<br />include&nbsp;</span><span style="color: #DD0000">'file1.php'</span><span style="color: #007700">;<br />include&nbsp;</span><span style="color: #DD0000">'another.php'</span><span style="color: #007700">;<br /><br />use&nbsp;</span><span style="color: #0000BB">another</span><span style="color: #007700">\</span><span style="color: #0000BB">thing&nbsp;</span><span style="color: #007700">as&nbsp;</span><span style="color: #0000BB">MyClass</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">MyClass</span><span style="color: #007700">;&nbsp;</span><span style="color: #FF8000">//&nbsp;instantiates&nbsp;class&nbsp;"thing"&nbsp;from&nbsp;namespace&nbsp;another<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+     </div>
+
+    </div>
+   </p>
+   <p class="para">
+    There is no name conflict, even though the class <em>MyClass</em> exists
+    within the <em>my\stuff</em> namespace, because the MyClass definition is
+    in a separate file.  However, the next example causes a fatal error on name conflict
+    because MyClass is defined in the same file as the use statement.
+    <div class="informalexample">
+     <div class="example-contents">
+     <div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">namespace&nbsp;</span><span style="color: #0000BB">my</span><span style="color: #007700">\</span><span style="color: #0000BB">stuff</span><span style="color: #007700">;<br />use&nbsp;</span><span style="color: #0000BB">another</span><span style="color: #007700">\</span><span style="color: #0000BB">thing&nbsp;</span><span style="color: #007700">as&nbsp;</span><span style="color: #0000BB">MyClass</span><span style="color: #007700">;<br />class&nbsp;</span><span style="color: #0000BB">MyClass&nbsp;</span><span style="color: #007700">{}&nbsp;</span><span style="color: #FF8000">//&nbsp;fatal&nbsp;error:&nbsp;MyClass&nbsp;conflicts&nbsp;with&nbsp;import&nbsp;statement<br /></span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">MyClass</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+     </div>
+
+    </div>
+   </p>
+  </div>
+  <div class="sect2" id="language.namespaces.faq.nested">
+   <h3 class="title">Nested namespaces are not allowed.</h3>
+   <p class="para">
+    PHP does not allow nesting namespaces
+    <div class="informalexample">
+     <div class="example-contents">
+     <div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">namespace&nbsp;</span><span style="color: #0000BB">my</span><span style="color: #007700">\</span><span style="color: #0000BB">stuff&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;namespace&nbsp;</span><span style="color: #0000BB">nested&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;class&nbsp;</span><span style="color: #0000BB">foo&nbsp;</span><span style="color: #007700">{}<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+     </div>
+
+    </div>
+    However, it is easy to simulate nested namespaces like so:
+    <div class="informalexample">
+     <div class="example-contents">
+     <div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">namespace&nbsp;</span><span style="color: #0000BB">my</span><span style="color: #007700">\</span><span style="color: #0000BB">stuff</span><span style="color: #007700">\</span><span style="color: #0000BB">nested&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;class&nbsp;</span><span style="color: #0000BB">foo&nbsp;</span><span style="color: #007700">{}<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+     </div>
+
+    </div>
+   </p>
+  </div>
+  <div class="sect2" id="language.namespaces.faq.nofuncconstantuse">
+   <h3 class="title">Neither functions nor constants can be imported via the <em>use</em>
+      statement.</h3>
+   <p class="para">
+    The only elements that are affected by <em>use</em> statements are namespaces
+    and class names.  In order to shorten a long constant or function, import its containing
+    namespace
+    <div class="informalexample">
+     <div class="example-contents">
+     <div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">namespace&nbsp;</span><span style="color: #0000BB">mine</span><span style="color: #007700">;<br />use&nbsp;</span><span style="color: #0000BB">ultra</span><span style="color: #007700">\</span><span style="color: #0000BB">long</span><span style="color: #007700">\</span><span style="color: #0000BB">ns</span><span style="color: #007700">\</span><span style="color: #0000BB">name</span><span style="color: #007700">;<br /><br /></span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">name</span><span style="color: #007700">\</span><span style="color: #0000BB">CONSTANT</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">name</span><span style="color: #007700">\</span><span style="color: #0000BB">func</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+     </div>
+
+    </div>
+   </p>
+  </div>
+  <div class="sect2" id="language.namespaces.faq.quote">
+   <h3 class="title">Dynamic namespace names (quoted identifiers) should escape backslash</h3>
+   <p class="para">
+    It is very important to realize that because the backslash is used as an escape character
+    within strings, it should always be doubled when used inside a string.  Otherwise
+    there is a risk of unintended consequences:
+    <div class="example" id="example-280">
+     <p><strong>Example #9 Dangers of using namespaced names inside a double-quoted string</strong></p>
+     <div class="example-contents">
+      <div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$a&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #DD0000">"dangerous\name"</span><span style="color: #007700">;&nbsp;</span><span style="color: #FF8000">//&nbsp;\n&nbsp;is&nbsp;a&nbsp;newline&nbsp;inside&nbsp;double&nbsp;quoted&nbsp;strings!<br /></span><span style="color: #0000BB">$obj&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">$a</span><span style="color: #007700">;<br /><br /></span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #DD0000">'not\at\all\dangerous'</span><span style="color: #007700">;&nbsp;</span><span style="color: #FF8000">//&nbsp;no&nbsp;problems&nbsp;here.<br /></span><span style="color: #0000BB">$obj&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">$a</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+     </div>
+
+    </div>
+    Inside a single-quoted string, the backslash escape sequence is much safer to use, but it
+    is still recommended practice to escape backslashes in all strings as a best practice.
+   </p>
+  </div>
+  <div class="sect2" id="language.namespaces.faq.constants">
+   <h3 class="title">Undefined Constants referenced using any backslash die with fatal error</h3>
+   <p class="para">
+    Any undefined constant that is unqualified like <em>FOO</em> will
+    produce a notice explaining that PHP assumed <em>FOO</em> was the value
+    of the constant.  Any constant, qualified or fully qualified, that contains a
+    backslash will produce a fatal error if not found.
+    <div class="example" id="example-281">
+     <p><strong>Example #10 Undefined constants</strong></p>
+     <div class="example-contents">
+      <div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">namespace&nbsp;</span><span style="color: #0000BB">bar</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">FOO</span><span style="color: #007700">;&nbsp;</span><span style="color: #FF8000">//&nbsp;produces&nbsp;notice&nbsp;-&nbsp;undefined&nbsp;constants&nbsp;"FOO"&nbsp;assumed&nbsp;"FOO";<br /></span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">=&nbsp;\</span><span style="color: #0000BB">FOO</span><span style="color: #007700">;&nbsp;</span><span style="color: #FF8000">//&nbsp;fatal&nbsp;error,&nbsp;undefined&nbsp;namespace&nbsp;constant&nbsp;FOO<br /></span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">Bar</span><span style="color: #007700">\</span><span style="color: #0000BB">FOO</span><span style="color: #007700">;&nbsp;</span><span style="color: #FF8000">//&nbsp;fatal&nbsp;error,&nbsp;undefined&nbsp;namespace&nbsp;constant&nbsp;bar\Bar\FOO<br /></span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">=&nbsp;\</span><span style="color: #0000BB">Bar</span><span style="color: #007700">\</span><span style="color: #0000BB">FOO</span><span style="color: #007700">;&nbsp;</span><span style="color: #FF8000">//&nbsp;fatal&nbsp;error,&nbsp;undefined&nbsp;namespace&nbsp;constant&nbsp;Bar\FOO<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+     </div>
+
+    </div>
+   </p>
+  </div>
+  <div class="sect2" id="language.namespaces.faq.builtinconst">
+   <h3 class="title">Cannot override special constants NULL, TRUE, FALSE, ZEND_THREAD_SAFE or ZEND_DEBUG_BUILD</h3>
+   <p class="para">
+    Any attempt to define a namespaced constant that is a special, built-in constant
+    results in a fatal error
+    <div class="example" id="example-282">
+     <p><strong>Example #11 Undefined constants</strong></p>
+     <div class="example-contents">
+      <div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">namespace&nbsp;</span><span style="color: #0000BB">bar</span><span style="color: #007700">;<br />const&nbsp;</span><span style="color: #0000BB">NULL&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">0</span><span style="color: #007700">;&nbsp;</span><span style="color: #FF8000">//&nbsp;fatal&nbsp;error;<br /></span><span style="color: #007700">const&nbsp;</span><span style="color: #0000BB">true&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'stupid'</span><span style="color: #007700">;&nbsp;</span><span style="color: #FF8000">//&nbsp;also&nbsp;fatal&nbsp;error;<br />//&nbsp;etc.<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+     </div>
+
+    </div>
+   </p>
+  </div>
+ </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="112807""></a>
+  <div class="note">
+   <strong class="user">okaresz</strong>
+   <a href="#112807" class="date">25-Jul-2013 05:31</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+To correct manolachef's answer: define() ALWAYS defines constants in the GLOBAL namespace.<br />
+<br />
+As nl-x at bita dot nl states in the note at <a href="http://www.php.net/manual/en/function.define.php, the constant " rel="nofollow" target="_blank">http://www.php.net/manual/en/function.define.php, the constant </a>"NULL" can be defined with define() case-sensitively, but can only be retrieved with constant(), leaving the meaning of NULL uppercase keyword as the only value of the type null.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="108236""></a>
+  <div class="note">
+   <strong class="user">manolachef at gmail dot com</strong>
+   <a href="#108236" class="date">10-Apr-2012 11:32</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+There is a way to define a namespaced constant that is a special, built-in constant, using define function and setting the third parameter case_insensitive to false:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">namespace </span><span class="default">foo</span><span class="keyword">;<br />
+</span><span class="default">define</span><span class="keyword">(</span><span class="default">__NAMESPACE__ </span><span class="keyword">. </span><span class="string">'\NULL'</span><span class="keyword">, </span><span class="default">10</span><span class="keyword">); </span><span class="comment">// defines the constant NULL in the current namespace<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">NULL</span><span class="keyword">); </span><span class="comment">// will show 10<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">null</span><span class="keyword">); </span><span class="comment">// will show NULL<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+&nbsp; No need to specify the namespace in your call to define(), like it happens usually<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">namespace </span><span class="default">foo</span><span class="keyword">;<br />
+</span><span class="default">define</span><span class="keyword">(</span><span class="default">INI_ALL</span><span class="keyword">, </span><span class="string">'bar'</span><span class="keyword">); </span><span class="comment">// produces notice - Constant INI_ALL already defined. But:<br />
+<br />
+</span><span class="default">define</span><span class="keyword">(</span><span class="default">__NAMESPACE__ </span><span class="keyword">. </span><span class="string">'\INI_ALL'</span><span class="keyword">, </span><span class="string">'bar'</span><span class="keyword">); </span><span class="comment">// defines the constant INI_ALL in the current namespace<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">INI_ALL</span><span class="keyword">); </span><span class="comment">// will show string(3)"bar". Nothing unespected so far. But:<br />
+<br />
+</span><span class="default">define</span><span class="keyword">(</span><span class="string">'NULL'</span><span class="keyword">, </span><span class="default">10</span><span class="keyword">); </span><span class="comment">// defines the constant NULL in the current namespace...<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">NULL</span><span class="keyword">); </span><span class="comment">// will show 10<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">null</span><span class="keyword">); </span><span class="comment">// will show NULL<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+&nbsp; If the parameter case_insensitive is set to true<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">namespace </span><span class="default">foo</span><span class="keyword">;<br />
+</span><span class="default">define </span><span class="keyword">(</span><span class="default">__NAMESPACE__ </span><span class="keyword">. </span><span class="string">'\NULL'</span><span class="keyword">, </span><span class="default">10</span><span class="keyword">, </span><span class="default">true</span><span class="keyword">); </span><span class="comment">// produces notice - Constant null already defined<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

@@ -1,0 +1,150 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>与 perl 的不同之处</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="reference.pcre.pattern.modifiers.html">? 正则表达式模式中可用的模式修饰符</a></li>
+      <li style="float: right;"><a href="reference.pcre.pattern.posix.html">与POSIX正则表达式的不同 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="pcre.pattern.html">PCRE模式</a></li>
+    <li>与 perl 的不同之处</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="reference.pcre.pattern.differences" class="article">
+ <h1>与 perl 的不同之处</h1>
+
+ 
+ <p class="para">
+ 这里讨论的不同之处是与 perl 5.005相比的。
+  <ol type="1">
+   <li class="listitem">
+    <span class="simpara">
+   尽管可以使用字符类编译 pcre 进行替代，但仍然默认使用 c 库函数 isspace()
+   判定一个字符是否是空白字符。通常 isspace() 匹配空格、换页符、换行符、
+   回车符、水平制表符和垂直制表符。 Perl5 不再将垂直制表符包括到空白字符集中。
+   \v 这个转义实际上在很长时间都没有得到 perl 文档的承认。然而，这个字符自身
+   被认为是一个空白字符至少是在 5.002 以上。 在 5.004 和 5.005 它不和 \s 匹配。
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+    PCRE 不允许前瞻断言的量词修饰，perl 允许这样做，但是这并不是你想象的那样。
+    例如，(?!a){3}并不意味着接下来 3 个字符不是 a，而是断言下一个字符不是 a 并进行了
+    3 次断言.
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+    捕获子组发生在消极前瞻断言中时被计算在内，但是在偏移向量中并没有设置它们的条目。
+    Perl 从断言失败之前匹配得到的这些模式匹配结果中设置了它的数值变量(因此是成功的)，
+    但这也仅在消极前瞻断言只有一个分支的时候。
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+    尽管目标字符串中支持二进制 0 字符，但是它们在模式字符串中是不允许的，因为它们是通过普通的
+    c 字符串传递的，而 c 字符串是以 0 字符结束的。转义序列&quot;\x00&quot;可以在模式中表示二进制 0 字符。
+    </span>
+    </li>
+    <li class="listitem">
+    <span class="simpara">
+    不支持下面的 perl 转义序列：\l、\u、 \L、 \U。 实际上这些都是通过 perl 一般的字符串处理来实现
+    的，而不是模式匹配引擎的一部分。
+    </span>
+    </li>
+    <li class="listitem">
+    <span class="simpara">
+    不支持 perl 的 \G 断言，因为它与单模式匹配没有关系。
+    </span>
+    </li>
+    <li class="listitem">
+    <span class="simpara">
+    很显然，PCRE不支持(?{code}) 和 (??{code})的结构，但是它支持递归模式。
+    </span>
+    </li>
+    <li class="listitem">
+    <span class="simpara">
+    在 perl 5.005_2 中档设置为捕获字符串的模式中有部分重复的时候会有一些古怪的现象发生， 
+    比如: /^(a(b)?)+$/ 捕获 aba 的时候， $2 会被设置为 b，然而，如果把模式修改为/^(aa(bb)?)+$/，
+    用aabbaa去匹配，$2讲不会得到匹配结果。
+     如果将模式修改为 /^(aa(b(b))?)+$/， $2 和 $3 又都能
+    得到匹配结果。在 perl 5.004 中 $2 在这几种情况下都能够得到匹配结果，并且 pcre 也是这样。如果
+    未来 perl 修改为一致那就不同了。pcre 可能接下来会修改.
+    </span>
+    </li>
+    <li class="listitem">
+    <span class="simpara">
+    还有一个没有解决的差异是 perl 5.005_02中，模式 /^(a)?(?(1)a|b)+$/ 会匹配字符串 &quot;a&quot;，
+    而 pcre 中不会，然而，perl 和 pcre 中 /^(a)?a/ 匹配 &quot;a&quot; 都会得到相同的结果，$1 都未被设置。
+    </span>
+    </li>
+    <li class="listitem">
+    <p class="para">
+    PCRE 提供了一些对 perl 正则表达式的扩展：
+      <ol type="1">
+       <li class="listitem">
+        <span class="simpara">
+        虽然后瞻断言要求必须匹配固定长度的字符串，然而后瞻断言的每个可选分支
+        还是可以使用不同长度的字符串的，而perl 5.005 中要求它们必须拥有同样
+        的长度。
+       </span>
+      </li>
+      <li class="listitem">
+       <span class="simpara">
+       如果设置了 <a href="reference.pcre.pattern.modifiers.html" class="link">PCRE_DOLLAR_ENDONLY</a>
+        并且没有设置 <a href="reference.pcre.pattern.modifiers.html" class="link">PCRE_MULTILINE</a>，
+       元字符 $ 仅仅匹配字符串的末尾(而不是某个换行符之前)。
+       </span>
+      </li>
+      <li class="listitem">
+       <span class="simpara">
+       如果设置了 <a href="reference.pcre.pattern.modifiers.html" class="link">PCRE_EXTRA</a>，
+       反斜线后紧跟一个没有特殊含义的字符讲会导致错误。
+       </span>
+      </li>
+      <li class="listitem">
+       <span class="simpara">
+       如果设置了 <a href="reference.pcre.pattern.modifiers.html" class="link">PCRE_UNGREEDY</a>，
+       贪婪量词修饰被逆转，也就是说，默认它们都是非贪婪的了，但如果紧跟一个问号它们就会变成
+       贪婪的。(译注：既完全将贪婪模式逆转。)
+       </span>
+      </li>
+     </ol>
+    </p>
+   </li>
+  </ol>
+ </p>
+</div>
+<div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="92913""></a>
+  <div class="note">
+   <strong class="user">henke at henke37 dot cjb dot net</strong>
+   <a href="#92913" class="date">14-Aug-2009 01:48</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Also obviously, perl is not going to execute php code when the e modifier is used for replacements.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

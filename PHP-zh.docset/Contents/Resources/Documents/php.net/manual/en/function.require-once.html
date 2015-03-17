@@ -1,0 +1,988 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>require_once</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="function.include.html">? include</a></li>
+      <li style="float: right;"><a href="function.include-once.html">include_once ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="language.control-structures.html">流程控制</a></li>
+    <li>require_once</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="function.require-once" class="sect1">
+ <h2 class="title"><span class="function"><strong>require_once</strong></span></h2>
+ <p class="verinfo">(PHP 4, PHP 5)</p>
+ <p class="para">
+  <em>require_once</em> 语句和 <span class="function"><a href="function.require.html" class="function">require</a></span>
+  语句完全相同，唯一区别是 PHP 会检查该文件是否已经被包含过，如果是则不会再次包含。
+ </p>
+ <p class="para">
+  参见 <span class="function"><a href="function.include-once.html" class="function">include_once</a></span> 的文档来理解
+  <em>_once</em> 的含义，并理解与没有 <em>_once</em> 时候有什么不同。
+ </p>
+  
+</div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="115287""></a>
+  <div class="note">
+   <strong class="user">Dodo</strong>
+   <a href="#115287" class="date">29-Jun-2014 07:41</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you happen to encounter some "Warning: require_once(): failed to open stream" and you are certain the provided path is right, consider the following example &amp; solution.<br />
+<br />
+Considering the following tree:<br />
++ C:\server\absolute\path\<br />
+&nbsp;&nbsp;&nbsp; + somefolder\<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; - index.php<br />
+&nbsp;&nbsp;&nbsp; + supbath<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; + anotherfolder1\<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; - file1.php<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; - file2.php<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; + anotherfolder2\<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; - file3.php<br />
+<br />
+With the respective sources:<br />
+original index.php:<br />
+<span class="default">&lt;?php<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// absolute path<br />
+&nbsp;&nbsp;&nbsp; // inclusion status: SUCCESS<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">require_once </span><span class="string">'C:\server\absolute\path\subpath\anotherfolder1\file1.php'</span><span class="keyword">;<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+original file1.php:<br />
+<span class="default">&lt;?php<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// relative path<br />
+&nbsp;&nbsp;&nbsp; // inclusion status: SUCCESS<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">require_once </span><span class="string">'file2.php'</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// relative path<br />
+&nbsp;&nbsp;&nbsp; // inclusion status: FAILURE<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">require_once </span><span class="string">'../anotherfolder2/file3.php'</span><span class="keyword">;<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+You will notice the use of "\" as DIRECTORY_SEPARATOR, but the same result is obtained using "/".<br />
+Assumption ? PHP does not behave as it should if it encounters a relative path starting by a '../'. Well, this is not true.<br />
+<br />
+Below is a modified file1.php:<br />
+<span class="default">&lt;?php<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// absolute path<br />
+&nbsp;&nbsp;&nbsp; // inclusion status: SUCCESS<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">require_once </span><span class="string">'/file2.php'</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// absolute path<br />
+&nbsp;&nbsp;&nbsp; // inclusion status: SUCCESS<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">require_once </span><span class="string">'/../anotherfolder2/file3.php'</span><span class="keyword">;<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+It seems that PHP recognizes a non-prefixed file name as an absolute path in a require_once, and that it computes this absolute path from a relative context.<br />
+<br />
+I am not sure this is the expected behaviour, but it was quite hard to figure out. Also, if you want to recognize those special cases where you had to specify a relative path starting with a "/", you can use the following trick.<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// it goes down one level, and then goes up one level : the result is neutral, but after prefixing your paths with this, PHP handles them<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">define </span><span class="keyword">(</span><span class="string">'REQUIRE_TRICK'</span><span class="keyword">, </span><span class="string">'/TRICK/../'</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp;&nbsp; require_once </span><span class="default">REQUIRE_TRICK </span><span class="keyword">. </span><span class="string">'file2.php'</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; require_once </span><span class="default">REQUIRE_TRICK </span><span class="keyword">. </span><span class="string">'../anotherfolder2/file3.php'</span><span class="keyword">;<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+If this ever gets reworked/fixed, it will be easy to remove the define.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="114037""></a>
+  <div class="note">
+   <strong class="user">acholoc at gmail dot com</strong>
+   <a href="#114037" class="date">05-Jan-2014 06:43</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I think it's important (at least for beginners) to mention somewhere clearly visible that require_once, when being used in a class, cannot be outside a function. (I am aware that even this, i.e. using it within the function is bad practice). However, that information could have saved me some valuable time troubleshooting the "unexpected T_REQUIRE_ONCE" error.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="113382""></a>
+  <div class="note">
+   <strong class="user">sudanisayfree at gmail dot com</strong>
+   <a href="#113382" class="date">04-Oct-2013 03:53</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+1 requests&nbsp; ?&nbsp; 338?B transferred&nbsp; ?&nbsp; 600?ms (load: 655?ms, DOMContentLoaded: 657?ms)<br />
+gtes.cwahi.net<br />
+600?ms0?ms<br />
+HeadersPreviewResponseCookiesTiming<br />
+Request URL:<a href="http://gtes.cwahi.net/" rel="nofollow" target="_blank">http://gtes.cwahi.net/</a><br />
+Request Method:GET<br />
+Status Code:200 OK<br />
+Request Headersview source<br />
+Accept:text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8<br />
+Accept-Encoding:gzip,deflate,sdch<br />
+Accept-Language:ar,en-US;q=0.8,en;q=0.6<br />
+Cache-Control:max-age=0<br />
+Cookie:cwrot=1<br />
+Host:gtes.cwahi.net<br />
+Proxy-Connection:keep-alive<br />
+User-Agent:Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.69 Safari/537.36<br />
+Response Headersview source<br />
+Connection:keep-alive<br />
+Content-Encoding:gzip<br />
+Content-Type:application/xml<br />
+Date:Fri, 04 Oct 2013 06:33:45 GMT<br />
+Server:nginx/1.3.0<br />
+Transfer-Encoding:chunked<br />
+Vary:Host<br />
+X-Powered-By:PHP/5.2.11</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="111521""></a>
+  <div class="note">
+   <strong class="user">bimal at sanjaal dot com</strong>
+   <a href="#111521" class="date">01-Mar-2013 02:37</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Sometimes, you need to maintain the order of includes!<br />
+When your file being included needs some resources (like class definition, function body, etc), the file that has those resources should be included first.<br />
+<br />
+However, this is not necessary if you write whole things within a single file :-)<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment"># class.a.inc.php: Defines an arbitrary class named 'a'<br />
+</span><span class="keyword">require_once(</span><span class="string">'class.a.inc.php'</span><span class="keyword">);<br />
+</span><span class="comment">## class a { ... }<br />
+<br />
+# class.b.inc.php: Defines an arbitrary class named 'b'<br />
+# class 'b' depends on the existence of class 'a'<br />
+</span><span class="keyword">require_once(</span><span class="string">'class.b.inc.php'</span><span class="keyword">);<br />
+</span><span class="comment">## class b extends class a { ... }<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+This does not apply strictly when you define classes/functions within the same file:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment"># This class needs class 'a' which is not yet defined<br />
+</span><span class="keyword">class </span><span class="default">b<br />
+</span><span class="keyword">extends </span><span class="default">a<br />
+</span><span class="keyword">{<br />
+}<br />
+<br />
+</span><span class="comment"># You can define this class class later on, within the same file<br />
+</span><span class="keyword">class </span><span class="default">a<br />
+</span><span class="keyword">{<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+In the first example, if you include class.b.inc.php earlier than class.b.inc.a, there is a havoc.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="104265""></a>
+  <div class="note">
+   <strong class="user">bimal at sanjaal dot com</strong>
+   <a href="#104265" class="date">04-Jun-2011 08:46</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If your code is running on multiple servers with different environments (locations from where your scripts run) the following idea may be useful to you:
+<br />
+
+<br />
+a. Do not give absolute path to include files on your server.
+<br />
+b. Dynamically calculate the full path (absolute path)
+<br />
+
+<br />
+Hints:
+<br />
+Use a combination of dirname(__FILE__) and subsequent calls to itself until you reach to the home of your '/index.php'. Then, attach this variable (that contains the path) to your included files.
+<br />
+
+<br />
+One of my typical example is:
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+define</span><span class="keyword">(</span><span class="string">'__ROOT__'</span><span class="keyword">, </span><span class="default">dirname</span><span class="keyword">(</span><span class="default">dirname</span><span class="keyword">(</span><span class="default">__FILE__</span><span class="keyword">)));
+<br />
+require_once(</span><span class="default">__ROOT__</span><span class="keyword">.</span><span class="string">'/config.php'</span><span class="keyword">);
+<br />
+</span><span class="default">?&gt;
+<br />
+</span>
+<br />
+instead of:
+<br />
+<span class="default">&lt;?php </span><span class="keyword">require_once(</span><span class="string">'/var/www/public_html/config.php'</span><span class="keyword">); </span><span class="default">?&gt;
+<br />
+</span>
+<br />
+After this, if you copy paste your codes to another servers, it will still run, without requiring any further re-configurations.
+<br />
+
+<br />
+[EDIT BY danbrown AT php DOT net: Contains a typofix (missing ')') provided by 'JoeB' on 09-JUN-2011.]</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="103462""></a>
+  <div class="note">
+   <strong class="user">spark at limao dot com dot br</strong>
+   <a href="#103462" class="date">14-Apr-2011 04:31</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+if you use require_once on a file A pointing to file B, and require_once in the file B pointing to file A, in some configurations you will get stuck
+<br />
+
+<br />
+also wouldn't it be nice to manage that to prevent getting stuck AND use the good old Java import?
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; </span><span class="keyword">function </span><span class="default">import</span><span class="keyword">(</span><span class="default">$path</span><span class="keyword">=</span><span class="string">""</span><span class="keyword">){
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if(</span><span class="default">$path </span><span class="keyword">== </span><span class="string">""</span><span class="keyword">){ </span><span class="comment">//no parameter returns the file import info tree;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="default">$report </span><span class="keyword">= </span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'imports'</span><span class="keyword">];
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; foreach(</span><span class="default">$report </span><span class="keyword">as &amp;</span><span class="default">$item</span><span class="keyword">) </span><span class="default">$item </span><span class="keyword">= </span><span class="default">array_flip</span><span class="keyword">(</span><span class="default">$item</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; return </span><span class="default">$report</span><span class="keyword">;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+<br />
+
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="default">$current </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">"\\"</span><span class="keyword">,</span><span class="string">"/"</span><span class="keyword">,</span><span class="default">getcwd</span><span class="keyword">()).</span><span class="string">"/"</span><span class="keyword">;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="default">$path </span><span class="keyword">= </span><span class="default">$current</span><span class="keyword">.</span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">"."</span><span class="keyword">,</span><span class="string">"/"</span><span class="keyword">,</span><span class="default">$path</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if(</span><span class="default">substr</span><span class="keyword">(</span><span class="default">$path</span><span class="keyword">,-</span><span class="default">1</span><span class="keyword">) != </span><span class="string">"*"</span><span class="keyword">) </span><span class="default">$path </span><span class="keyword">.= </span><span class="string">".class.php"</span><span class="keyword">;
+<br />
+
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="default">$imports </span><span class="keyword">= &amp;</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'imports'</span><span class="keyword">];
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if(!</span><span class="default">is_array</span><span class="keyword">(</span><span class="default">$imports</span><span class="keyword">)) </span><span class="default">$imports </span><span class="keyword">= array();
+<br />
+
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="default">$control </span><span class="keyword">= &amp;</span><span class="default">$imports</span><span class="keyword">[</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'SCRIPT_FILENAME'</span><span class="keyword">]];
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if(!</span><span class="default">is_array</span><span class="keyword">(</span><span class="default">$control</span><span class="keyword">)) </span><span class="default">$control </span><span class="keyword">= array();
+<br />
+
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; foreach(</span><span class="default">glob</span><span class="keyword">(</span><span class="default">$path</span><span class="keyword">) as </span><span class="default">$file</span><span class="keyword">){
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="default">$file </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="default">$current</span><span class="keyword">,</span><span class="string">""</span><span class="keyword">,</span><span class="default">$file</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if(</span><span class="default">is_dir</span><span class="keyword">(</span><span class="default">$file</span><span class="keyword">)) </span><span class="default">import</span><span class="keyword">(</span><span class="default">$file</span><span class="keyword">.</span><span class="string">".*"</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if(</span><span class="default">substr</span><span class="keyword">(</span><span class="default">$file</span><span class="keyword">,-</span><span class="default">10</span><span class="keyword">) != </span><span class="string">".class.php"</span><span class="keyword">) continue;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if(</span><span class="default">$control</span><span class="keyword">[</span><span class="default">$file</span><span class="keyword">]) continue;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="default">$control</span><span class="keyword">[</span><span class="default">$file</span><span class="keyword">] = </span><span class="default">count</span><span class="keyword">(</span><span class="default">$control</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; require_once(</span><span class="default">$file</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; }
+<br />
+</span><span class="default">?&gt;
+<br />
+</span>
+<br />
+just remember to start the session and to enable the glob function
+<br />
+
+<br />
+now you can use
+<br />
+<span class="default">&lt;?php
+<br />
+&nbsp;&nbsp;&nbsp; import</span><span class="keyword">(</span><span class="string">"package.ClassName"</span><span class="keyword">);
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">import</span><span class="keyword">(</span><span class="string">"another.package.*"</span><span class="keyword">); </span><span class="comment">//this will import everything in the folder
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="100266""></a>
+  <div class="note">
+   <strong class="user">info at erpplaza dot com</strong>
+   <a href="#100266" class="date">05-Oct-2010 09:10</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Include all files from a particular directory
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+</span><span class="keyword">foreach (</span><span class="default">glob</span><span class="keyword">(</span><span class="string">"classes/*.php"</span><span class="keyword">) as </span><span class="default">$filename</span><span class="keyword">)
+<br />
+{
+<br />
+&nbsp;&nbsp;&nbsp; include </span><span class="default">$filename</span><span class="keyword">;
+<br />
+}
+<br />
+</span><span class="default">?&gt;
+<br />
+</span>
+<br />
+ERPPlaza</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="98945""></a>
+  <div class="note">
+   <strong class="user">jason semko at gmail dot com</strong>
+   <a href="#98945" class="date">16-Jul-2010 10:33</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you are coding on localhost and require_once is not opening files due to 'relative paths' a simple solution is:<br />
+<br />
+<span class="default">&lt;?php <br />
+<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="keyword">require_once(</span><span class="default">dirname</span><span class="keyword">(</span><span class="default">__FILE__</span><span class="keyword">) . </span><span class="string">"/file.php"</span><span class="keyword">);<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+If you have file.php under the folder 'includes' (or anywhere for that matter), then folder 'public' AND folder 'public/admin' will be able to access all required files despite having different relative paths.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="93403""></a>
+  <div class="note">
+   <strong class="user">ivan[DOT_NO_SPAM]chepurnyi[AT]gmail</strong>
+   <a href="#93403" class="date">08-Sep-2009 03:42</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Also if you have a large MVC framework, it make sense to compile&nbsp; structure "file/path/to/class.php" to something like this "file_path_to_class.php", it will speed up any type of php files includes, becouse php interpreter will not check FS stat data for directories "file", "file/path", "file/path/to", etc.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="92566""></a>
+  <div class="note">
+   <strong class="user">felix dot nensa at zeec dot biz</strong>
+   <a href="#92566" class="date">29-Jul-2009 06:40</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+To include/require a whole folder of classes can be stripped down to a one-liner:
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+array_walk</span><span class="keyword">(</span><span class="default">glob</span><span class="keyword">(</span><span class="string">'./lib/*.class.php'</span><span class="keyword">),</span><span class="default">create_function</span><span class="keyword">(</span><span class="string">'$v,$i'</span><span class="keyword">, </span><span class="string">'return require_once($v);'</span><span class="keyword">));
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="92340""></a>
+  <div class="note">
+   <strong class="user">yahel at wanadoo dot fr</strong>
+   <a href="#92340" class="date">20-Jul-2009 06:25</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you get "failed to open stream" although you are sure your include_path is correct, check your open_basedir setting.<br />
+<br />
+I spent 2 hours trying to figure out why although my inclusion path was good, php kept sending me the "failed to open" error.<br />
+<br />
+It was simply because my included directory was outside the scope of the open_basedir which blocks php from accessing file outside you root directory(usually).<br />
+<br />
+I think the error you send the "open_basedir restriction in effect" in this case.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="90017""></a>
+  <div class="note">
+   <strong class="user">Konstantin Rozinov (krozinov[at]gmail)</strong>
+   <a href="#90017" class="date">02-Apr-2009 01:58</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+There's been a lot of discussion about the speed differences between using require_once() vs. require().<br />
+I was curious myself, so I ran some tests to see what's faster: <br />
+&nbsp;- require_once() vs require()<br />
+&nbsp;- using relative_path vs absolute_path<br />
+<br />
+I also included results from strace for the number of stat() system calls.&nbsp; My results and conclusions below.<br />
+<br />
+METHODOLOGY:<br />
+------------<br />
+The script (test.php):<br />
+<span class="default">&lt;?php<br />
+&nbsp;$start_time </span><span class="keyword">= </span><span class="default">microtime</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;</span><span class="comment">/* <br />
+&nbsp; * Uncomment one at a time and run test below.<br />
+&nbsp; * sql_servers.inc only contains define() statements.<br />
+&nbsp; */<br />
+&nbsp;<br />
+&nbsp;//require ('/www/includes/example.com/code/conf/sql_servers.inc');<br />
+&nbsp;//require ('../../includes/example.com/code/conf/sql_servers.inc');<br />
+&nbsp;//require_once ('/www/includes/example.com/code/conf/sql_servers.inc');<br />
+&nbsp;//require_once ('../../includes/example.com/code/conf/sql_servers.inc');<br />
+&nbsp;<br />
+&nbsp;</span><span class="default">$end_time </span><span class="keyword">= </span><span class="default">microtime</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">);<br />
+&nbsp;<br />
+&nbsp;</span><span class="default">$handle </span><span class="keyword">= </span><span class="default">fopen</span><span class="keyword">(</span><span class="string">"/tmp/results"</span><span class="keyword">, </span><span class="string">"ab+"</span><span class="keyword">);<br />
+&nbsp;</span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$handle</span><span class="keyword">, (</span><span class="default">$end_time </span><span class="keyword">- </span><span class="default">$start_time</span><span class="keyword">) . </span><span class="string">"\n"</span><span class="keyword">);<br />
+&nbsp;</span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$handle</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+The test:<br />
+&nbsp; I ran ab on the test.php script with a different require*() uncommented each time:<br />
+&nbsp; ab -n 1000 -c 10 www.example.com/test.php<br />
+<br />
+RESULTS:<br />
+--------<br />
+The average time it took to run test.php once:<br />
+require('absolute_path'):&nbsp; &nbsp; &nbsp; 0.000830569960420<br />
+require('relative_path'):&nbsp; &nbsp; &nbsp; 0.000829198306664<br />
+require_once('absolute_path'): 0.000832904849136<br />
+require_once('relative_path'): 0.000824960252097<br />
+<br />
+The average was computed by eliminating the 100 slowest and 100 fastest times, so a total of 800 (1000 - 200) times were used to compute the average time.&nbsp; This was done to eliminate any unusual spikes or dips.<br />
+<br />
+The question of how many stat() system calls were made can be answered as follows:<br />
+- If you run httpd -X and then do an strace -p &lt;pid_of_httpd&gt;, you can view the system calls that take place to process the request.<br />
+- The most important thing to note is if you run test.php continuously (as the ab test does above), the stat() calls only happen for the first request:<br />
+<br />
+&nbsp; first call to test.php (above):<br />
+&nbsp; -------------------------------<br />
+&nbsp; lstat64 ("/www", {st_mode=S_IFDIR|0755, st_size=...<br />
+&nbsp; lstat64 ("/www/includes", {st_mode=S_IFDIR|0755,...<br />
+&nbsp; lstat64 ("/www/includes/example.com", {st_mode=S...<br />
+&nbsp; lstat64 ("/www/includes/example.com/code", {st_m...<br />
+&nbsp; lstat64 ("/www/includes/example.com/code/conf", ...<br />
+&nbsp; lstat64 ("/www/includes/example.com/code/conf/sql_servers.inc", {st_mode...<br />
+&nbsp; open ("/www/includes/example.com/code/conf/sql_servers.inc", O_RDONLY) = 17<br />
+&nbsp; <br />
+&nbsp; subsequent calls to test.php:<br />
+&nbsp; -----------------------------<br />
+&nbsp; open ("/www/includes/example.com/code/conf/sql_servers.inc", O_RDONLY) = 17<br />
+<br />
+- The lack of stat() system calls in the subsequent calls to test.php only happens when test.php is called continusly.&nbsp; If you wait a certain period of time (about 1 minute or so), the stat() calls will happen again.<br />
+- This indicates that either the OS (Ubuntu Linux in my case), or Apache is "caching" or knows the results of the previous stat() calls, so it doesn't bother repeating them.<br />
+- When using absolute_path there are fewer stat() system calls.<br />
+- When using relative_path there are more stat() system calls because it has to start stat()ing from the current directory back up to / and then to the include/ directory.<br />
+<br />
+CONCLUSIONS:<br />
+------------<br />
+- Try to use absolute_path when calling require*().<br />
+- The time difference between require_once() vs. require() is so tiny, it's almost always insignificant in terms of performance.&nbsp; The one exception is if you have a very large application that has hundreds of require*() calls.<br />
+- When using APC opcode caching, the speed difference between the two is completely irrelevant.<br />
+- Use an opcode cache, like APC!<br />
+<br />
+Konstantin Rozinov<br />
+krozinov [at] gmail</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="81812""></a>
+  <div class="note">
+   <strong class="user">cnorthcote at underground dot co dot uk</strong>
+   <a href="#81812" class="date">14-Mar-2008 12:20</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Bear in mind that require_once doesn't have a return value (neither does require; since they both halt execution on failure), so this won't work:<br />
+<br />
+&lt;?<br />
+<br />
+require_once("path/to/myfile.php") or die("Couldn't load myfile");<br />
+<br />
+?&gt;<br />
+<br />
+because you will get a very unhelpful error:<br />
+<br />
+PHP Fatal error:&nbsp; require_once() : Failed opening required '1' (include_path='.;C:\\php5\\pear') in C:\path\to\code.php on line 1<br />
+<br />
+This was mentioned on the php-general mailing list in about 2003 but is a gotcha I have seen a few people come across. If you want to check to see if a file was included, use @include() instead.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="81023""></a>
+  <div class="note">
+   <strong class="user">amcewen at look dot ca</strong>
+   <a href="#81023" class="date">11-Feb-2008 04:00</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Perhaps it would be clearer to say that require_once() includes AND evaluates the resulting code once.&nbsp; More specifically, if there is code in the script file other than function declarations, this code will only be executed once via require_once().</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="77218""></a>
+  <div class="note">
+   <strong class="user">Sinured</strong>
+   <a href="#77218" class="date">20-Aug-2007 07:33</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Beware: As miqrogroove said below, require_once() is not independent of require() -- but vice versa, require() IS independent of require_once()!<br />
+Let's turn miqrogroove's example around:<br />
+<br />
+echo.php<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">echo </span><span class="string">"42!&lt;br /&gt;\n"</span><span class="keyword">;<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+test.php<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">require_once </span><span class="string">'echo.php'</span><span class="keyword">;<br />
+require </span><span class="string">'echo.php'</span><span class="keyword">;<br />
+</span><span class="comment">// 42!<br />
+// 42!<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+So: require_once() will NOT include a file previously included by require(), while require WILL include a file previously included by require_once.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="75766""></a>
+  <div class="note">
+   <strong class="user">manuel schaffner</strong>
+   <a href="#75766" class="date">14-Jun-2007 11:02</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The path for nested require_once() is always evaluated relative to the called / first file containing require_once(). To make it more flexible, maintain the include_path (php.ini) or use set_include_path() - then the file will be looked up in all these locations.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="73733""></a>
+  <div class="note">
+   <strong class="user">jazfresh at hotmail.com</strong>
+   <a href="#73733" class="date">08-Mar-2007 08:22</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Check how many files you are including with get_required_files(). If it's a significant number (&gt; 100), it may be worth "compiling" the main PHP file. By "compiling", I mean write a script that reads a PHP file and replaces any "include/require_once" references with either:<br />
+- the file that it's requiring<br />
+- a blank line if that file has been included before<br />
+<br />
+This function can be recursive, thus building up a large PHP file with no require_once references at all. The speedup can be dramatic. On one of our pages that included 115 classes, the page was sped up by 60%.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="72464""></a>
+  <div class="note">
+   <strong class="user">sneskid at hotmail dot com</strong>
+   <a href="#72464" class="date">19-Jan-2007 09:00</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function &amp; </span><span class="default">rel</span><span class="keyword">(</span><span class="default">$r</span><span class="keyword">, &amp;</span><span class="default">$f</span><span class="keyword">) {return </span><span class="default">file_exists</span><span class="keyword">( ( </span><span class="default">$f </span><span class="keyword">= ( </span><span class="default">dirname</span><span class="keyword">(</span><span class="default">$r</span><span class="keyword">).</span><span class="string">'/'</span><span class="keyword">.</span><span class="default">$f </span><span class="keyword">) ) );}<br />
+function &amp; </span><span class="default">relf</span><span class="keyword">(</span><span class="default">$r</span><span class="keyword">, </span><span class="default">$f</span><span class="keyword">) {return </span><span class="default">rel</span><span class="keyword">(</span><span class="default">$r</span><span class="keyword">,</span><span class="default">$f</span><span class="keyword">) ? </span><span class="default">file_get_contents</span><span class="keyword">(</span><span class="default">$f</span><span class="keyword">) : </span><span class="default">null</span><span class="keyword">;}<br />
+function &amp; </span><span class="default">reli</span><span class="keyword">(</span><span class="default">$r</span><span class="keyword">, </span><span class="default">$f</span><span class="keyword">) {return </span><span class="default">rel</span><span class="keyword">(</span><span class="default">$r</span><span class="keyword">,</span><span class="default">$f</span><span class="keyword">) ? include(</span><span class="default">$f</span><span class="keyword">) : </span><span class="default">null</span><span class="keyword">;}<br />
+function &amp; </span><span class="default">relr</span><span class="keyword">(</span><span class="default">$r</span><span class="keyword">, </span><span class="default">$f</span><span class="keyword">) {return </span><span class="default">rel</span><span class="keyword">(</span><span class="default">$r</span><span class="keyword">,</span><span class="default">$f</span><span class="keyword">) ? require(</span><span class="default">$f</span><span class="keyword">) : </span><span class="default">null</span><span class="keyword">;}<br />
+function &amp; </span><span class="default">relio</span><span class="keyword">(</span><span class="default">$r</span><span class="keyword">, </span><span class="default">$f</span><span class="keyword">) {return </span><span class="default">rel</span><span class="keyword">(</span><span class="default">$r</span><span class="keyword">,</span><span class="default">$f</span><span class="keyword">) ? include_once(</span><span class="default">$f</span><span class="keyword">) : </span><span class="default">null</span><span class="keyword">;}<br />
+function &amp; </span><span class="default">relro</span><span class="keyword">(</span><span class="default">$r</span><span class="keyword">, </span><span class="default">$f</span><span class="keyword">) {return </span><span class="default">rel</span><span class="keyword">(</span><span class="default">$r</span><span class="keyword">,</span><span class="default">$f</span><span class="keyword">) ? require_once(</span><span class="default">$f</span><span class="keyword">) : </span><span class="default">null</span><span class="keyword">;}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+I found it useful to have a function that can load a file relative to the calling script and return null if the file did not exist, without raising errors.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">/*<br />
+Load file contents or return blank if it's not there.<br />
+Relative to the file calling the function.<br />
+*/<br />
+</span><span class="keyword">echo </span><span class="default">relf</span><span class="keyword">(</span><span class="default">__FILE__</span><span class="keyword">, </span><span class="string">'some.file'</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+It was easy to modify and just as useful for require/include.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">/*<br />
+Require the file once.<br />
+It's like suppressing error messages with @ but only when the file does not exist.<br />
+Still shows compile errors/warning, unless you use @relro().<br />
+Relative to the file calling the function.<br />
+*/<br />
+</span><span class="default">relro</span><span class="keyword">(</span><span class="default">__FILE__</span><span class="keyword">, </span><span class="string">'stats.php'</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+If you work with a deep php file structure and a barrage of includes/requires/file-loads this works well.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="69339""></a>
+  <div class="note">
+   <strong class="user">rejjn at mail dot nu</strong>
+   <a href="#69339" class="date">01-Sep-2006 11:28</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The following only applies to case insensitive systems like Windows.<br />
+<br />
+Even though the documentation sais that "the path is normalized" that doesn't seem to be true in all cases. <br />
+<br />
+If you are using the magic __autoload() function (or if the framework you're using is using it) and it includes the requested class file with complete path or if you override the include path in mid execution, you may have some very strange behavior. The most subtle problem is that the *_once functions seem to differentiate between c:\.... and C:\....<br />
+<br />
+So to avoid any strange problems and painfull debugging make sure ALL paths you use within the system have the same case everywhere, and that they correspond with the actual case of the filesystem. That includes include paths set in webserver config/php.ini, auto load config, runtime include path settings or anywhere else.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="62838""></a>
+  <div class="note">
+   <strong class="user">antoine dot pouch at mcgill dot ca</strong>
+   <a href="#62838" class="date">10-Mar-2006 04:13</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+require_once (and include_once for that matters) is slow. <br />
+Furthermore, if you plan on using unit tests and mock objects (i.e. including mock classes before the real ones are included in the class you want to test), it will not work as require() loads a file and not a class.<br />
+<br />
+To bypass that, and gain speed, I use :<br />
+<br />
+<span class="default">&lt;?php<br />
+class_exists</span><span class="keyword">(</span><span class="string">'myClass'</span><span class="keyword">) || require(</span><span class="string">'path/to/myClass.class.php'</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+I tried to time 100 require_once on the same file and it took the script 0.0026 seconds to run, whereas with my method it took only 0.00054 seconds. 4 times faster ! OK, my method of testing is quite empirical and YMMV but the bonus is the ability to use mock objects in your unit tests.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="62308""></a>
+  <div class="note">
+   <strong class="user">martijn(dot)lowrider(at)gmail(dot)com</strong>
+   <a href="#62308" class="date">24-Feb-2006 08:00</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+How to use Require_Once with error reporting to include a MySQL Connection file:<br />
+<br />
+-------------------------------------------------------------------<br />
+$MySQLConnectFile = './inc/MySQL.Class.php';<br />
+<br />
+if ( is_dir ( './inc/' ) )<br />
+{<br />
+&nbsp;&nbsp;&nbsp; $IncIsDir == TRUE;<br />
+}<br />
+<br />
+if ( file_exists ( $MySQLConnectFile ) )<br />
+{<br />
+&nbsp;&nbsp;&nbsp; $MySQLFileExists == TRUE;<br />
+}<br />
+<br />
+if ( $IncIsDir &amp;&amp; $MySQLFileExists )<br />
+{<br />
+&nbsp;&nbsp;&nbsp; require_once ( $MySQLConnectFile )<br />
+}<br />
+else<br />
+{<br />
+&nbsp;&nbsp;&nbsp; echo '&lt;b&gt;Error:&lt;/b&gt; &lt;i&gt;Could not read the MySQL Connection File. Please try again later.';<br />
+&nbsp;&nbsp;&nbsp; exit();<br />
+}<br />
+<br />
+----------------------------------------------------------------------</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="59387""></a>
+  <div class="note">
+   <strong class="user">sdh00b at gmail dot com</strong>
+   <a href="#59387" class="date">05-Dec-2005 04:12</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+@georg_gruber at yahoo dot com<br />
+<br />
+Files for including are first looked in include_path relative to the current working directory and then in include_path relative to the directory of current script. E.g. if your include_path is ., current working directory is /www/, you included include/a.php and there is include "b.php" in that file, b.php is first looked in /www/ and then in /www/include/. If filename begins with ./ or ../, it is looked only in include_path relative to the current working directory.<br />
+<br />
+Taken from <a href="http://us2.php.net/manual/en/function.include.php" rel="nofollow" target="_blank">http://us2.php.net/manual/en/function.include.php</a></span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="57545""></a>
+  <div class="note">
+   <strong class="user">georg_gruber at yahoo dot com</strong>
+   <a href="#57545" class="date">07-Oct-2005 12:06</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+A very interesting behaviour of require_once (and probably all include commands):<br />
+<br />
+consider the following files:<br />
+<br />
+/index.php -&gt; require_once('/inc/library.php');<br />
+/function1.php -&gt; print('/function1.php');<br />
+/inc/library.php -&gt; require_once('function1.php');<br />
+/inc/function1.php -&gt; print('/inc/function1.php');<br />
+<br />
+Note that /function1.php and /inc/function1.php are files with the SAME filename in different folders.<br />
+<br />
+If you "/index.php" is executed it will output<br />
+"/function1.php".<br />
+<br />
+Although /index.php "includes" /inc/library.php the scope of the file is still /index.php therefor /function1.php will be found even it could be asumed the /inc/function1.php is the correct one.<br />
+<br />
+And it gets more interesting: if you delete /function1.php and execute /index.php PHP checks this and "includes" /inc/function1.php.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="52442""></a>
+  <div class="note">
+   <strong class="user">miqrogroove</strong>
+   <a href="#52442" class="date">01-May-2005 08:10</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+require_once() is NOT independent of require().&nbsp; Therefore, the following code will work as expected:<br />
+<br />
+echo.php<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">echo </span><span class="string">"Hello"</span><span class="keyword">;<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+test.php<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">require(</span><span class="string">'echo.php'</span><span class="keyword">);<br />
+require_once(</span><span class="string">'echo.php'</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+test.php outputs: "Hello".<br />
+<br />
+Enjoy,<br />
+-- Miqro</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="51165""></a>
+  <div class="note">
+   <strong class="user">ulderico at maber dot com dot br</strong>
+   <a href="#51165" class="date">22-Mar-2005 02:38</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+With both of your functions guys, Pure-PHP and jtaal at eljakim dot nl, you'll not have any variables available GLOBALly if they're supposed to be globals...<br />
+<br />
+That's why my import handles better those situation. OK, SOME MAY DISPUTE that using include_once and require_once may slow down an application. But what's the use to do IN PHP what the interpreter *should* do better for you. Thusly these workarounds shall, some time in the future, DIE.<br />
+<br />
+Thus It's better to well design your application to keep some order using few INCLUDES and REQUIRES in it rather than insert MANY AND SEVERAL *_once around.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="51044""></a>
+  <div class="note">
+   <strong class="user">Pure-PHP</strong>
+   <a href="#51044" class="date">17-Mar-2005 11:19</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+require_once can slower your app, if you include to many files.<br />
+<br />
+You cann use this wrapper class, it is faster than include_once <br />
+<br />
+<a href="http://www.pure-php.de/node/19" rel="nofollow" target="_blank">http://www.pure-php.de/node/19</a><br />
+<br />
+require_once("includeWrapper.class.php")<br />
+<br />
+includeWrapper::require_once("Class1.class.php");<br />
+includeWrapper::require_once("Class1.class.php");<br />
+includeWrapper::require_once("Class2.class.php")</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="50803""></a>
+  <div class="note">
+   <strong class="user">jtaal at eljakim dot nl</strong>
+   <a href="#50803" class="date">10-Mar-2005 02:00</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+When you feel the need for a require_once_wildcard function, here's the solution:<br />
+<br />
+<span class="default">&lt;?php </span><span class="comment">// /var/www/app/system/include.inc.php<br />
+<br />
+</span><span class="keyword">function </span><span class="default">require_once_wildcard</span><span class="keyword">(</span><span class="default">$wildcard</span><span class="keyword">, </span><span class="default">$__FILE__</span><span class="keyword">) {<br />
+&nbsp; </span><span class="default">preg_match</span><span class="keyword">(</span><span class="string">"/^(.+)\/[^\/]+$/"</span><span class="keyword">, </span><span class="default">$__FILE__</span><span class="keyword">, </span><span class="default">$matches</span><span class="keyword">);<br />
+&nbsp; </span><span class="default">$ls </span><span class="keyword">= `</span><span class="string">ls </span><span class="default">$matches</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">]</span><span class="string">/</span><span class="default">$wildcard</span><span class="keyword">`;<br />
+&nbsp; </span><span class="default">$ls </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">(</span><span class="string">"\n"</span><span class="keyword">, </span><span class="default">$ls</span><span class="keyword">);<br />
+&nbsp; </span><span class="default">array_pop</span><span class="keyword">(</span><span class="default">$ls</span><span class="keyword">); </span><span class="comment">// remove empty line ls always prints<br />
+&nbsp; </span><span class="keyword">foreach (</span><span class="default">$ls </span><span class="keyword">as </span><span class="default">$inc</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; require_once(</span><span class="default">$inc</span><span class="keyword">);<br />
+&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+The $__FILE__ variable should be filled with the special PHP construct __FILE__:<br />
+<span class="default">&lt;?php </span><span class="comment">// /var/www/app/classes.inc.php<br />
+<br />
+</span><span class="keyword">require_once(</span><span class="string">'system/include.inc.php'</span><span class="keyword">);<br />
+</span><span class="default">require_once_wildcard</span><span class="keyword">(</span><span class="string">"classes/*.inc.php"</span><span class="keyword">, </span><span class="default">__FILE__</span><span class="keyword">);<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+The (*.inc.php) files inside the directory classes are automagically included using require_once_wildcard.<br />
+<br />
+This solution may not be as useful when using PHP5 in combination with classes and the autoload feature.<br />
+<br />
+--<br />
+Jaap Taal</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="49245""></a>
+  <div class="note">
+   <strong class="user">thomas dot revell at uwe dot ac dot uk</strong>
+   <a href="#49245" class="date">21-Jan-2005 11:00</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Regarding the case insensitivity problems on Windows, it looks to me as though it is a problem in PHP5 as well (at least in some cases).<br />
+<br />
+The following gave me problems:<br />
+<br />
+From file URLSwitcher.php<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">require_once </span><span class="string">'slimError/slimError.php'</span><span class="keyword">;<br />
+require_once </span><span class="string">'Navigator_Cache.php'</span><span class="keyword">;<br />
+....<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+From file Navigator_Cache.php<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">require_once </span><span class="string">'slimError/slimerror.php'</span><span class="keyword">;<br />
+...<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+From file slimerror.php<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">SLIMError </span><span class="keyword">{<br />
+...<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span>The above setup gave me an error : "Cannot redeclare class SLIMError"<br />
+<br />
+If I change the require_once in URLSwitcher.php to match the one in Navigator_Cache.php, there isn't a problem, but if I do this the other way round, the same problem occurs.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="40897""></a>
+  <div class="note">
+   
+   <a href="#40897" class="date">18-Mar-2004 06:49</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+&gt; Mac OS X systems are also not case-sensitive.<br />
+That depends on the filesystem:<br />
+- HFS and HFS+ are NOT case sensitive.<br />
+- UFS is case sensitive.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

@@ -1,0 +1,251 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Sessions支持</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="memcached.callbacks.read-through.html">? 通读缓存回调</a></li>
+      <li style="float: right;"><a href="class.memcached.html">Memcached ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="book.memcached.html">Memcached</a></li>
+    <li>Sessions支持</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="memcached.sessions" class="chapter">
+ <h1>Sessions支持</h1>
+
+<p class="para">
+ memcached提供了一个自定义的session处理器可以被用于存储用户session数据到memcached服务端。
+一个完全独立的memcached实例将会在内部使用，因此如果需要您可以设置一个不同的服务器池。session的
+key被存储在前缀<em>memc.sess.key.</em>之下，因此, 如果你对session和通常的缓存使用了
+同样的服务器池，请注意这一点。
+译注：另外一个session和通常缓存分离的原因是当通常的缓存占满了memcached服务端后，可能会导致你的session被
+从缓存中踢除，导致用户莫名的掉线。
+</p>
+ <p class="para">
+  <dl>
+
+
+   
+    <dt id="memcache.sessions.save-handler">
+     <code class="parameter">session.save_handler</code>
+     <span class="type"><a href="language.types.string.html" class="type string">string</a></span>
+    </dt>
+
+    <dd>
+
+     <p class="para">
+      设置为<em>memcached</em>开启memcached的session处理器。
+     </p>
+    </dd>
+
+   
+
+   
+    <dt id="memcache.sessions.save-path">
+     <code class="parameter">session.save_path</code>
+     <span class="type"><a href="language.types.string.html" class="type string">string</a></span>
+    </dt>
+
+    <dd>
+
+     <p class="para">
+     定义一个逗号分隔的<em>hostname:port</em>样式的session缓存服务器池，例如：
+      <em>&quot;sess1:11211, sess2:11211&quot;</em>.
+     </p>
+    </dd>
+
+   
+
+  </dl>
+
+ </p>
+</div>
+<div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="115306""></a>
+  <div class="note">
+   <strong class="user">Ian Maddox</strong>
+   <a href="#115306" class="date">03-Jul-2014 11:22</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you are setting data to the session and it immediately disappears and you aren't getting any warnings in your PHP error log, it's probably because your sessions expired sometime in the 1970s.<br />
+<br />
+Somewhere between memcached 1.0.2 and 2.1.0, the memcached session handler became sensitive to the 30-day TTL gotcha (aka "transparent failover").&nbsp; If your session.gc_maxlifetime is greater than 2592000 (30 days), the value is treated as a unix timestamp instead of a relative seconds count.<br />
+<br />
+This issue is likely to impact anyone with long-running sessions who is upgrading from Ubuntu 12.04 to 14.04.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="114807""></a>
+  <div class="note">
+   <strong class="user">me at nileshgr dot com</strong>
+   <a href="#114807" class="date">08-Apr-2014 07:38</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+It seems a few people think saving sessions in memcache is more secure compared to saving in file-system (/tmp) especially when the discussion is about shared hosting.<br />
+<br />
+This is not true. memcache has NO authentication; everybody &amp; anybody can read session.save_path (which will contain the memcached daemon address).<br />
+<br />
+FastCGI (PHP-FPM) is much much better when you're considering security and shared hosting.<br />
+<br />
+If you want to share sessions across multiple servers transparently without having headaches of adding custom handlers, you can use NFS or something similar.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="112439""></a>
+  <div class="note">
+   <strong class="user">richard at fussenegger dot info</strong>
+   <a href="#112439" class="date">17-Jun-2013 05:56</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The documentation is not complete, you can also pass the weight of each server and you can use sockets if you want. In your PHP ini:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="comment">// Sockets with weight in the format socket_path:port:weight<br />
+</span><span class="default">session</span><span class="keyword">.</span><span class="default">save_path </span><span class="keyword">= </span><span class="string">"/path/to/socket:0:42"<br />
+<br />
+</span><span class="comment">// Or more than one so that weight makes sense?<br />
+</span><span class="default">session</span><span class="keyword">.</span><span class="default">save_path </span><span class="keyword">= </span><span class="string">"/path/to/socket_x:0:42,/path/to/socket_y:0:666"<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+And if you should ever want to access these servers in PHP:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+$servers </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">(</span><span class="string">","</span><span class="keyword">, </span><span class="default">ini_get</span><span class="keyword">(</span><span class="string">"session.save_path"</span><span class="keyword">));<br />
+</span><span class="default">$c </span><span class="keyword">= </span><span class="default">count</span><span class="keyword">(</span><span class="default">$servers</span><span class="keyword">);<br />
+for (</span><span class="default">$i </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">; </span><span class="default">$i </span><span class="keyword">&lt; </span><span class="default">$c</span><span class="keyword">; ++</span><span class="default">$i</span><span class="keyword">) {<br />
+&nbsp; </span><span class="default">$servers</span><span class="keyword">[</span><span class="default">$i</span><span class="keyword">] = </span><span class="default">explode</span><span class="keyword">(</span><span class="string">":"</span><span class="keyword">, </span><span class="default">$servers</span><span class="keyword">[</span><span class="default">$i</span><span class="keyword">]);<br />
+}<br />
+</span><span class="default">$memcached </span><span class="keyword">= new \</span><span class="default">Memcached</span><span class="keyword">();<br />
+</span><span class="default">call_user_func_array</span><span class="keyword">([ </span><span class="default">$memcached</span><span class="keyword">, </span><span class="string">"addServers" </span><span class="keyword">], </span><span class="default">$servers</span><span class="keyword">);<br />
+</span><span class="default">print_r</span><span class="keyword">(</span><span class="default">$memcached</span><span class="keyword">-&gt;</span><span class="default">getAllKeys</span><span class="keyword">());<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="110251""></a>
+  <div class="note">
+   <strong class="user">taubers at gmail dot com</strong>
+   <a href="#110251" class="date">05-Oct-2012 08:42</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you are using the memcache class for session handling your key is the PHP session ID.&nbsp; This is different than when using the&nbsp; memcached class.<br />
+<br />
+Example with memcache:<br />
+GET nphu2u8eo5niltfgdbc33ajb62<br />
+<br />
+Example with memcached:<br />
+GET memc.sess.key.nphu2u8eo5niltfgdbc33ajb62<br />
+<br />
+For memcached, the prefix is set in the config:<br />
+memcached.sess_prefix = "memc.sess.key."</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="104421""></a>
+  <div class="note">
+   <strong class="user">sstratton at php dot net</strong>
+   <a href="#104421" class="date">14-Jun-2011 09:48</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+While the previous poster has a point that Memcached can and will cleanup to make room for it's keys, the likelihood of active sessions (due to the likelihood that they will be written to again within 30 seconds) is fairly low provided you have your memory allocation properly alloted.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="99646""></a>
+  <div class="note">
+   <strong class="user">nfoo at naver dot com</strong>
+   <a href="#99646" class="date">28-Aug-2010 09:15</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you want to use 'memcacheD' extention not 'memcache' (there are two diffrent extentions) for session control,&nbsp; you should pay attention to modify php.ini
+<br />
+
+<br />
+Most web resource from google is based on memcache because It's earlier version than memcacheD. They will say as following
+<br />
+
+<br />
+session.save_handler = memcache
+<br />
+session.save_path = "tcp://localhost:11211"
+<br />
+
+<br />
+But it's not valid when it comes to memcacheD
+<br />
+
+<br />
+you should modify php.ini like that
+<br />
+
+<br />
+session.save_handler = memcached
+<br />
+session.save_path = "localhost:11211"
+<br />
+
+<br />
+Look, there is no protocol indentifier</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="91153""></a>
+  <div class="note">
+   <strong class="user">Andrei Darashenka</strong>
+   <a href="#91153" class="date">27-May-2009 04:56</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+This extension supports Session-locking!<br />
+<br />
+by default<br />
+MEMC_SESS_LOCK_ATTEMPTS&nbsp;&nbsp; 30<br />
+MEMC_SESS_LOCK_WAIT&nbsp; &nbsp; &nbsp;&nbsp; 100000<br />
+MEMC_SESS_LOCK_EXPIRATION 30</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

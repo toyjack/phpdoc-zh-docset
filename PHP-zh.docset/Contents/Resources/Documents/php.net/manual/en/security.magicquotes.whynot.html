@@ -1,0 +1,164 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>为什么不用魔术引号</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="security.magicquotes.why.html">? 为什么要用魔术引号</a></li>
+      <li style="float: right;"><a href="security.magicquotes.disabling.html">关闭魔术引号 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="security.magicquotes.html">魔术引号</a></li>
+    <li>为什么不用魔术引号</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="security.magicquotes.whynot" class="sect1">
+  <h2 class="title">为什么不用魔术引号</h2>
+  <div class="warning"><strong class="warning">Warning</strong><p class="simpara">本特性已自
+PHP 5.3.0 起<em class="emphasis">废弃</em>并将自 PHP 5.4.0
+起<em class="emphasis">移除</em>。</p></div>
+  <ul class="itemizedlist">
+   <li class="listitem">
+    <span class="simpara">
+     可移植性
+    </span>
+    <span class="simpara">
+     编程时认为其打开或并闭都会影响到移植性。可以用
+     <span class="function"><a href="function.get-magic-quotes-gpc.html" class="function">get_magic_quotes_gpc()</a></span> 来检查是否打开，并据此编程。
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     性能
+    </span>
+    <span class="simpara">
+     由于并不是每一段被转义的数据都要插入数据库的，如果所有进入
+     PHP 的数据都被转义的话，那么会对程序的执行效率产生一定的影响。在运行时调用转义函数（如
+     <span class="function"><a href="function.addslashes.html" class="function">addslashes()</a></span>）更有效率。
+    </span>
+    <span class="simpara">
+     尽管 <var class="filename">php.ini-dist</var> 默认打开了这个选项，但是
+     <var class="filename">php.ini-recommended</var> 默认却关闭了它，主要是出于性能的考虑。
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     不便
+    </span>
+    <span class="simpara">
+     由于不是所有数据都需要转义，在不需要转义的地方看到转义的数据就很烦。比如说通过表单发送邮件，结果看到一大堆的 \&#039;。针对这个问题，可以使用
+     <span class="function"><a href="function.stripslashes.html" class="function">stripslashes()</a></span> 函数处理。
+    </span>
+   </li>
+  </ul>
+ </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="99832""></a>
+  <div class="note">
+   <strong class="user">Albin Mrtensson</strong>
+   <a href="#99832" class="date">09-Sep-2010 03:46</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+This is what I use to handle magic quotes<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">if (</span><span class="default">get_magic_quotes_gpc</span><span class="keyword">()) {<br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">strip_array</span><span class="keyword">(</span><span class="default">$var</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">is_array</span><span class="keyword">(</span><span class="default">$var</span><span class="keyword">)? </span><span class="default">array_map</span><span class="keyword">(</span><span class="string">"strip_array"</span><span class="keyword">, </span><span class="default">$var</span><span class="keyword">):</span><span class="default">stripslashes</span><span class="keyword">(</span><span class="default">$var</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$_POST </span><span class="keyword">= </span><span class="default">strip_array</span><span class="keyword">(</span><span class="default">$_POST</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$_SESSION </span><span class="keyword">= </span><span class="default">strip_array</span><span class="keyword">(</span><span class="default">$_SESSION</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$_GET </span><span class="keyword">= </span><span class="default">strip_array</span><span class="keyword">(</span><span class="default">$_GET</span><span class="keyword">);<br />
+}<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="86334""></a>
+  <div class="note">
+   <strong class="user">anze</strong>
+   <a href="#86334" class="date">14-Oct-2008 12:23</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Another reason against it: security. You could be lulled in a feeling of false security if you have magic_quotes=On on a test server and Off on production server. <br />
+<br />
+And another: readability of the code. If you want to be portable you need to resort to some weird solution, outlines on these pages (if (get_magic_quotes())...).<br />
+<br />
+Let's hope magic_quotes soon goes to history together with safe_mode and similar "kind-of-security" (but in reality just a nuisance) inventions.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="79664""></a>
+  <div class="note">
+   <strong class="user">sir dot steve dot h+php at gmail dot com</strong>
+   <a href="#79664" class="date">07-Dec-2007 05:45</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I find it useful to define a simple utility function for magic quotes so the application functions as expected regardless of whether magic_quotes_gpc is on:<br />
+<br />
+function strip_magic_slashes($str)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; return get_magic_quotes_gpc() ? stripslashes($str) : $str;<br />
+}<br />
+<br />
+Which can be annoying to add the first time you reference every $_GET /$_POST/$_COOKIE variable, but it prevents you from demanding your users to change their configurations.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="75722""></a>
+  <div class="note">
+   <strong class="user">rjh at netcraft dot com</strong>
+   <a href="#75722" class="date">13-Jun-2007 11:50</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Additionally, addslashes() is not a cure-all against SQL injection attacks. You should use your database's dedicated escape function (such as mysql_escape_string) or better yet, use parameterised queries through mysqli-&gt;prepare().</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="61781""></a>
+  <div class="note">
+   
+   <a href="#61781" class="date">11-Feb-2006 10:47</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+It is also important to disable Magic Quotes while in development enivronment. For the reasons mentioned above, not everybody is using Magic Quotes.<br />
+<br />
+An application that works fine with Magic Quotes enabled may have security problems (ie can be subject to SQL attacks) when distributed.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

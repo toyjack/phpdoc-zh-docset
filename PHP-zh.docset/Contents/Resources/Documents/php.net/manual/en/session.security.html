@@ -1,0 +1,418 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>会话和安全</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="session.upload-progress.html">? Session Upload Progress</a></li>
+      <li style="float: right;"><a href="ref.session.html">Session 函数 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="book.session.html">Sessions</a></li>
+    <li>会话和安全</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="session.security" class="chapter">
+ <h1>会话和安全</h1>
+
+ <p class="para">
+  外部链接：<a href="http://www.acros.si/papers/session_fixation.pdf" class="link external" title="Link : http://www.acros.si/papers/session_fixation.pdf">&raquo;&nbsp;会话固定</a>
+ </p>
+ <p class="para">
+  HTTP 会话管理是 web 应用安全的核心内容，
+  要采用尽可能的手段来确保会话安全。
+  开发人员应该合理的启用或使用可接受的设置。
+ </p>
+
+ <ul class="itemizedlist">
+  <li class="listitem">
+   <span class="simpara">
+    <a href="session.configuration.html#ini.session.cookie-lifetime" class="link">session.cookie_lifetime</a>=0。
+    0 表示特殊含义，它告知浏览器不要持久化存储 cookie 数据。
+    也即，关闭浏览器的时候，会话 ID cookie 会被立即删除。
+    如果将此项设置为非 0 的值，可能会导致会话 ID 被其他用户使用。
+    大部分应用应该把此项设置为"0"。
+    如果应用中有自动登录的功能，请自行实现一种更加安全的方式，而不要使用会话 ID 来完成自动登录。
+   </span>
+  </li>
+
+  <li class="listitem">
+   <span class="simpara">
+    <a href="session.configuration.html#ini.session.use-cookies" class="link">session.use_cookies</a>=On 并且
+    <a href="session.configuration.html#ini.session.use-only-cookies" class="link">session.use_only_cookies</a>=On。
+    虽然 HTTP cookie 存在一些问题，
+    但是它确实是实现会话 ID 管理的优选方案。
+    尽可能的仅使用 cookie 来进行会话 ID 管理，
+    而且大部分应用也确实是只使用 cookie 来记录会话 ID 的。
+   </span>
+  </li>
+
+  <li class="listitem">
+   <span class="simpara">
+    <a href="session.configuration.html#ini.session.use-strict-mode" class="link">session.use_strict_mode</a>=On。
+    此设置防止会话模块使用未初始化的会话 ID。
+    也就是说，
+    会话模块仅接受由它自己创建的有效的会话 ID，
+    而拒绝由用户自己提供的会话 ID。
+    使用 JavaScript 对 cookie 进行注入
+    就可以实现对会话 ID 的注入，
+    甚至可以在 URL 的查询字符串中或者表单参数中实现会话 ID 的注入。
+    大部分应用没理由也不应该接受由用户提供的未经初始化的会话 ID。
+   </span>
+  </li>
+
+  <li class="listitem">
+   <span class="simpara">
+    <a href="session.configuration.html#ini.session.cookie-httponly" class="link">session.cookie_httponly</a>=On。
+    禁止 JavaScript 访问会话 cookie。
+    此设置项可以保护 cookie 不被 JavaScript 窃取。
+    虽然可以使用会话 ID 来作为防范跨站请求伪造（CSRF）的关键数据，
+    但是不建议你这么做。
+    例如，攻击者可以把 HTML 源代码保存下来并且发送给其他用户。
+    为了安全起见，
+    开发者不应该在 web 页面中显示会话 ID。
+    几乎所有的应用都应该对会话 ID cookie 设置 httponly 为 On。
+   </span>
+  </li>
+
+  <li class="listitem">
+   <span class="simpara">
+    <a href="session.configuration.html#ini.session.cookie-secure" class="link">session.cookie_secure</a>=On。
+    仅允许在 HTTPS 协议下访问会话 ID cookie。
+    如果你的 web 站点仅支持 HTTPS，那么必须将此选项设置为 On。
+    对于仅支持 HTTPS 的 web 站点建议考虑使用强制安全传输技术（HSTS）。
+   </span>
+  </li>
+
+  <li class="listitem">
+   <span class="simpara">
+    <a href="session.configuration.html#ini.session.gc-maxlifetime" class="link">session.gc_maxlifetime</a>=[尽可能的小]。
+    GC 的运行时机并不是精准的，带有一定的或然性，所以这个设置项并不能确保
+    旧的会话数据被删除。某些会话存储处理模块不使用此设置项。
+    更多的信息请参考会话存储模块的完整文档。
+    虽然开发人员不能完全依赖这个设置，但是还是建议将其设置的尽可能的小。
+    调整 <a href="session.configuration.html#ini.session.gc-probability" class="link">session.gc_probability</a>
+    和 <a href="session.configuration.html#ini.session.gc-divisor" class="link">session.gc_divisor</a> 设置项
+    可以使得过期的会话数据在适当的周期内被删除。
+    如果需要使用自动登录的功能，请使用其他更加安全的方式自行实现，
+    而不要通过使用长生命周期的会话 ID 来实现。
+   </span>
+  </li>
+
+  <li class="listitem">
+   <span class="simpara">
+    <a href="session.configuration.html#ini.session.use-trans-sid" class="link">session.use_trans_sid</a>=Off。
+    如果确实需要，
+    你也可以使用透明的会话 ID 管理。
+    禁用透明会话 ID 管理可以提高安全性，
+    规避会话 ID 注入和泄露的风险。
+   </span>
+  </li>
+
+  <li class="listitem">
+   <span class="simpara">
+    <a href="session.configuration.html#ini.session.referer-check" class="link">session.referer_check</a>=[你的源 URL]
+    当启用 <a href="session.configuration.html#ini.session.use-trans-sid" class="link">session.use_trans_sid</a> 设置项时，
+    建议尽可能的联合使用此设置项来降低会话 ID 注入的风险。
+    假设你的站点是 http://example.com/，
+    请将此设置项置为 http://example.com/。
+    需要注意的，如果使用 HTTPS ，
+    浏览器将不会发送 referrer 请求头，
+    因此，从安全角度考虑，此设置项并不总是可信赖的。
+   </span>
+  </li>
+
+  <li class="listitem">
+   <span class="simpara">
+    <a href="session.configuration.html#ini.session.cache-limiter" class="link">session.cache_limiter</a>=nocache。
+    确保对于已经认证的会话，
+    其 HTTP 内容不被缓存。
+    你应仅允许缓存公开的内容，
+    否则将面临内容暴露的风险。
+    如果 HTTP 内容中不包含安全信息或敏感数据，可以使用"private"。
+    注意，"private"可能会导致客户端缓存私有数据。
+    仅在 HTTP 内容中不包含任何私有数据的时候，可以使用"public"。
+   </span>
+  </li>
+
+  <li class="listitem">
+   <span class="simpara">
+    <a href="session.configuration.html#ini.session.hash-function" class="link">session.hash_function</a>=&quot;sha256&quot;。
+    高强度的散列函数可以产生高强度的会话 ID。
+    虽然即使是使用 MD5 散列算法，要找到相同的散列值也是非常不易的，
+    但是开发人员还是应该选择 SHA-2 或者更高的散列算法，
+    例如可以使用 sha384 或者 sha512。
+   </span>
+  </li>
+ </ul>
+ 
+ <p class="para">
+  会话模块无法保证存储到会话中的数据仅能被会话创建者可见。
+  如果要保护会话的完整性，
+  你需要进行一些额外的工作。
+  至于如何保护会话，取决于你在会话中所存储的数据。
+ </p>
+
+ <p class="para">
+  要保护会话中的数据，通常有额外的成本，
+  并且有可能影响用户使用的便利性。
+  例如，要想防范简单的社会工程学方式的攻击，
+  你需要启用 <em>session.use_only_cookies</em>。
+  这样一来，
+  用户需要无条件的接受 cookie，
+  否则会话功能将无法正常工作。
+ </p>
+
+ <p class="para">
+  有几种方式可以将会话 ID 泄露给第三方。
+  会话 ID 的泄露会导致
+  第三方可以访问该会话 ID 所关联的所有资源。
+  如果从你的站点链接到外部站点，
+  在 URL 中所携带的会话 ID 
+  可能会被外部站点的 "referrer"日志记录。
+  其次，更加主动的攻击者会尝试监听你的网络通信，
+  明文传输的会话 ID 可能会被攻击者从网络层面窃取。
+  对于这种场景的解决方案是在服务器使用 SSL 通信，
+  并且强制用户使用 SSL 方式访问你的服务。
+ </p>
+
+ <p class="para">
+  自 PHP 5.5.2 开始，可以使用 <a href="session.configuration.html#ini.session.use-strict-mode" class="link">session.use_strict_mode</a>
+  设置项。当启用该设置项，并且会话保存管理器能够支持此设置项的话，
+  它会拒绝未经初始化的会话 ID 并且返回一个新创建的会话 ID。
+  通过强制用户使用新的会话 ID，可以避免遭受攻击。
+  如果启用了 <a href="session.configuration.html#ini.session.use-trans-sid" class="link">session.use_trans_sid</a>
+  设置项，攻击者可以发送包含会话 ID 的 URL 给受害者，
+  例如：http://example.com/page.php?PHPSESSID=123456789，
+  那么受害者将会使用攻击者提供的会话 ID 开始会话。
+  <a href="session.configuration.html#ini.session.use-strict-mode" class="link">session.use_strict_mode</a>
+  设置项可以降低这样的风险。
+ </p>
+
+ <p class="para">
+  虽然 <a href="session.configuration.html#ini.session.use-strict-mode" class="link">session.use_strict_mode</a>
+  设置项可以降低风险，
+  攻击者依然可以使用自己创建的、已经经过初始化的会话 ID 来欺骗受害人。
+  只是攻击者需要在发起攻击之前初始化会话 ID 并且要保持这个会话处于活跃状态。
+ </p>
+
+ <p class="para">
+  可以对会话 ID cookie 设置 domain，path，httponly，secure 等属性，
+  但是浏览器中有优先级定义，
+  攻击者可以利用这个特点设置可以永久使用的会话 ID。
+  使用 <a href="session.configuration.html#ini.session.use-only-cookies" class="link">session.use_only_cookies</a>
+  设置项无法解决此问题。<a href="session.configuration.html#ini.session.use-strict-mode" class="link">session.use_strict_mode</a>
+  设置项可以降低风险，当 <a href="session.configuration.html#ini.session.use-strict-mode" class="link">session.use_strict_mode</a> 为
+  "On"时，服务器将拒绝未经初始化的会话 ID，
+  而是返回一个新创建的会话 ID。
+  这可能会导致受害者面临 DoS 攻击，但是总好过账号被盗取。
+  
+ </p>
+
+ <p class="para">
+  <a href="session.configuration.html#ini.session.use-strict-mode" class="link">session.use_strict_mode</a>
+  设置项可以缓解这种情况，
+  但是对于已经经过认证的会话，它就有些力不从心了。
+  开发人员必须使用 <span class="function"><a href="function.session-regenerate-id.html" class="function">session_regenerate_id()</a></span> 来进行认证，
+  并且还需要在向 $_SESSION 中存储认证信息之前调用
+  <span class="function"><a href="function.session-regenerate-id.html" class="function">session_regenerate_id()</a></span> 函数。
+  <span class="function"><a href="function.session-regenerate-id.html" class="function">session_regenerate_id()</a></span> 
+  可以确保仅在新会话中存储认证后的信息。
+  例如，如果在认证过程中发生错误，
+  可能会在旧的会话中保存认证通过的标识。
+ </p>
+
+ <p class="para">
+  和 use_strict_mode=On 类似，使用<span class="function"><a href="function.session-regenerate-id.html" class="function">session_regenerate_id()</a></span> 函数
+  也可能导致 DoS 攻击（从个人角度来看），但是总好过账号被盗取。
+  至少应该在用户通过认证之后为其重新生成新的会话 ID。
+  重新生成会话 ID 可以降低被窃取的风险，
+  所以应该定期重新生成会话 ID。
+  开发人员不应依赖会话过期，
+  因为攻击者可以通过定期使用受害者会话 ID 发起访问以保持会话活跃。
+  开发人员必须自行实现针对过期会话的处理。
+ </p>
+
+ <p class="para">
+  需要提醒的是，默认情况下，<span class="function"><a href="function.session-regenerate-id.html" class="function">session_regenerate_id()</a></span> 
+  函数并不会删除旧的会话。
+  对用户而言，原有的已认证的会话可能仍然可用。
+  如果开发人员需要阻止其他人使用原有的已认证会话，
+  需要设置 <code class="parameter">delete_old_session</code> 参数为 <strong><code>TRUE</code></strong>。
+  但是立即删除旧的会话可能会带来其他影响，
+  比如在并发访问或者网络不稳定的情况下，
+  可能会导致会话无效。（译注：意指浏览器携带旧的会话 ID 发起了并发的请求，如果在第一个被服务器接受和处理的请求中删除了旧的会话数据，那么后续的请求将会产生会话无效的问题）
+  可以在 $_SESSION 中设置一个很短的过期时间来代替直接删除旧的会话，
+  并且拒绝用户访问旧的会话（过期的会话）。
+ </p>
+
+ <p class="para">
+  <a href="session.configuration.html#ini.session.use-only-cookies" class="link">session.use_only_cookies</a>
+  和 <span class="function"><a href="function.session-regenerate-id.html" class="function">session_regenerate_id()</a></span> 联合使用，
+  在某些情况下可能导致针对个人的 DoS 攻击。
+  如果发生这种情况，
+  你可以告知用户清除浏览器的 cookie 并且警告用户可能存在安全隐患。
+  攻击者可以利用 web 应用的弱点（例如，JavaScript 注入）
+  或恶意的浏览器插件生成恶意的 cookie。
+ </p>
+
+ <p class="para">
+  开发人员一定不要使用长生命周期会话 ID 来实现自动登录的功能，
+  因为这样会使会话很容易被窃取。
+  开发人员需要自行实现自动登录的功能，
+  可以使用比 SHA-2 更安全的散列算法，
+  例如 SHA-256 或者更高，
+  并且包含从 /dev/urandom 产生随机数据。
+  如果用户尚未认证通过，就检查一次性自动登录密钥是否有效。
+  如果密钥有效，那么对用户进行认证，并且设置新的、安全的散列值。
+  自动登录密钥的生存周期比认证密钥的更长，
+  所以要竭尽所能来保护自动登录密钥的安全。
+  至于 cookie，可以使用 path/httponly/secure 等属性来进行保护。
+  同时，开发人员还必须为用户提供禁用自动登录以及移除不再使用的自动登录密钥 cookie 的功能。
+ </p>
+</div>
+<div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="88519""></a>
+  <div class="note">
+   <strong class="user">bmearns at ieee dot org</strong>
+   <a href="#88519" class="date">27-Jan-2009 08:41</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+In addition to ip-address binding not always being effective, it can also prevent users connecting through a proxy-pool from even being able to use your site. In such a scenario, a person's IP address may very well change with every access.<br />
+<br />
+If you're handling anything remotely secure, the only safe option is HTTPS. If the data doesn't need to be that secure, than you should not allow a high-jacked session to do too much damage. Basically, don't assume that a person really is who they pretend to be just because the session says a person authenticated with a username and password: it may have been that person who logged in, but that doesn't mean it's still that person. So if you're going to do something like change passwords or something, require them to authenticate again on the same form.<br />
+<br />
+Of course this needs to be done in some secure way, as well, so that the password is not just floating over the network. A good way to do this is sending a nonce (number-used-once) along with the form and some javascript to concatenate the nonce to the password, then perform a cryptographic hash of the combined string. The resulting valid-once "password" should then be sent instead of the plain text password. To be effective, you also need to prevent people from using the form if they don't have JavaScript enabled. You can do this by disabling the form fields in HTML, then re-enabling them in JavaScript.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="88278""></a>
+  <div class="note">
+   <strong class="user">justin at fatbird dot ca</strong>
+   <a href="#88278" class="date">19-Jan-2009 03:56</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+IP checking is a sometimes useful feature with two limitations that are important to be aware of:<br />
+<br />
+1. Anyone surfing behind a proxy (e.g., someone at work) will provide the proxy's IP, not his own.&nbsp; Session ID replay attacks will not be prevented by IP checking for an attacker on the user's side of the proxy.<br />
+<br />
+2. If the PHP application is behind a reverse proxy, the reverse proxy's IP address will be the only request IP seen by PHP, so IP checking is useless.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="87608""></a>
+  <div class="note">
+   <strong class="user">Anurag Jain</strong>
+   <a href="#87608" class="date">12-Dec-2008 06:28</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Websites which have sensitive information need to be patched to ensure its not exploited because of session issues.<br />
+<br />
+In earlier versions of apache cookie reliability was not assumed and hence the default method was always using url-rewrite which meant every url link, every form submission etc would have a PHPSESSID=&lt;sessionid&gt; passed along to inform the server about the active session. New versions have turned this off using<br />
+<br />
+session.use_trans_sid = 0<br />
+<br />
+in the /etc/php5/apache2/php.ini file.<br />
+<br />
+Reasons?<br />
+Well one might safe the offline page as a bookmark or pass the link across to others not realizing that the session id information is also sent. So someone who quickly accesses these pages could possible get logged on, this was also true wrt search engines, and I guess in some cases it being seen as duplicate content as the same page will have a different session id every time the robots scan the website.<br />
+<br />
+But having this set does not mean you are protected. Let me explain.<br />
+What prevents me from presetting the session id! Assume there is a banking site www.example.com which has a login screen at www.example.com/login.php<br />
+I can send you can email with a link to the bank site as <a href="http://www.example.com/login.php?PHPSESSID=12345" rel="nofollow" target="_blank">http://www.example.com/login.php?PHPSESSID=12345</a><br />
+When you click on the link it presents the session id as 12345 rather then asking the server to generate a new one. This is called session fixation. Keep in mind even with session.use_trans_sid = 0 this will work as this sets it only not to use url-rewrite. To prevent this altogether set session.use_only_cookies = 1 which ensures that only cookies will be used, but this could cause problems when dealing with transaction which involve switch sites, i.e. siteA forwards to site B for payment which forwards to siteA for thank you, in which case a phpsessid inform might be used to revive the old session.<br />
+<br />
+A good approach would always be to at the login screen and immediately post login to force a new session id generated using random numbers<br />
+<br />
+session_start();<br />
+$newsessid = somerandomnumberfunction();<br />
+session_id($newsessid);<br />
+<br />
+you can also use session_regenerate_id() function to generate a new id<br />
+<br />
+session_start();<br />
+session_regenerate_id();<br />
+<br />
+Also its always good to ensure every valid session is checked against an ip. One good method is to store the session id and remote ip information in a table, or better store the ip as a session variable itself, once the user logs in and ensure that this is continued for remaining pages for security. This ofcourse wont work when users use the same office or shared network as the ip to the outside world is the same.<br />
+<br />
+https is always a good idea for sensitive sites, but keeping it persistent for all pages which use session is important if you really want a foolproof system else anyone can always sniff your packets.<br />
+<br />
+So to quickly go through the bits<br />
+<br />
+- set session.use_trans_sid = 0 in /etc/php5/apache2/php.ini file. <br />
+- Ensure you always use a new self generated session id on successful login attempt. <br />
+- Try setting session.use_only_cookies = 1 and check if all works fine. <br />
+- Use https throughout to ensure no one can sniff your session id. <br />
+- Store session id, remote IP information and compare for successive pages</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="86638""></a>
+  <div class="note">
+   <strong class="user">JonathanFeller at NOSPAMgmx dot ch</strong>
+   <a href="#86638" class="date">27-Oct-2008 09:22</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Perhaps, you would also like to timeout a session after some idle time. I noticed that session.gc_maxlifetime is not suitable for this. So I used this code to do the job:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">if (!isset(</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'timeout_idle'</span><span class="keyword">])) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'timeout_idle'</span><span class="keyword">] = </span><span class="default">time</span><span class="keyword">() + </span><span class="default">MAX_IDLE_TIME</span><span class="keyword">;<br />
+} else {<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'timeout_idle'</span><span class="keyword">] &lt; </span><span class="default">time</span><span class="keyword">()) {&nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">//destroy session<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">} else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'timeout_idle'</span><span class="keyword">] = </span><span class="default">time</span><span class="keyword">() + </span><span class="default">MAX_IDLE_TIME</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="86482""></a>
+  <div class="note">
+   <strong class="user">Olle Bergkvist</strong>
+   <a href="#86482" class="date">22-Oct-2008 12:47</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+It is also quite important to (somehow) make sure that the cookies you're setting (including the session cookie) is only visible to the site that created it (or to other trusted sites only). <br />
+<br />
+If the cookie's path is set to '/' (the whole domain), then any website on the same domain (might be lots of websites) _will_ get the cookie through HTTP headers and could possibly hijack your session. <br />
+<br />
+One slightly acceptable protection would be to lock a session to one IP adress.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

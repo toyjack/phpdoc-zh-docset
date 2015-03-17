@@ -1,0 +1,2286 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>打开输出控制缓冲</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="function.ob-list-handlers.html">? ob_list_handlers</a></li>
+      <li style="float: right;"><a href="function.output-add-rewrite-var.html">output_add_rewrite_var ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="ref.outcontrol.html">Output Control 函数</a></li>
+    <li>打开输出控制缓冲</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="function.ob-start" class="refentry">
+ <div class="refnamediv">
+  <h1 class="refname">ob_start</h1>
+  <p class="verinfo">(PHP 4, PHP 5)</p><p class="refpurpose"><span class="refname">ob_start</span> &mdash; <span class="dc-title">打开输出控制缓冲</span></p>
+
+ </div>
+ 
+ <div class="refsect1 description" id="refsect1-function.ob-start-description">
+  <h3 class="title">说明</h3>
+  <div class="methodsynopsis dc-description">
+   <span class="type">bool</span> <span class="methodname"><strong>ob_start</strong></span>
+    ([ <span class="methodparam"><span class="type"><a href="language.pseudo-types.html#language.types.callback" class="type callback">callback</a></span> <code class="parameter">$output_callback</code></span>
+   [, <span class="methodparam"><span class="type">int</span> <code class="parameter">$chunk_size</code></span>
+   [, <span class="methodparam"><span class="type">bool</span> <code class="parameter">$erase</code></span>
+  ]]] )</div>
+
+  <p class="para rdfs-comment">
+   此函数将打开输出缓冲。当输出缓冲激活后，脚本将不会输出内容（除http标头外），相反需要输出的内容被存储在内部缓冲区中。
+  </p>
+  <p class="para">
+    内部缓冲区的内容可以用 <span class="function"><a href="function.ob-get-contents.html" class="function">ob_get_contents()</a></span> 函数复制到一个字符串变量中。
+    想要输出存储在内部缓冲区中的内容，可以使用 <span class="function"><a href="function.ob-end-flush.html" class="function">ob_end_flush()</a></span> 函数。另外，
+    使用 <span class="function"><a href="function.ob-end-clean.html" class="function">ob_end_clean()</a></span> 函数会静默丢弃掉缓冲区的内容。
+  </p>
+  <div class="warning"><strong class="warning">Warning</strong>
+   <p class="para">
+    当有正在调用的回调函数时，一些网络服务器（例如Apache）会改变一个脚本的工作目录。
+    你可以在回调函数中再把它改回来，例如 <em>chdir(dirname($_SERVER[&#039;SCRIPT_FILENAME&#039;]))</em> 。
+   </p>
+  </div>
+  <p class="para">
+   输出缓冲区是可堆叠的，这即意谓着，当有一个 <span class="function"><strong>ob_start()</strong></span> 是活跃的时，
+   你可以调用另一个 <span class="function"><strong>ob_start()</strong></span> 。
+   只要确保又正确调用了 <span class="function"><a href="function.ob-end-flush.html" class="function">ob_end_flush()</a></span> 恰当的次数即可。
+   如果有多重输出回调函数是活跃的，输出内容会一直按嵌套的顺序依次通过它们而被过滤。
+  </p>
+ </div>
+
+
+ <div class="refsect1 parameters" id="refsect1-function.ob-start-parameters">
+  <h3 class="title">参数</h3>
+  <p class="para">
+   <dl>
+
+    
+     <dt>
+<code class="parameter">output_callback</code></dt>
+
+     <dd>
+
+      <p class="para">
+       可选参数 <code class="parameter">output_callback</code> 函数可以被指定。 
+       此函数把一个字符串当作参数并返回一个字符串。
+       当输出缓冲区被( <span class="function"><a href="function.ob-flush.html" class="function">ob_flush()</a></span>, <span class="function"><a href="function.ob-clean.html" class="function">ob_clean()</a></span> 或者相似的函数)冲刷（送出）或者被清洗的时候；或者在请求结束之际输出缓冲区内容被冲刷到浏览器的时候该函数将会被调用。 
+       当调用 <code class="parameter">output_callback</code> 时，它将收到输出缓冲区的内容作为参数
+       并预期返回一个新的输出缓冲区作为结果，这个新返回的输出缓冲区内容将被送到浏览器。
+       如果这个 <code class="parameter">output_callback</code> 不是一个可以调用的函数，此函数
+       会返回 <strong><code>FALSE</code></strong> 。
+      </p>
+      <p class="para">
+       如果回调函数有两个参数，第二个参数会由一个位域补充，该位域由
+       <strong><code>PHP_OUTPUT_HANDLER_START</code></strong>,
+       <strong><code>PHP_OUTPUT_HANDLER_CONT</code></strong> 和
+       <strong><code>PHP_OUTPUT_HANDLER_END</code></strong> 组成。
+      </p>
+      <p class="para">
+       如果 <code class="parameter">output_callback</code> 返回 <strong><code>FALSE</code></strong> ，其原来的输入
+       内容被直接送到浏览器。
+      </p>
+      <p class="para">
+       这个参数 <code class="parameter">output_callback</code> 可以通过直接给一个 <strong><code>NULL</code></strong> 
+       值而避开。
+      </p>
+      <p class="para">
+       <span class="function"><a href="function.ob-end-clean.html" class="function">ob_end_clean()</a></span>, <span class="function"><a href="function.ob-end-flush.html" class="function">ob_end_flush()</a></span>,
+       <span class="function"><a href="function.ob-clean.html" class="function">ob_clean()</a></span>, <span class="function"><a href="function.ob-flush.html" class="function">ob_flush()</a></span> and
+       <span class="function"><strong>ob_start()</strong></span> 不能从一个回调函数中调用。
+       如果从回调函数中调用了它们，产生的行为是不明确的。
+       如果想要删除缓冲区的内容，从回调函数中返回一个&quot;&quot; (空字符串)。
+       更不能从一个回调函数中使用像<em>print_r($expression, true)</em> 
+       或<em>highlight_file($filename, true)</em> 一样的输出缓冲函数。   
+      </p>
+      <blockquote class="note"><p><strong class="note">Note</strong>: 
+       <p class="para">
+        在PHP 4.0.4中， <span class="function"><a href="function.ob-gzhandler.html" class="function">ob_gzhandler()</a></span> 被引入是为了简化把gz编码过 
+        数据发送到支持压缩网页的浏览器。
+        <span class="function"><a href="function.ob-gzhandler.html" class="function">ob_gzhandler()</a></span> 会判定浏览器可以接受哪种类型的编码内容，并返回相应
+        的输出。
+       </p>
+      </p></blockquote>
+     </dd>
+
+    
+    
+     <dt>
+<code class="parameter">chunk_size</code></dt>
+
+     <dd>
+
+      <p class="para">
+       如果可选参数 <code class="parameter">chunk_size</code> 被赋值了，在任何一个能引起缓冲区的长度等于
+       或超过 <code class="parameter">chunk_size</code> 的输出操作后，缓冲区都会被刷送。
+       默认值 0 意味着函数仅在最后被调用，其余的特殊值可以将 <code class="parameter">chunk_size</code>
+       从 1 设定到 4096。
+      </p>
+     </dd>
+
+    
+    
+     <dt>
+<code class="parameter">erase</code></dt>
+
+     <dd>
+
+      <p class="para">
+       如果可选参数 <code class="parameter">erase</code> 被赋成 <strong><code>FALSE</code></strong>，直到脚本执行完成缓冲区才被删除。
+       这使得，如果调用了冲刷和清洗（清除）函数，会抛出一个"notice",并返回 <strong><code>FALSE</code></strong> 值。
+      </p>
+     </dd>
+
+    
+   </dl>
+
+  </p>
+ </div>
+
+
+ <div class="refsect1 returnvalues" id="refsect1-function.ob-start-returnvalues">
+  <h3 class="title">返回值</h3>
+  <p class="para">
+   成功时返回 <strong><code>TRUE</code></strong>， 或者在失败时返回 <strong><code>FALSE</code></strong>。
+  </p>
+ </div>
+
+
+ <div class="refsect1 changelog" id="refsect1-function.ob-start-changelog">
+  <h3 class="title">更新日志</h3>
+  <p class="para">
+   <table class="doctable informaltable">
+    
+     <thead>
+      <tr>
+       <th>版本</th>
+       <th>说明</th>
+      </tr>
+
+     </thead>
+
+     <tbody class="tbody">
+      
+      <tr>
+       <td>4.3.2</td>
+       <td>
+        在传递的 <code class="parameter">output_callback</code> 不能被执行时，此函数
+        被改成返回 <strong><code>FALSE</code></strong> 
+       </td>
+      </tr>
+
+      <tr>
+       <td>4.2.0</td>
+       <td>
+        添加了 <code class="parameter">erase</code> 参数。
+       </td>
+      </tr>
+
+     </tbody>
+    
+   </table>
+
+  </p>
+ </div>
+
+
+ <div class="refsect1 examples" id="refsect1-function.ob-start-examples">
+  <h3 class="title">范例</h3>
+  <p class="para">
+   <div class="example" id="example-467">
+    <p><strong>Example #1 用户自定义回调函数的例子</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /><br /></span><span style="color: #007700">function&nbsp;</span><span style="color: #0000BB">callback</span><span style="color: #007700">(</span><span style="color: #0000BB">$buffer</span><span style="color: #007700">)<br />{<br />&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;replace&nbsp;all&nbsp;the&nbsp;apples&nbsp;with&nbsp;oranges<br />&nbsp;&nbsp;</span><span style="color: #007700">return&nbsp;(</span><span style="color: #0000BB">str_replace</span><span style="color: #007700">(</span><span style="color: #DD0000">"apples"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"oranges"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$buffer</span><span style="color: #007700">));<br />}<br /><br /></span><span style="color: #0000BB">ob_start</span><span style="color: #007700">(</span><span style="color: #DD0000">"callback"</span><span style="color: #007700">);<br /><br /></span><span style="color: #0000BB">?&gt;<br /></span>&lt;html&gt;<br />&lt;body&gt;<br />&lt;p&gt;It's&nbsp;like&nbsp;comparing&nbsp;apples&nbsp;to&nbsp;oranges.&lt;/p&gt;<br />&lt;/body&gt;<br />&lt;/html&gt;<br /><span style="color: #0000BB">&lt;?php<br /><br />ob_end_flush</span><span style="color: #007700">();<br /><br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+    <div class="example-contents"><p>以上例程会输出：</p></div>
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+&lt;html&gt;
+&lt;body&gt;
+&lt;p&gt;It&#039;s like comparing oranges to oranges.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</pre></div>
+    </div>
+   </div>
+  </p>
+ </div>
+
+
+ <div class="refsect1 seealso" id="refsect1-function.ob-start-seealso">
+  <h3 class="title">参见</h3>
+  <p class="para">
+   <ul class="simplelist">
+    <li class="member"><span class="function"><a href="function.ob-get-contents.html" class="function" rel="rdfs-seeAlso">ob_get_contents()</a> - 返回输出缓冲区的内容</span></li>
+    <li class="member"><span class="function"><a href="function.ob-end-clean.html" class="function" rel="rdfs-seeAlso">ob_end_clean()</a> - 清空（擦除）缓冲区并关闭输出缓冲</span></li>
+    <li class="member"><span class="function"><a href="function.ob-end-flush.html" class="function" rel="rdfs-seeAlso">ob_end_flush()</a> - 冲刷出（送出）输出缓冲区内容并关闭缓冲</span></li>
+    <li class="member"><span class="function"><a href="function.ob-implicit-flush.html" class="function" rel="rdfs-seeAlso">ob_implicit_flush()</a> - 打开/关闭绝对刷送</span></li>
+    <li class="member"><span class="function"><a href="function.ob-gzhandler.html" class="function" rel="rdfs-seeAlso">ob_gzhandler()</a> - 在ob_start中使用的用来压缩输出缓冲区中内容的回调函数。ob_start callback function to gzip output buffer</span></li>
+    <li class="member"><span class="function"><a href="function.ob-iconv-handler.html" class="function" rel="rdfs-seeAlso">ob_iconv_handler()</a> - 以输出缓冲处理程序转换字符编码</span></li>
+    <li class="member"><span class="function"><a href="function.mb-output-handler.html" class="function" rel="rdfs-seeAlso">mb_output_handler()</a> - 在输出缓冲中转换字符编码的回调函数</span></li>
+    <li class="member"><span class="function"><a href="function.ob-tidyhandler.html" class="function" rel="rdfs-seeAlso">ob_tidyhandler()</a> - ob_start callback function to repair the buffer</span></li>
+   </ul>
+  </p>
+ </div>
+  
+
+</div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="115732""></a>
+  <div class="note">
+   <strong class="user">brad at wpsites dot net</strong>
+   <a href="#115732" class="date">14-Sep-2014 09:06</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+When creating a shortcode i've seen code which uses the callback function however its not always needed as this example demonstrates:<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">wpsites_comment_form_shortcode</span><span class="keyword">() {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">ob_start</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">comment_form</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$cform </span><span class="keyword">= </span><span class="default">ob_get_contents</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">ob_end_clean</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$cform</span><span class="keyword">;<br />
+&nbsp;}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="113536""></a>
+  <div class="note">
+   <strong class="user">Shen</strong>
+   <a href="#113536" class="date">27-Oct-2013 02:21</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+<span class="default">&lt;?php<br />
+ob_start</span><span class="keyword">();<br />
+</span><span class="default">phpinfo</span><span class="keyword">();<br />
+</span><span class="default">$phpinfo </span><span class="keyword">= </span><span class="default">ob_get_contents</span><span class="keyword">();<br />
+</span><span class="default">ob_end_flush</span><span class="keyword">();<br />
+</span><span class="default">$phpinfo </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">'a'</span><span class="keyword">, </span><span class="string">'b'</span><span class="keyword">, </span><span class="default">$phpinfo</span><span class="keyword">);<br />
+echo </span><span class="default">$phpinfo</span><span class="keyword">;<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="113379""></a>
+  <div class="note">
+   <strong class="user">David Spector</strong>
+   <a href="#113379" class="date">04-Oct-2013 05:23</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Function ob_start can capture all normal output, assuming no errors occur. Naturally, the programmer will want to know whether errors can also be caught (that is, captured and logged). The answer is that warnings can be caught along with normal output, but that fatal errors and exceptions break the normal buffering and can only be caught separately. Finally, parsing errors cannot be caught at all, because parsing is done in a first pass before execution begins. Of course, even parsing errors can be caught by running PHP in a separate process and capturing the output of that process.<br />
+<br />
+Here is an example that illustrates all these additional details (see also the comment by Philip at set_error_handler function). Those errors that break buffering can be illustrated by uncommenting their lines.<br />
+<br />
+<span class="default">&lt;?php<br />
+ob_start</span><span class="keyword">(); </span><span class="comment">// Start output buffering<br />
+</span><span class="keyword">function </span><span class="default">exception_handler</span><span class="keyword">(</span><span class="default">$exc</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// Catch thrown exceptions break output buffering<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">exit(</span><span class="string">"Uncaught exception: "</span><span class="keyword">.</span><span class="default">$exc</span><span class="keyword">-&gt;</span><span class="default">getMessage</span><span class="keyword">());<br />
+&nbsp;&nbsp;&nbsp; } </span><span class="comment">// exception_handler<br />
+</span><span class="default">set_exception_handler</span><span class="keyword">(</span><span class="string">'exception_handler'</span><span class="keyword">);<br />
+<br />
+function </span><span class="default">shutdown_function</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// Catch fatal errors that break output buffering<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$error</span><span class="keyword">=</span><span class="default">error_get_last</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">$error</span><span class="keyword">[</span><span class="string">"type"</span><span class="keyword">]==</span><span class="default">E_ERROR</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"Uncaught fatal error: "</span><span class="keyword">.</span><span class="default">$error</span><span class="keyword">[</span><span class="string">"message"</span><span class="keyword">];<br />
+&nbsp;&nbsp;&nbsp; } </span><span class="comment">// shutdown_function<br />
+</span><span class="default">register_shutdown_function</span><span class="keyword">(</span><span class="string">"shutdown_function"</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// Demonstrate normal output<br />
+</span><span class="keyword">echo </span><span class="string">'This is normal output, caught okay'</span><span class="keyword">;<br />
+<br />
+</span><span class="comment">// Demonstrate a warning<br />
+</span><span class="default">$DivisionByZeroWarningCaughtOkay</span><span class="keyword">=</span><span class="default">3</span><span class="keyword">/</span><span class="default">0</span><span class="keyword">;<br />
+<br />
+</span><span class="comment">// Demonstrate a fatal error<br />
+//UndefinedFunctionFatalErrorCanBeCaughtSeparately();<br />
+<br />
+// Demonstrate a parsing error<br />
+//$x=FatalParse@ErrorCannotBeCapturedAtAll<br />
+<br />
+// Complete capturing normal output<br />
+</span><span class="default">$Out</span><span class="keyword">=</span><span class="default">ob_get_contents</span><span class="keyword">();<br />
+</span><span class="default">ob_end_clean</span><span class="keyword">();<br />
+<br />
+</span><span class="comment">// Demonstrate a thrown exception<br />
+//throw new Exception('Exception Can Be Caught Separately');<br />
+<br />
+</span><span class="keyword">echo </span><span class="string">"All captured output:&lt;p&gt;"</span><span class="keyword">.</span><span class="default">$Out</span><span class="keyword">;<br />
+exit(</span><span class="default">0</span><span class="keyword">);<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="112464""></a>
+  <div class="note">
+   <strong class="user">jhlavon</strong>
+   <a href="#112464" class="date">19-Jun-2013 09:47</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+When used in constructor part of class it have to be prefixed by "self::" or by classname, else PHP fails to create buffer.<br />
+<br />
+function __construct ()<br />
+{<br />
+<br />
+$bo = ob_start ("self::callback_ob") ;<br />
+...<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="109088""></a>
+  <div class="note">
+   <strong class="user">me at haravikk dot com</strong>
+   <a href="#109088" class="date">20-Jun-2012 04:26</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I think it's worth noting that while you can't call any output functions such as echo or print from within a callback function, you can still send headers (presumably including cookies, haven't checked). Of course this only works in the first callback, like so:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">function </span><span class="default">myCallback</span><span class="keyword">(</span><span class="default">$buffer</span><span class="keyword">, </span><span class="default">$flags</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">$flags </span><span class="keyword">&amp; </span><span class="default">PHP_OUTPUT_HANDLER_START</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">header</span><span class="keyword">(</span><span class="string">'Server: LastMinuteHeaderServer'</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">ob_start</span><span class="keyword">(</span><span class="string">'myCallback'</span><span class="keyword">);<br />
+echo </span><span class="string">"Hello World!"</span><span class="keyword">;<br />
+</span><span class="default">ob_end_flush</span><span class="keyword">();<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Not the most inspiring example, but in this case the code is able to sneak a last-minute header in before the headers part of the response is sent. This can be handy if you want to avoid replacing header values that are uncertain.<br />
+<br />
+For example if your code may return an image, but you don't want to set content type until you're sure that the image can be sent successfully, you can use the callback to leave the decision right until the very last moment, by which point you're hopefully sure of what's being sent in the HTTP body.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="108853""></a>
+  <div class="note">
+   <strong class="user">mchojrin at gmail dot com</strong>
+   <a href="#108853" class="date">30-May-2012 11:23</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Just a word of warning to those like myself who are upgrading from 5.3. I have a piece of code that used to work:
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+</span><span class="keyword">if ( !</span><span class="default">ob_start</span><span class="keyword">( !</span><span class="default">DEBUGMODE </span><span class="keyword">? </span><span class="string">'ob_gzhandler' </span><span class="keyword">: </span><span class="string">'' </span><span class="keyword">) ) {
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">ob_start</span><span class="keyword">();
+<br />
+}
+<br />
+</span><span class="default">?&gt;
+<br />
+</span>
+<br />
+Which is not working anymore (I get an error like: Warning: ob_start(): function '' not found or invalid function name).
+<br />
+
+<br />
+It's easily fixed though, just changed the '' to a null, like this:
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+</span><span class="keyword">if ( !</span><span class="default">ob_start</span><span class="keyword">( !</span><span class="default">DEBUGMODE </span><span class="keyword">? </span><span class="string">'ob_gzhandler' </span><span class="keyword">: </span><span class="default">null </span><span class="keyword">) ) {
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">ob_start</span><span class="keyword">();
+<br />
+}&nbsp; &nbsp; &nbsp; &nbsp; 
+<br />
+</span><span class="default">?&gt;
+<br />
+</span>
+<br />
+Which preserves the code intention but works :)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="108016""></a>
+  <div class="note">
+   <strong class="user">Filip Dalge</strong>
+   <a href="#108016" class="date">22-Mar-2012 09:24</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+When a fatal error is thrown, PHP will output the current buffer of Output-Control without postprocessing before printing the error message. If you are working with several output control levels, this might not result in the desired behavior.<br />
+<br />
+You can use an output callback handler to handle this and discard the output.<br />
+<br />
+Therefore, use ob_start("ob_error_handler") in connection with the following:<br />
+<br />
+function ob_error_handler($str) {<br />
+&nbsp;&nbsp;&nbsp; $error = error_get_last();<br />
+&nbsp;&nbsp;&nbsp; if ($error &amp;&amp; $error["type"] == E_USER_ERROR || $error["type"] == E_ERROR) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return ini_get("error_prepend_string").<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; "\nFatal error: $error[message] in $error[file] on line $error[line]\n".<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; ini_get("error_append_string");<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; return $str;<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="106275""></a>
+  <div class="note">
+   <strong class="user">loksly at gmail dot com</strong>
+   <a href="#106275" class="date">24-Oct-2011 02:30</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+It's easy to add a function that caches the whole page you're going to generate so resources are saved. I wrote it in a file called "cacheable.php", and I included in each file that I want to be cached. It cannot manage files with ob_start inside.
+<br />
+
+<br />
+Here is the code:
+<br />
+file "cacheable.php":
+<br />
+----------------------------------
+<br />
+<span class="default">&lt;?php
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">global </span><span class="default">$cachefile</span><span class="keyword">;
+<br />
+
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$cachefilename </span><span class="keyword">= </span><span class="default">urlencode</span><span class="keyword">(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'REQUEST_URI'</span><span class="keyword">]).</span><span class="string">"-"</span><span class="keyword">.</span><span class="default">md5</span><span class="keyword">(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'REQUEST_URI'</span><span class="keyword">]);
+<br />
+
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$cachefile </span><span class="keyword">= </span><span class="default">sys_get_temp_dir </span><span class="keyword">().</span><span class="default">DIRECTORY_SEPARATOR</span><span class="keyword">.</span><span class="default">$cachefilename</span><span class="keyword">.</span><span class="string">'.cache'</span><span class="keyword">;
+<br />
+
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// How long to keep cache file?
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$cachetime </span><span class="keyword">= </span><span class="default">60</span><span class="keyword">*</span><span class="default">5</span><span class="keyword">;&nbsp; &nbsp; </span><span class="comment">//5min
+<br />
+
+<br />
+&nbsp;&nbsp;&nbsp; // Is cache file still fresh? If so, serve it.&nbsp; &nbsp; 
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">if (</span><span class="default">file_exists</span><span class="keyword">(</span><span class="default">$cachefile</span><span class="keyword">) &amp;&amp; </span><span class="default">time</span><span class="keyword">() - </span><span class="default">$cachetime </span><span class="keyword">&lt; </span><span class="default">filemtime</span><span class="keyword">(</span><span class="default">$cachefile</span><span class="keyword">)) {
+<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">readfile</span><span class="keyword">(</span><span class="default">$cachefile</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp;&nbsp; exit;
+<br />
+&nbsp;&nbsp;&nbsp; }
+<br />
+
+<br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">cacheOutputtoFile</span><span class="keyword">()
+<br />
+&nbsp;&nbsp;&nbsp; {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; global </span><span class="default">$cachefile</span><span class="keyword">;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$webpage </span><span class="keyword">= </span><span class="default">ob_get_contents</span><span class="keyword">();
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$fp </span><span class="keyword">= </span><span class="default">fopen</span><span class="keyword">(</span><span class="default">$cachefile</span><span class="keyword">, </span><span class="string">'w+'</span><span class="keyword">))
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">flock</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">, </span><span class="default">LOCK_EX</span><span class="keyword">))
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; { </span><span class="comment">// do an exclusive lock
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">ftruncate</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">); </span><span class="comment">// truncate file
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; //compress unnecesary spaces
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$busca </span><span class="keyword">= array(</span><span class="string">'/\&gt;[^\S ]+/s'</span><span class="keyword">,</span><span class="string">'/[^\S ]+\&lt;/s'</span><span class="keyword">,</span><span class="string">'/(\s)+/s'</span><span class="keyword">); 
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$reemplaza </span><span class="keyword">= array(</span><span class="string">'&gt;'</span><span class="keyword">,</span><span class="string">'&lt;'</span><span class="keyword">,</span><span class="string">'\\1'</span><span class="keyword">); 
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$webpage </span><span class="keyword">= </span><span class="default">preg_replace</span><span class="keyword">(</span><span class="default">$busca</span><span class="keyword">, </span><span class="default">$reemplaza</span><span class="keyword">, </span><span class="default">$webpage</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">, </span><span class="default">$webpage</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="default">$webpage</span><span class="keyword">;
+<br />
+&nbsp;&nbsp;&nbsp; }
+<br />
+
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">ob_start</span><span class="keyword">();
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">register_shutdown_function</span><span class="keyword">(</span><span class="string">"cacheOutputtoFile"</span><span class="keyword">);
+<br />
+
+<br />
+</span><span class="comment">//note you must use register_shutdown_function instead of using "cacheOutputtoFile" as parameter of ob_start as socket is already closed when callback function is called, then the client not get the echo $webpage output.
+<br />
+</span><span class="default">?&gt;
+<br />
+</span>
+<br />
+----------------------------------
+<br />
+usage:
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+</span><span class="keyword">require_once(</span><span class="default">realpath</span><span class="keyword">(</span><span class="default">dirname</span><span class="keyword">(</span><span class="default">__FILE__</span><span class="keyword">).</span><span class="default">DIRECTORY_SEPARATOR</span><span class="keyword">).</span><span class="default">DIRECTORY_SEPARATOR</span><span class="keyword">.</span><span class="string">"cacheable.php"</span><span class="keyword">);
+<br />
+</span><span class="default">?&gt;
+<br />
+</span>----------------------------------</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="102317""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#102317" class="date">08-Feb-2011 04:32</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+In case you're in for some readable representation for flags, this is a variant as a private class member:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">foo </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; private function </span><span class="default">getFlagsReadable</span><span class="keyword">(</span><span class="default">$flags</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$flagNames </span><span class="keyword">= array(</span><span class="string">'PHP_OUTPUT_HANDLER_START'</span><span class="keyword">, </span><span class="string">'PHP_OUTPUT_HANDLER_CONT'</span><span class="keyword">, </span><span class="string">'PHP_OUTPUT_HANDLER_END'</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$readable </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach(</span><span class="default">$flagNames </span><span class="keyword">as </span><span class="default">$flagName</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$flags </span><span class="keyword">&amp; </span><span class="default">constant</span><span class="keyword">(</span><span class="default">$flagName</span><span class="keyword">) )<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$readable </span><span class="keyword">.= (</span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$readable</span><span class="keyword">) ? </span><span class="string">' | ' </span><span class="keyword">: </span><span class="string">''</span><span class="keyword">) . </span><span class="default">$flagName<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">;&nbsp; &nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$readable</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="101082""></a>
+  <div class="note">
+   <strong class="user">Chris</strong>
+   <a href="#101082" class="date">25-Nov-2010 01:35</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Careful with while using functions that change headers of a page; that change will not be undone when ending output buffering.<br />
+<br />
+If you for instance have a class that generates an image and sets the appropriate headers, they will still be in place after the end of ob.<br />
+<br />
+For instance:<br />
+<span class="default">&lt;?php<br />
+&nbsp; ob_start</span><span class="keyword">();<br />
+&nbsp; </span><span class="default">myClass</span><span class="keyword">::</span><span class="default">renderPng</span><span class="keyword">(); </span><span class="comment">//header("Content-Type: image/png"); in here<br />
+&nbsp; </span><span class="default">$pngString </span><span class="keyword">= </span><span class="default">ob_get_contents</span><span class="keyword">();<br />
+&nbsp; </span><span class="default">ob_end_clean</span><span class="keyword">();<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+will put the image bytes into $pngString, and set the content type to image/png. Though the image will not be sent to the client, the png header is still in place; if you do html output here, the browser will most likely display "image error, cannot be viewed", at least firefox does.<br />
+<br />
+You need to set the correct image type (text/html) manually in this case.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="94193""></a>
+  <div class="note">
+   <strong class="user">Bitwise</strong>
+   <a href="#94193" class="date">21-Oct-2009 09:41</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+There is no start flag problem. One just has to notice that the second parameter is not a mode but consists of bitwise-OR'ed flags.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">ob_handler</span><span class="keyword">(</span><span class="default">$string</span><span class="keyword">, </span><span class="default">$flags</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; static </span><span class="default">$input </span><span class="keyword">= array();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ( </span><span class="default">$flags </span><span class="keyword">&amp; </span><span class="default">PHP_OUTPUT_HANDLER_START </span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$flags_sent</span><span class="keyword">[] = </span><span class="string">"PHP_OUTPUT_HANDLER_START"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ( </span><span class="default">$flags </span><span class="keyword">&amp; </span><span class="default">PHP_OUTPUT_HANDLER_CONT </span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$flags_sent</span><span class="keyword">[] = </span><span class="string">"PHP_OUTPUT_HANDLER_CONT"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ( </span><span class="default">$flags </span><span class="keyword">&amp; </span><span class="default">PHP_OUTPUT_HANDLER_END </span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$flags_sent</span><span class="keyword">[] = </span><span class="string">"PHP_OUTPUT_HANDLER_END"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$input</span><span class="keyword">[] = </span><span class="default">implode</span><span class="keyword">(</span><span class="string">' | '</span><span class="keyword">, </span><span class="default">$flags_sent</span><span class="keyword">) . </span><span class="string">" (</span><span class="default">$flags</span><span class="string">): </span><span class="default">$string</span><span class="string">&lt;br /&gt;"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$output&nbsp; </span><span class="keyword">= </span><span class="string">"</span><span class="default">$string</span><span class="string">&lt;br /&gt;"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ( </span><span class="default">$flags </span><span class="keyword">&amp; </span><span class="default">PHP_OUTPUT_HANDLER_END </span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$output </span><span class="keyword">.= </span><span class="string">'&lt;br /&gt;'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; foreach(</span><span class="default">$input </span><span class="keyword">as </span><span class="default">$k </span><span class="keyword">=&gt; </span><span class="default">$v</span><span class="keyword">) </span><span class="default">$output </span><span class="keyword">.= </span><span class="string">"</span><span class="default">$k</span><span class="string">: </span><span class="default">$v</span><span class="string">"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$output</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="default">ob_start</span><span class="keyword">(</span><span class="string">'ob_handler'</span><span class="keyword">);<br />
+<br />
+echo </span><span class="string">'flush'</span><span class="keyword">;<br />
+</span><span class="default">ob_flush</span><span class="keyword">();<br />
+<br />
+echo </span><span class="string">'flush 2'</span><span class="keyword">;<br />
+</span><span class="default">ob_flush</span><span class="keyword">();<br />
+<br />
+echo </span><span class="string">'clean'</span><span class="keyword">;<br />
+</span><span class="default">ob_clean</span><span class="keyword">();<br />
+<br />
+echo </span><span class="string">'flush 3'</span><span class="keyword">;<br />
+</span><span class="default">ob_flush</span><span class="keyword">();<br />
+<br />
+echo </span><span class="string">'end flush'</span><span class="keyword">;<br />
+</span><span class="default">ob_end_flush</span><span class="keyword">();<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+flush<br />
+flush 2<br />
+flush 3<br />
+end flush<br />
+<br />
+0: PHP_OUTPUT_HANDLER_START | PHP_OUTPUT_HANDLER_CONT (3): flush<br />
+1: PHP_OUTPUT_HANDLER_CONT (2): flush 2<br />
+2: PHP_OUTPUT_HANDLER_CONT (2): clean<br />
+3: PHP_OUTPUT_HANDLER_CONT (2): flush 3<br />
+4: PHP_OUTPUT_HANDLER_END (4): end flush</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="93633""></a>
+  <div class="note">
+   <strong class="user">clancy hood at gmail dot com</strong>
+   <a href="#93633" class="date">20-Sep-2009 02:31</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+With ob callback: note that the second parameter sent to your method won't help you differentiate between flush calls and calls to ob_clean, but the buffer contents is sent in both cases, so you end up parsing data that isn't going to be used. Also, note that the constant PHP_OUTPUT_HANDLER_START is never actually sent, rather the integer "3" turns up on first flush:<br />
+<span class="default">&lt;?php<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">function </span><span class="default">ob_handler</span><span class="keyword">(</span><span class="default">$string</span><span class="keyword">, </span><span class="default">$flag</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; static </span><span class="default">$input </span><span class="keyword">= array();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$done </span><span class="keyword">= </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; switch(</span><span class="default">$flag</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="default">PHP_OUTPUT_HANDLER_START</span><span class="keyword">:&nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$flag_sent </span><span class="keyword">= </span><span class="string">"PHP_OUTPUT_HANDLER_START (</span><span class="default">$flag</span><span class="string">)"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="default">PHP_OUTPUT_HANDLER_CONT</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$flag_sent </span><span class="keyword">= </span><span class="string">"PHP_OUTPUT_HANDLER_CONT (</span><span class="default">$flag</span><span class="string">)"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="default">PHP_OUTPUT_HANDLER_END</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$done </span><span class="keyword">= </span><span class="default">true</span><span class="keyword">; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$flag_sent </span><span class="keyword">= </span><span class="string">"PHP_OUTPUT_HANDLER_END (</span><span class="default">$flag</span><span class="string">)"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; default:<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$flag_sent </span><span class="keyword">= </span><span class="string">"Flag is not a constant (</span><span class="default">$flag</span><span class="string">)"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$input</span><span class="keyword">[] = </span><span class="string">"</span><span class="default">$flag_sent</span><span class="string">: </span><span class="default">$string</span><span class="string">&lt;br /&gt;"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$output </span><span class="keyword">= </span><span class="string">"</span><span class="default">$string</span><span class="string">&lt;br /&gt;"</span><span class="keyword">; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(!</span><span class="default">$done</span><span class="keyword">) return </span><span class="default">$output</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// print_r($input, 1) causes an error and var_export just doesn't work<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$output </span><span class="keyword">.= </span><span class="string">'&lt;br /&gt;'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach(</span><span class="default">$input </span><span class="keyword">as </span><span class="default">$k</span><span class="keyword">=&gt;</span><span class="default">$v</span><span class="keyword">) </span><span class="default">$output </span><span class="keyword">.= </span><span class="string">"</span><span class="default">$k</span><span class="string">: </span><span class="default">$v</span><span class="string">"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$output</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">ob_start</span><span class="keyword">(</span><span class="string">'ob_handler'</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">'flush'</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">ob_flush</span><span class="keyword">();<br />
+<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">'flush 2'</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">ob_flush</span><span class="keyword">();<br />
+<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">'clean'</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">ob_clean</span><span class="keyword">();<br />
+<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">'flush 3'</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">ob_flush</span><span class="keyword">();<br />
+<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">'end flush'</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">ob_end_flush</span><span class="keyword">();<br />
+</span><span class="default">?&gt;<br />
+</span>?<br />
+flush<br />
+flush 2<br />
+flush 3<br />
+end flush<br />
+<br />
+0: Flag is not a constant (3): flush<br />
+1: PHP_OUTPUT_HANDLER_CONT (2): flush 2<br />
+2: PHP_OUTPUT_HANDLER_CONT (2): clean<br />
+3: PHP_OUTPUT_HANDLER_CONT (2): flush 3<br />
+4: PHP_OUTPUT_HANDLER_END (4): end flush<br />
+<br />
+I suppose the START flag problem *may* be a bug but I'm not able to upgrade before reporting since I must have the same version as my server (I'm on PHP 5.2.6). If anyone has 5.2.11 or other stable version feel free to test/report as you see fit.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="91963""></a>
+  <div class="note">
+   <strong class="user">mariusads at helpedia dot com</strong>
+   <a href="#91963" class="date">03-Jul-2009 12:02</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Make sure the editor you use does not add the UTF8/UTF16 BOM at the start of the scripts if you want to use ob_start("ob_gzhandler"); <br />
+<br />
+If those three characters are present, browsers like Firefox won't be able to decode the pages and will report:<br />
+<br />
+Content Encoding Error<br />
+<br />
+The page you are trying to view cannot be shown because it uses an invalid or unsupported form of compression.<br />
+<br />
+The page you are trying to view cannot be shown because it uses an invalid or unsupported form of compression.<br />
+<br />
+Google Chrome will simply report "Error 2 (net::ERR_FAILED): Unknown error."<br />
+<br />
+With the ob_start command commented out, the page is successfully load and the browser will usually detect the BOM and not show it on the page, so everything's hard to debug.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="90355""></a>
+  <div class="note">
+   <strong class="user">robin</strong>
+   <a href="#90355" class="date">17-Apr-2009 03:53</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+When using brame buffer from time to time, you can see this warning<br />
+Warning: session_start() [function.session-start]: Cannot send session cache limiter - headers already sent<br />
+One of the many reasons may be in bad encoding of document. My experience, the document had header of utf-8 encoding but in fact it was win1252. After reconding to the utf-8 warning has disapeard.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="87895""></a>
+  <div class="note">
+   <strong class="user">cj at ceejayoz dot com</strong>
+   <a href="#87895" class="date">29-Dec-2008 05:45</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Note that since PHP 5.1.x, all objects have their destructors called before the output buffer callback function executes. Thus, globalised objects will not be available as expected in the function.<br />
+<br />
+This is stated to be intended behaviour, per <a href="http://bugs.php.net/bug.php?id=40104" rel="nofollow" target="_blank">http://bugs.php.net/bug.php?id=40104</a></span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="85823""></a>
+  <div class="note">
+   <strong class="user">codextasy at gmail dot com</strong>
+   <a href="#85823" class="date">19-Sep-2008 10:26</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+There is a difference between the documentation and real callback functions invocation.<br />
+Manual says: "The function will be called when ob_end_flush() is called, or when the output buffer is flushed to the browser at the end of the request."<br />
+<br />
+Actually, the callback function, once set by ob_start(), will be called regardless.<br />
+Here are the functions that invoke callback function immediately:<br />
+ob_clean<br />
+ob_end_clean<br />
+ob_end_flush<br />
+ob_flush<br />
+ob_get_clean<br />
+<br />
+BUT only two of them return the result returned by the callback (ob_end_flush, ob_flush), other functions discard it.<br />
+<br />
+At the end of the request, even if none of the functions listed above is called, the callback will be called anyway, and its result will be returned to the browser (well, at least this is corresponding to the manual).<br />
+<br />
+There is one more trick:<br />
+If you set callback function with chunk_size &gt; 1, callback function will be called each time output buffer is equal or exceeds chunk_size and its result will be output to the browser, even if you call any of ob_clean(), ob_end_clean(), ob_get_clean() later, so be aware of this fact.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="84102""></a>
+  <div class="note">
+   <strong class="user">fordiman at gmail dot com</strong>
+   <a href="#84102" class="date">27-Jun-2008 06:35</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Here's a nifty function I use daily.&nbsp; Essentially: include a PHP file - but render its output to a variable, rather than to the buffer.&nbsp; It's also set up to load the script with a variable set, and automagically loads globals into the script's namespace, making it an effective templating scheme.&nbsp; It also has error handling, so that you're not flying blind when using output buffering.<br />
+<br />
+<span class="default">&lt;?php<br />
+$GLOBALS</span><span class="keyword">[</span><span class="string">'BufferedErrors'</span><span class="keyword">]=Array();<br />
+function </span><span class="default">errorParse</span><span class="keyword">(</span><span class="default">$errno</span><span class="keyword">, </span><span class="default">$errstr</span><span class="keyword">, </span><span class="default">$errfile</span><span class="keyword">, </span><span class="default">$errline</span><span class="keyword">, </span><span class="default">$errcontext</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$errorTypes </span><span class="keyword">= Array(<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">E_ERROR </span><span class="keyword">=&gt; </span><span class="string">'Fatal Error'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">E_WARNING </span><span class="keyword">=&gt; </span><span class="string">'Warning'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">E_PARSE </span><span class="keyword">=&gt; </span><span class="string">'Parse Error'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">E_NOTICE </span><span class="keyword">=&gt; </span><span class="string">'Notice'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">E_CORE_ERROR </span><span class="keyword">=&gt; </span><span class="string">'Fatal Core Error'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">E_CORE_WARNING </span><span class="keyword">=&gt; </span><span class="string">'Core Warning'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">E_COMPILE_ERROR </span><span class="keyword">=&gt; </span><span class="string">'Compilation Error'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">E_COMPILE_WARNING </span><span class="keyword">=&gt; </span><span class="string">'Compilation Warning'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">E_USER_ERROR </span><span class="keyword">=&gt; </span><span class="string">'Triggered Error'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">E_USER_WARNING </span><span class="keyword">=&gt; </span><span class="string">'Triggered Warning'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">E_USER_NOTICE </span><span class="keyword">=&gt; </span><span class="string">'Triggered Notice'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">E_STRICT </span><span class="keyword">=&gt; </span><span class="string">'Deprecation Notice'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">E_RECOVERABLE_ERROR </span><span class="keyword">=&gt; </span><span class="string">'Catchable Fatal Error'<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$ret</span><span class="keyword">=(object)Array(<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'number'</span><span class="keyword">=&gt;</span><span class="default">$errno</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'message'</span><span class="keyword">=&gt;</span><span class="default">$errstr</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'file'</span><span class="keyword">=&gt;</span><span class="default">$errfile</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'line'</span><span class="keyword">=&gt;</span><span class="default">$errline</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'context'</span><span class="keyword">=&gt;</span><span class="default">$errcontext</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'type'</span><span class="keyword">=&gt;</span><span class="default">$errorTypes</span><span class="keyword">[</span><span class="default">$errno</span><span class="keyword">]<br />
+&nbsp;&nbsp;&nbsp; );<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$GLOBALS</span><span class="keyword">[</span><span class="string">'BufferedErrors'</span><span class="keyword">][]=</span><span class="default">$ret</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;<br />
+}<br />
+function </span><span class="default">parse</span><span class="keyword">(</span><span class="default">$fileToInclude</span><span class="keyword">, </span><span class="default">$argumentsToFile</span><span class="keyword">=</span><span class="default">false</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$bufferedErrorStack </span><span class="keyword">= </span><span class="default">$GLOBALS</span><span class="keyword">[</span><span class="string">'BufferedErrors'</span><span class="keyword">];<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">set_error_handler</span><span class="keyword">(</span><span class="string">'errorParse'</span><span class="keyword">, </span><span class="default">error_reporting</span><span class="keyword">());<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$GLOBALS</span><span class="keyword">[</span><span class="string">'BufferedErrors'</span><span class="keyword">]=Array();<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; if (!</span><span class="default">file_exists</span><span class="keyword">(</span><span class="default">$fileToInclude</span><span class="keyword">))<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="string">''</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">$argumentsToFile </span><span class="keyword">=== </span><span class="default">false</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$argumentsToFile </span><span class="keyword">= Array();<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$argumentsToFile </span><span class="keyword">= </span><span class="default">array_merge</span><span class="keyword">(</span><span class="default">$GLOBALS</span><span class="keyword">, </span><span class="default">$argumentsToFile</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; foreach (</span><span class="default">$argumentsToFile </span><span class="keyword">as </span><span class="default">$variableName </span><span class="keyword">=&gt; </span><span class="default">$variableValue</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $</span><span class="default">$variableName </span><span class="keyword">= </span><span class="default">$variableValue</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">ob_start</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; include(</span><span class="default">$fileToInclude</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$ret </span><span class="keyword">= </span><span class="default">ob_get_contents</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">ob_end_clean</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">restore_error_handler</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$errors </span><span class="keyword">= </span><span class="default">$GLOBALS</span><span class="keyword">[</span><span class="string">'BufferedErrors'</span><span class="keyword">];<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$GLOBALS</span><span class="keyword">[</span><span class="string">'BufferedErrors'</span><span class="keyword">] = </span><span class="default">$bufferedErrorStack</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">count</span><span class="keyword">(</span><span class="default">$errors</span><span class="keyword">)&gt;</span><span class="default">0</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$ret</span><span class="keyword">.=</span><span class="string">'&lt;ul class="error"&gt;'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach (</span><span class="default">$errors </span><span class="keyword">as </span><span class="default">$error</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$ret</span><span class="keyword">.= <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'&lt;li&gt;'</span><span class="keyword">.<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'&lt;b&gt;'</span><span class="keyword">.</span><span class="default">$error</span><span class="keyword">-&gt;</span><span class="default">type</span><span class="keyword">.</span><span class="string">'&lt;/b&gt;: '</span><span class="keyword">.<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$error</span><span class="keyword">-&gt;</span><span class="default">message</span><span class="keyword">.<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'&lt;blockquote&gt;'</span><span class="keyword">.<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'&lt;i&gt;file&lt;/i&gt;: '</span><span class="keyword">.</span><span class="default">$error</span><span class="keyword">-&gt;</span><span class="default">file</span><span class="keyword">.</span><span class="string">'&lt;br /&gt;'</span><span class="keyword">.<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'&lt;i&gt;line&lt;/i&gt;: '</span><span class="keyword">.</span><span class="default">$error</span><span class="keyword">-&gt;</span><span class="default">line</span><span class="keyword">.<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'&lt;/blockquote&gt;'</span><span class="keyword">.<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'&lt;/li&gt;'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$ret</span><span class="keyword">.=</span><span class="string">'&lt;/ul&gt;'</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$ret</span><span class="keyword">;<br />
+}</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="82356""></a>
+  <div class="note">
+   <strong class="user">coldshine at gmail dot com</strong>
+   <a href="#82356" class="date">07-Apr-2008 08:52</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Referring to dan at roteloftet dot com's comment:<br />
+<br />
+RFC 2616 (HTTP) specifies a "transparent" Content-Encoding, "identity" (§ 3.5), that nicely suits what you tried to do with the (invalid) "None". So this equally working, and it's also RFC-compliant:<br />
+<br />
+<span class="default">&lt;?php<br />
+header</span><span class="keyword">(</span><span class="string">'Content-Encoding: identity'</span><span class="keyword">, </span><span class="default">true</span><span class="keyword">);<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="81667""></a>
+  <div class="note">
+   <strong class="user">dan at roteloftet dot com</strong>
+   <a href="#81667" class="date">09-Mar-2008 11:19</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Some web hosting servers (mine do, at least) have in their php.ini the following setting:<br />
+output_handler = ob_gzhandler<br />
+<br />
+This proved problematic for php-scripts which returns an image or a binary file in general, since there is no way to determine the content length of the compressed file.<br />
+<br />
+Since I spent a lot of time scouring the net searching for a work-around (.htaccess-modifications were out of the picture for various reasons), I found this to work nicely to cancel out the ob_gzhandler specified in the php.ini:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">while (</span><span class="default">ob_get_level</span><span class="keyword">())<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">ob_end_clean</span><span class="keyword">();<br />
+</span><span class="default">header</span><span class="keyword">(</span><span class="string">"Content-Encoding: None"</span><span class="keyword">, </span><span class="default">true</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Put this at the top of the script before anything else is written to the page, and the script result will not be compressed.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="80328""></a>
+  <div class="note">
+   <strong class="user">dale3h</strong>
+   <a href="#80328" class="date">10-Jan-2008 04:06</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Here's a simple way, using register_shutdown_function, to easily maintain your global output filter:<br />
+<br />
+File: outputfilter.inc.php<br />
+<span class="default">&lt;?php<br />
+&nbsp; initOutputFilter</span><span class="keyword">();<br />
+<br />
+&nbsp; function </span><span class="default">initOutputFilter</span><span class="keyword">() {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">ob_start</span><span class="keyword">(</span><span class="string">'cbOutputFilter'</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">register_shutdown_function</span><span class="keyword">(</span><span class="string">'ob_end_flush'</span><span class="keyword">);<br />
+&nbsp; }<br />
+<br />
+&nbsp; function </span><span class="default">cbOutputFilter</span><span class="keyword">(</span><span class="default">$output</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$search&nbsp; </span><span class="keyword">= array(<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="string">'user@domain.com'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="string">'user2@domain.com'</span><span class="keyword">,<br />
+&nbsp;&nbsp;&nbsp; );<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$replace </span><span class="keyword">= array(<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="string">'&lt;img src="/images/nospam001.jpg" border="0" alt="" /&gt;'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="string">'&lt;img src="/images/nospam002.jpg" border="0" alt="" /&gt;'</span><span class="keyword">,<br />
+&nbsp;&nbsp;&nbsp; );<br />
+<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">str_replace</span><span class="keyword">(</span><span class="default">$search</span><span class="keyword">, </span><span class="default">$replace</span><span class="keyword">, </span><span class="default">$output</span><span class="keyword">);<br />
+&nbsp; }<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Just include it in your global file, or in each file you want to filter.<br />
+<br />
+This one in particular replaces any occurrence of "user@domain.com" or "user2@domain.com" with an image (that contains each email respectively), preventing spam bots from picking it up.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="80070""></a>
+  <div class="note">
+   <strong class="user">Eamon Straughn eamon at gizzle dot co dot uk</strong>
+   <a href="#80070" class="date">27-Dec-2007 08:06</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+In regards to below. The best thing to do is create an error handler that catches all non-fatal errors prior and during your ob_start.<br />
+<br />
+works for me all the time. and if there is an error you can format the errors in that script it executed in. From my experience i'm quite sure that would be the most logical choice. wouldn't it? Plus your using objects...Please do think before you can code.<br />
+<br />
+Always plan else you'll be working blind. Anyways ob_start wouldn't exit;<br />
+<br />
+Just plan ahead and anticipate. It's just like driving a car.. Happy new year.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="78662""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#78662" class="date">22-Oct-2007 03:40</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+As a follow up to my previous post :<br />
+(output seems to go to standard ouptput in command&nbsp; line mode even with the use of output buffering (ob_start) )<br />
+<br />
+Setting implicit_flush to false seems to do the trick :<br />
+<br />
+&nbsp;&nbsp; ini_set('implicit_flush',false); // (avoids output even with&nbsp; &nbsp; ob_start, in command line mode)<br />
+&nbsp;&nbsp; ob_start();<br />
+&nbsp;&nbsp; include (realpath(dirname(__FILE__))."/".$template);<br />
+&nbsp;&nbsp; $ret_str.=ob_get_contents();<br />
+&nbsp;&nbsp; ob_end_clean();<br />
+&nbsp;&nbsp; ini_set('implicit_flush',true);<br />
+<br />
+(See :<br />
+Chapter 43. Using PHP from the command line<br />
+)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="78659""></a>
+  <div class="note">
+   <strong class="user">Francois Hill</strong>
+   <a href="#78659" class="date">22-Oct-2007 02:42</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Following clement dot ayme at st dot com 's remark :<br />
+<br />
+In my experience it seems that the output IS buffered, but ALSO sent to the standard output !</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="78599""></a>
+  <div class="note">
+   <strong class="user">Charlie Farrow</strong>
+   <a href="#78599" class="date">18-Oct-2007 06:49</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Under certain freak conditions, when an error ocours perfoming an action on an object that cannot be done (either because the object does not exist or the method does not exist) inside of an ob_start() the script will exit and print everything the current function generates before the error, but nothing else, including no error message.<br />
+<br />
+I am at a loss to why no error message appears and am trying to get a working example for the developers that is simpler than my whole program!<br />
+<br />
+So if you are using ob_start() and you get no output, check your objects.... you have made a mistake on them somewhere. The only trouble is you will not know where as there is no error!!</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="77223""></a>
+  <div class="note">
+   <strong class="user">Asher Haig (ahaig at ridiculouspower dot com)</strong>
+   <a href="#77223" class="date">20-Aug-2007 10:17</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+When a script ends, all buffered output is flushed (this is not a bug: <a href="http://bugs.php.net/bug.php?id=42334&amp;thanks=4" rel="nofollow" target="_blank">http://bugs.php.net/bug.php?id=42334&amp;thanks=4</a>). What happens when the script throws an error (and thus ends) in the middle of an output buffer? The script spits out everything in the buffer before printing the error!<br />
+<br />
+Here is the simplest solution I have been able to find. Put it at the beginning of the error handling function to clear all buffered data and print only the error:<br />
+<br />
+$handlers = ob_list_handlers();<br />
+while ( ! empty($handlers) )&nbsp; &nbsp; {<br />
+&nbsp;&nbsp;&nbsp; ob_end_clean();<br />
+&nbsp;&nbsp;&nbsp; $handlers = ob_list_handlers();<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="74205""></a>
+  <div class="note">
+   <strong class="user">tracey AT archive DOT org</strong>
+   <a href="#74205" class="date">29-Mar-2007 10:01</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Way to make all stdout and stderr write to a log<br />
+from *inside* a php script.<br />
+You simply need to make sure to call elog() every<br />
+once in awhile to get output.<br />
+It's a nice way to "daemonize" a script w.r.t. its logging.<br />
+<br />
+// This allows us to capture all stdout and stderr (and error_log() calls)<br />
+// to this logfile...<br />
+// The "collected output" will be flushed anytime "elog()" is used...<br />
+ini_set("error_log", "/var/log/script.log");<br />
+ob_start();<br />
+<br />
+function elog($str)<br />
+{<br />
+&nbsp; // get anything written to stdout or stderr that did *NOT* use elog()<br />
+&nbsp; // and write it now...<br />
+&nbsp; $writeme = ob_get_contents();<br />
+&nbsp; if ($writeme)<br />
+&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; error_log($writeme);<br />
+&nbsp;&nbsp;&nbsp; ob_end_clean();<br />
+&nbsp;&nbsp;&nbsp; ob_start();<br />
+&nbsp; }<br />
+&nbsp; // now write message this method was called with<br />
+&nbsp; error_log($str);<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="73939""></a>
+  <div class="note">
+   <strong class="user">joebezucha at tlen dot pl</strong>
+   <a href="#73939" class="date">16-Mar-2007 11:05</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Hi, I use those functions for stripping unnecessary chars in my output code...because I have JavaScript placed in outpout code so I don't remove \n\r\t but just replace them with single space (it could cause errors in scripts)<br />
+Function stripBufferSkipTextareaTags skips tags Textarea. It's needed to don't loose \n\r when user edit some content...<br />
+<br />
+sorry for my english ;) <br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">function </span><span class="default">stripBufferSkipTextareaTags</span><span class="keyword">(</span><span class="default">$buffer</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$poz_current </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$poz_end </span><span class="keyword">= </span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$buffer</span><span class="keyword">)-</span><span class="default">1</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">= </span><span class="string">""</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; while (</span><span class="default">$poz_current </span><span class="keyword">&lt; </span><span class="default">$poz_end</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$t_poz_start </span><span class="keyword">= </span><span class="default">stripos</span><span class="keyword">(</span><span class="default">$buffer</span><span class="keyword">, </span><span class="string">"&lt;textarea"</span><span class="keyword">, </span><span class="default">$poz_current</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$t_poz_start </span><span class="keyword">=== </span><span class="default">false</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$buffer_part_2strip </span><span class="keyword">= </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$buffer</span><span class="keyword">, </span><span class="default">$poz_current</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$temp </span><span class="keyword">= </span><span class="default">stripBuffer</span><span class="keyword">(</span><span class="default">$buffer_part_2strip</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">.= </span><span class="default">$temp</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$poz_current </span><span class="keyword">= </span><span class="default">$poz_end</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; else{<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$buffer_part_2strip </span><span class="keyword">= </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$buffer</span><span class="keyword">, </span><span class="default">$poz_current</span><span class="keyword">, </span><span class="default">$t_poz_start</span><span class="keyword">-</span><span class="default">$poz_current</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$temp </span><span class="keyword">= </span><span class="default">stripBuffer</span><span class="keyword">(</span><span class="default">$buffer_part_2strip</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">.= </span><span class="default">$temp</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$t_poz_end </span><span class="keyword">= </span><span class="default">stripos</span><span class="keyword">(</span><span class="default">$buffer</span><span class="keyword">, </span><span class="string">"&lt;/textarea&gt;"</span><span class="keyword">, </span><span class="default">$t_poz_start</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$temp </span><span class="keyword">= </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$buffer</span><span class="keyword">, </span><span class="default">$t_poz_start</span><span class="keyword">, </span><span class="default">$t_poz_end</span><span class="keyword">-</span><span class="default">$t_poz_start</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">.= </span><span class="default">$temp</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$poz_current </span><span class="keyword">= </span><span class="default">$t_poz_end</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$result</span><span class="keyword">;<br />
+}<br />
+<br />
+function </span><span class="default">stripBuffer</span><span class="keyword">(</span><span class="default">$buffer</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// change new lines and tabs to single spaces<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(array(</span><span class="string">"\r\n"</span><span class="keyword">, </span><span class="string">"\r"</span><span class="keyword">, </span><span class="string">"\n"</span><span class="keyword">, </span><span class="string">"\t"</span><span class="keyword">), </span><span class="string">' '</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// multispaces to single...<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">ereg_replace</span><span class="keyword">(</span><span class="string">" {2,}"</span><span class="keyword">, </span><span class="string">' '</span><span class="keyword">,</span><span class="default">$buffer</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// remove single spaces between tags<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">"&gt; &lt;"</span><span class="keyword">, </span><span class="string">"&gt;&lt;"</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// remove single spaces around &amp;nbsp;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">" &amp;nbsp;"</span><span class="keyword">, </span><span class="string">"&amp;nbsp;"</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">"&amp;nbsp; "</span><span class="keyword">, </span><span class="string">"&amp;nbsp;"</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$buffer</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="default">ob_start</span><span class="keyword">(</span><span class="string">"stripBufferSkipTextareaTags"</span><span class="keyword">);<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="73865""></a>
+  <div class="note">
+   <strong class="user">denis at SPAM_WELCOME dot i39 dot ru</strong>
+   <a href="#73865" class="date">13-Mar-2007 03:55</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+This function's behaviour&nbsp; has been changed in php 5.2.0:<br />
+<br />
+&lt;?<br />
+global $AP;<br />
+$AP = new ap;<br />
+ob_start("ob_end");<br />
+<br />
+function ob_end() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; global $AP;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $r = $AP-&gt;test();<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return $r;<br />
+}<br />
+<br />
+class ap {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; function test() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return "debug";<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+}<br />
+?&gt;<br />
+<br />
+In older versions it shows: "debug".<br />
+But latest php version causes error: PHP Fatal error: Call to a member function test() on a non-object.<br />
+And this is not a bug: <a href="http://bugs.php.net/bug.php?id=40104" rel="nofollow" target="_blank">http://bugs.php.net/bug.php?id=40104</a></span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="71953""></a>
+  <div class="note">
+   <strong class="user">Tobias Goldkamp</strong>
+   <a href="#71953" class="date">26-Dec-2006 12:02</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I use this to strip unnecessary characters from HTML output:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">function </span><span class="default">sanitize_output</span><span class="keyword">(</span><span class="default">$buffer</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$search </span><span class="keyword">= array(<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'/\&gt;[^\S ]+/s'</span><span class="keyword">, </span><span class="comment">//strip whitespaces after tags, except space<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'/[^\S ]+\&lt;/s'</span><span class="keyword">, </span><span class="comment">//strip whitespaces before tags, except space<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'/(\s)+/s'&nbsp; </span><span class="comment">// shorten multiple whitespace sequences<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$replace </span><span class="keyword">= array(<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'&gt;'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'&lt;'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'\\1'<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">);<br />
+&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">preg_replace</span><span class="keyword">(</span><span class="default">$search</span><span class="keyword">, </span><span class="default">$replace</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$buffer</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="default">ob_start</span><span class="keyword">(</span><span class="string">"sanitize_output"</span><span class="keyword">);<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="71299""></a>
+  <div class="note">
+   <strong class="user">lucky760 at yahoo dot com</strong>
+   <a href="#71299" class="date">21-Nov-2006 06:20</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Just for simplicity's sake (and because I had to rewrite it for use at <a href="http://www.VideoSift.com anyway" rel="nofollow" target="_blank">http://www.VideoSift.com anyway</a>), here's a very simplified, pre-PHP5 version. Just add one call to dump_css_cache() for each of your CSS files.<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+ob_start</span><span class="keyword">(</span><span class="string">'ob_gzhandler'</span><span class="keyword">);<br />
+<br />
+</span><span class="default">header</span><span class="keyword">(</span><span class="string">'Content-Type: text/css; charset: UTF-8'</span><span class="keyword">);<br />
+</span><span class="default">header</span><span class="keyword">(</span><span class="string">'Cache-Control: must-revalidate'</span><span class="keyword">);<br />
+<br />
+</span><span class="default">$expire_offset </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">; </span><span class="comment">// set to a reaonable interval, say 3600 (1 hr)<br />
+</span><span class="default">header</span><span class="keyword">(</span><span class="string">'Expires: ' </span><span class="keyword">. </span><span class="default">gmdate</span><span class="keyword">(</span><span class="string">'D, d M Y H:i:s'</span><span class="keyword">, </span><span class="default">time</span><span class="keyword">() + </span><span class="default">$expire_offset</span><span class="keyword">) . </span><span class="string">' GMT'</span><span class="keyword">);<br />
+<br />
+function </span><span class="default">css_compress</span><span class="keyword">(</span><span class="default">$buffer</span><span class="keyword">) {<br />
+&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">preg_replace</span><span class="keyword">(</span><span class="string">'!/\*[^*]*\*+([^/][^*]*\*+)*/!'</span><span class="keyword">, </span><span class="string">''</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);</span><span class="comment">// remove comments<br />
+&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(array(</span><span class="string">"\r\n"</span><span class="keyword">, </span><span class="string">"\r"</span><span class="keyword">, </span><span class="string">"\n"</span><span class="keyword">, </span><span class="string">"\t"</span><span class="keyword">, </span><span class="string">'&nbsp; '</span><span class="keyword">), </span><span class="string">''</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);</span><span class="comment">// remove tabs, spaces, newlines, etc.<br />
+&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">'{ '</span><span class="keyword">, </span><span class="string">'{'</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);</span><span class="comment">// remove unnecessary spaces.<br />
+&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">' }'</span><span class="keyword">, </span><span class="string">'}'</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);<br />
+&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">'; '</span><span class="keyword">, </span><span class="string">';'</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);<br />
+&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">', '</span><span class="keyword">, </span><span class="string">','</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);<br />
+&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">' {'</span><span class="keyword">, </span><span class="string">'{'</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);<br />
+&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">'} '</span><span class="keyword">, </span><span class="string">'}'</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);<br />
+&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">': '</span><span class="keyword">, </span><span class="string">':'</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);<br />
+&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">' ,'</span><span class="keyword">, </span><span class="string">','</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);<br />
+&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">' ;'</span><span class="keyword">, </span><span class="string">';'</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);<br />
+&nbsp; return </span><span class="default">$buffer</span><span class="keyword">;<br />
+}<br />
+<br />
+function </span><span class="default">dump_css_cache</span><span class="keyword">(</span><span class="default">$filename</span><span class="keyword">) {<br />
+&nbsp; </span><span class="default">$cwd </span><span class="keyword">= </span><span class="default">getcwd</span><span class="keyword">() . </span><span class="default">DIRECTORY_SEPARATOR</span><span class="keyword">;<br />
+<br />
+&nbsp; </span><span class="default">$stat </span><span class="keyword">= </span><span class="default">stat</span><span class="keyword">(</span><span class="default">$filename</span><span class="keyword">);<br />
+&nbsp; </span><span class="default">$current_cache </span><span class="keyword">= </span><span class="default">$cwd </span><span class="keyword">. </span><span class="string">'.' </span><span class="keyword">. </span><span class="default">$filename </span><span class="keyword">. </span><span class="string">'.' </span><span class="keyword">. </span><span class="default">$stat</span><span class="keyword">[</span><span class="string">'size'</span><span class="keyword">] . </span><span class="string">'-' </span><span class="keyword">. </span><span class="default">$stat</span><span class="keyword">[</span><span class="string">'mtime'</span><span class="keyword">] . </span><span class="string">'.cache'</span><span class="keyword">;<br />
+<br />
+&nbsp; </span><span class="comment">// the cache exists - just dump it<br />
+&nbsp; </span><span class="keyword">if (</span><span class="default">is_file</span><span class="keyword">(</span><span class="default">$current_cache</span><span class="keyword">)) {<br />
+&nbsp;&nbsp;&nbsp; include(</span><span class="default">$current_cache</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; return;<br />
+&nbsp; }<br />
+<br />
+&nbsp; </span><span class="comment">// remove any old, lingering caches for this file<br />
+&nbsp; </span><span class="keyword">if (</span><span class="default">$dead_files </span><span class="keyword">= </span><span class="default">glob</span><span class="keyword">(</span><span class="default">$cwd </span><span class="keyword">. </span><span class="string">'.' </span><span class="keyword">. </span><span class="default">$filename </span><span class="keyword">. </span><span class="string">'.*.cache'</span><span class="keyword">, </span><span class="default">GLOB_NOESCAPE</span><span class="keyword">))<br />
+&nbsp;&nbsp;&nbsp; foreach (</span><span class="default">$dead_files </span><span class="keyword">as </span><span class="default">$dead_file</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">unlink</span><span class="keyword">(</span><span class="default">$dead_file</span><span class="keyword">);<br />
+&nbsp; <br />
+&nbsp; if (!</span><span class="default">function_exists</span><span class="keyword">(</span><span class="string">'file_put_contents'</span><span class="keyword">)) {<br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">file_put_contents</span><span class="keyword">(</span><span class="default">$filename</span><span class="keyword">, </span><span class="default">$contents</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$handle </span><span class="keyword">= </span><span class="default">fopen</span><span class="keyword">(</span><span class="default">$filename</span><span class="keyword">, </span><span class="string">'w'</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$handle</span><span class="keyword">, </span><span class="default">$contents</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$handle</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp; }<br />
+&nbsp; <br />
+&nbsp; </span><span class="default">$cache_contents </span><span class="keyword">= </span><span class="default">css_compress</span><span class="keyword">(</span><span class="default">file_get_contents</span><span class="keyword">(</span><span class="default">$filename</span><span class="keyword">));<br />
+&nbsp; </span><span class="default">file_put_contents</span><span class="keyword">(</span><span class="default">$current_cache</span><span class="keyword">, </span><span class="default">$cache_contents</span><span class="keyword">);<br />
+&nbsp; <br />
+&nbsp; echo </span><span class="default">$cache_contents</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="default">dump_css_cache</span><span class="keyword">(</span><span class="string">'_general.css'</span><span class="keyword">);<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="71298""></a>
+  <div class="note">
+   <strong class="user">lucky760 at yahoo dot com</strong>
+   <a href="#71298" class="date">21-Nov-2006 06:10</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+In extension to the compress() function posted below, here's a nifty little class that improves the idea a bit. Basically, running that compress() function for all your CSS for every single page load is clearly far less than optimal, especially since the styles will change only infrequently at the very worst. <br />
+<br />
+With this class you can simply specify an array of your CSS file names and call dump_style(). The contents of each file are saved in compress()'d form in a cache file that is only recreated when the corresponding source CSS changes.<br />
+<br />
+It's intended for PHP5, but will work identically if you just un-OOP everything and possibly define file_put_contents. <br />
+<br />
+Enjoy!<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+$CSS_FILES </span><span class="keyword">= array(<br />
+&nbsp; </span><span class="string">'_general.css'<br />
+</span><span class="keyword">);<br />
+<br />
+</span><span class="default">$css_cache </span><span class="keyword">= new </span><span class="default">CSSCache</span><span class="keyword">(</span><span class="default">$CSS_FILES</span><span class="keyword">);<br />
+</span><span class="default">$css_cache</span><span class="keyword">-&gt;</span><span class="default">dump_style</span><span class="keyword">();<br />
+<br />
+</span><span class="comment">//<br />
+// class CSSCache<br />
+//<br />
+<br />
+</span><span class="keyword">class </span><span class="default">CSSCache </span><span class="keyword">{<br />
+&nbsp; private </span><span class="default">$filenames </span><span class="keyword">= array();<br />
+&nbsp; private </span><span class="default">$cwd</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp; public function </span><span class="default">__construct</span><span class="keyword">(</span><span class="default">$i_filename_arr</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; if (!</span><span class="default">is_array</span><span class="keyword">(</span><span class="default">$i_filename_arr</span><span class="keyword">))<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$i_filename_arr </span><span class="keyword">= array(</span><span class="default">$i_filename_arr</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filenames </span><span class="keyword">= </span><span class="default">$i_filename_arr</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">cwd </span><span class="keyword">= </span><span class="default">getcwd</span><span class="keyword">() . </span><span class="default">DIRECTORY_SEPARATOR</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">style_changed</span><span class="keyword">())<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$expire </span><span class="keyword">= -</span><span class="default">72000</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; else<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$expire </span><span class="keyword">= </span><span class="default">3200</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">header</span><span class="keyword">(</span><span class="string">'Content-Type: text/css; charset: UTF-8'</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">header</span><span class="keyword">(</span><span class="string">'Cache-Control: must-revalidate'</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">header</span><span class="keyword">(</span><span class="string">'Expires: ' </span><span class="keyword">. </span><span class="default">gmdate</span><span class="keyword">(</span><span class="string">'D, d M Y H:i:s'</span><span class="keyword">, </span><span class="default">time</span><span class="keyword">() + </span><span class="default">$expire</span><span class="keyword">) . </span><span class="string">' GMT'</span><span class="keyword">);<br />
+&nbsp; }<br />
+&nbsp; <br />
+&nbsp; public function </span><span class="default">dump_style</span><span class="keyword">() {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">ob_start</span><span class="keyword">(</span><span class="string">'ob_gzhandler'</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; foreach (</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filenames </span><span class="keyword">as </span><span class="default">$filename</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">dump_cache_contents</span><span class="keyword">(</span><span class="default">$filename</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">ob_end_flush</span><span class="keyword">();<br />
+&nbsp; }<br />
+&nbsp; <br />
+&nbsp;&nbsp;&nbsp; private function </span><span class="default">get_cache_name</span><span class="keyword">(</span><span class="default">$filename</span><span class="keyword">, </span><span class="default">$wildcard </span><span class="keyword">= </span><span class="default">FALSE</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$stat </span><span class="keyword">= </span><span class="default">stat</span><span class="keyword">(</span><span class="default">$filename</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">cwd </span><span class="keyword">. </span><span class="string">'.' </span><span class="keyword">. </span><span class="default">$filename </span><span class="keyword">. </span><span class="string">'.' </span><span class="keyword">. <br />
+&nbsp;&nbsp; &nbsp;&nbsp; (</span><span class="default">$wildcard </span><span class="keyword">? </span><span class="string">'*' </span><span class="keyword">: (</span><span class="default">$stat</span><span class="keyword">[</span><span class="string">'size'</span><span class="keyword">] . </span><span class="string">'-' </span><span class="keyword">. </span><span class="default">$stat</span><span class="keyword">[</span><span class="string">'mtime'</span><span class="keyword">])) . </span><span class="string">'.cache'</span><span class="keyword">;<br />
+&nbsp; }<br />
+&nbsp; <br />
+&nbsp; private function </span><span class="default">style_changed</span><span class="keyword">() {<br />
+&nbsp;&nbsp;&nbsp; foreach (</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filenames </span><span class="keyword">as </span><span class="default">$filename</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; if (!</span><span class="default">is_file</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">get_cache_name</span><span class="keyword">(</span><span class="default">$filename</span><span class="keyword">)))<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">TRUE</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">FALSE</span><span class="keyword">;<br />
+&nbsp; }<br />
+<br />
+&nbsp; private function </span><span class="default">compress</span><span class="keyword">(</span><span class="default">$buffer</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">preg_replace</span><span class="keyword">(</span><span class="string">'!/\*[^*]*\*+([^/][^*]*\*+)*/!'</span><span class="keyword">, </span><span class="string">''</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(array(</span><span class="string">"\r\n"</span><span class="keyword">, </span><span class="string">"\r"</span><span class="keyword">, </span><span class="string">"\n"</span><span class="keyword">, </span><span class="string">"\t"</span><span class="keyword">, </span><span class="string">'&nbsp; '</span><span class="keyword">), </span><span class="string">''</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">'{ '</span><span class="keyword">, </span><span class="string">'{'</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">' }'</span><span class="keyword">, </span><span class="string">'}'</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">'; '</span><span class="keyword">, </span><span class="string">';'</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">', '</span><span class="keyword">, </span><span class="string">','</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">' {'</span><span class="keyword">, </span><span class="string">'{'</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">'} '</span><span class="keyword">, </span><span class="string">'}'</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">': '</span><span class="keyword">, </span><span class="string">':'</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">' ,'</span><span class="keyword">, </span><span class="string">','</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">' ;'</span><span class="keyword">, </span><span class="string">';'</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$buffer</span><span class="keyword">;<br />
+&nbsp; }<br />
+&nbsp; <br />
+&nbsp; private function </span><span class="default">dump_cache_contents</span><span class="keyword">(</span><span class="default">$filename</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$current_cache </span><span class="keyword">= </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">get_cache_name</span><span class="keyword">(</span><span class="default">$filename</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// the cache exists - just dump it<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">if (</span><span class="default">is_file</span><span class="keyword">(</span><span class="default">$current_cache</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; include(</span><span class="default">$current_cache</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp;&nbsp; return;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// remove any old, lingering caches for this file<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">if (</span><span class="default">$dead_files </span><span class="keyword">= </span><span class="default">glob</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">get_cache_name</span><span class="keyword">(</span><span class="default">$filename</span><span class="keyword">, </span><span class="default">TRUE</span><span class="keyword">), </span><span class="default">GLOB_NOESCAPE</span><span class="keyword">))<br />
+&nbsp;&nbsp; &nbsp;&nbsp; foreach (</span><span class="default">$dead_files </span><span class="keyword">as </span><span class="default">$dead_file</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">unlink</span><span class="keyword">(</span><span class="default">$dead_file</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$compressed </span><span class="keyword">= </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">compress</span><span class="keyword">(</span><span class="default">file_get_contents</span><span class="keyword">(</span><span class="default">$filename</span><span class="keyword">));<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">file_put_contents</span><span class="keyword">(</span><span class="default">$current_cache</span><span class="keyword">, </span><span class="default">$compressed</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="default">$compressed</span><span class="keyword">;<br />
+&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="71073""></a>
+  <div class="note">
+   
+   <a href="#71073" class="date">10-Nov-2006 07:34</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I'm sure some of you more brilliant minds could pare this down some more, but using the method found at fiftyfoureleven.com&nbsp; for compressing, I got my 10090-byte stylesheet down to 3536 bytes and then again down to 2713 bytes, by stripping unecessary characters from the stylesheet. 2 ob_start calls and the CSS file is now 73% smaller. YMMV.<br />
+<br />
+<span class="default">&lt;?php<br />
+ob_start</span><span class="keyword">(</span><span class="string">"ob_gzhandler"</span><span class="keyword">);<br />
+</span><span class="default">ob_start</span><span class="keyword">(</span><span class="string">"compress"</span><span class="keyword">);<br />
+</span><span class="default">header</span><span class="keyword">(</span><span class="string">"Content-type: text/css; charset: UTF-8"</span><span class="keyword">);<br />
+</span><span class="default">header</span><span class="keyword">(</span><span class="string">"Cache-Control: must-revalidate"</span><span class="keyword">);<br />
+</span><span class="default">$off </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">; </span><span class="comment"># Set to a reaonable value later, say 3600 (1 hr);<br />
+</span><span class="default">$exp </span><span class="keyword">= </span><span class="string">"Expires: " </span><span class="keyword">. </span><span class="default">gmdate</span><span class="keyword">(</span><span class="string">"D, d M Y H:i:s"</span><span class="keyword">, </span><span class="default">time</span><span class="keyword">() + </span><span class="default">$off</span><span class="keyword">) . </span><span class="string">" GMT"</span><span class="keyword">;<br />
+</span><span class="default">header</span><span class="keyword">(</span><span class="default">$exp</span><span class="keyword">);<br />
+<br />
+function </span><span class="default">compress</span><span class="keyword">(</span><span class="default">$buffer</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">preg_replace</span><span class="keyword">(</span><span class="string">'!/\*[^*]*\*+([^/][^*]*\*+)*/!'</span><span class="keyword">, </span><span class="string">''</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">); </span><span class="comment">// remove comments<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(array(</span><span class="string">"\r\n"</span><span class="keyword">, </span><span class="string">"\r"</span><span class="keyword">, </span><span class="string">"\n"</span><span class="keyword">, </span><span class="string">"\t"</span><span class="keyword">, </span><span class="string">'&nbsp; '</span><span class="keyword">, </span><span class="string">'&nbsp; &nbsp; '</span><span class="keyword">, </span><span class="string">'&nbsp; &nbsp; '</span><span class="keyword">), </span><span class="string">''</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">); </span><span class="comment">// remove tabs, spaces, newlines, etc.<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">'{ '</span><span class="keyword">, </span><span class="string">'{'</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">); </span><span class="comment">// remove unnecessary spaces.<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">' }'</span><span class="keyword">, </span><span class="string">'}'</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">'; '</span><span class="keyword">, </span><span class="string">';'</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">', '</span><span class="keyword">, </span><span class="string">','</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">' {'</span><span class="keyword">, </span><span class="string">'{'</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">'} '</span><span class="keyword">, </span><span class="string">'}'</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">': '</span><span class="keyword">, </span><span class="string">':'</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">' ,'</span><span class="keyword">, </span><span class="string">','</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">' ;'</span><span class="keyword">, </span><span class="string">';'</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$buffer</span><span class="keyword">;<br />
+}<br />
+<br />
+require_once(</span><span class="string">'screen.css'</span><span class="keyword">);<br />
+require_once(</span><span class="string">'layout.css'</span><span class="keyword">);<br />
+require_once(</span><span class="string">'custom.php'</span><span class="keyword">);<br />
+require_once(</span><span class="string">'titles.css'</span><span class="keyword">);<br />
+require_once(</span><span class="string">'bus.css'</span><span class="keyword">);<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="71003""></a>
+  <div class="note">
+   <strong class="user">feedback at realitymedias dot com</strong>
+   <a href="#71003" class="date">08-Nov-2006 12:35</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+PHP Suggests: Some web servers (e.g. Apache) change the working directory of a script when calling the callback function. You can change it back by doing, for example, the following in the callback function: chdir(dirname($_SERVER['SCRIPT_FILENAME']))<br />
+<br />
+The solution provided by PHP, does not function as intended when running PHP as a CGI (on CGI mode (CGI-BUILD (--enable-cgi) and/or CLI)).&nbsp; In such a case, PHP is executed as a CGI-BIN and the web server daemon (e.g. Apache) sees SCRIPT_FILENAME as being the PHPCGI processor, and won't look deeper to find what file the PHPCGI processor is actually running/parsing; therefore the path returned by SCRIPT_FILENAME is wrong (most of the time, containing/ending with "cgi-system/php.cgi").<br />
+<br />
+As SCRIPT_FILENAME is the safest way to proceed, but turns to be wrong in this exact situation; PATH_TRANSLATED is the next safe solution one would turn towards since it is populated with a different mechanism.<br />
+<br />
+It would be correct to develop in the direction if the script filename itself is contained in the SCRIPT_FILENAME path value, then the SCRIPT_FILENAME content is reported correctly. If it is not, using PATH_TRANSLATED is the next logical choice we can use. The best reference in this case would be PHP_SELF as it is populated by PHP itself. Using SCRIPT_NAME as a reference would be an error as it is affected by the same problem (reports cgi-system and/or php.cgi as well).<br />
+<br />
+The following is the revised code and should work on both the non-CGI and the CGI PHP processor types.<br />
+<br />
+<span class="default">&lt;?php<br />
+chdir</span><span class="keyword">(</span><span class="default">dirname</span><span class="keyword">((</span><span class="default">strstr</span><span class="keyword">(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">"SCRIPT_FILENAME"</span><span class="keyword">], </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">"PHP_SELF"</span><span class="keyword">]) <br />
+? </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">"SCRIPT_FILENAME"</span><span class="keyword">] : </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">"PATH_TRANSLATED"</span><span class="keyword">])));<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Or the decomposed code as follows:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">if (</span><span class="default">strstr</span><span class="keyword">(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">"SCRIPT_FILENAME"</span><span class="keyword">], </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">"PHP_SELF"</span><span class="keyword">])) {<br />
+</span><span class="default">$reference </span><span class="keyword">= </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">"SCRIPT_FILENAME"</span><span class="keyword">];<br />
+} else {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$reference </span><span class="keyword">= </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">"PATH_TRANSLATED"</span><span class="keyword">];<br />
+}<br />
+</span><span class="default">chdir</span><span class="keyword">(</span><span class="default">dirname</span><span class="keyword">(</span><span class="default">$reference</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+This has been tested on Apache 1 &amp; 2, PHP 4 &amp; 5 and IIS 5.1</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="70065""></a>
+  <div class="note">
+   <strong class="user">butch at enterpol dot pl</strong>
+   <a href="#70065" class="date">02-Oct-2006 09:04</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+simple code to make phpsession $_GET nice for Valid XHTML 1.0 Transitional :)<br />
+<br />
+function callback($buffer)<br />
+{<br />
+&nbsp; $buffer = str_replace("&amp;PHPSESSID", "&amp;amp;PHPSESSID", $buffer);<br />
+&nbsp; return $buffer;<br />
+}<br />
+<br />
+ob_start("callback");<br />
+<br />
+session_start();</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="66823""></a>
+  <div class="note">
+   <strong class="user">net_navard at yahoo dot com</strong>
+   <a href="#66823" class="date">30-May-2006 04:09</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Hello firends<br />
+<br />
+ob_start() opens a buffer in which all output is stored. So every time you do an echo, the output of that is added to the buffer. When the script finishes running, or you call ob_flush(), that stored output is sent to the browser (and gzipped first if you use ob_gzhandler, which means it downloads faster). <br />
+<br />
+The most common reason to use ob_start is as a way to collect data that would otherwise be sent to the browser.<br />
+<br />
+These are two usages of ob_start():<br />
+<br />
+1-Well, you have more control over the output. Trivial example: say you want to show the user an error message, but the script has already sent some HTML to the browser. It'll look ugly, with a half-rendered page and then an error message. Using the output buffering functions, you can simply delete the buffer and sebuffer and send only the error message, which means it looks all nice and neat buffer and send <br />
+2-The reason output buffering was invented was to create a seamless transfer, from: php engine -&gt; apache -&gt; operating system -&gt; web user<br />
+<br />
+If you make sure each of those use the same buffer size, the system will use less writes, use less system resources and be able to handle more traffic. <br />
+<br />
+With Regards, Hossein</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="61057""></a>
+  <div class="note">
+   <strong class="user">simon</strong>
+   <a href="#61057" class="date">24-Jan-2006 05:51</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Found that variables in class instances we're not being set after the call to ob_start(). <br />
+Call ob_start after the variables are set however and it works but that didn't seem to solve the goal of a self contained templating class.<br />
+The fix was to assign the class by reference with '&amp;new'<br />
+Here is a simplified working example:<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">Buffer </span><span class="keyword">{<br />
+var </span><span class="default">$template </span><span class="keyword">= </span><span class="string">' - template set in class constructor'</span><span class="keyword">;<br />
+function </span><span class="default">Buffer</span><span class="keyword">() { <br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">startBuffer</span><span class="keyword">(); <br />
+}<br />
+function </span><span class="default">startBuffer</span><span class="keyword">() {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">ob_start</span><span class="keyword">(array(&amp;</span><span class="default">$this</span><span class="keyword">, </span><span class="string">'doFlush'</span><span class="keyword">));<br />
+}<br />
+function </span><span class="default">doFlush</span><span class="keyword">(</span><span class="default">$buffer</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">/* simple string concat to show use of a <br />
+&nbsp;&nbsp;&nbsp; template string and the buffer output */<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">return </span><span class="default">$buffer </span><span class="keyword">. </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">template</span><span class="keyword">; <br />
+}<br />
+}<br />
+</span><span class="comment">/* template does not get set:<br />
+$buffer1 = new Buffer();<br />
+$buffer1-&gt;template = ' - template set in instance';<br />
+echo 'some buffer content';<br />
+*/<br />
+/* this works as expected */<br />
+</span><span class="default">$buffer2 </span><span class="keyword">= &amp;new </span><span class="default">Buffer</span><span class="keyword">();<br />
+</span><span class="default">$buffer2</span><span class="keyword">-&gt;</span><span class="default">template </span><span class="keyword">= </span><span class="string">' - template set in instance'</span><span class="keyword">;<br />
+echo </span><span class="string">'some buffer content'</span><span class="keyword">;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="60483""></a>
+  <div class="note">
+   <strong class="user">ernest at vogelsinger dot at</strong>
+   <a href="#60483" class="date">08-Jan-2006 06:57</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+When you rely on URL rewriting to pass the PHP session ID you should be careful with ob_get_contents(), as this might disable URL rewriting completely.<br />
+<br />
+Example:<br />
+ob_start();<br />
+session_start();<br />
+echo '&lt;a href="."&gt;self link&lt;/a&gt;';<br />
+$data = ob_get_contents();<br />
+ob_end_clean();<br />
+echo $data;<br />
+<br />
+In the example above, URL rewriting will never occur. In fact, rewriting would occur if you ended the buffering envelope using ob_end_flush(). It seems to me that rewriting occurs in the very same buffering envelope where the session gets started, not at the final output stage.<br />
+<br />
+If you need a scenario like the one above, using an "inner envelope" will help:<br />
+<br />
+ob_start();<br />
+ob_start();&nbsp;&nbsp; // add the inner buffering envelope<br />
+session_start();<br />
+echo '&lt;a href="."&gt;self link&lt;/a&gt;';<br />
+ob_end_flush(); // closing the inner envelope will activate URL rewriting<br />
+$data = ob_get_contents();<br />
+ob_end_clean();<br />
+echo $data;<br />
+<br />
+In case you're interested or believe like me that this is rather a design flaw instead of a feature, please visit bug #35933 (<a href="http://bugs.php.net/bug.php?id=35933" rel="nofollow" target="_blank">http://bugs.php.net/bug.php?id=35933</a>) and comment on it.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="57854""></a>
+  <div class="note">
+   <strong class="user">cyrille.berliat[no spam]free.fr</strong>
+   <a href="#57854" class="date">17-Oct-2005 12:07</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you're trying to use ob_start() in some PHP5 classes (probably works on PHP4 classes), this is the good way :<br />
+<br />
+&lt;?<br />
+<br />
+class HTMLPage<br />
+{<br />
+//----------------------------------------------------------------- PUBLIC<br />
+<br />
+//----------------------------------------------------- M?thodes publiques<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public static function ConvertIntoSGML( $source )<br />
+&nbsp;&nbsp;&nbsp; // Mode d'emploi :<br />
+&nbsp;&nbsp;&nbsp; //convertit une string en une SGML valide<br />
+&nbsp;&nbsp;&nbsp; //<br />
+&nbsp;&nbsp;&nbsp; // Renvoie :<br />
+&nbsp;&nbsp;&nbsp; //la chaine trait?e<br />
+&nbsp;&nbsp;&nbsp; //<br />
+&nbsp;&nbsp;&nbsp; // Algorithme :<br />
+&nbsp;&nbsp;&nbsp; //analyse char par char de la chaine. Si un caract?re est de nombre ASCII &gt; 127,<br />
+&nbsp;&nbsp;&nbsp; //conversion en son code SGML.<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $newString = '';<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; for( $i = 0; $i &lt; strlen( $source ) ; $i++ ) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $o = ord( $source{ $i } );<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $newString .= ( ( $o &gt; 127 ) ? '&amp;#'.$o.';': $source{ $i } );<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return $newString;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public function FlushSite( $source )<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return $this-&gt;ConvertIntoSGML ( $source );<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+//-------------------------------------------- Constructeurs - destructeur<br />
+&nbsp;&nbsp;&nbsp; function __construct()<br />
+&nbsp;&nbsp;&nbsp; // Mode d'emploi (constructeur) :<br />
+&nbsp;&nbsp;&nbsp; //initialise la buffurisation<br />
+&nbsp;&nbsp;&nbsp; //<br />
+&nbsp;&nbsp;&nbsp; // Contrat :<br />
+&nbsp;&nbsp;&nbsp; //<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; ob_start( array (&nbsp; &amp; $this , 'FlushSite' ) );<br />
+&nbsp;&nbsp;&nbsp; } //---- Fin du constructeur<br />
+&nbsp;&nbsp;&nbsp; <br />
+//------------------------------------------------------ M?thodes Magiques<br />
+<br />
+//------------------------------------------------------------------ PRIVE <br />
+<br />
+}<br />
+<br />
+// Example :<br />
+<br />
+$webdesign = new HTMLPage ( );<br />
+<br />
+echo 'H?llo world'; // Will produce the source 'h&amp;#233;llo world'<br />
+<br />
+?&gt;<br />
+<br />
+Without the &amp; before $this, you'll loose your content because ob_start() will call the flushsite() function from a clone of the object and not the caller object himself.<br />
+<br />
+Note : call_back function must be public because ob_start() is in an extern scope from your class :)<br />
+<br />
+I hope this will help you!</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="56830""></a>
+  <div class="note">
+   <strong class="user">php at bucksvsbytes dot com</strong>
+   <a href="#56830" class="date">16-Sep-2005 07:29</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The following should be added: "If outbut buffering is still active when the script ends, PHP outputs it automatically. In effect, every script ends with ob_end_flush()."</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="56244""></a>
+  <div class="note">
+   <strong class="user">admin at bobfrank dot org</strong>
+   <a href="#56244" class="date">28-Aug-2005 05:50</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you want to run code in the middle of a string that you made, but you want to wait the printing...<br />
+(so if you want to allow php in bb-code style, and you want to execute it in order, and print everything in order...)<br />
+<br />
+phpRun($code) {<br />
+&nbsp;&nbsp;&nbsp; ob_start();<br />
+&nbsp;&nbsp;&nbsp; exec($code);<br />
+&nbsp;&nbsp;&nbsp; $output = ob_get_contents();<br />
+&nbsp;&nbsp;&nbsp; ob_end_clean();<br />
+&nbsp;&nbsp;&nbsp; return $output;<br />
+}<br />
+<br />
+$str = str_replace("]\n", "]", $str);<br />
+$match = array('#\[php\](.*?)\[\/php\]#se');<br />
+$replace = array( phpRun( stripslashes('$1') ) );<br />
+$str= preg_replace($match, $replace, $str);<br />
+<br />
+echo $str;</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="55653""></a>
+  <div class="note">
+   <strong class="user">geoffrey at nevra dot net</strong>
+   <a href="#55653" class="date">09-Aug-2005 09:05</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+When using a callback with ob_start(), functions like ob_get_contents() don't make use of it, use ob_end_flush() instead.<br />
+<br />
+nb: not tested with every ob_* functions, just ob_get_contents() and ob_end_flush()</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="55517""></a>
+  <div class="note">
+   
+   <a href="#55517" class="date">05-Aug-2005 04:54</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I usually create my pages in four parts - variable initialisation, import header (using the variables just declared to configure), main body (mostly non-PHP), import footer.&nbsp; I wondered about making the main body examinable by another PHP script if the main page was included into it.&nbsp; I found I could control output of the main body by ending the header with an unclosed function which finishes at the start of the footer, thus enclosing the main body.&nbsp; Output buffering can then be used to read this into a variable.&nbsp; As a demonstration of how this can be used to control the order of output look at this example:<br />
+<br />
+<span class="default">&lt;?php<br />
+$output </span><span class="keyword">= </span><span class="string">""</span><span class="keyword">;<br />
+<br />
+</span><span class="comment">// Callback to process buffered output<br />
+</span><span class="keyword">function </span><span class="default">capture</span><span class="keyword">(</span><span class="default">$buffer</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$GLOBALS</span><span class="keyword">[</span><span class="string">'output'</span><span class="keyword">] .= </span><span class="default">$buffer</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="string">"C "</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+</span><span class="comment">// Calls the printE() function with output capture<br />
+</span><span class="keyword">function </span><span class="default">captureE</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">ob_start</span><span class="keyword">(</span><span class="string">"capture"</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">printE</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">ob_end_flush</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; }<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+A<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">// Output 'E' (the main body in the example scenario)<br />
+</span><span class="keyword">function </span><span class="default">printE</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; { </span><span class="comment">// (End header after this line) </span><span class="default">?&gt;<br />
+</span>E<br />
+&nbsp;&nbsp;&nbsp; <span class="default">&lt;?php </span><span class="comment">// (Start footer with this line)<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">}<br />
+</span><span class="default">?&gt;<br />
+</span>B<br />
+<span class="default">&lt;?php captureE</span><span class="keyword">(); </span><span class="default">?&gt;<br />
+</span>D<br />
+<span class="default">&lt;?php </span><span class="keyword">print </span><span class="default">$output</span><span class="keyword">; </span><span class="default">?&gt;<br />
+</span>F<br />
+<span class="default">&lt;?php printE</span><span class="keyword">(); </span><span class="default">?&gt;<br />
+</span>G<br />
+<br />
+The output is A B C D E F E G.<br />
+<br />
+For the application I mentioned above there are two points to note:<br />
+&nbsp;- The page when executed alone must output its main body but the inspection script should suppress this, perhaps by means of a variable set before the page is included and then checked for in the footer output lines.<br />
+&nbsp;- Because the main body is now inside a function it has a different namespace, thus changes may be required to prevent code breaking (e.g. use of globals, handling of functions defined within the main body).</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="54582""></a>
+  <div class="note">
+   <strong class="user">oersoep at gmail dot com</strong>
+   <a href="#54582" class="date">08-Jul-2005 02:46</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+These are handy. First one has been mentioned before.<br />
+<br />
+ob_start( array( 'lib_class', 'parse_output' ) );<br />
+ob_start( array( $this, 'parse_output' ) );<br />
+<br />
+Note: $this is NOT a reference. Anything the callback saves or logs disappears in the clone ob_start works with. <br />
+It does enable the callback to work with the attributes of $this, like $this-&gt;ar_tpl_value or whatever your style is.<br />
+<br />
+The manual says:<br />
+"If the optional parameter chunk_size is passed, the callback function is called on every first newline after chunk_size bytes of output. The output_callback parameter may be bypassed by passing a NULL value."<br />
+This doesn't work with my 4.3.11. Might be the Zend optimizer though. Daren't turn it off to go see.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="53173""></a>
+  <div class="note">
+   <strong class="user">Aleksey</strong>
+   <a href="#53173" class="date">25-May-2005 09:08</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+This function dynamically changes title of HTML page:<br />
+<br />
+&nbsp; function change_title($new_title) {<br />
+&nbsp;&nbsp;&nbsp; $output = ob_get_contents();<br />
+&nbsp;&nbsp;&nbsp; ob_end_clean();<br />
+<br />
+&nbsp;&nbsp;&nbsp; $output = preg_replace("/&lt;title&gt;(.*?)&lt;\/title&gt;/", "&lt;title&gt;$new_title&lt;/title&gt;", $output);<br />
+&nbsp;&nbsp;&nbsp; echo $output;<br />
+&nbsp; }<br />
+<br />
+Example:<br />
+&nbsp; ob_start();<br />
+&nbsp; // ... some output<br />
+&nbsp; change_title('NEW TITLE!');</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="53117""></a>
+  <div class="note">
+   <strong class="user">jds1509 at NOSPAMrit dot edu</strong>
+   <a href="#53117" class="date">24-May-2005 04:06</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+This code demonstrates the affect of providing a value to the chunk_size parameter. A value of 1 or 0 will be ignored by php. Here's the Code:<br />
+<br />
+&lt;?<br />
+<br />
+function callback($buffer)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; return "TRAPPED:".$buffer."&lt;br/&gt;";<br />
+}<br />
+<br />
+ob_start("callback",2);<br />
+<br />
+echo "long string, so callback";<br />
+echo "X";<br />
+echo " - no callback, less than 2 chars";<br />
+<br />
+?&gt;newlines,<br />
+but<br />
+no<br />
+callback<br />
+!&lt;?<br />
+<br />
+// PHP block<br />
+<br />
+?&gt;PHP block initiates callback.&lt;?<br />
+<br />
+echo "One more callback at EOF...";<br />
+<br />
+?&gt;<br />
+<br />
+The code above outputs:<br />
+<br />
+TRAPPED:long string, so callback<br />
+TRAPPED:X - no callback, less than 2 chars<br />
+TRAPPED:newlines, but no callback !<br />
+TRAPPED:PHP block initiates callback.<br />
+TRAPPED:One more callback at EOF...<br />
+TRAPPED:</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="52697""></a>
+  <div class="note">
+   <strong class="user">rafa dot chacon at factorydea dot com</strong>
+   <a href="#52697" class="date">10-May-2005 11:10</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you're trying to include a php file inside a loop by require_once (in example, a dinamic email template) and change the value of some variables (in example, url to unsuscribe, different for each user), you should use<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="comment">// ... some code<br />
+<br />
+</span><span class="default">$usermail </span><span class="keyword">= array(</span><span class="string">"email1"</span><span class="keyword">, </span><span class="string">"email2"</span><span class="keyword">, ...);<br />
+<br />
+for(</span><span class="default">$i </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">; </span><span class="default">$i </span><span class="keyword">&lt; </span><span class="default">$MAX</span><span class="keyword">; </span><span class="default">$i</span><span class="keyword">++)<br />
+{<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$usermail_unsuscribe </span><span class="keyword">= </span><span class="default">$usermail</span><span class="keyword">[</span><span class="default">$i</span><span class="keyword">];<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">ob_start</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; include(</span><span class="string">"email_template.php"</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">ob_clean</span><span class="keyword">();<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Otherwise $usermail_unsuscribe will get only "email1" value.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="52652""></a>
+  <div class="note">
+   <strong class="user">JM</strong>
+   <a href="#52652" class="date">08-May-2005 09:17</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I don't claim to understand this--I would have expected the exact opposite--but it seems that <br />
+&nbsp; ob_start() ... ob_end_flush()<br />
+can massively improve perfomance, by at least a factor of 10 (admittedly a small number of samples).<br />
+<br />
+I tried this after discovering that I could move a large (100ms) bottleneck in one of my scripts into<br />
+&nbsp;&nbsp; echo "&lt;!-- about 40 characters of junk --&gt;";<br />
+which clearly shouldn't have taken long to run.<br />
+<br />
+My unfounded theory is that without buffering, the interaction between PHP4.3.4 and Apache is not optimized, whereas with buffering, PHP delivers the entire page at once, which Apache handles better.<br />
+<br />
+I should add that this is under https.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="50488""></a>
+  <div class="note">
+   <strong class="user">Ray Paseur (Paseur ... ImagineDB.com)</strong>
+   <a href="#50488" class="date">01-Mar-2005 10:50</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+You can use PHP to generate a static HTML page.&nbsp; Useful if you have a complex script that, for performance reasons, you do not want site visitors to run repeatedly on demand.&nbsp; A "cron" job can execute the PHP script to create the HTML page.&nbsp; For example:<br />
+<br />
+<span class="default">&lt;?php </span><span class="comment">// CREATE index.html<br />
+&nbsp;&nbsp; </span><span class="default">ob_start</span><span class="keyword">();<br />
+</span><span class="comment">/* PERFORM COMLEX QUERY, ECHO RESULTS, ETC. */<br />
+&nbsp;&nbsp; </span><span class="default">$page </span><span class="keyword">= </span><span class="default">ob_get_contents</span><span class="keyword">();<br />
+&nbsp;&nbsp; </span><span class="default">ob_end_clean</span><span class="keyword">();<br />
+&nbsp;&nbsp; </span><span class="default">$cwd </span><span class="keyword">= </span><span class="default">getcwd</span><span class="keyword">();<br />
+&nbsp;&nbsp; </span><span class="default">$file </span><span class="keyword">= </span><span class="string">"</span><span class="default">$cwd</span><span class="string">" </span><span class="keyword">.</span><span class="string">'/'</span><span class="keyword">. </span><span class="string">"index.html"</span><span class="keyword">;<br />
+&nbsp;&nbsp; @</span><span class="default">chmod</span><span class="keyword">(</span><span class="default">$file</span><span class="keyword">,</span><span class="default">0755</span><span class="keyword">);<br />
+&nbsp;&nbsp; </span><span class="default">$fw </span><span class="keyword">= </span><span class="default">fopen</span><span class="keyword">(</span><span class="default">$file</span><span class="keyword">, </span><span class="string">"w"</span><span class="keyword">);<br />
+&nbsp;&nbsp; </span><span class="default">fputs</span><span class="keyword">(</span><span class="default">$fw</span><span class="keyword">,</span><span class="default">$page</span><span class="keyword">, </span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$page</span><span class="keyword">));<br />
+&nbsp;&nbsp; </span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$fw</span><span class="keyword">);<br />
+&nbsp;&nbsp; die();<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="49951""></a>
+  <div class="note">
+   <strong class="user">eddie</strong>
+   <a href="#49951" class="date">13-Feb-2005 05:09</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I use this function for deleting not needed characters within the html code before sending the whole stuff to the browser.<br />
+<br />
+function callback($buffer){<br />
+&nbsp;&nbsp;&nbsp; $buffer = str_replace("\n", "", $buffer);<br />
+&nbsp;&nbsp;&nbsp; $buffer = str_replace("\t", "", $buffer);<br />
+&nbsp;&nbsp;&nbsp; $buffer = str_replace(chr(13), "", $buffer);<br />
+&nbsp;&nbsp;&nbsp; $buffer = ereg_replace("&lt;!\-\- [\/\ a-zA-Z]* \-\-&gt;", "", $buffer);<br />
+&nbsp;&nbsp;&nbsp; return $buffer;<br />
+}<br />
+<br />
+First str_replace will delete any newlines, second any tabs and the third any carriage return. Finally the regular expression will delete any html-comment which consists of /, space, a-z or A-Z.<br />
+Using this saves about 1kb on every pageload.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="49589""></a>
+  <div class="note">
+   <strong class="user">FB</strong>
+   <a href="#49589" class="date">02-Feb-2005 03:59</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I've noticed a bug with MSIE for non cached contents if your page is less than 4096 octets : you have to refresh the page each time to view its content !<br />
+<br />
+Here is the solution to prevent this stupid behaviour of MSIE : just insert this code at the top of your scripts :<br />
+<br />
+function ob_callback($buffer)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; return $buffer . str_repeat(' ', max(0, 4097 - strlen($buffer)));<br />
+}<br />
+<br />
+ob_start('ob_callback');</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="47370""></a>
+  <div class="note">
+   <strong class="user">aaron at offtone.com</strong>
+   <a href="#47370" class="date">14-Nov-2004 02:19</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+My callback is stored in a function class, and using ob_start ('Class::callback') wasn't working. Not wanting to instantiate the class (no need, it's a function class) I tried this and it worked a charm:<br />
+<br />
+ob_start (array (Class, 'callback'));<br />
+<br />
+PHP 4.3.4</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="46969""></a>
+  <div class="note">
+   <strong class="user">dev at kiwicore dot org</strong>
+   <a href="#46969" class="date">28-Oct-2004 10:49</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I wanted to do things a very particular way with output buffering and shutdown functions; using register_shutdown_function instead of the built in callback feature of this function. However, one should note that this won't work, because the contents of the buffer are no longer in scope when PHP is calling the shutdown functions. This would have been easy to see EXCEPT that PHP graciously flushes any unsent buffers at the end of the script, or when calling exit. So:<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; ob_start</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">'hi'</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; exit;<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Prints "hi". In a nutshell, if you want it to have a shutdown function that handles an output buffer, just specify it in ob_start() and let PHP automatically call it at the end of the script.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="40861""></a>
+  <div class="note">
+   <strong class="user">jkloss at hotmail dot com</strong>
+   <a href="#40861" class="date">17-Mar-2004 04:20</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If ob_start does not seem to be working for you, note that with Apache 2 the flush() function causes PHP to send headers regardless of whether ob_start had been called before flush.<br />
+<br />
+ob_start();<br />
+echo 'test';<br />
+flush();<br />
+<br />
+will cause Apache 2 to send whatever headers may be stacked up - which means you can't use a header(location:xxx) after the flush.&nbsp; To fix, remove the flush().&nbsp; Spent several hours discovering this.&nbsp; Apache 1.x didn't work this way.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="40643""></a>
+  <div class="note">
+   <strong class="user">mjr</strong>
+   <a href="#40643" class="date">10-Mar-2004 06:10</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you're using object-orientated code in PHP you may, like me, want to use a call-back function that is inside an object (i.e. a class function). In this case you send ob_start a two-element array as its single argument. The first element is the name of the object (without the $ at the start), and the second is the function to call. So to use a function 'indent' in an object called '$template' you would use <span class="default">&lt;?php ob_start</span><span class="keyword">(array(</span><span class="string">'template'</span><span class="keyword">, </span><span class="string">'indent'</span><span class="keyword">)); </span><span class="default">?&gt;</span>.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="37648""></a>
+  <div class="note">
+   <strong class="user">ed.oohay (a) suamhcs_rodnan</strong>
+   <a href="#37648" class="date">22-Nov-2003 02:18</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Output Buffering even works in nested scopes or might be applied in recursive structures... thought this might save someone a little time guessing and testing :)<br />
+<br />
+&lt;pre&gt;<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; ob_start</span><span class="keyword">();&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="comment">// start output buffer 1<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">echo </span><span class="string">"a"</span><span class="keyword">;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="comment">// fill ob1<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">ob_start</span><span class="keyword">();&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="comment">// start output buffer 2<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">echo </span><span class="string">"b"</span><span class="keyword">;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="comment">// fill ob2<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$s1 </span><span class="keyword">= </span><span class="default">ob_get_contents</span><span class="keyword">(); </span><span class="comment">// read ob2 ("b")<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">ob_end_flush</span><span class="keyword">();&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="comment">// flush ob2 to ob1<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">echo </span><span class="string">"c"</span><span class="keyword">;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="comment">// continue filling ob1<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$s2 </span><span class="keyword">= </span><span class="default">ob_get_contents</span><span class="keyword">(); </span><span class="comment">// read ob1 ("a" . "b" . "c")<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">ob_end_flush</span><span class="keyword">();&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="comment">// flush ob1 to browser<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; // echoes "b" followed by "abc", as supposed to:<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">echo </span><span class="string">"&lt;HR&gt;</span><span class="default">$s1</span><span class="string">&lt;HR&gt;</span><span class="default">$s2</span><span class="string">&lt;HR&gt;"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; <br />
+</span><span class="default">?&gt;</span>&lt;/pre&gt;<br />
+<br />
+... at least works on Apache 1.3.28<br />
+<br />
+Nandor =)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="28595""></a>
+  <div class="note">
+   <strong class="user">venky_athome at yahoo dot com</strong>
+   <a href="#28595" class="date">17-Jan-2003 06:58</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+IE 55. sp2 and IE6 as on the date of adding this note have problems with content type gzip and caching http headers. The pages are never cached. I think this combination of http headers can also crash the browser. <br />
+<br />
+see <a href="http://support.microsoft.com/default.aspx?scid=kb;en-us;321722" rel="nofollow" target="_blank">http://support.microsoft.com/default.aspx?scid=kb;en-us;321722</a></span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="27432""></a>
+  <div class="note">
+   
+   <a href="#27432" class="date">05-Dec-2002 09:02</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you're using Apache (1.3x or 2.0), you might consider adding automatic compression capability to your delivered pages.<br />
+<br />
+I assume you all know how to build compression classes and use them in your programs, but none has yet to offer the speed and robustness of a binary-compiled module. Furthermore, such modules also log the "compressable" hit in the web log file, thus allowing your favorite web anaysing program to show you reports of bandwidth saved.<br />
+<br />
+Having said that, you might consider the following two modules for Apache:<br />
+<br />
+1) Apache 1.3x: use mod_gzip, available from:<br />
+<a href="http://sourceforge.net/projects/mod-gzip/" rel="nofollow" target="_blank">http://sourceforge.net/projects/mod-gzip/</a><br />
+<br />
+2) Apache 2.x: use mod_gz, see here:<br />
+<a href="http://www.mail-archive.com/dev@httpd.apache.org/msg00734.html" rel="nofollow" target="_blank">http://www.mail-archive.com/dev@httpd.apache.org/msg00734.html</a><br />
+<br />
+3) Apache 1.3x: you may also want to use mod_defalte, from:<br />
+<a href="ftp://ftp.lexa.ru/pub/apache-rus/contrib/" rel="nofollow" target="_blank">ftp://ftp.lexa.ru/pub/apache-rus/contrib/</a><br />
+<br />
+Hope it helps.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="24140""></a>
+  <div class="note">
+   <strong class="user">cliff at NOSPAMtravelguides dot com</strong>
+   <a href="#24140" class="date">08-Aug-2002 12:36</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+good article on output buffering on devshed:
+<br />
+
+<br />
+<a href="http://www.devshed.com/c/a/PHP/Output-Buffering-With-PHP" rel="nofollow" target="_blank">http://www.devshed.com/c/a/PHP/Output-Buffering-With-PHP</a></span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

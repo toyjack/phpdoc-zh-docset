@@ -1,0 +1,145 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>以 Apache 模块安装时</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="security.cgi-bin.shell.html">? 情形四：PHP 解释器放在 web 目录以外</a></li>
+      <li style="float: right;"><a href="security.filesystem.html">文件系统安全 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="security.html">安全</a></li>
+    <li>以 Apache 模块安装时</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="security.apache" class="chapter">
+   <h1>以 Apache 模块安装时</h1>
+
+   <p class="simpara">
+    当 PHP 以 Apache 模块方式安装时，它将继承 Apache
+    用户（通常为"nobody"）的权限。这对安全和认证有一些影响。比如，如果用 PHP
+    来访问数据库，除非数据库有自己的访问控制，否则就要使"nobody"用户可以访问数据库。这意味着恶意的脚本在不用提供用户名和密码时就可能访问和修改数据库。一个
+    web Spider 也完全有可能偶然发现数据库的管理页面，并且删除所有的数据库。可以通过
+    Apache 认证来避免此问题，或者用 LDAP、.htaccess
+    等技术来设计自己的防问模型，并把这些代码作为 PHP 脚本的一部份。
+   </p>
+   <p class="simpara">
+    通常，一但安全性达到可以使 PHP 用户（这里也就是 Apache
+    用户）承担的风险极小的程度时候，可能 PHP
+    已经到了阻止向用户目录写入任何文件或禁止访问和修改数据库的地步了。这就是说，无论是正常的文件还是非正常的文件，无论是正常的数据库事务来是恶意的请求，都会被拒之门外。
+   </p>
+   <p class="simpara">
+    一个常犯的对安全性不利的错误就是让 Apache 拥有 root 权限，或者通过其它途径斌予 Apache 更强大的功能。
+   </p>
+   <p class="simpara">
+    把 Apache 用户的权限提升为 root
+    是极度危险的做法，而且可能会危及到整个系统的安全。所以除非是安全专家，否则决不要考虑使用
+    su，chroot 或者以 root 权限运行。
+   </p>
+   <p class="simpara">
+    除此之外还有一些比较简单的解决方案。比如说可以使用
+    <a href="ini.core.html#ini.open-basedir" class="link">open_basedir</a> 来限制哪些目录可以被
+    PHP 使用。也可以设置
+    Apache 的专属区域，从而把所有的 web 活动都限制到非用户和非系统文件之中。
+   </p>
+  </div>
+<div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="107654""></a>
+  <div class="note">
+   <strong class="user">bk 2 at me dot com</strong>
+   <a href="#107654" class="date">24-Feb-2012 02:17</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+doc_root already limits apache/php script folder locations.<br />
+<br />
+open_basedir is better used to restrict script access to folders<br />
+which do NOT contain scripts. Can be a sub-folder of doc_root as in php doc example doc_root/tmp, but better yet in a separate folder tree, like ~user/open_basedir_root/. Harmful scripts could modify other scripts if doc_root (or include_path) and open_basedir overlap.<br />
+If apache/php can't browse scripts in open_basedir, even if malicious scripts uploaded more bad scripts there, they won't be browse-able (executable). <br />
+<br />
+One should also note that the many shell execute functions are effectively a way to bypass open_basedir limits, and such functions should be disabled if security demands strict folder access control. Harmful scripts can do the unix/windows version of "delete */*/*/*" if allowed to execute native os shell commands via those functions. OS Shell commands could similarly bypass redirect restrictions and upload file restrictions by just brute force copying files into the doc_root tree. It would be nice if they could be disabled as a group or class of functions, but it is still possible to disable them one by one if needed for security.<br />
+<br />
+PS. currently there is a bug whereby the documented setting of open_basedir to docroot/tmp will not work if any include or require statements are done. Right now include will fail if the included php file is not in BOTH the open_basedir tree and the doc_root+include_path trees. Which is the opposite of safe.<br />
+This means by any included php file must be in open_basedir, so is vulnerable to harmful scripts and php viruses like Injektor.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="85091""></a>
+  <div class="note">
+   <strong class="user">Vikanich</strong>
+   <a href="#85091" class="date">14-Aug-2008 01:41</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Big thanks to "daniel dot eckl at gmx dot de" but i have to change his config, because it doesn't work (may be wrong syntax).<br />
+I have add only this string to VirtualHost config and it works.<br />
+php_admin_value open_basedir&nbsp; /www/site1/<br />
+Now all php scripts are locked in the directory.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="57321""></a>
+  <div class="note">
+   <strong class="user">Kibab</strong>
+   <a href="#57321" class="date">30-Sep-2005 03:56</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I'm running Windows version of Apache with php as module. System is Windows XP Service Pack 2 on NTFS filesystem. To avoid potential security problems, I've set Apache to run under NT AUTHORITY\Network Service account, and there is only one directory, named Content, with Full Access for this account. Other directories are either not accessible at all or with readonly permissions (like %systemroot%)... So, even if Apache will be broken, nothing would happen to entire system, because that account doesn't have admin privilegies :)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="24152""></a>
+  <div class="note">
+   <strong class="user">daniel dot eckl at gmx dot de</strong>
+   <a href="#24152" class="date">08-Aug-2002 01:16</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+There is a better solution than starting every virtual host in a seperate instance, which is wasting ressources.<br />
+<br />
+You can set open_basedir dynamically for every virtual host you have, so every PHP script on a virtual host is jailed to its document root.<br />
+<br />
+Example:<br />
+&lt;VirtualHost www.example.com&gt;<br />
+&nbsp; ServerName www.example.com<br />
+&nbsp; DocumentRoot /www-home/example.com<br />
+[...]<br />
+&nbsp; &lt;Location /&gt;<br />
+&nbsp;&nbsp;&nbsp; php_admin_value open_basedir&nbsp; &nbsp;&nbsp; \ "/www-home/example.com/:/usr/lib/php/"<br />
+&nbsp; &lt;/Location&gt;<br />
+&lt;/VirtualHost&gt;<br />
+<br />
+If you set safe_mode on, then the script can only use binaries in given directories (make a special dir only with the binaries your customers may use).<br />
+<br />
+Now no user of a virtual host can read/write/modify the data of another user on your machine.<br />
+<br />
+Windseeker</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

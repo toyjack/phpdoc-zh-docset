@@ -1,0 +1,281 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>常见缺陷</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="features.file-upload.errors.html">? 错误信息说明</a></li>
+      <li style="float: right;"><a href="features.file-upload.multiple.html">上传多个文件 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="features.file-upload.html">文件上传处理</a></li>
+    <li>常见缺陷</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="features.file-upload.common-pitfalls" class="sect1">
+  <h2 class="title">常见缺陷</h2>
+  <p class="simpara">
+   对 <em>MAX_FILE_SIZE</em> 设置的值，不能大于 ini
+   设置中 <a href="ini.core.html#ini.upload-max-filesize" class="link">upload_max_filesize</a>
+   选项设置的值。其默认值为 2M 字节。
+  </p>
+  <p class="simpara">
+   如果内存限制设置被激活，可能需要将
+   <a href="ini.core.html#ini.memory-limit" class="link">memory_limit</a> 设置的更大些，请确认
+   <a href="ini.core.html#ini.memory-limit" class="link">memory_limit</a> 的设置足够的大。
+  </p>
+  <p class="simpara">
+   如果 <a href="info.configuration.html#ini.max-execution-time" class="link">max_execution_time</a>
+   设置的值太小，脚本运行的时间可能会超过该设置。因此，也请保证
+   <em>max_execution_time</em> 足够的大。
+  </p>
+
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <span class="simpara">
+    <a href="info.configuration.html#ini.max-execution-time" class="link">max_execution_time</a>
+    仅仅只影响脚本本身运行的时间。任何其它花费在脚本运行之外的时间，诸如用函数
+    <span class="function"><a href="function.system.html" class="function">system()</a></span> 对系统的调用、<span class="function"><a href="function.sleep.html" class="function">sleep()</a></span>
+    函数的使用、数据库查询、文件上传等，在计算脚本运行的最大时间时都不包括在内。
+   </span>
+  </p></blockquote>
+
+  <div class="warning"><strong class="warning">Warning</strong>
+   <p class="simpara">
+    <a href="info.configuration.html#ini.max-input-time" class="link">max_input_time</a>
+    以秒为单位设定了脚本接收输入的最大时间，包括文件上传。对于较大或多个文件，或者用户的网速较慢时，可能会超过默认的
+    <em>60 秒</em>。
+   </p>
+  </div>
+
+  <p class="simpara">
+   如果 <a href="ini.core.html#ini.post-max-size" class="link">post_max_size</a>
+   设置的值太小，则较大的文件会无法被上传。因此，请保证
+   <em>post_max_size</em> 的值足够的大。
+  </p>
+  <p class="simpara">
+   不对正在操作的文件进行验证可能意味着用户能够访问其它目录下的敏感信息。
+  </p>
+  <p class="simpara">
+   请注意 <span class="productname">CERN httpd</span> 似乎会丢弃它从客户端获得的
+   content-type mime
+   头信息中第一个空格后所有的内容，基于这一点，<span class="productname">CERN httpd</span>
+   不支持文件上传特性。
+  </p>
+  <p class="simpara">
+   鉴于文件路径的表示方法有很多种，我们无法确保用使用各种外语的文件名（尤其是包含空格的）能够被正确的处理。
+  </p>
+  <p class="simpara">
+   开发人员不应将普通的输入字段和文件上传的字段混用同一个表单变量（例如都用
+   <em>foo[]</em>）。
+  </p>
+ </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="95075""></a>
+  <div class="note">
+   <strong class="user">Nirmal Natarajan</strong>
+   <a href="#95075" class="date">12-Dec-2009 05:23</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If using IIS 7.0 or above, the Request Filtering is enabled by default and the max allowed content length is set to 30 MB.<br />
+<br />
+One must change this value if they want to allow file uploads of more than 30 MB.<br />
+<br />
+Sample web.config entry:<br />
+<br />
+&lt;configuration&gt;<br />
+&nbsp;&nbsp;&nbsp; &lt;/system.webServer&gt;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; &lt;security&gt;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &lt;requestFiltering&gt;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &lt;requestLimits maxAllowedContentLength="314572800"/&gt;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &lt;/requestFiltering&gt;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; &lt;/security&gt;<br />
+&nbsp;&nbsp;&nbsp; &lt;/system.webServer&gt;<br />
+&lt;/configuration&gt;<br />
+<br />
+The above setting will allow 300 MB of data to be sent as a request. Hope this helps someone.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="94987""></a>
+  <div class="note">
+   <strong class="user">dg at artegic dot de</strong>
+   <a href="#94987" class="date">07-Dec-2009 08:57</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+In case of non-deterministic occurence of the UPLOAD_ERR_PARTIAL error:&nbsp; The HTTPD (e.g. Apache) should respond with a 'Accept-Ranges: none' header field.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="78182""></a>
+  <div class="note">
+   <strong class="user">anders jenbo pc dk</strong>
+   <a href="#78182" class="date">02-Oct-2007 12:22</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+A responce to admin at creationfarm dot com, Mac OS X and Windows running on a NTFS disk also uses a multi stream file system. Still only the data stream in transfared on http upload. It is preferable to pack Mac OS X files in .dmg files rathere then zip but the avarage user will find zip much easir and they are supported on more platforms.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="71642""></a>
+  <div class="note">
+   <strong class="user">oliver dot schmidt at drehsinn dot de</strong>
+   <a href="#71642" class="date">09-Dec-2006 07:02</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you want to use open_basedir for securing your server (which is highly recommended!!!) remember to add your tmp dir to the open_basedir value in php.ini.<br />
+<br />
+Example: open_basedir = &lt;your htdocs root, etc...&gt;:/tmp<br />
+<br />
+(Tested on gentoo Linux, Apache 2.2, PHP 5.1.6)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="53051""></a>
+  <div class="note">
+   <strong class="user">tjaart at siam-data-services dot com</strong>
+   <a href="#53051" class="date">22-May-2005 10:27</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Took me a while to figure this one out...<br />
+<br />
+I think this is actually a header problem, but it only<br />
+happens when doing a file upload.<br />
+<br />
+If you attept a header("location:<a href="http://..." rel="nofollow" target="_blank">http://...</a>) redirect after<br />
+processing a $_POST[''] from a form doing a file upload<br />
+(i.e. having enctype="multipart/form-data"), the redirect<br />
+doesn't work in IE if you don't have a space between<br />
+location: &amp; http, i.e.<br />
+header("location:<a href="http://..." rel="nofollow" target="_blank">http://...</a>)&nbsp; vs<br />
+header("location: <a href="http://..." rel="nofollow" target="_blank">http://...</a>)<br />
+<br />
+===================================<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">if (</span><span class="default">$_POST</span><span class="keyword">[</span><span class="string">'submit'</span><span class="keyword">]==</span><span class="string">'Upload'</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// Process File and the redirect...<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">header</span><span class="keyword">(</span><span class="string">"location: <a href="http://" rel="nofollow" target="_blank">http://</a>"</span><span class="keyword">...</span><span class="string">"/somewhere.php"</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; exit;<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;<br />
+&lt;form enctype="multipart/form-data" action="upload.php" method="POST"&gt;<br />
+&nbsp;&nbsp;&nbsp; &lt;input type="hidden" name="MAX_FILE_SIZE" value="20000"&gt;<br />
+&nbsp;&nbsp;&nbsp; Your file: &lt;input name="filename" type="file"&gt;<br />
+&nbsp;&nbsp;&nbsp; &lt;input name="submit" type="submit" value="Upload"&gt;<br />
+&lt;/form&gt;<br />
+&lt;/body&gt;&lt;/html&gt;<br />
+===================================<br />
+<br />
+This only happens if all of the following are true:<br />
+header("location:<a href="http://..." rel="nofollow" target="_blank">http://...</a>) with no space<br />
+Form being processed has enctype="multipart/form-data"<br />
+Browser=IE<br />
+<br />
+To fix the problem, simply add the space.<br />
+<br />
+Hope this helps someone else.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="44626""></a>
+  <div class="note">
+   <strong class="user">amalcon _a_t_ eudoramail _d_o_t_ com</strong>
+   <a href="#44626" class="date">11-Aug-2004 11:35</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Note that, when you want to upload VERY large files (or you want to set the limiters VERY high for test purposes), all of the upload file size limiters are stored in signed 32-bit ints.&nbsp; This means that setting a limit higher than about 2.1 GB will result in PHP seeing a large negative number.&nbsp; I have not found any way around this.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="36754""></a>
+  <div class="note">
+   <strong class="user">morganaj at coleggwent dot ac dot uk</strong>
+   <a href="#36754" class="date">21-Oct-2003 06:53</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Here is another that may make your upload fall over.&nbsp; If you are using Squid or similar proxy server make sure that this is not limiting the size of the HTTP headers. This took me weeks to figure out!</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="32855""></a>
+  <div class="note">
+   <strong class="user">tomcashman at unitekgroup dot com</strong>
+   <a href="#32855" class="date">09-Jun-2003 03:59</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+For apache, also check the LimitRequestBody directive.<br />
+If you're running a Red Hat install, this might be set in /etc/httpd/conf.d/php.conf.<br />
+By default, mine was set to 512 KB.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="31615""></a>
+  <div class="note">
+   <strong class="user">sebastian at drozdz dot ch</strong>
+   <a href="#31615" class="date">28-Apr-2003 12:59</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+It's important that the variable 'open_basedir' in php.ini isn't&nbsp; set to a directory that doesn't not includes tempupload directory</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="29151""></a>
+  <div class="note">
+   <strong class="user">admin at creationfarm dot com</strong>
+   <a href="#29151" class="date">04-Feb-2003 05:16</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The macintosh OS (not sure about OSx) uses a dual forked file system, unlike the rest of the world ;-). Every macintosh file has a data fork and a resource fork. When a dual forked file hits a single forked file system, something has to go, and it is the resource fork. This was recognized as a problem (bad idea to begin with) and apple started recomending that developers avoid sticking vital file info in the resource fork portion of a file, but some files are still very sensitive to this. The main ones to watch out for are macintosh font files and executables, once the resource fork is gone from a mac font or an executable it is useless. To protect the files they should be stuffed or zipped prior to upload to protect the resource fork. <br />
+<br />
+Most mac ftp clients (like fetch) allow files to be uploaded in Macbinhex, which will also protect the resource fork when transfering files via ftp. I have not seen this equivilent in any mac browser (but I haven't done too much digging either).<br />
+<br />
+FYI, apple does have an old utility called ResEdit that lets you manipulate the resource fork portion of a file.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

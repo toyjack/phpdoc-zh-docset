@@ -1,0 +1,122 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Buffered and Unbuffered queries</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="mysqlinfo.concepts.html">? Concepts</a></li>
+      <li style="float: right;"><a href="mysqlinfo.concepts.charset.html">Character sets ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="mysqlinfo.concepts.html">Concepts</a></li>
+    <li>Buffered and Unbuffered queries</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="mysqlinfo.concepts.buffering" class="section">
+  <h2 class="title">Buffered and Unbuffered queries</h2>
+  
+  <p class="para">
+   Queries are using the buffered mode by default. This means that query results are 
+   immediately transferred from the MySQL Server to PHP and is then kept  in the memory
+   of the PHP process. This allows additional operations like counting the
+   number of rows, and moving (seeking) the current result pointer. It also allows
+   issuing further queries on the same connection while working on the result set.
+   The downside of the buffered mode is that larger result sets might require
+   quite a lot memory. The memory will be kept occupied till all references to the
+   result set are unset or the result set was explicitly freed, which will automatically
+   happen during request end the latest. The terminology &quot;store result&quot; is also used
+   for buffered mode, as the whole result set is stored at once.
+  </p>
+
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <p class="para">
+    When using libmysqlclient as library PHP&#039;s memory limit won&#039;t count the memory used
+    for result sets unless the data is fetched into PHP variables. With mysqlnd
+    the memory accounted for will include the full result set.
+   </p>
+  </p></blockquote>
+  
+  <p class="para">
+   Unbuffered MySQL queries execute the query and then return a <span class="type"><a href="language.types.resource.html" class="type resource">resource</a></span> while
+   the data is still waiting on the MySQL server for being fetched. This uses less memory
+   on the PHP-side, but can increase the load on the server. Unless the full result set was
+   fetched from the server no further queries can be sent over the same connection. Unbuffered
+   queries can also be referred to as &quot;use result&quot;.
+  </p>
+
+  <p class="para">
+   Following these characteristics buffered queries should be used in cases where you expect
+   only a limited result set or need to know the amount of returned rows before reading all
+   rows. Unbuffered mode should be used when you expect larger results.
+  </p>
+  
+  
+  
+  <p class="para">
+   Because buffered queries are the default, the examples below will demonstrate how to
+   execute unbuffered queries with each API.
+  </p>
+
+  <div class="example" id="example-1595">
+   <p><strong>Example #1 Unbuffered query example: mysqli</strong></p>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$mysqli&nbsp;&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">mysqli</span><span style="color: #007700">(</span><span style="color: #DD0000">"localhost"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"my_user"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"my_password"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"world"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$uresult&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #DD0000">"SELECT&nbsp;Name&nbsp;FROM&nbsp;City"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">MYSQLI_USE_RESULT</span><span style="color: #007700">);<br /><br />if&nbsp;(</span><span style="color: #0000BB">$uresult</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;while&nbsp;(</span><span style="color: #0000BB">$row&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$uresult</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">fetch_assoc</span><span style="color: #007700">())&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #0000BB">$row</span><span style="color: #007700">[</span><span style="color: #DD0000">'Name'</span><span style="color: #007700">]&nbsp;.&nbsp;</span><span style="color: #0000BB">PHP_EOL</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;}<br />}<br /></span><span style="color: #0000BB">$uresult</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">close</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+
+  <div class="example" id="example-1596">
+   <p><strong>Example #2 Unbuffered query example: pdo_mysql</strong></p>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$pdo&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">PDO</span><span style="color: #007700">(</span><span style="color: #DD0000">"mysql:host=localhost;dbname=world"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'my_user'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'my_pass'</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$pdo</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">setAttribute</span><span style="color: #007700">(</span><span style="color: #0000BB">PDO</span><span style="color: #007700">::</span><span style="color: #0000BB">MYSQL_ATTR_USE_BUFFERED_QUERY</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">false</span><span style="color: #007700">);<br /><br /></span><span style="color: #0000BB">$uresult&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$pdo</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #DD0000">"SELECT&nbsp;Name&nbsp;FROM&nbsp;City"</span><span style="color: #007700">);<br />if&nbsp;(</span><span style="color: #0000BB">$uresult</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;while&nbsp;(</span><span style="color: #0000BB">$row&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$uresult</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">fetch</span><span style="color: #007700">(</span><span style="color: #0000BB">PDO</span><span style="color: #007700">::</span><span style="color: #0000BB">FETCH_ASSOC</span><span style="color: #007700">))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #0000BB">$row</span><span style="color: #007700">[</span><span style="color: #DD0000">'Name'</span><span style="color: #007700">]&nbsp;.&nbsp;</span><span style="color: #0000BB">PHP_EOL</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;}<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+
+  <div class="example" id="example-1597">
+   <p><strong>Example #3 Unbuffered query example: mysql</strong></p>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$conn&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">mysql_connect</span><span style="color: #007700">(</span><span style="color: #DD0000">"localhost"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"my_user"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"my_pass"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$db&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">mysql_select_db</span><span style="color: #007700">(</span><span style="color: #DD0000">"world"</span><span style="color: #007700">);<br /><br /></span><span style="color: #0000BB">$uresult&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">mysql_unbuffered_query</span><span style="color: #007700">(</span><span style="color: #DD0000">"SELECT&nbsp;Name&nbsp;FROM&nbsp;City"</span><span style="color: #007700">);<br />if&nbsp;(</span><span style="color: #0000BB">$uresult</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;while&nbsp;(</span><span style="color: #0000BB">$row&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">mysql_fetch_assoc</span><span style="color: #007700">(</span><span style="color: #0000BB">$uresult</span><span style="color: #007700">))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #0000BB">$row</span><span style="color: #007700">[</span><span style="color: #DD0000">'Name'</span><span style="color: #007700">]&nbsp;.&nbsp;</span><span style="color: #0000BB">PHP_EOL</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;}<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+ </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="112738""></a>
+  <div class="note">
+   <strong class="user">debasiss at mindfiresolutions dot com</strong>
+   <a href="#112738" class="date">18-Jul-2013 11:25</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+mysql_unbuffered_query() is no more supporting, so only option is MySQLi or PDO</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

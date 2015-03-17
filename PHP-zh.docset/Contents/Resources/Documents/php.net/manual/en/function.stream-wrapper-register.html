@@ -1,0 +1,675 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>注册一个用 PHP 类实现的 URL 封装协议</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="function.stream-supports-lock.html">? stream_supports_lock</a></li>
+      <li style="float: right;"><a href="function.stream-wrapper-restore.html">stream_wrapper_restore ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="ref.stream.html">Stream 函数</a></li>
+    <li>注册一个用 PHP 类实现的 URL 封装协议</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="function.stream-wrapper-register" class="refentry">
+   <div class="refnamediv">
+    <h1 class="refname">stream_register_wrapper</h1>
+    <p class="verinfo">(PHP 4 &gt;= 4.3.0, PHP 5)</p><p class="refpurpose"><span class="refname">stream_register_wrapper</span> &mdash; <span class="dc-title">注册一个用 PHP 类实现的 URL 封装协议</span></p>
+
+   </div>
+   <div class="refsect1 unknown-seealsp" id="refsect1-function.stream-wrapper-register-unknown-seealsp">
+    <h3 class="title">说明</h3>
+    <div class="methodsynopsis dc-description">
+     <span class="type">boolean</span> <span class="methodname"><strong>stream_register_wrapper</strong></span>
+      ( <span class="methodparam"><span class="type">string</span> <code class="parameter">$protocol</code></span>
+     , <span class="methodparam"><span class="type">string</span> <code class="parameter">$classname</code></span>
+     )</div>
+
+    <p class="para rdfs-comment">
+     <span class="function"><strong>stream_register_wrapper()</strong></span>
+     允许用户实现自定义的协议处理器和流，用于所有其它的文件系统函数中（例如
+     <span class="function"><a href="function.fopen.html" class="function">fopen()</a></span>，<span class="function"><a href="function.fread.html" class="function">fread()</a></span> 等）。
+    </p>
+    <p class="para">
+     要实现一个封装协议，需要按照如下定义声明一个包含有一些函数的类。当有人对你的流使用
+     fopen 时，PHP 将创建一个 <code class="parameter">classname</code>
+     的实例并调用该实例的方法。必须严格按照如下的描述实现方法 - 否则将导致不明确的行为。
+    </p>
+    <p class="para">
+     如果 <code class="parameter">protocol</code>
+     已经有了处理协议，则 <span class="function"><strong>stream_register_wrapper()</strong></span>
+     将返回 <strong><code>FALSE</code></strong>。
+    </p>
+
+    <div class="methodsynopsis dc-description">
+     <span class="type">boolean</span> <span class="methodname"><strong>stream_open</strong></span>
+      ( <span class="methodparam"><span class="type">string</span> <code class="parameter">$path</code></span>
+     , <span class="methodparam"><span class="type">string</span> <code class="parameter">$mode</code></span>
+     , <span class="methodparam"><span class="type">int</span> <code class="parameter">$options</code></span>
+     , <span class="methodparam"><span class="type">string</span> <code class="parameter">$opened_path</code></span>
+     )</div>
+
+    <p class="para rdfs-comment">
+     当你的流对象被创建之后立即会调用此方法。<code class="parameter">path</code>
+     指定了传入 <span class="function"><a href="function.fopen.html" class="function">fopen()</a></span> 以及此对象需要取回的 URL。可以用
+     <span class="function"><a href="function.parse-url.html" class="function">parse_url()</a></span> 来将此 URL 分割成几部分。
+    </p>
+    <p class="para">
+     <code class="parameter">mode</code> 用来打开文件的模式，和
+     <span class="function"><a href="function.fopen.html" class="function">fopen()</a></span> 中的一样。你有责任检查
+     <code class="parameter">mode</code> 对于所请求的
+     <code class="parameter">path</code> 是否合法。
+    </p>
+    <p class="para">
+     <code class="parameter">options</code> 保存了通过流 API
+     设定的附加标志。可以保存以下一个值或者用 OR 合并的多个值。
+     <table class="doctable informaltable">
+      
+       <thead>
+        <tr>
+         <th>标志</th>
+         <th>说明</th>
+        </tr>
+
+       </thead>
+
+       <tbody class="tbody">
+        <tr>
+         <td>STREAM_USE_PATH</td>
+         <td>如果 <code class="parameter">path</code> 是相对路径，则用
+         include_path 搜索资源。
+         </td>
+        </tr>
+
+        <tr>
+         <td>STREAM_REPORT_ERRORS</td>
+         <td>如果设定了本标志，你有责任在打开流时用 <span class="function"><a href="function.trigger-error.html" class="function">trigger_error()</a></span>
+         来唤起错误。如果没有设定这个标志，那么你不需要唤起任何错误。
+         </td>
+        </tr>
+
+       </tbody>
+      
+     </table>
+
+    </p>
+    <p class="para">
+     如果成功打开了 <code class="parameter">path</code>，并且在 <code class="parameter">options</code>
+     中设定了 STREAM_USE_PATH，你需要将 <code class="parameter">opened_path</code>
+     设定为实际被打开的文件／资源的完整路径。
+    </p>
+    <p class="para">
+     如果成功打开了所请求的资源，应该返回
+     <strong><code>TRUE</code></strong>，否则返回 <strong><code>FALSE</code></strong>。
+    </p>
+
+    <div class="methodsynopsis dc-description">
+     <span class="type"><span class="type void">void</span></span> <span class="methodname"><strong>stream_close</strong></span>
+      ( <span class="methodparam"><span class="type"><span class="type void">void</span></span></span>
+     )</div>
+
+    <p class="para rdfs-comment">
+     本方法在流关闭时被调用，使用
+     <span class="function"><a href="function.fclose.html" class="function">fclose()</a></span>。必须释放被流锁定或分配的任何资源。
+    </p>
+
+    <div class="methodsynopsis dc-description">
+     <span class="type">string</span> <span class="methodname"><strong>stream_read</strong></span>
+      ( <span class="methodparam"><span class="type">int</span> <code class="parameter">$count</code></span>
+     )</div>
+
+    <p class="para rdfs-comment">
+     当对流进行 <span class="function"><a href="function.fread.html" class="function">fread()</a></span> 和 <span class="function"><a href="function.fgets.html" class="function">fgets()</a></span> 
+     操作时本方法被调用。必须从当前读写位置以字符串返回最多
+     <code class="parameter">count</code> 字节的数据。如果可用数据少于 <code class="parameter">count</code>
+     字节，则返回尽可能多的数据。如果没有可供返回的数据，返回 <strong><code>FALSE</code></strong>
+     或者空字符串。必须用成功读取的字节数去更新流的读写位置。
+    </p>
+
+    <div class="methodsynopsis dc-description">
+     <span class="type">int</span> <span class="methodname"><strong>stream_write</strong></span>
+      ( <span class="methodparam"><span class="type">string</span> <code class="parameter">$data</code></span>
+     )</div>
+
+    <p class="para rdfs-comment">
+     当对流进行 <span class="function"><a href="function.fwrite.html" class="function">fwrite()</a></span>
+     操作时本方法被调用。必须将 <code class="parameter">data</code>
+     储存到你的流使用的底层存储空间去。如果没有足够的空间了，则试着保存尽可能多的字节。应该返回成功被保存入流的字节数，或者没有保存时返回
+     0。必须用成功写入的字节数去更新流的读写位置。
+    </p>
+   
+    <div class="methodsynopsis dc-description">
+     <span class="type">boolean</span> <span class="methodname"><strong>stream_eof</strong></span>
+      ( <span class="methodparam"><span class="type"><span class="type void">void</span></span></span>
+     )</div>
+
+    <p class="para rdfs-comment">
+     当对流进行 <span class="function"><a href="function.feof.html" class="function">feof()</a></span>
+     操作时本方法被调用。如果读写位置到了流的尽头或者没有更多数据可读时返回
+     <strong><code>TRUE</code></strong>，否则返回 <strong><code>FALSE</code></strong>。
+    </p>
+
+    <div class="methodsynopsis dc-description">
+     <span class="type">int</span> <span class="methodname"><strong>stream_tell</strong></span>
+      ( <span class="methodparam"><span class="type"><span class="type void">void</span></span></span>
+     )</div>
+
+    <p class="para rdfs-comment">
+     当对流进行 <span class="function"><a href="function.ftell.html" class="function">ftell()</a></span>
+     操作时本方法被调用。应该返回流的当前读写位置。
+    </p>
+
+    <div class="methodsynopsis dc-description">
+     <span class="type">boolean</span> <span class="methodname"><strong>stream_seek</strong></span>
+      ( <span class="methodparam"><span class="type">int</span> <code class="parameter">$offset</code></span>
+     , <span class="methodparam"><span class="type">int</span> <code class="parameter">$whence</code></span>
+     )</div>
+
+    <p class="para rdfs-comment">
+     当对流进行 <span class="function"><a href="function.fseek.html" class="function">fseek()</a></span>
+     操作时本方法被调用。应该根据 <code class="parameter">offset</code> 和
+     <code class="parameter">whence</code> 来更新流的读写位置。这些参数的更多信息见
+     <span class="function"><a href="function.fseek.html" class="function">fseek()</a></span>。如果位置成功更新了则返回 <strong><code>TRUE</code></strong>，否则返回 <strong><code>FALSE</code></strong>。
+    </p>
+
+    <div class="methodsynopsis dc-description">
+     <span class="type">boolean</span> <span class="methodname"><strong>stream_flush</strong></span>
+      ( <span class="methodparam"><span class="type"><span class="type void">void</span></span></span>
+     )</div>
+
+    <p class="para rdfs-comment">
+     当对流进行 <span class="function"><a href="function.fflush.html" class="function">fflush()</a></span>
+     操作时本方法被调用。如果你在流中缓存了数据还没有写入底层存储空间时，那现在应该做了。如果缓存数据被成功保存（或没有数据可供保存）时返回
+     <strong><code>TRUE</code></strong>，当数据无法被保存时返回 <strong><code>FALSE</code></strong>。
+    </p>
+
+    <p class="para">
+     下面的例子实现了一个 var://
+     协议处理器，可以允许使用标准的文件系统流函数来对指定的全局变量进行读写操作，例如
+     <span class="function"><a href="function.fread.html" class="function">fread()</a></span>。var:// 协议的实现如下，给出
+     url &quot;var://foo&quot; 将可以读写 $GLOBALS[&quot;foo&quot;]。
+
+     <div class="example" id="example-4063"> 
+      <p><strong>Example #1 读写全局变量的流</strong></p>
+      <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+class&nbsp;VariableStream&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;var&nbsp;$position;<br />&nbsp;&nbsp;&nbsp;&nbsp;var&nbsp;$varname;<br />&nbsp;&nbsp;&nbsp;<br />&nbsp;&nbsp;&nbsp;&nbsp;function&nbsp;stream_open($path,&nbsp;$mode,&nbsp;$options,&nbsp;&amp;$opened_path)<br />&nbsp;&nbsp;&nbsp;&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$url&nbsp;=&nbsp;parse_url($path);<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$this-&gt;varname&nbsp;=&nbsp;$url["host"];<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$this-&gt;position&nbsp;=&nbsp;0;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;true;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;function&nbsp;stream_read($count)<br />&nbsp;&nbsp;&nbsp;&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$ret&nbsp;=&nbsp;substr($GLOBALS[$this-&gt;varname],&nbsp;$this-&gt;position,&nbsp;$count);<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$this-&gt;position&nbsp;+=&nbsp;strlen($ret);<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;$ret;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;function&nbsp;stream_write($data)<br />&nbsp;&nbsp;&nbsp;&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$left&nbsp;=&nbsp;substr($GLOBALS[$this-&gt;varname],&nbsp;0,&nbsp;$this-&gt;position);<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$right&nbsp;=&nbsp;substr($GLOBALS[$this-&gt;varname],&nbsp;$this-&gt;position&nbsp;+&nbsp;strlen($data));<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$GLOBALS[$this-&gt;varname]&nbsp;=&nbsp;$left&nbsp;.&nbsp;$data&nbsp;.&nbsp;$right;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$this-&gt;position&nbsp;+=&nbsp;strlen($data);<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;strlen($data);<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;function&nbsp;stream_tell()<br />&nbsp;&nbsp;&nbsp;&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;$this-&gt;position;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;function&nbsp;stream_eof()<br />&nbsp;&nbsp;&nbsp;&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;$this-&gt;position&nbsp;&gt;=&nbsp;strlen($GLOBALS[$this-&gt;varname]);<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;function&nbsp;stream_seek($offset,&nbsp;$whence)<br />&nbsp;&nbsp;&nbsp;&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;switch($whence)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case&nbsp;SEEK_SET:<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;($offset&nbsp;&lt;&nbsp;strlen($GLOBALS[$this-&gt;varname])&nbsp;&amp;&amp;&nbsp;$offset&nbsp;&gt;=&nbsp;0)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$this-&gt;position&nbsp;=&nbsp;$offset;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;true;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;else&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;false;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case&nbsp;SEEK_CUR:<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;($offset&nbsp;&gt;=&nbsp;0)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$this-&gt;position&nbsp;+=&nbsp;$offset;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;true;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;else&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;false;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case&nbsp;SEEK_END:<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(strlen($GLOBALS[$this-&gt;varname])&nbsp;+&nbsp;$offset&nbsp;&gt;=&nbsp;0)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$this-&gt;position&nbsp;=&nbsp;strlen($GLOBALS[$this-&gt;varname])&nbsp;+&nbsp;$offset;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;true;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;else&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;false;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;default:<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;false;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br />stream_register_wrapper("var",&nbsp;"VariableStream")<br />&nbsp;&nbsp;&nbsp;&nbsp;or&nbsp;die("Failed&nbsp;to&nbsp;register&nbsp;protocol");<br /><br />$myvar&nbsp;=&nbsp;"";<br />&nbsp;&nbsp;&nbsp;&nbsp;<br />$fp&nbsp;=&nbsp;fopen("var://myvar",&nbsp;"r+");<br /><br />fwrite($fp,&nbsp;"line1\n");<br />fwrite($fp,&nbsp;"line2\n");<br />fwrite($fp,&nbsp;"line3\n");<br /><br />rewind($fp);<br />while(!feof($fp))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;fgets($fp)<br />}<br />fclose($fp);<br />var_dump($myvar);</span>
+</code></div>
+      </div>
+
+     </div>
+    </p>
+  
+   </div>
+
+  </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="113147""></a>
+  <div class="note">
+   <strong class="user">dmarjos at gmail dot com</strong>
+   <a href="#113147" class="date">05-Sep-2013 10:23</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Be aware that even when stream_wrapper_register won't fail, open_basedir will affect functionality of the class.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="85763""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#85763" class="date">16-Sep-2008 08:19</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+"for use with all the other filesystem functions"<br />
+<br />
+"all" is not accurate.&nbsp; Unfortunately, zip_open(), and presumably others, will ignore your custom stream wrapper.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="82601""></a>
+  <div class="note">
+   <strong class="user">phrank</strong>
+   <a href="#82601" class="date">17-Apr-2008 10:38</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Actually, I don't know if there's a better way to figure out if stream_read() was called by fgets() or e.g. fread() than this one:<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function stream_read($count)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $bt = debug_backtrace();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(($bt[0]['function'] == 'stream_read') &amp;&amp;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ($bt[1]['function'] == 'fgets'))<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $pos = strpos($GLOBALS[$this-&gt;varname], "\n", $this-&gt;position);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $retval = substr($GLOBALS[$this-&gt;varname], $this-&gt;position, ($pos &gt; $count) ? $count : $pos+1);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; else<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $retval = substr($GLOBALS[$this-&gt;varname], $this-&gt;position, $count);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;position += strlen($retval);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return (string)$retval;<br />
+&nbsp;&nbsp;&nbsp; }</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="78490""></a>
+  <div class="note">
+   <strong class="user">yeiniel at gmail dot com</strong>
+   <a href="#78490" class="date">15-Oct-2007 04:30</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+on using dir_opendir on PHP5 make sure you not return a resource object on success. A resource object is diferent from false but php make a cast to bool to dir_opendir return value and modify the value of your resource to 1. <br />
+<br />
+example:<br />
+<br />
+class myclass{<br />
+&nbsp; private $mysqlHandler;<br />
+&nbsp; public function dir_opendir(....)<br />
+&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; $this-&gt;mysqlHandler = mysql_connect(....);<br />
+&nbsp;&nbsp;&nbsp; return $this-&gt;mysqlHandler; //this is wrong, next<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; //time you use <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; //$this-&gt;mysqlHandler<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; // the value is 1<br />
+&nbsp; }<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="77057""></a>
+  <div class="note">
+   <strong class="user">fordiman at gmail dot com</strong>
+   <a href="#77057" class="date">13-Aug-2007 02:59</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Updated. I figured there's no need to store the variable name if we're dereferenceing; we can just store the pointer and not have to dereference in each function for brevity.<br />
+<br />
+Also, I added the assertion that the stream is a string, since we're behaving basically like it has to be, and I changed the name to GlobalStream and global://, as that's a more descriptive moniker than VariableName/var://.<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">GlobalStream </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; private </span><span class="default">$pos</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; private </span><span class="default">$stream</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">stream_open</span><span class="keyword">(</span><span class="default">$path</span><span class="keyword">, </span><span class="default">$mode</span><span class="keyword">, </span><span class="default">$options</span><span class="keyword">, &amp;</span><span class="default">$opened_path</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$url </span><span class="keyword">= </span><span class="default">parse_url</span><span class="keyword">(</span><span class="default">$path</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">stream </span><span class="keyword">= &amp;</span><span class="default">$GLOBALS</span><span class="keyword">[</span><span class="default">$url</span><span class="keyword">[</span><span class="string">"host"</span><span class="keyword">]];<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">pos </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (!</span><span class="default">is_string</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">stream</span><span class="keyword">)) return </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">true</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">stream_read</span><span class="keyword">(</span><span class="default">$count</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$p</span><span class="keyword">=&amp;</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">pos</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$ret </span><span class="keyword">= </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">stream</span><span class="keyword">, </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">pos</span><span class="keyword">, </span><span class="default">$count</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">pos </span><span class="keyword">+= </span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$ret</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$ret</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">stream_write</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$l</span><span class="keyword">=</span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">stream </span><span class="keyword">= <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">stream</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">, </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">pos</span><span class="keyword">) . <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$data </span><span class="keyword">. <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">stream</span><span class="keyword">, </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">pos </span><span class="keyword">+= </span><span class="default">$l</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$l</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">stream_tell</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">pos</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">stream_eof</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">pos </span><span class="keyword">&gt;= </span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">stream</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">stream_seek</span><span class="keyword">(</span><span class="default">$offset</span><span class="keyword">, </span><span class="default">$whence</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$l</span><span class="keyword">=</span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">stream</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; switch (</span><span class="default">$whence</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="default">SEEK_SET</span><span class="keyword">: </span><span class="default">$newPos </span><span class="keyword">= </span><span class="default">$offset</span><span class="keyword">; break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="default">SEEK_CUR</span><span class="keyword">: </span><span class="default">$newPos </span><span class="keyword">= </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">pos </span><span class="keyword">+ </span><span class="default">$offset</span><span class="keyword">; break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="default">SEEK_END</span><span class="keyword">: </span><span class="default">$newPos </span><span class="keyword">= </span><span class="default">$l </span><span class="keyword">+ </span><span class="default">$offset</span><span class="keyword">; break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; default: return </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$ret </span><span class="keyword">= (</span><span class="default">$newPos </span><span class="keyword">&gt;=</span><span class="default">0 </span><span class="keyword">&amp;&amp; </span><span class="default">$newPos </span><span class="keyword">&lt;=</span><span class="default">$l</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$ret</span><span class="keyword">) </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">pos</span><span class="keyword">=</span><span class="default">$newPos</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$ret</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+</span><span class="default">stream_wrapper_register</span><span class="keyword">(</span><span class="string">'global'</span><span class="keyword">, </span><span class="string">'GlobalStream'</span><span class="keyword">) or die(</span><span class="string">'Failed to register protocol global://'</span><span class="keyword">);<br />
+<br />
+</span><span class="default">$myvar </span><span class="keyword">= </span><span class="string">""</span><span class="keyword">;<br />
+&nbsp;&nbsp; <br />
+</span><span class="default">$fp </span><span class="keyword">= </span><span class="default">fopen</span><span class="keyword">(</span><span class="string">"global://myvar"</span><span class="keyword">, </span><span class="string">"r+"</span><span class="keyword">);<br />
+<br />
+</span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">, </span><span class="string">"line1\n"</span><span class="keyword">);<br />
+</span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">, </span><span class="string">"line2\n"</span><span class="keyword">);<br />
+</span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">, </span><span class="string">"line3\n"</span><span class="keyword">);<br />
+<br />
+</span><span class="default">rewind</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">);<br />
+while (!</span><span class="default">feof</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">)) {<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="default">fgets</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">);<br />
+}<br />
+</span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">);<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$myvar</span><span class="keyword">);<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="77055""></a>
+  <div class="note">
+   <strong class="user">fordiman at gmail dot com</strong>
+   <a href="#77055" class="date">13-Aug-2007 02:32</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Updated for PHP 5, and optimized for readability, low line count, and minimum memory use:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">VariableStream </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; private </span><span class="default">$position</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; private </span><span class="default">$varname</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">stream_open</span><span class="keyword">(</span><span class="default">$path</span><span class="keyword">, </span><span class="default">$mode</span><span class="keyword">, </span><span class="default">$options</span><span class="keyword">, &amp;</span><span class="default">$opened_path</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$url </span><span class="keyword">= </span><span class="default">parse_url</span><span class="keyword">(</span><span class="default">$path</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">varname </span><span class="keyword">= </span><span class="default">$url</span><span class="keyword">[</span><span class="string">"host"</span><span class="keyword">];<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">position </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">true</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">stream_read</span><span class="keyword">(</span><span class="default">$count</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$p</span><span class="keyword">=&amp;</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">position</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$ret </span><span class="keyword">= </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$GLOBALS</span><span class="keyword">[</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">varname</span><span class="keyword">], </span><span class="default">$p</span><span class="keyword">, </span><span class="default">$count</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$p </span><span class="keyword">+= </span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$ret</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$ret</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">stream_write</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$v</span><span class="keyword">=&amp;</span><span class="default">$GLOBALS</span><span class="keyword">[</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">varname</span><span class="keyword">];<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$l</span><span class="keyword">=</span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$p</span><span class="keyword">=&amp;</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">position</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$v </span><span class="keyword">= </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$v</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">, </span><span class="default">$p</span><span class="keyword">) . </span><span class="default">$data </span><span class="keyword">. </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$v</span><span class="keyword">, </span><span class="default">$p </span><span class="keyword">+= </span><span class="default">$l</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$l</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">stream_tell</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">position</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">stream_eof</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">position </span><span class="keyword">&gt;= </span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$GLOBALS</span><span class="keyword">[</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">varname</span><span class="keyword">]);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">stream_seek</span><span class="keyword">(</span><span class="default">$offset</span><span class="keyword">, </span><span class="default">$whence</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$l</span><span class="keyword">=</span><span class="default">strlen</span><span class="keyword">(&amp;</span><span class="default">$GLOBALS</span><span class="keyword">[</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">varname</span><span class="keyword">]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$p</span><span class="keyword">=&amp;</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">position</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; switch (</span><span class="default">$whence</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="default">SEEK_SET</span><span class="keyword">: </span><span class="default">$newPos </span><span class="keyword">= </span><span class="default">$offset</span><span class="keyword">; break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="default">SEEK_CUR</span><span class="keyword">: </span><span class="default">$newPos </span><span class="keyword">= </span><span class="default">$p </span><span class="keyword">+ </span><span class="default">$offset</span><span class="keyword">; break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="default">SEEK_END</span><span class="keyword">: </span><span class="default">$newPos </span><span class="keyword">= </span><span class="default">$l </span><span class="keyword">+ </span><span class="default">$offset</span><span class="keyword">; break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; default: return </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$ret </span><span class="keyword">= (</span><span class="default">$newPos </span><span class="keyword">&gt;=</span><span class="default">0 </span><span class="keyword">&amp;&amp; </span><span class="default">$newPos </span><span class="keyword">&lt;=</span><span class="default">$l</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$ret</span><span class="keyword">) </span><span class="default">$p</span><span class="keyword">=</span><span class="default">$newPos</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$ret</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+</span><span class="default">stream_wrapper_register</span><span class="keyword">(</span><span class="string">"var"</span><span class="keyword">, </span><span class="string">"VariableStream"</span><span class="keyword">) <br />
+or die(</span><span class="string">"Failed to register protocol"</span><span class="keyword">);<br />
+<br />
+</span><span class="default">$myvar </span><span class="keyword">= </span><span class="string">""</span><span class="keyword">;<br />
+&nbsp;&nbsp; <br />
+</span><span class="default">$fp </span><span class="keyword">= </span><span class="default">fopen</span><span class="keyword">(</span><span class="string">"var://myvar"</span><span class="keyword">, </span><span class="string">"r+"</span><span class="keyword">);<br />
+<br />
+</span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">, </span><span class="string">"line1\n"</span><span class="keyword">);<br />
+</span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">, </span><span class="string">"line2\n"</span><span class="keyword">);<br />
+</span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">, </span><span class="string">"line3\n"</span><span class="keyword">);<br />
+<br />
+</span><span class="default">rewind</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">);<br />
+while (!</span><span class="default">feof</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">)) {<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="default">fgets</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">);<br />
+}<br />
+</span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">);<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$myvar</span><span class="keyword">);<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="75645""></a>
+  <div class="note">
+   <strong class="user">phpnet at povaddict dot com dot ar</strong>
+   <a href="#75645" class="date">10-Jun-2007 05:10</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+In response to Anonymouse at Coward dot com:<br />
+<br />
+The manual says "Reading stops when up to length bytes have been read, [...] or (after opening userspace stream) when 8192 bytes have been read whichever comes first."<br />
+<br />
+I tested it and fread($filehandle, 4096) returns 4096 bytes, so it's working as the manual says it should. You're right when you say "8192 bytes is always passed to stream_read as count", but that doesn't mean fread will return 8192 bytes. If you call fread twice with length 4096, PHP calls stream_read passing 8192 as count on the first fread, and doesn't call it on second fread. On both cases, fread returns the correct amount of bytes.<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">class </span><span class="default">VariableStream </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; var </span><span class="default">$position</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; var </span><span class="default">$varname</span><span class="keyword">;<br />
+&nbsp; <br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">stream_open</span><span class="keyword">(</span><span class="default">$path</span><span class="keyword">, </span><span class="default">$mode</span><span class="keyword">, </span><span class="default">$options</span><span class="keyword">, &amp;</span><span class="default">$opened_path</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$url </span><span class="keyword">= </span><span class="default">parse_url</span><span class="keyword">(</span><span class="default">$path</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">varname </span><span class="keyword">= </span><span class="default">$url</span><span class="keyword">[</span><span class="string">"host"</span><span class="keyword">];<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">position </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">true</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">stream_read</span><span class="keyword">(</span><span class="default">$count</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"stream_read called asking for </span><span class="default">$count</span><span class="string"> bytes\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$ret </span><span class="keyword">= </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$GLOBALS</span><span class="keyword">[</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">varname</span><span class="keyword">], </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">position</span><span class="keyword">, </span><span class="default">$count</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">position </span><span class="keyword">+= </span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$ret</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$ret</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">stream_eof</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">position </span><span class="keyword">&gt;= </span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$GLOBALS</span><span class="keyword">[</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">varname</span><span class="keyword">]);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+}<br />
+<br />
+</span><span class="default">stream_wrapper_register</span><span class="keyword">(</span><span class="string">"var"</span><span class="keyword">, </span><span class="string">"VariableStream"</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; or die(</span><span class="string">"Failed to register protocol"</span><span class="keyword">);<br />
+<br />
+</span><span class="default">$myvar </span><span class="keyword">= </span><span class="string">""</span><span class="keyword">;<br />
+</span><span class="default">$l</span><span class="keyword">=</span><span class="default">range</span><span class="keyword">(</span><span class="string">'a'</span><span class="keyword">,</span><span class="string">'z'</span><span class="keyword">);<br />
+for(</span><span class="default">$i</span><span class="keyword">=</span><span class="default">0</span><span class="keyword">;</span><span class="default">$i</span><span class="keyword">&lt;</span><span class="default">65536</span><span class="keyword">;</span><span class="default">$i</span><span class="keyword">++) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$myvar </span><span class="keyword">.= </span><span class="default">$l</span><span class="keyword">[</span><span class="default">array_rand</span><span class="keyword">(</span><span class="default">$l</span><span class="keyword">)];<br />
+}<br />
+&nbsp;&nbsp; <br />
+</span><span class="default">$fp </span><span class="keyword">= </span><span class="default">fopen</span><span class="keyword">(</span><span class="string">"var://myvar"</span><span class="keyword">, </span><span class="string">"r+"</span><span class="keyword">);<br />
+<br />
+while (!</span><span class="default">feof</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">)) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$out </span><span class="keyword">= </span><span class="default">fread</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">,</span><span class="default">1000</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"fread returned "</span><span class="keyword">,</span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$out</span><span class="keyword">),</span><span class="string">" bytes\n"</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">);<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="74765""></a>
+  <div class="note">
+   <strong class="user">Anonymouse at Coward dot com</strong>
+   <a href="#74765" class="date">26-Apr-2007 06:18</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Use caution with writing code that may use stream wrappers with fread, as fread behaviour is 'inconsistent' with normal file operations because of the 8192 bytes internal buffer used by PHP ( &gt;= 5.0.5 IIRC ).<br />
+<br />
+ie:<br />
+<br />
+fread($filehandle, filesize($filename))<br />
+<br />
+will not work correctly if the file is larger than 8KB, it will only get you the first 8192 bytes. Also, it seems that:<br />
+<br />
+fread($filehandle, 4096)<br />
+<br />
+will still give you 8KB (if the file is larger than 8KB) as 8192 bytes is always passed to stream_read as count.<br />
+<br />
+This makes it somewhat impossible to just 'drop in' a stream where normally a file would be used without taking special care. <br />
+<br />
+Yes, it IS mentioned in the documentation here if you read it really well, but I for one spent some time scratching my head over it, and looking at the bug tracker, I am not the only one. The dev's say this inconsistancy is a feature though, even if it does make stream wrappers pretty much useless 'out of the box'.<br />
+<br />
+file_get_contents and stream_get_contents seem to work ok though.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="71057""></a>
+  <div class="note">
+   <strong class="user">none at your dot biz</strong>
+   <a href="#71057" class="date">10-Nov-2006 01:35</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+In case someone else starts scratching their head like I was, you should change the VariableStream::stream_eof() function to something like this:<br />
+<br />
+&nbsp;&nbsp; function stream_eof()<br />
+&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; $eof = ($this-&gt;position &gt;= strlen($GLOBALS[$this-&gt;varname]));<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(version_compare(PHP_VERSION,'5.0','&gt;=') &amp;&amp; version_compare(PHP_VERSION,'5.1','&lt;'))<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $eof = !$eof;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return $eof;<br />
+&nbsp;&nbsp; }<br />
+<br />
+PHP 5.0 introduced a bug that wasn't fixed until 5.1</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="54012""></a>
+  <div class="note">
+   <strong class="user">jhannus at php dot net</strong>
+   <a href="#54012" class="date">21-Jun-2005 04:37</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+It is worth noting that if your wrapper supports stream_flush() then when you flcose() your stream this function will be called prior to closing the stream.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="51855""></a>
+  <div class="note">
+   <strong class="user">cellog at php dot net</strong>
+   <a href="#51855" class="date">13-Apr-2005 04:45</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you plan to use your wrapper in a require_once you need to define stream_stat().&nbsp; If you plan to allow any other tests like is_file()/is_dir(), you have to define url_stat().<br />
+<br />
+stream_stat() must define the size of the file, or it will never be included.&nbsp; url_stat() must define mode, or is_file()/is_dir()/is_executable(), and any of those functions affected by clearstatcache() simply won't work.<br />
+<br />
+It's not documented, but directories must be a mode like 040777 (octal), and files a mode like 0100666.&nbsp; If you wish the file to be executable, use 7s instead of 6s.&nbsp; The last 3 digits are exactly the same thing as what you pass to chmod.&nbsp; 040000 defines a directory, and 0100000 defines a file.&nbsp; It would be really helpful to add this to the official manual!</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="51557""></a>
+  <div class="note">
+   <strong class="user">Hayley Watson</strong>
+   <a href="#51557" class="date">04-Apr-2005 08:07</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The current URL standard is RFC 3986 - available at www.ietf.org/rfc/rfc3986.txt</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="41524""></a>
+  <div class="note">
+   <strong class="user">simon at firepages dot org</strong>
+   <a href="#41524" class="date">13-Apr-2004 07:53</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+using streams to use the ever useful fgetcsv() on a variable where explode() would not work (and would otherwise require regex(though that may be easier;)))<br />
+<br />
+$explode_this="yak, llama, 'big llama', 'wobmat, with a comma in it', bandycoot";<br />
+&nbsp;<br />
+<span class="default">&lt;?php <br />
+</span><span class="keyword">class </span><span class="default">csvstream</span><span class="keyword">{ <br />
+&nbsp;&nbsp; var </span><span class="default">$position</span><span class="keyword">;&nbsp; <br />
+&nbsp;&nbsp; var </span><span class="default">$varname</span><span class="keyword">;&nbsp; <br />
+&nbsp;&nbsp; function </span><span class="default">stream_open</span><span class="keyword">(</span><span class="default">$path</span><span class="keyword">, </span><span class="default">$mode</span><span class="keyword">, </span><span class="default">$options</span><span class="keyword">, &amp;</span><span class="default">$opened_path</span><span class="keyword">){&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; </span><span class="default">$url </span><span class="keyword">= </span><span class="default">parse_url</span><span class="keyword">(</span><span class="default">$path</span><span class="keyword">);&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">varname </span><span class="keyword">= </span><span class="default">$url</span><span class="keyword">[</span><span class="string">'host'</span><span class="keyword">] ; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">position </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; return </span><span class="default">true</span><span class="keyword">; <br />
+&nbsp;&nbsp; } <br />
+&nbsp; function </span><span class="default">stream_read</span><span class="keyword">(</span><span class="default">$count</span><span class="keyword">){&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; </span><span class="default">$ret </span><span class="keyword">= </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$GLOBALS</span><span class="keyword">[</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">varname</span><span class="keyword">], </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">position</span><span class="keyword">, </span><span class="default">$count</span><span class="keyword">);&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">position </span><span class="keyword">+= </span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$ret</span><span class="keyword">);&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; return </span><span class="default">$ret</span><span class="keyword">;&nbsp; <br />
+&nbsp;&nbsp; } <br />
+&nbsp; function </span><span class="default">stream_eof</span><span class="keyword">(){&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">position </span><span class="keyword">&gt;= </span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$GLOBALS</span><span class="keyword">[</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">varname</span><span class="keyword">]);&nbsp; <br />
+&nbsp;&nbsp; }&nbsp; <br />
+&nbsp;&nbsp; function </span><span class="default">stream_tell</span><span class="keyword">(){&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">position</span><span class="keyword">;&nbsp; <br />
+&nbsp;&nbsp; }&nbsp; <br />
+} <br />
+<br />
+&nbsp;&nbsp; </span><span class="default">stream_wrapper_register</span><span class="keyword">(</span><span class="string">"csvstr"</span><span class="keyword">, </span><span class="string">"csvstream"</span><span class="keyword">) ; <br />
+&nbsp;&nbsp; </span><span class="default">$str</span><span class="keyword">=</span><span class="string">"yak, llama, 'big llama', 'wobmat, with a comma in it', bandycoot"</span><span class="keyword">; <br />
+<br />
+&nbsp;&nbsp; </span><span class="default">$fp </span><span class="keyword">= </span><span class="default">fopen</span><span class="keyword">(</span><span class="string">"csvstr://str"</span><span class="keyword">, </span><span class="string">"r+"</span><span class="keyword">);&nbsp; <br />
+&nbsp;&nbsp; </span><span class="default">print_r</span><span class="keyword">(</span><span class="default">fgetcsv</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">,</span><span class="default">100</span><span class="keyword">,</span><span class="string">","</span><span class="keyword">,</span><span class="string">"'"</span><span class="keyword">)); <br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

@@ -1,0 +1,472 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>名称解析规则</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="language.namespaces.fallback.html">? 使用命名空间：后备全局函数/常量</a></li>
+      <li style="float: right;"><a href="language.namespaces.faq.html">FAQ: things you need to know about namespaces ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="language.namespaces.html">命名空间</a></li>
+    <li>名称解析规则</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="language.namespaces.rules" class="sect1">
+  <h2 class="title">名称解析规则</h2>
+  <p class="para">
+   在说明名称解析规则之前，我们先看一些重要的定义：
+   <dl>
+
+    <strong class="title">命名空间名称定义</strong>
+    
+     <dt>
+非限定名称Unqualified name</dt>
+
+     <dd>
+
+      <p class="para">
+       名称中不包含命名空间分隔符的标识符，例如 <em>Foo</em>
+      </p>
+     </dd>
+
+    
+    
+     <dt>
+限定名称Qualified name</dt>
+
+     <dd>
+
+      <p class="para">
+       名称中含有命名空间分隔符的标识符，例如 <em>Foo\Bar</em>
+      </p>
+     </dd>
+
+    
+    
+     <dt>
+完全限定名称Fully qualified name</dt>
+
+     <dd>
+
+      <p class="para">
+       名称中包含命名空间分隔符，并以命名空间分隔符开始的标识符，例如 <em>\Foo\Bar</em>。
+       <em>namespace\Foo</em> 也是一个完全限定名称。
+      </p>
+     </dd>
+
+    
+   </dl>
+
+  </p>
+  <p class="para">
+   名称解析遵循下列规则：
+   <ol type="1">
+    <li class="listitem">
+     <span class="simpara">
+      对完全限定名称的函数，类和常量的调用在编译时解析。例如 
+      <em>new \A\B</em> 解析为类 <em>A\B</em>。
+     </span>
+    </li>
+    <li class="listitem">
+     <span class="simpara">
+     所有的非限定名称和限定名称（非完全限定名称）根据当前的导入规则在编译时进行转换。例如，如果命名空间
+     <em>A\B\C</em> 被导入为 <em>C</em>，那么对 <em>C\D\e()</em> 
+     的调用就会被转换为 <em>A\B\C\D\e()</em>。
+     </span>
+    </li>
+    <li class="listitem">
+     <span class="simpara">
+     在命名空间内部，所有的没有根据导入规则转换的限定名称均会在其前面加上当前的命名空间名称。例如，在命名空间 
+     <em>A\B</em> 内部调用 <em>C\D\e()</em>，则 <em>C\D\e()</em> 
+     会被转换为 <em>A\B\C\D\e()</em> 。
+     </span>
+    </li>
+    <li class="listitem">
+     <span class="simpara">
+     非限定类名根据当前的导入规则在编译时转换（用全名代替短的导入名称）。例如，如果命名空间
+     <em>A\B\C</em> 导入为C，则 <em>new C()</em>
+     被转换为 <em>new A\B\C() </em>。
+     </span>
+    </li>
+    <li class="listitem">
+     <span class="simpara">
+      在命名空间内部（例如A\B），对非限定名称的函数调用是在运行时解析的。例如对函数
+      <em>foo()</em> 的调用是这样解析的：
+     </span>
+      <ol type="1">
+       <li class="listitem">
+        <span class="simpara">
+         在当前命名空间中查找名为 <em>A\B\foo()</em> 的函数
+        </span>
+       </li>
+       <li class="listitem">
+        <span class="simpara">
+        尝试查找并调用 <em class="emphasis">全局(global)</em> 空间中的函数 <em>foo()</em>。
+        </span>
+       </li>
+      </ol>
+    </li>
+    <li class="listitem">
+     <span class="simpara">
+      在命名空间（例如<em>A\B</em>）内部对非限定名称或限定名称类（非完全限定名称）的调用是在运行时解析的。下面是调用
+      <em>new C()</em> 及 <em>new D\E()</em> 的解析过程：
+      <em> new C()</em>的解析:
+     </span>
+     <ol type="1">
+      <li class="listitem">
+       <span class="simpara">
+        在当前命名空间中查找<em>A\B\C</em>类。
+       </span>
+      </li>
+      <li class="listitem">
+       <span class="simpara">
+        尝试自动装载类<em>A\B\C</em>。
+       </span>
+      </li>
+     </ol>
+     <span class="simpara">
+      <em> new D\E()</em>的解析:
+     </span>
+     <ol type="1">
+      <li class="listitem">
+       <span class="simpara">
+        在类名称前面加上当前命名空间名称变成：<em>A\B\D\E</em>，然后查找该类。
+       </span>
+      </li>
+      <li class="listitem">
+       <span class="simpara">
+        尝试自动装载类 <em>A\B\D\E</em>。
+       </span>
+      </li>
+     </ol>
+     <span class="simpara">
+      为了引用全局命名空间中的全局类，必须使用完全限定名称 <em>new \C()</em>。
+     </span>
+    </li>
+   </ol>
+  </p>
+  <div class="example" id="example-271">
+   <p><strong>Example #1 名称解析示例</strong></p>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">namespace&nbsp;</span><span style="color: #0000BB">A</span><span style="color: #007700">;<br />use&nbsp;</span><span style="color: #0000BB">B</span><span style="color: #007700">\</span><span style="color: #0000BB">D</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">C</span><span style="color: #007700">\</span><span style="color: #0000BB">E&nbsp;</span><span style="color: #007700">as&nbsp;</span><span style="color: #0000BB">F</span><span style="color: #007700">;<br /><br /></span><span style="color: #FF8000">//&nbsp;函数调用<br /><br /></span><span style="color: #0000BB">foo</span><span style="color: #007700">();&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;首先尝试调用定义在命名空间"A"中的函数foo()<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;再尝试调用全局函数&nbsp;"foo"<br /><br /></span><span style="color: #007700">\</span><span style="color: #0000BB">foo</span><span style="color: #007700">();&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;调用全局空间函数&nbsp;"foo"&nbsp;<br /><br /></span><span style="color: #0000BB">my</span><span style="color: #007700">\</span><span style="color: #0000BB">foo</span><span style="color: #007700">();&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;调用定义在命名空间"A\my"中函数&nbsp;"foo"&nbsp;<br /><br /></span><span style="color: #0000BB">F</span><span style="color: #007700">();&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;首先尝试调用定义在命名空间"A"中的函数&nbsp;"F"&nbsp;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;再尝试调用全局函数&nbsp;"F"<br /><br />//&nbsp;类引用<br /><br /></span><span style="color: #007700">new&nbsp;</span><span style="color: #0000BB">B</span><span style="color: #007700">();&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;创建命名空间&nbsp;"A"&nbsp;中定义的类&nbsp;"B"&nbsp;的一个对象<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;如果未找到，则尝试自动装载类&nbsp;"A\B"<br /><br /></span><span style="color: #007700">new&nbsp;</span><span style="color: #0000BB">D</span><span style="color: #007700">();&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;使用导入规则，创建命名空间&nbsp;"B"&nbsp;中定义的类&nbsp;"D"&nbsp;的一个对象<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;如果未找到，则尝试自动装载类&nbsp;"B\D"<br /><br /></span><span style="color: #007700">new&nbsp;</span><span style="color: #0000BB">F</span><span style="color: #007700">();&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;使用导入规则，创建命名空间&nbsp;"C"&nbsp;中定义的类&nbsp;"E"&nbsp;的一个对象<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;如果未找到，则尝试自动装载类&nbsp;"C\E"<br /><br /></span><span style="color: #007700">new&nbsp;\</span><span style="color: #0000BB">B</span><span style="color: #007700">();&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;创建定义在全局空间中的类&nbsp;"B"&nbsp;的一个对象<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;如果未发现，则尝试自动装载类&nbsp;"B"<br /><br /></span><span style="color: #007700">new&nbsp;\</span><span style="color: #0000BB">D</span><span style="color: #007700">();&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;创建定义在全局空间中的类&nbsp;"D"&nbsp;的一个对象<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;如果未发现，则尝试自动装载类&nbsp;"D"<br /><br /></span><span style="color: #007700">new&nbsp;\</span><span style="color: #0000BB">F</span><span style="color: #007700">();&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;创建定义在全局空间中的类&nbsp;"F"&nbsp;的一个对象<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;如果未发现，则尝试自动装载类&nbsp;"F"<br /><br />//&nbsp;调用另一个命名空间中的静态方法或命名空间函数<br /><br /></span><span style="color: #0000BB">B</span><span style="color: #007700">\</span><span style="color: #0000BB">foo</span><span style="color: #007700">();&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;调用命名空间&nbsp;"A\B"&nbsp;中函数&nbsp;"foo"<br /><br /></span><span style="color: #0000BB">B</span><span style="color: #007700">::</span><span style="color: #0000BB">foo</span><span style="color: #007700">();&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;调用命名空间&nbsp;"A"&nbsp;中定义的类&nbsp;"B"&nbsp;的&nbsp;"foo"&nbsp;方法<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;如果未找到类&nbsp;"A\B"&nbsp;，则尝试自动装载类&nbsp;"A\B"<br /><br /></span><span style="color: #0000BB">D</span><span style="color: #007700">::</span><span style="color: #0000BB">foo</span><span style="color: #007700">();&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;使用导入规则，调用命名空间&nbsp;"B"&nbsp;中定义的类&nbsp;"D"&nbsp;的&nbsp;"foo"&nbsp;方法<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;如果类&nbsp;"B\D"&nbsp;未找到，则尝试自动装载类&nbsp;"B\D"<br /><br /></span><span style="color: #007700">\</span><span style="color: #0000BB">B</span><span style="color: #007700">\</span><span style="color: #0000BB">foo</span><span style="color: #007700">();&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;调用命名空间&nbsp;"B"&nbsp;中的函数&nbsp;"foo"&nbsp;<br /><br /></span><span style="color: #007700">\</span><span style="color: #0000BB">B</span><span style="color: #007700">::</span><span style="color: #0000BB">foo</span><span style="color: #007700">();&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;调用全局空间中的类&nbsp;"B"&nbsp;的&nbsp;"foo"&nbsp;方法<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;如果类&nbsp;"B"&nbsp;未找到，则尝试自动装载类&nbsp;"B"<br /><br />//&nbsp;当前命名空间中的静态方法或函数<br /><br /></span><span style="color: #0000BB">A</span><span style="color: #007700">\</span><span style="color: #0000BB">B</span><span style="color: #007700">::</span><span style="color: #0000BB">foo</span><span style="color: #007700">();&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;调用命名空间&nbsp;"A\A"&nbsp;中定义的类&nbsp;"B"&nbsp;的&nbsp;"foo"&nbsp;方法<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;如果类&nbsp;"A\A\B"&nbsp;未找到，则尝试自动装载类&nbsp;"A\A\B"<br /><br /></span><span style="color: #007700">\</span><span style="color: #0000BB">A</span><span style="color: #007700">\</span><span style="color: #0000BB">B</span><span style="color: #007700">::</span><span style="color: #0000BB">foo</span><span style="color: #007700">();&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;调用命名空间&nbsp;"A\B"&nbsp;中定义的类&nbsp;"B"&nbsp;的&nbsp;"foo"&nbsp;方法<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;如果类&nbsp;"A\B"&nbsp;未找到，则尝试自动装载类&nbsp;"A\B"<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+ </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="116370""></a>
+  <div class="note">
+   <strong class="user">llmll</strong>
+   <a href="#116370" class="date">21-Dec-2014 10:05</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The mentioned filesystem analogy fails at an important point:<br />
+<br />
+Namespace resolution *only* works at declaration time. The compiler fixates all namespace/class references as absolute paths, like creating absolute symlinks.<br />
+<br />
+You can't expect relative symlinks, which should be evaluated during access -&gt; during PHP runtime.<br />
+<br />
+In other words, namespaces are evaluated like __CLASS__ or self:: at parse-time. What's *not* happening, is the pendant for late static binding like static:: which resolves to the current class at runtime.<br />
+<br />
+So you can't do the following:<br />
+<br />
+namespace Alpha;<br />
+class Helper {<br />
+&nbsp;&nbsp;&nbsp; public static $Value = "ALPHA";<br />
+}<br />
+class Base {<br />
+&nbsp;&nbsp;&nbsp; public static function Write() { <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo Helper::$Value;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+namespace Beta;<br />
+class Helper extends \Alpha\Helper {<br />
+&nbsp;&nbsp;&nbsp; public static $Value = 'BETA';<br />
+}&nbsp; &nbsp; <br />
+class Base extends \Alpha\Base {}&nbsp; &nbsp; <br />
+<br />
+\Beta\Base::Write(); // should write "BETA" as this is the executing namespace context at runtime.<br />
+<br />
+If you copy the write() function into \Beta\Base it works as expected.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115358""></a>
+  <div class="note">
+   <strong class="user">dn dot permyakov at gmail dot com</strong>
+   <a href="#115358" class="date">11-Jul-2014 07:02</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Can someone explain to me -&nbsp; why do we need p.4 if we have p.2 (which covers both unqualified and qualified names)?</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="114391""></a>
+  <div class="note">
+   <strong class="user">CJ Taylor</strong>
+   <a href="#114391" class="date">15-Feb-2014 06:52</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+It took me playing with it a bit&nbsp; as I had a hard time finding documentation on when a class name matches a namespace, if that's even legal and what behavior to expect.&nbsp; It IS explained in #6 but I thought I'd share this with other souls like me that see it better by example.&nbsp; Assume all 3 files below are in the same directory.<br />
+<br />
+file1.php<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">namespace </span><span class="default">foo</span><span class="keyword">;<br />
+<br />
+class </span><span class="default">foo </span><span class="keyword">{<br />
+&nbsp; static function </span><span class="default">hello</span><span class="keyword">() {<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"hello world!"</span><span class="keyword">;<br />
+&nbsp; }<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+file2.php<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">namespace </span><span class="default">foo</span><span class="keyword">; <br />
+include(</span><span class="string">'file1.php'</span><span class="keyword">);<br />
+<br />
+</span><span class="default">foo</span><span class="keyword">::</span><span class="default">hello</span><span class="keyword">(); </span><span class="comment">//you're in the same namespace, or scope.<br />
+</span><span class="keyword">\</span><span class="default">foo</span><span class="keyword">\</span><span class="default">foo</span><span class="keyword">::</span><span class="default">hello</span><span class="keyword">(); </span><span class="comment">//called on a global scope.<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+file3.php<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">include(</span><span class="string">'file1.php'</span><span class="keyword">);<br />
+<br />
+</span><span class="default">foo</span><span class="keyword">\</span><span class="default">foo</span><span class="keyword">::</span><span class="default">hello</span><span class="keyword">(); </span><span class="comment">//you're outside of the namespace<br />
+</span><span class="keyword">\</span><span class="default">foo</span><span class="keyword">\</span><span class="default">foo</span><span class="keyword">::</span><span class="default">hello</span><span class="keyword">(); </span><span class="comment">//called on a global scope.<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Depending upon what you're building (example: a module, plugin, or package on a larger application), sometimes declaring a class that matches a namespace makes sense or may even be required.&nbsp; Just be aware that if you try to reference any class that shares the same namespace, omit the namespace unless you do it globally like the examples above.<br />
+<br />
+I hope this is useful, particularly for those that are trying to wrap your head around this 5.3 feature.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="114187""></a>
+  <div class="note">
+   <strong class="user">Kavoir.com</strong>
+   <a href="#114187" class="date">22-Jan-2014 07:25</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+For point 4, "In example, if the namespace A\B\C is imported as C" should be "In example, if the class A\B\C is imported as C".</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="100645""></a>
+  <div class="note">
+   <strong class="user">kdimi</strong>
+   <a href="#100645" class="date">28-Oct-2010 03:35</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you like to declare an __autoload function within a namespace or class, use the spl_autoload_register() function to register it and it will work fine.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="100542""></a>
+  <div class="note">
+   <strong class="user">safakozpinar at NOSPAM dot gmail dot com</strong>
+   <a href="#100542" class="date">22-Oct-2010 10:04</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+As working with namespaces and using (custom or basic) autoload structure; magic function __autoload must be defined in global scope, not in a namespace, also not in another function or method.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">namespace </span><span class="default">Glue </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">/**<br />
+&nbsp;&nbsp; &nbsp; * Define your custom structure and algorithms<br />
+&nbsp;&nbsp; &nbsp; * for autoloading in this class.<br />
+&nbsp;&nbsp; &nbsp; */<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">class </span><span class="default">Import<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">{<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; public static function </span><span class="default">load </span><span class="keyword">(</span><span class="default">$classname</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">'Autoloading class '</span><span class="keyword">.</span><span class="default">$classname</span><span class="keyword">.</span><span class="string">"\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; require_once </span><span class="default">$classname</span><span class="keyword">.</span><span class="string">'.php'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="comment">/**<br />
+&nbsp;* Define function __autoload in global namespace.<br />
+&nbsp;*/<br />
+</span><span class="keyword">namespace {<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">__autoload </span><span class="keyword">(</span><span class="default">$classname</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; \</span><span class="default">Glue</span><span class="keyword">\</span><span class="default">Import</span><span class="keyword">::</span><span class="default">load</span><span class="keyword">(</span><span class="default">$classname</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="92608""></a>
+  <div class="note">
+   <strong class="user">rangel</strong>
+   <a href="#92608" class="date">31-Jul-2009 09:48</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The term "autoload" mentioned here shall not be confused with __autoload function to autoload objects. Regarding the __autoload and namespaces' resolution I'd like to share the following experience:<br />
+<br />
+-&gt;Say you have the following directory structure:<br />
+<br />
+- root<br />
+&nbsp;&nbsp; &nbsp;&nbsp; | - loader.php <br />
+&nbsp;&nbsp; &nbsp;&nbsp; | - ns<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | - foo.php<br />
+<br />
+-&gt;foo.php<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">namespace </span><span class="default">ns</span><span class="keyword">;<br />
+class </span><span class="default">foo<br />
+</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public </span><span class="default">$say</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__construct</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">say </span><span class="keyword">= </span><span class="string">"bar"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+-&gt; loader.php<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">//GLOBAL SPACE &lt;--<br />
+</span><span class="keyword">function </span><span class="default">__autoload</span><span class="keyword">(</span><span class="default">$c</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; require_once </span><span class="default">$c </span><span class="keyword">. </span><span class="string">".php"</span><span class="keyword">;<br />
+}<br />
+<br />
+class </span><span class="default">foo </span><span class="keyword">extends </span><span class="default">ns</span><span class="keyword">\</span><span class="default">foo </span><span class="comment">// ns\foo is loaded here<br />
+</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__construct</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">parent</span><span class="keyword">::</span><span class="default">__construct</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"&lt;br /&gt;foo" </span><span class="keyword">. </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">say</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+</span><span class="default">$a </span><span class="keyword">= new </span><span class="default">ns</span><span class="keyword">\</span><span class="default">foo</span><span class="keyword">(); </span><span class="comment">// ns\foo also loads ns/foo.php just fine here.<br />
+</span><span class="keyword">echo </span><span class="default">$a</span><span class="keyword">-&gt;</span><span class="default">say</span><span class="keyword">;&nbsp;&nbsp; </span><span class="comment">// prints bar as expected.<br />
+</span><span class="default">$b </span><span class="keyword">= new </span><span class="default">foo</span><span class="keyword">;&nbsp; </span><span class="comment">// prints foobar just fine.<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+If you keep your directory/file matching namespace/class consistence the object __autoload works fine.<br />
+But... if you try to give loader.php a namespace you'll obviously get fatal errors. <br />
+My sample is just 1 level dir, but I've tested with a very complex and deeper structure. Hope anybody finds this useful.<br />
+<br />
+Cheers!</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="92607""></a>
+  <div class="note">
+   <strong class="user">rangel</strong>
+   <a href="#92607" class="date">31-Jul-2009 09:47</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The term "autoload" mentioned here shall not be confused with __autoload function to autoload objects. Regarding the __autoload and namespaces' resolution I'd like to share the following experience:<br />
+<br />
+-&gt;Say you have the following directory structure:<br />
+<br />
+- root<br />
+&nbsp;&nbsp; &nbsp;&nbsp; | - loader.php <br />
+&nbsp;&nbsp; &nbsp;&nbsp; | - ns<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | - foo.php<br />
+<br />
+-&gt;foo.php<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">namespace </span><span class="default">ns</span><span class="keyword">;<br />
+class </span><span class="default">foo<br />
+</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public </span><span class="default">$say</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__construct</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">say </span><span class="keyword">= </span><span class="string">"bar"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+-&gt; loader.php<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">//GLOBAL SPACE &lt;--<br />
+</span><span class="keyword">function </span><span class="default">__autoload</span><span class="keyword">(</span><span class="default">$c</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; require_once </span><span class="default">$c </span><span class="keyword">. </span><span class="string">".php"</span><span class="keyword">;<br />
+}<br />
+<br />
+class </span><span class="default">foo </span><span class="keyword">extends </span><span class="default">ns</span><span class="keyword">\</span><span class="default">foo </span><span class="comment">// ns\foo is loaded here<br />
+</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__construct</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">parent</span><span class="keyword">::</span><span class="default">__construct</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"&lt;br /&gt;foo" </span><span class="keyword">. </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">say</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+</span><span class="default">$a </span><span class="keyword">= new </span><span class="default">ns</span><span class="keyword">\</span><span class="default">foo</span><span class="keyword">(); </span><span class="comment">// ns\foo also loads ns/foo.php just fine here.<br />
+</span><span class="keyword">echo </span><span class="default">$a</span><span class="keyword">-&gt;</span><span class="default">say</span><span class="keyword">;&nbsp;&nbsp; </span><span class="comment">// prints bar as expected.<br />
+</span><span class="default">$b </span><span class="keyword">= new </span><span class="default">foo</span><span class="keyword">;&nbsp; </span><span class="comment">// prints foobar just fine.<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+If you keep your directory/file matching namespace/class consistence the object __autoload works fine.<br />
+But... if you try to give loader.php a namespace you'll obviously get fatal errors. <br />
+My sample is just 1 level dir, but I've tested with a very complex and deeper structure. Hope anybody finds this useful.<br />
+<br />
+Cheers!</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

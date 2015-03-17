@@ -1,0 +1,310 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>不向后兼容的变更</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="migration54.changes.html">? PHP 5.4.x 中的变更</a></li>
+      <li style="float: right;"><a href="migration54.new-features.html">新特性 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="migration54.html">从 PHP 5.3.X 迁移到 PHP 5.4.X</a></li>
+    <li>不向后兼容的变更</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="migration54.incompatible" class="section">
+  <h2 class="title">不向后兼容的变更</h2>
+  <p class="simpara">
+  尽管大部分现有的 PHP 5 代码不需要任何改变就可以正常运行，但请注意一些不向后兼容的变更：
+  </p>
+  <ul class="itemizedlist">
+   <li class="listitem">
+    <span class="simpara">
+     不再支持 <a href="features.safe-mode.html" class="link">安全模式</a>  。任何依赖安全模式的应用在安全方面都需要进行调整。
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     移除 <a href="security.magicquotes.html" class="link">魔术引号</a>  。为避免出现安全问题，依赖此特性的应用可能需要升级。
+    </span>
+    <span class="simpara">
+     <span class="function"><a href="function.get-magic-quotes-gpc.html" class="function">get_magic_quotes_gpc()</a></span> 和 <span class="function"><a href="function.get-magic-quotes-runtime.html" class="function">get_magic_quotes_runtime()</a></span> 现在总是返回 <strong><code>FALSE</code></strong> 。 调用 <span class="function"><a href="function.set-magic-quotes-runtime.html" class="function">set_magic_quotes_runtime()</a></span> 将产生一个 <strong><code>E_CORE_ERROR</code></strong> 级别的错误。
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+   <a href="ini.core.html#ini.register-globals" class="link">register_globals</a> 和 <a href="ini.core.html#ini.register-long-arrays" class="link">register_long_arrays</a> <var class="filename">php.ini</var>  指令被移除。
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     <a href="language.references.pass.html" class="link">调用时的引用传递</a> 被移除。
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     <a href="control-structures.break.html" class="link">break</a> 和 <a href="control-structures.continue.html" class="link">continue</a> 语句不再接受可变参数（ 比如： <em>break 1 + foo() * $bar;</em> ）。像类似 <em>break 2;</em> 这样的固定参数仍可使用。受此变化影响，不再允许出现 <em>break 0;</em> 和 <em>continue 0;</em> 。
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     在 <a href="book.datetime.html" class="link">日期与时间扩展</a> 中，不再支持时区使用 TZ（TimeZone）环境变量设置。必须使用 <a href="datetime.configuration.html#ini.date.timezone" class="link">date.timezone</a> <var class="filename">php.ini</var> 配置选项或 <span class="function"><a href="function.date-default-timezone-set.html" class="function">date_default_timezone_set()</a></span> 函数来指定时区。PHP 将不再尝试猜测时区，而是回退到"UTC"并发出一条 <strong><code>E_WARNING</code></strong> 错误。
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     非数字的字符串偏移量，比如  <em>$a[&#039;foo&#039;]</em> 此处 $a 是一个字符串，现在使用 <span class="function"><a href="function.isset.html" class="function">isset()</a></span> 时返回 false，使用 <span class="function"><a href="function.empty.html" class="function">empty()</a></span> 时返回 true，并产生一条  <strong><code>E_WARNING</code></strong> 错误。偏移量类型是布尔和 null 则产生一条 <strong><code>E_NOTICE</code></strong> 错误。 数字字符串（比如 <em>$a[&#039;2&#039;]</em> ）仍像以前一样运行。注意像类似 <em>&#039;12.3&#039;</em> 和 <em>&#039;5 foobar&#039;</em> 这样的偏移量将被视为非数字并产生一条  <strong><code>E_WARNING</code></strong> 错误，但因为向后兼容的原因它们会被分别转换成 12 和 5 。
+    </span>
+    <span class="simpara">
+     注意：下列代码返回不同的结果。
+    </span>
+    <span class="simpara">
+     $str=&#039;abc&#039;;var_dump(isset($str[&#039;x&#039;])); // 在 PHP 5.4 或更新版本返回 false，但在 PHP 5.3 或更低版本返回 true
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     数组转换成字符串将产生一条 <strong><code>E_NOTICE</code></strong> 级别的错误，但返回的结果仍是字符串 <em>&quot;Array&quot;</em> 。
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+      <strong><code>NULL</code></strong> 、<strong><code>FALSE</code></strong> 、或 一个空字符串被添加成一个对象的属性时将发出一条  <strong><code>E_WARNING</code></strong> 级别的错误，而不是 <strong><code>E_STRICT</code></strong> 。
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     现在参数名使用全局变量将会导致一个致命错误。禁止类似 <em>function foo($_GET, $_POST) {}</em> 这样的代码。
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     Salsa10 和 Salsa20 <a href="book.hash.html" class="link">哈希算法</a> 被移除。
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     当使用两个空数组作为参数时， <span class="function"><a href="function.array-combine.html" class="function">array_combine()</a></span> 现在返回 <em>array()</em>  而不是 <strong><code>FALSE</code></strong> 。
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     <span class="function"><a href="function.htmlentities.html" class="function">htmlentities()</a></span> 将像 <span class="function"><a href="function.htmlspecialchars.html" class="function">htmlspecialchars()</a></span> 一样处理亚洲字符集，这是以前 PHP 版本的处理情况，但现在将会发出一条 <strong><code>E_STRICT</code></strong> 错误。
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+    强烈建议不要再使用 <span class="function"><a href="function.eregi.html" class="function">eregi()</a></span> ，此特性在最新版本中被移除。
+    </span>
+   </li>
+  </ul>
+  <p class="simpara">
+   下列关键字现在被 <a href="reserved.html" class="link">保留</a> ，且不能用于函数名或类名。
+  </p>
+  <ul class="itemizedlist">
+   <li class="listitem">
+    <span class="simpara">
+     <a href="language.oop5.traits.html" class="link">trait</a>
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     <a href="language.types.callable.html" class="link">callable</a>
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     <a href="language.oop5.traits.html" class="link">insteadof</a>
+    </span>
+   </li>
+  </ul>
+  <p class="simpara">
+   下列函数已从 PHP 中移除：
+  </p>
+  <ul class="itemizedlist">
+   <li class="listitem">
+    <span class="simpara">
+     <span class="function"><a href="function.define-syslog-variables.html" class="function">define_syslog_variables()</a></span>
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     <span class="function"><a href="function.import-request-variables.html" class="function">import_request_variables()</a></span>
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     <span class="function"><a href="function.session-is-registered.html" class="function">session_is_registered()</a></span> 、 <span class="function"><a href="function.session-register.html" class="function">session_register()</a></span> 以及 <span class="function"><a href="function.session-unregister.html" class="function">session_unregister()</a></span> 。
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+    别名 <span class="function"><a href="function.mysqli-bind-param.html" class="function">mysqli_bind_param()</a></span> 、 <span class="function"><a href="function.mysqli-bind-result.html" class="function">mysqli_bind_result()</a></span> 、 <span class="function"><a href="function.mysqli-client-encoding.html" class="function">mysqli_client_encoding()</a></span> 、 <span class="function"><a href="function.mysqli-fetch.html" class="function">mysqli_fetch()</a></span> 、 <span class="function"><a href="function.mysqli-param-count.html" class="function">mysqli_param_count()</a></span> 、 <span class="function"><a href="function.mysqli-get-metadata.html" class="function">mysqli_get_metadata()</a></span> 、 <span class="function"><a href="function.mysqli-send-long-data.html" class="function">mysqli_send_long_data()</a></span> 、 mysqli::client_encoding() 以及 mysqli_stmt::stmt() 。
+    </span>
+   </li>
+  </ul>
+ </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="115441""></a>
+  <div class="note">
+   <strong class="user">ky dot patterson at adlinkr dot com</strong>
+   <a href="#115441" class="date">24-Jul-2014 04:34</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you have content that is not 100% UTF-8 then TAKE NOTE:<br />
+<br />
+Starting in PHP 5.4 htmlspecialchars() and htmlentities() assume CHARSET=gb2312 by default AND WILL RETURN BLANK IF YOUR INPUT IS NOT VALID UTF-8.<br />
+<br />
+So if you have a lot of function calls that look like this:<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">echo </span><span class="default">htmlspecialchars</span><span class="keyword">(</span><span class="default">$input</span><span class="keyword">);<br />
+</span><span class="comment">// or<br />
+</span><span class="keyword">echo </span><span class="default">htmlentities</span><span class="keyword">(</span><span class="default">$input</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span>i.e. no charset and no flags -- and $input is ISO-8859 (or anything else apart from 7-bit ASCII or UTF-8) -- then PHP 5.4 and 5.5 will return an empty string, and you will be surprised and probably unhappy.<br />
+<br />
+This is apparently a feature, not a bug.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="114262""></a>
+  <div class="note">
+   <strong class="user">blagdan at gmail dot com</strong>
+   <a href="#114262" class="date">30-Jan-2014 11:41</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+'&lt;?if'... worked in 5.3 as equivalent of '<span class="default">&lt;?php </span><span class="keyword">if</span><span class="string">'... In 5.4 it'</span><span class="default">s converted to </span><span class="string">'&lt;!--?if'</span><span class="keyword">...</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="113141""></a>
+  <div class="note">
+   <strong class="user">anton at zebooka dot com</strong>
+   <a href="#113141" class="date">05-Sep-2013 12:18</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+It seems that starting of PHP 5.4 you can not override class method with different signature.<br />
+<br />
+Example:<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">A<br />
+</span><span class="keyword">{ <br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">doSomething</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">, </span><span class="default">$b</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+class </span><span class="default">B </span><span class="keyword">extends </span><span class="default">A<br />
+</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">doSomething</span><span class="keyword">(</span><span class="default">$c</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+PHP Strict standards:&nbsp; Declaration of B::doSomething() should be compatible with A::doSomething(B $a) in Command line code on line 1</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="113050""></a>
+  <div class="note">
+   <strong class="user">the dot mail dot bg at gmail dot com</strong>
+   <a href="#113050" class="date">23-Aug-2013 12:03</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+There should be samples given here. There are many ways to do such coversion:<br />
+<br />
+Converting an array to a string will now generate an E_NOTICE level error, but the result of the cast will still be the string "Array".</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="111607""></a>
+  <div class="note">
+   <strong class="user">luis at portanel dot com</strong>
+   <a href="#111607" class="date">08-Mar-2013 02:46</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+It's not a PHP version incompatibility itself, but it's important to know that Microsoft dropped the php_mssql.dll support for the "mssql_" funcitions since this version.<br />
+<br />
+To connect to a MSSQL database since 5.4, one good alternative are the PDO drivers.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="111011""></a>
+  <div class="note">
+   <strong class="user">Chris</strong>
+   <a href="#111011" class="date">06-Jan-2013 12:00</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Missing some chars like german umlauts after use of htmlspecialchars? That's because the third param encoding has changed it's default value in PHP 5.4 from ISO-8859-1 to UTF-8. 
+<br />
+
+<br />
+Possible solution #1:
+<br />
+Change your code from this ...
+<br />
+<span class="default">&lt;?php htmlspecialchars</span><span class="keyword">( </span><span class="string">'??ü' </span><span class="keyword">); </span><span class="default">?&gt;
+<br />
+</span>... to this:
+<br />
+<span class="default">&lt;?php htmlspecialchars </span><span class="keyword">( </span><span class="string">'??ü' </span><span class="keyword">, </span><span class="default">ENT_COMPAT </span><span class="keyword">| </span><span class="default">ENT_HTML401 </span><span class="keyword">, </span><span class="string">'ISO-8859-1' </span><span class="keyword">); </span><span class="default">?&gt;
+<br />
+</span>
+<br />
+Possible solution #2:
+<br />
+Create a wrapper function and replace htmlspecialchars( to i.e. isohtmlspecialchars( with your IDE/editor/shell...
+<br />
+
+<br />
+Example of a wrapper function: 
+<br />
+<span class="default">&lt;?php
+<br />
+</span><span class="keyword">function </span><span class="default">isohtmlspecialchars</span><span class="keyword">( </span><span class="default">$str </span><span class="keyword">){
+<br />
+&nbsp;&nbsp; return </span><span class="default">htmlspecialchars </span><span class="keyword">( </span><span class="default">$str </span><span class="keyword">, </span><span class="default">ENT_COMPAT </span><span class="keyword">| </span><span class="default">ENT_HTML401 </span><span class="keyword">, </span><span class="string">'ISO-8859-1' </span><span class="keyword">);
+<br />
+}
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

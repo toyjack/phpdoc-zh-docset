@@ -1,0 +1,1393 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Traits</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="language.oop5.interfaces.html">? 对象接口</a></li>
+      <li style="float: right;"><a href="language.oop5.overloading.html">重载 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="language.oop5.html">类与对象</a></li>
+    <li>Traits</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="language.oop5.traits" class="sect1">
+  <h2 class="title">Traits</h2>
+  <p class="para">
+   自 PHP 5.4.0 起，PHP 实现了代码复用的一个方法，称为 traits。
+  </p>
+  <p class="para">
+   Traits 是一种为类似 PHP 的单继承语言而准备的代码复用机制。Trait
+   为了减少单继承语言的限制，使开发人员能够自由地在不同层次结构内独立的类中复用方法集。Traits
+   和类组合的语义是定义了一种方式来减少复杂性，避免传统多继承和混入类（Mixin）相关的典型问题。
+  </p>
+  <p class="para">
+   Trait 和一个类相似，但仅仅旨在用细粒度和一致的方式来组合功能。Trait
+   不能通过它自身来实例化。它为传统继承增加了水平特性的组合；也就是说，应用类的成员不需要继承。
+  </p>
+  
+  <div class="example" id="language.oop5.traits.basicexample">
+    <p><strong>Example #1 Trait 示例</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">trait&nbsp;</span><span style="color: #0000BB">ezcReflectionReturnInfo&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;function&nbsp;</span><span style="color: #0000BB">getReturnType</span><span style="color: #007700">()&nbsp;{&nbsp;</span><span style="color: #FF8000">/*1*/&nbsp;</span><span style="color: #007700">}<br />&nbsp;&nbsp;&nbsp;&nbsp;function&nbsp;</span><span style="color: #0000BB">getReturnDescription</span><span style="color: #007700">()&nbsp;{&nbsp;</span><span style="color: #FF8000">/*2*/&nbsp;</span><span style="color: #007700">}<br />}<br /><br />class&nbsp;</span><span style="color: #0000BB">ezcReflectionMethod&nbsp;</span><span style="color: #007700">extends&nbsp;</span><span style="color: #0000BB">ReflectionMethod&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;use&nbsp;</span><span style="color: #0000BB">ezcReflectionReturnInfo</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;...&nbsp;*/<br /></span><span style="color: #007700">}<br /><br />class&nbsp;</span><span style="color: #0000BB">ezcReflectionFunction&nbsp;</span><span style="color: #007700">extends&nbsp;</span><span style="color: #0000BB">ReflectionFunction&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;use&nbsp;</span><span style="color: #0000BB">ezcReflectionReturnInfo</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;...&nbsp;*/<br /></span><span style="color: #007700">}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+   </div>
+  
+  <div class="sect2" id="language.oop5.traits.precedence">
+   <h3 class="title">优先级</h3>
+   <p class="para">
+    从基类继承的成员被 trait 插入的成员所覆盖。优先顺序是来自当前类的成员覆盖了
+    trait 的方法，而 trait 则覆盖了被继承的方法。
+   </p>
+   <div class="example" id="language.oop5.traits.precedence.examples.ex1">
+    <p><strong>Example #2 优先顺序示例</strong></p>
+    <div class="example-contents"><p>
+     从基类继承的成员被插入的 SayWorld Trait 中的 MyHelloWorld
+     方法所覆盖。其行为 MyHelloWorld 类中定义的方法一致。优先顺序是当前类中的方法会覆盖
+     trait 方法，而 trait 方法又覆盖了基类中的方法。
+    </p></div>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">class&nbsp;</span><span style="color: #0000BB">Base&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">sayHello</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'Hello&nbsp;'</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br />trait&nbsp;</span><span style="color: #0000BB">SayWorld&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">sayHello</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">parent</span><span style="color: #007700">::</span><span style="color: #0000BB">sayHello</span><span style="color: #007700">();<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'World!'</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br />class&nbsp;</span><span style="color: #0000BB">MyHelloWorld&nbsp;</span><span style="color: #007700">extends&nbsp;</span><span style="color: #0000BB">Base&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;use&nbsp;</span><span style="color: #0000BB">SayWorld</span><span style="color: #007700">;<br />}<br /><br /></span><span style="color: #0000BB">$o&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">MyHelloWorld</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">$o</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">sayHello</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+    <div class="example-contents"><p>以上例程会输出：</p></div>
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+Hello World!
+</pre></div>
+    </div>
+   </div>
+   <div class="example" id="language.oop5.traits.precedence.examples.ex2">
+    <p><strong>Example #3 另一个优先级顺序的例子</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">trait&nbsp;</span><span style="color: #0000BB">HelloWorld&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">sayHello</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'Hello&nbsp;World!'</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br />class&nbsp;</span><span style="color: #0000BB">TheWorldIsNotEnough&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;use&nbsp;</span><span style="color: #0000BB">HelloWorld</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">sayHello</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'Hello&nbsp;Universe!'</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br /></span><span style="color: #0000BB">$o&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">TheWorldIsNotEnough</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">$o</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">sayHello</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+    <div class="example-contents"><p>以上例程会输出：</p></div>
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+Hello Universe!
+</pre></div>
+    </div>
+   </div>
+  </div>
+  
+  <div class="sect2" id="language.oop5.traits.multiple">
+   <h3 class="title">多个 trait</h3>
+   <p class="para">
+    通过逗号分隔，在 use 声明列出多个 trait，可以都插入到一个类中。
+   </p>
+   <div class="example" id="language.oop5.traits.multiple.ex1">
+    <p><strong>Example #4 多个 trait 的用法</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">trait&nbsp;</span><span style="color: #0000BB">Hello&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">sayHello</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'Hello&nbsp;'</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br />trait&nbsp;</span><span style="color: #0000BB">World&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">sayWorld</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'World'</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br />class&nbsp;</span><span style="color: #0000BB">MyHelloWorld&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;use&nbsp;</span><span style="color: #0000BB">Hello</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">World</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">sayExclamationMark</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'!'</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br /></span><span style="color: #0000BB">$o&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">MyHelloWorld</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">$o</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">sayHello</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">$o</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">sayWorld</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">$o</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">sayExclamationMark</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+    <div class="example-contents"><p>以上例程会输出：</p></div>
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+Hello World!
+</pre></div>
+    </div>
+   </div>
+  </div>
+  
+  <div class="sect2" id="language.oop5.traits.conflict">
+   <h3 class="title">冲突的解决</h3>
+   <p class="para">
+    如果两个 trait 都插入了一个同名的方法，如果没有明确解决冲突将会产生一个致命错误。
+   </p>
+   <p class="para">
+    为了解决多个 trait 在同一个类中的命名冲突，需要使用 <em>insteadof</em>
+    操作符来明确指定使用冲突方法中的哪一个。
+   </p>
+   <p class="para">
+    以上方式仅允许排除掉其它方法，<em>as</em> 操作符可以将其中一个冲突的方法以另一个名称来引入。
+   </p>
+   <div class="example" id="language.oop5.traits.conflict.ex1">
+    <p><strong>Example #5 冲突的解决</strong></p>
+    <div class="example-contents"><p>
+      在本例中 Talker 使用了 trait A 和 B。由于 A 和 B
+      有冲突的方法，其定义了使用 trait B 中的 smallTalk 以及 trait A 中的 bigTalk。
+    </p></div>
+    <div class="example-contents"><p>
+     Aliased_Talker 使用了 <em>as</em> 操作符来定义了 <em>talk</em>
+     来作为 B 的 bigTalk 的别名。
+    </p></div> 
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">trait&nbsp;</span><span style="color: #0000BB">A&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">smallTalk</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'a'</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">bigTalk</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'A'</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br />trait&nbsp;</span><span style="color: #0000BB">B&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">smallTalk</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'b'</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">bigTalk</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'B'</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br />class&nbsp;</span><span style="color: #0000BB">Talker&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;use&nbsp;</span><span style="color: #0000BB">A</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">B&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">B</span><span style="color: #007700">::</span><span style="color: #0000BB">smallTalk&nbsp;</span><span style="color: #007700">insteadof&nbsp;</span><span style="color: #0000BB">A</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">A</span><span style="color: #007700">::</span><span style="color: #0000BB">bigTalk&nbsp;</span><span style="color: #007700">insteadof&nbsp;</span><span style="color: #0000BB">B</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br />class&nbsp;</span><span style="color: #0000BB">Aliased_Talker&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;use&nbsp;</span><span style="color: #0000BB">A</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">B&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">B</span><span style="color: #007700">::</span><span style="color: #0000BB">smallTalk&nbsp;</span><span style="color: #007700">insteadof&nbsp;</span><span style="color: #0000BB">A</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">A</span><span style="color: #007700">::</span><span style="color: #0000BB">bigTalk&nbsp;</span><span style="color: #007700">insteadof&nbsp;</span><span style="color: #0000BB">B</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">B</span><span style="color: #007700">::</span><span style="color: #0000BB">bigTalk&nbsp;</span><span style="color: #007700">as&nbsp;</span><span style="color: #0000BB">talk</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+   </div>
+  </div>
+  
+  <div class="sect2" id="language.oop5.traits.visibility">
+   <h3 class="title">修改方法的访问控制</h3>
+   <p class="para">
+    使用 <em>as</em> 语法还可以用来调整方法的访问控制。
+   </p>
+   <div class="example" id="language.oop5.traits.visibility.ex1">
+    <p><strong>Example #6 修改方法的访问控制</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">trait&nbsp;</span><span style="color: #0000BB">HelloWorld&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">sayHello</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'Hello&nbsp;World!'</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br /></span><span style="color: #FF8000">//&nbsp;修改&nbsp;sayHello&nbsp;的访问控制<br /></span><span style="color: #007700">class&nbsp;</span><span style="color: #0000BB">MyClass1&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;use&nbsp;</span><span style="color: #0000BB">HelloWorld&nbsp;</span><span style="color: #007700">{&nbsp;</span><span style="color: #0000BB">sayHello&nbsp;</span><span style="color: #007700">as&nbsp;protected;&nbsp;}<br />}<br /><br /></span><span style="color: #FF8000">//&nbsp;给方法一个改变了访问控制的别名<br />//&nbsp;原版&nbsp;sayHello&nbsp;的访问控制则没有发生变化<br /></span><span style="color: #007700">class&nbsp;</span><span style="color: #0000BB">MyClass2&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;use&nbsp;</span><span style="color: #0000BB">HelloWorld&nbsp;</span><span style="color: #007700">{&nbsp;</span><span style="color: #0000BB">sayHello&nbsp;</span><span style="color: #007700">as&nbsp;private&nbsp;</span><span style="color: #0000BB">myPrivateHello</span><span style="color: #007700">;&nbsp;}<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+   </div>
+  </div>
+  
+  <div class="sect2" id="language.oop5.traits.composition">
+   <h3 class="title">从 trait 来组成 trait</h3>
+   <p class="para">
+    正如类能够使用 trait 一样，其它 trait 也能够使用 trait。在 trait
+    定义时通过使用一个或多个 trait，它能够组合其它 trait 中的部分或全部成员。
+   </p>
+   <div class="example" id="language.oop5.traits.composition.ex1">
+    <p><strong>Example #7 从 trait 来组成 trait</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">trait&nbsp;</span><span style="color: #0000BB">Hello&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">sayHello</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'Hello&nbsp;'</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br />trait&nbsp;</span><span style="color: #0000BB">World&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">sayWorld</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'World!'</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br />trait&nbsp;</span><span style="color: #0000BB">HelloWorld&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;use&nbsp;</span><span style="color: #0000BB">Hello</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">World</span><span style="color: #007700">;<br />}<br /><br />class&nbsp;</span><span style="color: #0000BB">MyHelloWorld&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;use&nbsp;</span><span style="color: #0000BB">HelloWorld</span><span style="color: #007700">;<br />}<br /><br /></span><span style="color: #0000BB">$o&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">MyHelloWorld</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">$o</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">sayHello</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">$o</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">sayWorld</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+    <div class="example-contents"><p>以上例程会输出：</p></div>
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+Hello World!
+</pre></div>
+    </div>
+   </div>
+  </div>
+  
+  <div class="sect2" id="language.oop5.traits.abstract">
+   <h3 class="title">Trait 的抽象成员</h3>
+   <p class="para">
+    为了对使用的类施加强制要求，trait 支持抽象方法的使用。
+   </p>
+   <div class="example" id="language.oop5.traits.abstract.ex1">
+    <p><strong>Example #8 表示通过抽象方法来进行强制要求</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">trait&nbsp;</span><span style="color: #0000BB">Hello&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">sayHelloWorld</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'Hello'</span><span style="color: #007700">.</span><span style="color: #0000BB">$this</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">getWorld</span><span style="color: #007700">();<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;&nbsp;abstract&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">getWorld</span><span style="color: #007700">();<br />}<br /><br />class&nbsp;</span><span style="color: #0000BB">MyHelloWorld&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;private&nbsp;</span><span style="color: #0000BB">$world</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;use&nbsp;</span><span style="color: #0000BB">Hello</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">getWorld</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;</span><span style="color: #0000BB">$this</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">world</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">setWorld</span><span style="color: #007700">(</span><span style="color: #0000BB">$val</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$this</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">world&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$val</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+   </div>
+  </div>
+  
+  <div class="sect2" id="language.oop5.traits.static">
+   <h3 class="title">Trait 的静态成员</h3>
+   <p class="para">
+    Traits 可以被静态成员静态方法定义。
+   </p>
+   <div class="example" id="language.oop5.traits.static.ex1">
+    <p><strong>Example #9 静态变量</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">trait&nbsp;</span><span style="color: #0000BB">Counter&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">inc</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;static&nbsp;</span><span style="color: #0000BB">$c&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">0</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$c&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$c&nbsp;</span><span style="color: #007700">+&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"</span><span style="color: #0000BB">$c</span><span style="color: #DD0000">\n"</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br />class&nbsp;</span><span style="color: #0000BB">C1&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;use&nbsp;</span><span style="color: #0000BB">Counter</span><span style="color: #007700">;<br />}<br /><br />class&nbsp;</span><span style="color: #0000BB">C2&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;use&nbsp;</span><span style="color: #0000BB">Counter</span><span style="color: #007700">;<br />}<br /><br /></span><span style="color: #0000BB">$o&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">C1</span><span style="color: #007700">();&nbsp;</span><span style="color: #0000BB">$o</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">inc</span><span style="color: #007700">();&nbsp;</span><span style="color: #FF8000">//&nbsp;echo&nbsp;1<br /></span><span style="color: #0000BB">$p&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">C2</span><span style="color: #007700">();&nbsp;</span><span style="color: #0000BB">$p</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">inc</span><span style="color: #007700">();&nbsp;</span><span style="color: #FF8000">//&nbsp;echo&nbsp;1<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+   </div>
+   <div class="example" id="language.oop5.traits.static.ex2">
+    <p><strong>Example #10 静态方法</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">trait&nbsp;</span><span style="color: #0000BB">StaticExample&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;static&nbsp;function&nbsp;</span><span style="color: #0000BB">doSomething</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;</span><span style="color: #DD0000">'Doing&nbsp;something'</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br />class&nbsp;</span><span style="color: #0000BB">Example&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;use&nbsp;</span><span style="color: #0000BB">StaticExample</span><span style="color: #007700">;<br />}<br /><br /></span><span style="color: #0000BB">Example</span><span style="color: #007700">::</span><span style="color: #0000BB">doSomething</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+   </div>
+  </div>
+  
+  <div class="sect2" id="language.oop5.traits.properties">
+   <h3 class="title">属性</h3>
+   <p class="para">
+    Trait 同样可以定义属性。
+   </p>
+   <div class="example" id="language.oop5.traits.properties.example">
+    <p><strong>Example #11 定义属性</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">trait&nbsp;</span><span style="color: #0000BB">PropertiesTrait&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;</span><span style="color: #0000BB">$x&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">;<br />}<br /><br />class&nbsp;</span><span style="color: #0000BB">PropertiesExample&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;use&nbsp;</span><span style="color: #0000BB">PropertiesTrait</span><span style="color: #007700">;<br />}<br /><br /></span><span style="color: #0000BB">$example&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">PropertiesExample</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$example</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">x</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+   </div>
+   <p class="para">
+    如果 trait 定义了一个属性，那类将不能定义同样名称的属性，否则会产生一个错误。如果该属性在类中的定义与在
+    trait 中的定义兼容（同样的可见性和初始值）则错误的级别是
+    <strong><code>E_STRICT</code></strong>，否则是一个致命错误。
+   </p>
+   <div class="example" id="language.oop5.traits.properties.conflicts">
+    <p><strong>Example #12 解决冲突</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">trait&nbsp;</span><span style="color: #0000BB">PropertiesTrait&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;</span><span style="color: #0000BB">$same&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">true</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;</span><span style="color: #0000BB">$different&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">false</span><span style="color: #007700">;<br />}<br /><br />class&nbsp;</span><span style="color: #0000BB">PropertiesExample&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;use&nbsp;</span><span style="color: #0000BB">PropertiesTrait</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;</span><span style="color: #0000BB">$same&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">true</span><span style="color: #007700">;&nbsp;</span><span style="color: #FF8000">//&nbsp;Strict&nbsp;Standards<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">public&nbsp;</span><span style="color: #0000BB">$different&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">true</span><span style="color: #007700">;&nbsp;</span><span style="color: #FF8000">//&nbsp;致命错误<br /></span><span style="color: #007700">}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+   </div>
+  </div>
+
+ </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="116656""></a>
+  <div class="note">
+   <strong class="user">aram dot petrosyan dot 88 at gmail dot com</strong>
+   <a href="#116656" class="date">06-Feb-2015 01:34</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+It's possible to define abstract function in a trait as static and implement non-static version of the function , and it will works. Like this<br />
+<br />
+trait B<br />
+{<br />
+&nbsp;&nbsp;&nbsp; public function smallTalk()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo 'b';<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; public function bigTalk()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo 'B';<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; abstract public function talk();<br />
+}<br />
+<br />
+class traitTest<br />
+{<br />
+&nbsp;&nbsp;&nbsp; use B;<br />
+<br />
+&nbsp;&nbsp;&nbsp; public static function talk()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo 111;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+Also, it's possible to define abstract non static , and implement static version. <br />
+<br />
+Can't understand , is this a bug or it's a feature :)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115908""></a>
+  <div class="note">
+   <strong class="user">angel dot ayora at gmail dot com</strong>
+   <a href="#115908" class="date">13-Oct-2014 11:28</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The traits can be used if are inherited from a parent class, but the trait still belong to parent class:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">trait </span><span class="default">Singleton<br />
+</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; private static </span><span class="default">$instance </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp;&nbsp; public static function </span><span class="default">singleton</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if( </span><span class="default">self</span><span class="keyword">::</span><span class="default">$instance </span><span class="keyword">== </span><span class="default">null </span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">self</span><span class="keyword">::</span><span class="default">$instance </span><span class="keyword">= new </span><span class="default">self</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">self</span><span class="keyword">::</span><span class="default">$instance</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+class </span><span class="default">A<br />
+</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; use </span><span class="default">Singleton</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; private function </span><span class="default">__construct</span><span class="keyword">(){}<br />
+}<br />
+<br />
+class </span><span class="default">B </span><span class="keyword">extends </span><span class="default">A<br />
+</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; private function </span><span class="default">__construct</span><span class="keyword">(){}<br />
+}<br />
+<br />
+</span><span class="default">$b </span><span class="keyword">= </span><span class="default">B</span><span class="keyword">::</span><span class="default">singleton</span><span class="keyword">();<br />
+echo </span><span class="default">get_class</span><span class="keyword">(</span><span class="default">$b</span><span class="keyword">); </span><span class="comment">//Output: A<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115814""></a>
+  <div class="note">
+   <strong class="user">ryan dot yoosefi at gmail dot com</strong>
+   <a href="#115814" class="date">28-Sep-2014 10:34</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Visibility in traits is not shared between trait users.<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">trait </span><span class="default">T </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; protected </span><span class="default">$secret </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">;<br />
+}<br />
+<br />
+class </span><span class="default">X </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; use </span><span class="default">T</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">peek </span><span class="keyword">( </span><span class="default">Y $y </span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="default">$y</span><span class="keyword">-&gt;</span><span class="default">secret</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+class </span><span class="default">Y </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; use </span><span class="default">T</span><span class="keyword">;<br />
+}<br />
+<br />
+(new </span><span class="default">X</span><span class="keyword">)-&gt;</span><span class="default">peek</span><span class="keyword">(new </span><span class="default">Y</span><span class="keyword">); </span><span class="comment">// Fatal:&nbsp; Cannot access protected property Y::$secret<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+This is as expected when thinking of traits as language assisted copy-paste.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115125""></a>
+  <div class="note">
+   <strong class="user">Kristof</strong>
+   <a href="#115125" class="date">30-May-2014 08:18</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+don't forget you can create complex (embedded) traits as well<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">trait </span><span class="default">Name </span><span class="keyword">{<br />
+&nbsp; </span><span class="comment">// ...<br />
+</span><span class="keyword">}<br />
+trait </span><span class="default">Address </span><span class="keyword">{<br />
+&nbsp; </span><span class="comment">// ...<br />
+</span><span class="keyword">}<br />
+trait </span><span class="default">Telephone </span><span class="keyword">{<br />
+&nbsp; </span><span class="comment">// ...<br />
+</span><span class="keyword">}<br />
+trait </span><span class="default">Contact </span><span class="keyword">{<br />
+&nbsp; use </span><span class="default">Name</span><span class="keyword">, </span><span class="default">Address</span><span class="keyword">, </span><span class="default">Telephone</span><span class="keyword">;<br />
+}<br />
+class </span><span class="default">Customer </span><span class="keyword">{<br />
+&nbsp; use </span><span class="default">Contact</span><span class="keyword">;<br />
+}<br />
+class </span><span class="default">Invoce </span><span class="keyword">{<br />
+&nbsp; use </span><span class="default">Contact</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="114383""></a>
+  <div class="note">
+   <strong class="user">qschuler at neosyne dot com</strong>
+   <a href="#114383" class="date">14-Feb-2014 05:31</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Note that you can omit a method's inclusion by excluding it from one trait in favor of the other and doing the exact same thing in the reverse way.<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">trait </span><span class="default">A </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">sayHello</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">'Hello from A'</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">sayWorld</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">'World from A'</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+trait </span><span class="default">B </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">sayHello</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">'Hello from B'</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">sayWorld</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">'World from B'</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+class </span><span class="default">Talker </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; use </span><span class="default">A</span><span class="keyword">, </span><span class="default">B </span><span class="keyword">{<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">A</span><span class="keyword">::</span><span class="default">sayHello </span><span class="keyword">insteadof </span><span class="default">B</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">A</span><span class="keyword">::</span><span class="default">sayWorld </span><span class="keyword">insteadof </span><span class="default">B</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">B</span><span class="keyword">::</span><span class="default">sayWorld </span><span class="keyword">insteadof </span><span class="default">A</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">$talker </span><span class="keyword">= new </span><span class="default">Talker</span><span class="keyword">();<br />
+</span><span class="default">$talker</span><span class="keyword">-&gt;</span><span class="default">sayHello</span><span class="keyword">();<br />
+</span><span class="default">$talker</span><span class="keyword">-&gt;</span><span class="default">sayWorld</span><span class="keyword">();<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+The method sayHello is imported, but the method sayWorld is simply excluded.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="114333""></a>
+  <div class="note">
+   <strong class="user">tomasz at marcinkowski dot pl</strong>
+   <a href="#114333" class="date">10-Feb-2014 08:05</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Unlike the __CLASS__ constant, which returns name of a class implementing a trait, the __METHOD__ constant returns the trait method name. You might find it useful.<br />
+<br />
+Example:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">namespace </span><span class="default">XXX</span><span class="keyword">;<br />
+<br />
+trait </span><span class="default">Ta </span><span class="keyword">{<br />
+&nbsp; public function </span><span class="default">test1</span><span class="keyword">() {<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">sprintf</span><span class="keyword">(</span><span class="string">'class: %s, method: %s, trait: %s'</span><span class="keyword">, </span><span class="default">__CLASS__</span><span class="keyword">, </span><span class="default">__METHOD__</span><span class="keyword">, </span><span class="default">__TRAIT__</span><span class="keyword">);<br />
+&nbsp; }<br />
+}<br />
+<br />
+class </span><span class="default">A </span><span class="keyword">{<br />
+&nbsp; use </span><span class="default">Ta</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="default">$a </span><span class="keyword">= new </span><span class="default">A</span><span class="keyword">();<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">-&gt;</span><span class="default">test1</span><span class="keyword">()); </span><span class="comment">// class: XXX\A, method: XXX\Ta::test1, trait: XXX\Ta<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="113905""></a>
+  <div class="note">
+   <strong class="user">majoro chitetskoy at gmail dot com</strong>
+   <a href="#113905" class="date">16-Dec-2013 05:03</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Some extreme Trait testing, which anyone can find useful. This involves what can be called as "Trait Inheritance" though I doubt if that is a proper word. This shows how to have some sort of inheritance in Traits.<br />
+<br />
+Snippet from one complex Tristan Engine code.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">/**<br />
+&nbsp;* Trait and Helper Backbone class<br />
+&nbsp;*/<br />
+</span><span class="keyword">trait </span><span class="default">Foo_HlpBbT </span><span class="keyword">{<br />
+&nbsp;&nbsp; &nbsp;&nbsp; function&nbsp; </span><span class="default">mnInfo_gst</span><span class="keyword">(</span><span class="default">$x</span><span class="keyword">=</span><span class="default">null</span><span class="keyword">, </span><span class="default">$c</span><span class="keyword">=</span><span class="default">false</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"Foo_HlpBbT has been called\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="comment">/**<br />
+&nbsp;* Base Archvie<br />
+&nbsp;*/<br />
+</span><span class="keyword">class </span><span class="default">Foo_BaseArchive </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; use </span><span class="default">Foo_HlpBbT</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// accessor properties<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">public&nbsp; &nbsp; </span><span class="default">$_mnInfo</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="comment">/**<br />
+&nbsp;* Testing Archive<br />
+&nbsp;*/<br />
+</span><span class="keyword">class </span><span class="default">Foo_ItemArchvie </span><span class="keyword">extends<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">Foo_BaseArchive<br />
+</span><span class="keyword">{<br />
+}<br />
+<br />
+</span><span class="comment">/**<br />
+&nbsp;* Testing Archive 2<br />
+&nbsp;*/<br />
+/**<br />
+&nbsp;* The base handler for sub base handler<br />
+&nbsp;*/<br />
+</span><span class="keyword">trait </span><span class="default">Foo_Item_HlpBbT </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; use </span><span class="default">Foo_HlpBbT</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">mnInfo_gst</span><span class="keyword">(</span><span class="default">$x</span><span class="keyword">=</span><span class="default">null</span><span class="keyword">, </span><span class="default">$c</span><span class="keyword">=</span><span class="default">false</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">parent</span><span class="keyword">::</span><span class="default">mnInfo_gst</span><span class="keyword">(</span><span class="default">$x</span><span class="keyword">,</span><span class="default">$c</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"Foo_Item_HlpBbT is called.\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="comment">/**<br />
+&nbsp;* The base handler for sub base handler<br />
+&nbsp;*/<br />
+</span><span class="keyword">trait </span><span class="default">Foo_Item_HlpBbT2 </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; use </span><span class="default">Foo_Item_HlpBbT </span><span class="keyword">{<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">Foo_Item_HlpBbT</span><span class="keyword">::</span><span class="default">mnInfo_gst </span><span class="keyword">as </span><span class="default">_e1_mnInfo_gst</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// We need that the Foo_HlpBbT::mnInfo_gst, Foo_Item_HlpBbT::mnInfo_gst and this mnInfo_gst is called.<br />
+&nbsp;&nbsp;&nbsp; // Troubles here, only the Foo_HlpBbT and this is called, the Foo_Item_HlpBbT is skipped.<br />
+&nbsp;&nbsp;&nbsp; // So it's important that if necessary, the function that is intended to be "overriden" from<br />
+&nbsp;&nbsp;&nbsp; // the trait inheritances be aliased like what we did to mnInfo_gst.<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">function </span><span class="default">mnInfo_gst</span><span class="keyword">(</span><span class="default">$x</span><span class="keyword">=</span><span class="default">null</span><span class="keyword">, </span><span class="default">$c</span><span class="keyword">=</span><span class="default">false</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">_e1_mnInfo_gst</span><span class="keyword">(</span><span class="default">$x</span><span class="keyword">,</span><span class="default">$c</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"Foo_Item_HlpBbT2 is called.\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="comment">/**<br />
+&nbsp;* The base handler for sub base handler<br />
+&nbsp;*/<br />
+</span><span class="keyword">trait </span><span class="default">Foo_Item_HlpBbT3 </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; use </span><span class="default">Foo_Item_HlpBbT2 </span><span class="keyword">{<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">Foo_Item_HlpBbT2</span><span class="keyword">::</span><span class="default">mnInfo_gst </span><span class="keyword">as </span><span class="default">_e2_mnInfo_gst</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// Another deeper Trait declaration<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">function </span><span class="default">mnInfo_gst</span><span class="keyword">(</span><span class="default">$x</span><span class="keyword">=</span><span class="default">null</span><span class="keyword">, </span><span class="default">$c</span><span class="keyword">=</span><span class="default">false</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">_e2_mnInfo_gst</span><span class="keyword">(</span><span class="default">$x</span><span class="keyword">,</span><span class="default">$c</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"Foo_Item_HlpBbT3 is called.\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="comment">/**<br />
+&nbsp;* Item Archive<br />
+&nbsp;*/<br />
+</span><span class="keyword">class </span><span class="default">Foo_Item_ItemArchive </span><span class="keyword">extends<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">Foo_BaseArchive<br />
+</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; use </span><span class="default">Foo_Item_HlpBbT3</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="comment">// Testing na<br />
+</span><span class="default">$tang </span><span class="keyword">= new </span><span class="default">Foo_Item_ItemArchive</span><span class="keyword">();<br />
+</span><span class="default">$tang</span><span class="keyword">-&gt;</span><span class="default">mnInfo_gst</span><span class="keyword">();<br />
+</span><span class="default">?&gt;<br />
+</span>outputs:<br />
+<br />
+Foo_HlpBbT has been called<br />
+Foo_Item_HlpBbT is called.<br />
+Foo_Item_HlpBbT2 is called.<br />
+Foo_Item_HlpBbT3 is called.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="113763""></a>
+  <div class="note">
+   <strong class="user">peter at icb dot at</strong>
+   <a href="#113763" class="date">28-Nov-2013 09:48</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+You cannot use a trait whos name is in a variable like:<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">trait </span><span class="default">mytrait </span><span class="keyword">{ public </span><span class="default">$x</span><span class="keyword">; }<br />
+<br />
+</span><span class="default">$tr </span><span class="keyword">= </span><span class="string">'mytrait'</span><span class="keyword">;<br />
+class </span><span class="default">myclass<br />
+</span><span class="keyword">{<br />
+&nbsp; use </span><span class="default">$tr</span><span class="keyword">;<br />
+&nbsp; ...<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+If you really need that, you have to use eval:<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">eval(</span><span class="string">"<br />
+class my_tmp_class { use </span><span class="default">$tr</span><span class="string">; }<br />
+"</span><span class="keyword">);<br />
+<br />
+class </span><span class="default">myclass </span><span class="keyword">extends </span><span class="default">my_tmp_class </span><span class="keyword">{ ... }<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="113554""></a>
+  <div class="note">
+   <strong class="user">atorich at gmail dot com</strong>
+   <a href="#113554" class="date">29-Oct-2013 10:56</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+add to "chris dot rutledge at gmail dot com":<br />
+__CLASS__ will return the name of the class in which the trait is being used (!) not the class in which trait method is being called:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">trait </span><span class="default">TestTrait </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">testMethod</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"Class: " </span><span class="keyword">. </span><span class="default">__CLASS__ </span><span class="keyword">. </span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"Trait: " </span><span class="keyword">. </span><span class="default">__TRAIT__ </span><span class="keyword">. </span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+class </span><span class="default">BaseClass </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; use </span><span class="default">TestTrait</span><span class="keyword">;<br />
+}<br />
+<br />
+class </span><span class="default">TestClass </span><span class="keyword">extends </span><span class="default">BaseClass </span><span class="keyword">{<br />
+<br />
+}<br />
+<br />
+</span><span class="default">$t </span><span class="keyword">= new </span><span class="default">TestClass</span><span class="keyword">();<br />
+</span><span class="default">$t</span><span class="keyword">-&gt;</span><span class="default">testMethod</span><span class="keyword">();<br />
+<br />
+</span><span class="comment">//Class: BaseClass<br />
+//Trait: TestTrait</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="113553""></a>
+  <div class="note">
+   <strong class="user">atorich at gmail dot com</strong>
+   <a href="#113553" class="date">29-Oct-2013 10:54</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+add to "chris dot rutledge at gmail dot com":<br />
+__CLASS__ will return the name of the class in which the trait is being used (!) not the class in which trait method is being called:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">trait </span><span class="default">TestTrait </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">testMethod</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"Class: " </span><span class="keyword">. </span><span class="default">__CLASS__ </span><span class="keyword">. </span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"Trait: " </span><span class="keyword">. </span><span class="default">__TRAIT__ </span><span class="keyword">. </span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+class </span><span class="default">BaseClass </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; use </span><span class="default">TestTrait</span><span class="keyword">;<br />
+}<br />
+<br />
+class </span><span class="default">TestClass </span><span class="keyword">extends </span><span class="default">BaseClass </span><span class="keyword">{<br />
+<br />
+}<br />
+<br />
+</span><span class="default">$t </span><span class="keyword">= new </span><span class="default">TestClass</span><span class="keyword">();<br />
+</span><span class="default">$t</span><span class="keyword">-&gt;</span><span class="default">testMethod</span><span class="keyword">();<br />
+<br />
+</span><span class="comment">//Class: BaseClass<br />
+//Trait: TestTrait</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="113047""></a>
+  <div class="note">
+   <strong class="user">Stefan W</strong>
+   <a href="#113047" class="date">22-Aug-2013 07:03</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Note that the "use" operator for traits (inside a class) and the "use" operator for namespaces (outside the class) resolve names differently. "use" for namespaces always sees its arguments as absolute (starting at the global namespace):<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">namespace </span><span class="default">Foo</span><span class="keyword">\</span><span class="default">Bar</span><span class="keyword">;<br />
+use </span><span class="default">Foo</span><span class="keyword">\</span><span class="default">Test</span><span class="keyword">;&nbsp; </span><span class="comment">// means \Foo\Test - the initial \ is optional<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+On the other hand, "use" for traits respects the current namespace:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">namespace </span><span class="default">Foo</span><span class="keyword">\</span><span class="default">Bar</span><span class="keyword">;<br />
+class </span><span class="default">SomeClass </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; use </span><span class="default">Foo</span><span class="keyword">\</span><span class="default">Test</span><span class="keyword">;&nbsp;&nbsp; </span><span class="comment">// means \Foo\Bar\Foo\Test<br />
+</span><span class="keyword">}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Together with "use" for closures, there are now three different "use" operators. They all mean different things and behave differently.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="112781""></a>
+  <div class="note">
+   <strong class="user">contato at williamsantana dot com dot br</strong>
+   <a href="#112781" class="date">23-Jul-2013 12:26</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Please note that a trait cannot extend a class. Traits can only contain another traits by using 'use' keyword. Things like <br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">trait </span><span class="default">DetailedException </span><span class="keyword">extends </span><span class="default">Exception </span><span class="keyword">{}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+will not work. Be careful.<br />
+<br />
+Cheers.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="112295""></a>
+  <div class="note">
+   <strong class="user">Oddant</strong>
+   <a href="#112295" class="date">30-May-2013 12:10</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I think it's obvious to notice that using 'use' followed by the traits name must be seen as just copying/pasting lines of code into the place where they are used.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="112058""></a>
+  <div class="note">
+   <strong class="user">syzer3 at gmail dot com</strong>
+   <a href="#112058" class="date">27-Apr-2013 06:14</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Traits can be useful to create Fluent API<br />
+ex:<br />
+trait StaticMake<br />
+{<br />
+&nbsp;&nbsp;&nbsp; public static function make()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return new static();<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+class HelloWorld<br />
+{<br />
+&nbsp;use StaticMake;<br />
+<br />
+&nbsp;&nbsp; public function getHello()<br />
+&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; return "Hello World";<br />
+&nbsp;&nbsp; }<br />
+}<br />
+//now instead:<br />
+$theHello = new HelloWorld;<br />
+echo $theHello -&gt; getHello();<br />
+<br />
+//one may just use<br />
+echo HelloWorld:make() -&gt; getHello();</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="111214""></a>
+  <div class="note">
+   <strong class="user">Serafim</strong>
+   <a href="#111214" class="date">27-Jan-2013 05:38</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Another useful property of traits:<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">namespace </span><span class="default">Traits</span><span class="keyword">;<br />
+trait </span><span class="default">Properties</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__get</span><span class="keyword">(</span><span class="default">$var</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$var </span><span class="keyword">= </span><span class="string">'_' </span><span class="keyword">. </span><span class="default">$var</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$getter </span><span class="keyword">= </span><span class="string">'_get' </span><span class="keyword">. </span><span class="default">$var</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">method_exists</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">, </span><span class="default">$getter</span><span class="keyword">)){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; try{<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$val </span><span class="keyword">= </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">$getter</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }catch(\</span><span class="default">Exception $e</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; throw new \</span><span class="default">Exception</span><span class="keyword">(</span><span class="default">$e</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$val</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; throw new \</span><span class="default">Exception</span><span class="keyword">(</span><span class="string">'Can not get property: ' </span><span class="keyword">. </span><span class="default">$var </span><span class="keyword">. </span><span class="string">', method ' </span><span class="keyword">. </span><span class="default">$getter </span><span class="keyword">. </span><span class="string">' not exists'</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__set</span><span class="keyword">(</span><span class="default">$var</span><span class="keyword">, </span><span class="default">$val</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$var </span><span class="keyword">= </span><span class="string">'_' </span><span class="keyword">. </span><span class="default">$var</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$setter </span><span class="keyword">= </span><span class="string">'_set' </span><span class="keyword">. </span><span class="default">$var</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">method_exists</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">$setter</span><span class="keyword">) &amp;&amp; isset(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">$var</span><span class="keyword">)){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; try{<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$setval </span><span class="keyword">= </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">$setter</span><span class="keyword">(</span><span class="default">$val</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }catch(\</span><span class="default">Exception $e</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; throw new \</span><span class="default">Exception</span><span class="keyword">(</span><span class="default">$e</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">$var </span><span class="keyword">= (</span><span class="default">$setval </span><span class="keyword">=== </span><span class="default">NULL</span><span class="keyword">) ? </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">$var </span><span class="keyword">: </span><span class="default">$setval</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }else{<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; throw new \</span><span class="default">Exception</span><span class="keyword">(</span><span class="string">'Can not set property: ' </span><span class="keyword">. </span><span class="default">$var </span><span class="keyword">. </span><span class="string">', method ' </span><span class="keyword">. </span><span class="default">$setter </span><span class="keyword">. </span><span class="string">' not exists'</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+class </span><span class="default">Some</span><span class="keyword">{<br />
+&nbsp; use \</span><span class="default">Chidori</span><span class="keyword">\</span><span class="default">Traits</span><span class="keyword">\</span><span class="default">Properties</span><span class="keyword">;<br />
+&nbsp; <br />
+&nbsp; </span><span class="comment">// Magic begin<br />
+&nbsp; </span><span class="keyword">protected </span><span class="default">$_var </span><span class="keyword">= </span><span class="default">42</span><span class="keyword">;<br />
+&nbsp; protected function </span><span class="default">_get_var</span><span class="keyword">(){ return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">_var</span><span class="keyword">; }<br />
+&nbsp; protected function </span><span class="default">_set_var</span><span class="keyword">(</span><span class="default">$val</span><span class="keyword">){ return </span><span class="default">NULL</span><span class="keyword">; }<br />
+}<br />
+&nbsp;<br />
+</span><span class="default">$s </span><span class="keyword">= new </span><span class="default">Some</span><span class="keyword">();<br />
+</span><span class="default">$s</span><span class="keyword">-&gt;</span><span class="default">var </span><span class="keyword">= </span><span class="default">23</span><span class="keyword">; \\ </span><span class="default">set value<br />
+</span><span class="keyword">echo </span><span class="default">$s</span><span class="keyword">-&gt;</span><span class="default">var</span><span class="keyword">; \\ return </span><span class="default">42</span><span class="keyword">? </span><span class="default">where is my 23</span><span class="keyword">? =)<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="110521""></a>
+  <div class="note">
+   <strong class="user">D. Marti</strong>
+   <a href="#110521" class="date">02-Nov-2012 12:25</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Traits are useful for strategies, when you want the same data to be handled (filtered, sorted, etc) differently.<br />
+<br />
+For example, you have a list of products that you want to filter out based on some criteria (brands, specs, whatever), or sorted by different means (price, label, whatever). You can create a sorting trait that contains different functions for different sorting types (numeric, string, date, etc). You can then use this trait not only in your product class (as given in the example), but also in other classes that need similar strategies (to apply a numeric sort to some data, etc).<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">trait </span><span class="default">SortStrategy </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; private </span><span class="default">$sort_field </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; private function </span><span class="default">string_asc</span><span class="keyword">(</span><span class="default">$item1</span><span class="keyword">, </span><span class="default">$item2</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">strnatcmp</span><span class="keyword">(</span><span class="default">$item1</span><span class="keyword">[</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">sort_field</span><span class="keyword">], </span><span class="default">$item2</span><span class="keyword">[</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">sort_field</span><span class="keyword">]);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; private function </span><span class="default">string_desc</span><span class="keyword">(</span><span class="default">$item1</span><span class="keyword">, </span><span class="default">$item2</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">strnatcmp</span><span class="keyword">(</span><span class="default">$item2</span><span class="keyword">[</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">sort_field</span><span class="keyword">], </span><span class="default">$item1</span><span class="keyword">[</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">sort_field</span><span class="keyword">]);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; private function </span><span class="default">num_asc</span><span class="keyword">(</span><span class="default">$item1</span><span class="keyword">, </span><span class="default">$item2</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$item1</span><span class="keyword">[</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">sort_field</span><span class="keyword">] == </span><span class="default">$item2</span><span class="keyword">[</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">sort_field</span><span class="keyword">]) return </span><span class="default">0</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return (</span><span class="default">$item1</span><span class="keyword">[</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">sort_field</span><span class="keyword">] &lt; </span><span class="default">$item2</span><span class="keyword">[</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">sort_field</span><span class="keyword">] ? -</span><span class="default">1 </span><span class="keyword">: </span><span class="default">1 </span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; private function </span><span class="default">num_desc</span><span class="keyword">(</span><span class="default">$item1</span><span class="keyword">, </span><span class="default">$item2</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$item1</span><span class="keyword">[</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">sort_field</span><span class="keyword">] == </span><span class="default">$item2</span><span class="keyword">[</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">sort_field</span><span class="keyword">]) return </span><span class="default">0</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return (</span><span class="default">$item1</span><span class="keyword">[</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">sort_field</span><span class="keyword">] &gt; </span><span class="default">$item2</span><span class="keyword">[</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">sort_field</span><span class="keyword">] ? -</span><span class="default">1 </span><span class="keyword">: </span><span class="default">1 </span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; private function </span><span class="default">date_asc</span><span class="keyword">(</span><span class="default">$item1</span><span class="keyword">, </span><span class="default">$item2</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$date1 </span><span class="keyword">= </span><span class="default">intval</span><span class="keyword">(</span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">'-'</span><span class="keyword">, </span><span class="string">''</span><span class="keyword">, </span><span class="default">$item1</span><span class="keyword">[</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">sort_field</span><span class="keyword">]));<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$date2 </span><span class="keyword">= </span><span class="default">intval</span><span class="keyword">(</span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">'-'</span><span class="keyword">, </span><span class="string">''</span><span class="keyword">, </span><span class="default">$item2</span><span class="keyword">[</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">sort_field</span><span class="keyword">]));<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$date1 </span><span class="keyword">== </span><span class="default">$date2</span><span class="keyword">) return </span><span class="default">0</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return (</span><span class="default">$date1 </span><span class="keyword">&lt; </span><span class="default">$date2 </span><span class="keyword">? -</span><span class="default">1 </span><span class="keyword">: </span><span class="default">1 </span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; private function </span><span class="default">date_desc</span><span class="keyword">(</span><span class="default">$item1</span><span class="keyword">, </span><span class="default">$item2</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$date1 </span><span class="keyword">= </span><span class="default">intval</span><span class="keyword">(</span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">'-'</span><span class="keyword">, </span><span class="string">''</span><span class="keyword">, </span><span class="default">$item1</span><span class="keyword">[</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">sort_field</span><span class="keyword">]));<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$date2 </span><span class="keyword">= </span><span class="default">intval</span><span class="keyword">(</span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">'-'</span><span class="keyword">, </span><span class="string">''</span><span class="keyword">, </span><span class="default">$item2</span><span class="keyword">[</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">sort_field</span><span class="keyword">]));<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$date1 </span><span class="keyword">== </span><span class="default">$date2</span><span class="keyword">) return </span><span class="default">0</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return (</span><span class="default">$date1 </span><span class="keyword">&gt; </span><span class="default">$date2 </span><span class="keyword">? -</span><span class="default">1 </span><span class="keyword">: </span><span class="default">1 </span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+class </span><span class="default">Product </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public </span><span class="default">$data </span><span class="keyword">= array();<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; use </span><span class="default">SortStrategy</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">get</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// do something to get the data, for this ex. I just included an array<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">data </span><span class="keyword">= array(<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">101222 </span><span class="keyword">=&gt; array(</span><span class="string">'label' </span><span class="keyword">=&gt; </span><span class="string">'Awesome product'</span><span class="keyword">, </span><span class="string">'price' </span><span class="keyword">=&gt; </span><span class="default">10.50</span><span class="keyword">, </span><span class="string">'date_added' </span><span class="keyword">=&gt; </span><span class="string">'2012-02-01'</span><span class="keyword">),<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">101232 </span><span class="keyword">=&gt; array(</span><span class="string">'label' </span><span class="keyword">=&gt; </span><span class="string">'Not so awesome product'</span><span class="keyword">, </span><span class="string">'price' </span><span class="keyword">=&gt; </span><span class="default">5.20</span><span class="keyword">, </span><span class="string">'date_added' </span><span class="keyword">=&gt; </span><span class="string">'2012-03-20'</span><span class="keyword">),<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">101241 </span><span class="keyword">=&gt; array(</span><span class="string">'label' </span><span class="keyword">=&gt; </span><span class="string">'Pretty neat product'</span><span class="keyword">, </span><span class="string">'price' </span><span class="keyword">=&gt; </span><span class="default">9.65</span><span class="keyword">, </span><span class="string">'date_added' </span><span class="keyword">=&gt; </span><span class="string">'2012-04-15'</span><span class="keyword">),<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">101256 </span><span class="keyword">=&gt; array(</span><span class="string">'label' </span><span class="keyword">=&gt; </span><span class="string">'Freakishly cool product'</span><span class="keyword">, </span><span class="string">'price' </span><span class="keyword">=&gt; </span><span class="default">12.55</span><span class="keyword">, </span><span class="string">'date_added' </span><span class="keyword">=&gt; </span><span class="string">'2012-01-11'</span><span class="keyword">),<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">101219 </span><span class="keyword">=&gt; array(</span><span class="string">'label' </span><span class="keyword">=&gt; </span><span class="string">'Meh product'</span><span class="keyword">, </span><span class="string">'price' </span><span class="keyword">=&gt; </span><span class="default">3.69</span><span class="keyword">, </span><span class="string">'date_added' </span><span class="keyword">=&gt; </span><span class="string">'2012-06-11'</span><span class="keyword">),<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; );<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">sort_by</span><span class="keyword">(</span><span class="default">$by </span><span class="keyword">= </span><span class="string">'price'</span><span class="keyword">, </span><span class="default">$type </span><span class="keyword">= </span><span class="string">'asc'</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (!</span><span class="default">preg_match</span><span class="keyword">(</span><span class="string">'/^(asc|desc)$/'</span><span class="keyword">, </span><span class="default">$type</span><span class="keyword">)) </span><span class="default">$type </span><span class="keyword">= </span><span class="string">'asc'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; switch (</span><span class="default">$by</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">'name'</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">sort_field </span><span class="keyword">= </span><span class="string">'label'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">uasort</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">data</span><span class="keyword">, array(</span><span class="string">'Product'</span><span class="keyword">, </span><span class="string">'string_'</span><span class="keyword">.</span><span class="default">$type</span><span class="keyword">));<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">'date'</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">sort_field </span><span class="keyword">= </span><span class="string">'date_added'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">uasort</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">data</span><span class="keyword">, array(</span><span class="string">'Product'</span><span class="keyword">, </span><span class="string">'date_'</span><span class="keyword">.</span><span class="default">$type</span><span class="keyword">));<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; default:<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">sort_field </span><span class="keyword">= </span><span class="string">'price'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">uasort</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">data</span><span class="keyword">, array(</span><span class="string">'Product'</span><span class="keyword">, </span><span class="string">'num_'</span><span class="keyword">.</span><span class="default">$type</span><span class="keyword">));<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">$product </span><span class="keyword">= new </span><span class="default">Product</span><span class="keyword">();<br />
+</span><span class="default">$product</span><span class="keyword">-&gt;</span><span class="default">get</span><span class="keyword">();<br />
+</span><span class="default">$product</span><span class="keyword">-&gt;</span><span class="default">sort_by</span><span class="keyword">(</span><span class="string">'name'</span><span class="keyword">);<br />
+echo </span><span class="string">'&lt;pre&gt;'</span><span class="keyword">.</span><span class="default">print_r</span><span class="keyword">(</span><span class="default">$product</span><span class="keyword">-&gt;</span><span class="default">data</span><span class="keyword">, </span><span class="default">true</span><span class="keyword">).</span><span class="string">'&lt;/pre&gt;'</span><span class="keyword">;<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="110195""></a>
+  <div class="note">
+   <strong class="user">artur at webprojektant dot pl</strong>
+   <a href="#110195" class="date">29-Sep-2012 03:10</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Trait can not have the same name as class because it will&nbsp; show: Fatal error: Cannot redeclare class</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="109766""></a>
+  <div class="note">
+   <strong class="user">dario dot masamune at gmail dot com</strong>
+   <a href="#109766" class="date">18-Aug-2012 09:27</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Just in case someone was wondering, traits can be inside namespaces too! Cool!!</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="109508""></a>
+  <div class="note">
+   <strong class="user">t8 at  AT pobox dot com</strong>
+   <a href="#109508" class="date">24-Jul-2012 05:17</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Another difference with traits vs inheritance is that methods defined in traits can access methods and properties of the class they're used in, including private ones.<br />
+<br />
+For example:<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">trait </span><span class="default">MyTrait<br />
+</span><span class="keyword">{<br />
+&nbsp; protected function </span><span class="default">accessVar</span><span class="keyword">()<br />
+&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">var</span><span class="keyword">;<br />
+&nbsp; }<br />
+<br />
+}<br />
+<br />
+class </span><span class="default">TraitUser<br />
+</span><span class="keyword">{<br />
+&nbsp; use </span><span class="default">MyTrait</span><span class="keyword">;<br />
+<br />
+&nbsp; private </span><span class="default">$var </span><span class="keyword">= </span><span class="string">'var'</span><span class="keyword">;<br />
+<br />
+&nbsp; public function </span><span class="default">getVar</span><span class="keyword">()<br />
+&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">accessVar</span><span class="keyword">();<br />
+&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">$t </span><span class="keyword">= new </span><span class="default">TraitUser</span><span class="keyword">();<br />
+echo </span><span class="default">$t</span><span class="keyword">-&gt;</span><span class="default">getVar</span><span class="keyword">(); </span><span class="comment">// -&gt; 'var'&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="109448""></a>
+  <div class="note">
+   <strong class="user">karolis at iwsolutions dot ie</strong>
+   <a href="#109448" class="date">18-Jul-2012 06:16</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Not very obvious but trait methods can be called as if they were defined as static methods in a regular class
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+</span><span class="keyword">trait </span><span class="default">Foo </span><span class="keyword">{
+<br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">bar</span><span class="keyword">() {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="string">'baz'</span><span class="keyword">;
+<br />
+&nbsp;&nbsp;&nbsp; }
+<br />
+}
+<br />
+
+<br />
+echo </span><span class="default">Foo</span><span class="keyword">::</span><span class="default">bar</span><span class="keyword">(),</span><span class="string">"\\n"</span><span class="keyword">;
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="108604""></a>
+  <div class="note">
+   <strong class="user">ryanhanekamp at yahoo dot com</strong>
+   <a href="#108604" class="date">10-May-2012 09:14</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Using AS on a __construct method (and maybe other magic methods) is really, really bad. The problem is that is doesn't throw any errors, at least in 5.4.0. It just sporadically resets the connection. And when I say "sporadically," I mean that arbitrary changes in the preceding code can cause the browser connection to reset or not reset *consistently*, so that subsequent page refreshes will continue to hang, crash, or display perfectly in the same fashion as the first load of the page after a change in the preceding code, but the slightest change in the code can change this state. (I believe it is related to precise memory usage.)<br />
+<br />
+I've spent a good part of the day chasing down this one, and weeping every time commenting or even moving a completely arbitrary section of code would cause the connection to reset. It was just by luck that I decided to comment the<br />
+<br />
+"__construct as primitiveObjectConstruct"<br />
+<br />
+line and then the crashes went away entirely.<br />
+<br />
+My parent trait constructor was very simple, so my fix this time was to copy the functionality into the child __construct. I'm not sure how I'll approach a more complicated parent trait constructor.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="108293""></a>
+  <div class="note">
+   <strong class="user">ryan at derokorian dot com</strong>
+   <a href="#108293" class="date">15-Apr-2012 11:03</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Simple singleton trait.<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">trait </span><span class="default">singleton </span><span class="keyword">{&nbsp; &nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">/**<br />
+&nbsp;&nbsp; &nbsp; * private construct, generally defined by using class<br />
+&nbsp;&nbsp; &nbsp; */<br />
+&nbsp;&nbsp;&nbsp; //private function __construct() {}<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">public static function </span><span class="default">getInstance</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; static </span><span class="default">$_instance </span><span class="keyword">= </span><span class="default">NULL</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$class </span><span class="keyword">= </span><span class="default">__CLASS__</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$_instance </span><span class="keyword">?: </span><span class="default">$_instance </span><span class="keyword">= new </span><span class="default">$class</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__clone</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">trigger_error</span><span class="keyword">(</span><span class="string">'Cloning '</span><span class="keyword">.</span><span class="default">__CLASS__</span><span class="keyword">.</span><span class="string">' is not allowed.'</span><span class="keyword">,</span><span class="default">E_USER_ERROR</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__wakeup</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">trigger_error</span><span class="keyword">(</span><span class="string">'Unserializing '</span><span class="keyword">.</span><span class="default">__CLASS__</span><span class="keyword">.</span><span class="string">' is not allowed.'</span><span class="keyword">,</span><span class="default">E_USER_ERROR</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="comment">/**<br />
+&nbsp;* Example Usage<br />
+&nbsp;*/<br />
+<br />
+</span><span class="keyword">class </span><span class="default">foo </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; use </span><span class="default">singleton</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; private function </span><span class="default">__construct</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">name </span><span class="keyword">= </span><span class="string">'foo'</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+class </span><span class="default">bar </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; use </span><span class="default">singleton</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; private function </span><span class="default">__construct</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">name </span><span class="keyword">= </span><span class="string">'bar'</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">$foo </span><span class="keyword">= </span><span class="default">foo</span><span class="keyword">::</span><span class="default">getInstance</span><span class="keyword">();<br />
+echo </span><span class="default">$foo</span><span class="keyword">-&gt;</span><span class="default">name</span><span class="keyword">;<br />
+<br />
+</span><span class="default">$bar </span><span class="keyword">= </span><span class="default">bar</span><span class="keyword">::</span><span class="default">getInstance</span><span class="keyword">();<br />
+echo </span><span class="default">$bar</span><span class="keyword">-&gt;</span><span class="default">name</span><span class="keyword">;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="108086""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#108086" class="date">28-Mar-2012 06:30</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Traits can not implement interfaces.<br />
+(should be obvious, but tested is tested)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="107965""></a>
+  <div class="note">
+   <strong class="user">Safak Ozpinar / safakozpinar at gmail</strong>
+   <a href="#107965" class="date">18-Mar-2012 12:03</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Unlike inheritance; if a trait has static properties, each class using that trait has independent instances of those properties.<br />
+<br />
+Example using parent class:<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">TestClass </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public static </span><span class="default">$_bar</span><span class="keyword">;<br />
+}<br />
+class </span><span class="default">Foo1 </span><span class="keyword">extends </span><span class="default">TestClass </span><span class="keyword">{ }<br />
+class </span><span class="default">Foo2 </span><span class="keyword">extends </span><span class="default">TestClass </span><span class="keyword">{ }<br />
+</span><span class="default">Foo1</span><span class="keyword">::</span><span class="default">$_bar </span><span class="keyword">= </span><span class="string">'Hello'</span><span class="keyword">;<br />
+</span><span class="default">Foo2</span><span class="keyword">::</span><span class="default">$_bar </span><span class="keyword">= </span><span class="string">'World'</span><span class="keyword">;<br />
+echo </span><span class="default">Foo1</span><span class="keyword">::</span><span class="default">$_bar </span><span class="keyword">. </span><span class="string">' ' </span><span class="keyword">. </span><span class="default">Foo2</span><span class="keyword">::</span><span class="default">$_bar</span><span class="keyword">; </span><span class="comment">// Prints: World World<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Example using trait:<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">trait </span><span class="default">TestTrait </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public static </span><span class="default">$_bar</span><span class="keyword">;<br />
+}<br />
+class </span><span class="default">Foo1 </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; use </span><span class="default">TestTrait</span><span class="keyword">;<br />
+}<br />
+class </span><span class="default">Foo2 </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; use </span><span class="default">TestTrait</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">Foo1</span><span class="keyword">::</span><span class="default">$_bar </span><span class="keyword">= </span><span class="string">'Hello'</span><span class="keyword">;<br />
+</span><span class="default">Foo2</span><span class="keyword">::</span><span class="default">$_bar </span><span class="keyword">= </span><span class="string">'World'</span><span class="keyword">;<br />
+echo </span><span class="default">Foo1</span><span class="keyword">::</span><span class="default">$_bar </span><span class="keyword">. </span><span class="string">' ' </span><span class="keyword">. </span><span class="default">Foo2</span><span class="keyword">::</span><span class="default">$_bar</span><span class="keyword">; </span><span class="comment">// Prints: Hello World<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="107913""></a>
+  <div class="note">
+   <strong class="user">Jason dot Hofer dot deletify dot this dot part at gmail dot com</strong>
+   <a href="#107913" class="date">15-Mar-2012 01:39</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+A (somewhat) practical example of trait usage.<br />
+<br />
+Without traits:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">class </span><span class="default">Controller </span><span class="keyword">{<br />
+&nbsp; </span><span class="comment">/* Controller-specific methods defined here. */<br />
+</span><span class="keyword">}<br />
+<br />
+class </span><span class="default">AdminController </span><span class="keyword">extends </span><span class="default">Controller </span><span class="keyword">{<br />
+&nbsp; </span><span class="comment">/* Controller-specific methods inherited from Controller. */<br />
+&nbsp; /* Admin-specific methods defined here. */<br />
+</span><span class="keyword">}<br />
+<br />
+class </span><span class="default">CrudController </span><span class="keyword">extends </span><span class="default">Controller </span><span class="keyword">{<br />
+&nbsp; </span><span class="comment">/* Controller-specific methods inherited from Controller. */<br />
+&nbsp; /* CRUD-specific methods defined here. */<br />
+</span><span class="keyword">}<br />
+<br />
+class </span><span class="default">AdminCrudController </span><span class="keyword">extends </span><span class="default">CrudController </span><span class="keyword">{<br />
+&nbsp; </span><span class="comment">/* Controller-specific methods inherited from Controller. */<br />
+&nbsp; /* CRUD-specific methods inherited from CrudController. */<br />
+&nbsp; /* (!!!) Admin-specific methods copied and pasted from AdminController. */<br />
+</span><span class="keyword">}<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+With traits:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">class </span><span class="default">Controller </span><span class="keyword">{<br />
+&nbsp; </span><span class="comment">/* Controller-specific methods defined here. */<br />
+</span><span class="keyword">}<br />
+<br />
+class </span><span class="default">AdminController </span><span class="keyword">extends </span><span class="default">Controller </span><span class="keyword">{<br />
+&nbsp; </span><span class="comment">/* Controller-specific methods inherited from Controller. */<br />
+&nbsp; /* Admin-specific methods defined here. */<br />
+</span><span class="keyword">}<br />
+<br />
+trait </span><span class="default">CrudControllerTrait </span><span class="keyword">{<br />
+&nbsp; </span><span class="comment">/* CRUD-specific methods defined here. */<br />
+</span><span class="keyword">}<br />
+<br />
+class </span><span class="default">AdminCrudController </span><span class="keyword">extends </span><span class="default">AdminController </span><span class="keyword">{<br />
+&nbsp; use </span><span class="default">CrudControllerTrait</span><span class="keyword">;<br />
+&nbsp; </span><span class="comment">/* Controller-specific methods inherited from Controller. */<br />
+&nbsp; /* Admin-specific methods inherited from AdminController. */<br />
+&nbsp; /* CRUD-specific methods defined by CrudControllerTrait. */<br />
+</span><span class="keyword">}<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="107769""></a>
+  <div class="note">
+   <strong class="user">anthony bishopric</strong>
+   <a href="#107769" class="date">03-Mar-2012 09:11</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The magic method __call works as expected using traits.<br />
+<br />
+<span class="default">&lt;?php <br />
+</span><span class="keyword">trait </span><span class="default">Call_Helper</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__call</span><span class="keyword">(</span><span class="default">$name</span><span class="keyword">, </span><span class="default">$args</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">count</span><span class="keyword">(</span><span class="default">$args</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+class </span><span class="default">Foo</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; use </span><span class="default">Call_Helper</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="default">$foo </span><span class="keyword">= new </span><span class="default">Foo</span><span class="keyword">();<br />
+echo </span><span class="default">$foo</span><span class="keyword">-&gt;</span><span class="default">go</span><span class="keyword">(</span><span class="default">1</span><span class="keyword">,</span><span class="default">2</span><span class="keyword">,</span><span class="default">3</span><span class="keyword">,</span><span class="default">4</span><span class="keyword">); </span><span class="comment">// echoes 4</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="107735""></a>
+  <div class="note">
+   <strong class="user">Edward</strong>
+   <a href="#107735" class="date">01-Mar-2012 12:29</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The difference between Traits and multiple inheritance is in the inheritance part.&nbsp;&nbsp; A trait is not inherited from, but rather included or mixed-in, thus becoming part of "this class".&nbsp;&nbsp; Traits also provide a more controlled means of resolving conflicts that inevitably arise when using multiple inheritance in the few languages that support them (C++).&nbsp; Most modern languages are going the approach of a "traits" or "mixin" style system as opposed to multiple-inheritance, largely due to the ability to control ambiguities if a method is declared in multiple "mixed-in" classes.<br />
+<br />
+Also, one can not "inherit" static member functions in multiple-inheritance.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="107548""></a>
+  <div class="note">
+   <strong class="user">greywire at gmail dot com</strong>
+   <a href="#107548" class="date">17-Feb-2012 04:12</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The best way to understand what traits are and how to use them is to look at them for what they essentially are:&nbsp; language assisted copy and paste.<br />
+<br />
+If you can copy and paste the code from one class to another (and we've all done this, even though we try not to because its code duplication) then you have a candidate for a trait.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="106958""></a>
+  <div class="note">
+   <strong class="user">chris dot rutledge at gmail dot com</strong>
+   <a href="#106958" class="date">21-Dec-2011 09:42</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+It may be worth noting here that the magic constant __CLASS__ becomes even more magical - __CLASS__ will return the name of the class in which the trait is being used.<br />
+<br />
+for example<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">trait </span><span class="default">sayWhere </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">whereAmI</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="default">__CLASS__</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+class </span><span class="default">Hello </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; use </span><span class="default">sayWHere</span><span class="keyword">;<br />
+}<br />
+<br />
+class </span><span class="default">World </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; use </span><span class="default">sayWHere</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="default">$a </span><span class="keyword">= new </span><span class="default">Hello</span><span class="keyword">;<br />
+</span><span class="default">$a</span><span class="keyword">-&gt;</span><span class="default">whereAmI</span><span class="keyword">(); </span><span class="comment">//Hello<br />
+<br />
+</span><span class="default">$b </span><span class="keyword">= new </span><span class="default">World</span><span class="keyword">;<br />
+</span><span class="default">$b</span><span class="keyword">-&gt;</span><span class="default">whereAmI</span><span class="keyword">(); </span><span class="comment">//World<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+The magic constant __TRAIT__ will giev you the name of the trait</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

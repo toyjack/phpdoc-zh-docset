@@ -1,0 +1,373 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Built-in web server</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="features.commandline.html">? PHP 的命令行模式</a></li>
+      <li style="float: right;"><a href="features.commandline.ini.html">INI settings ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="features.commandline.html">PHP 的命令行模式</a></li>
+    <li>Built-in web server</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="features.commandline.webserver" class="section">
+  <h2 class="title">Built-in web server</h2>
+
+  <p class="para">
+   As of PHP 5.4.0, the <acronym title="Command Line Interpreter/Interface">CLI</acronym> <acronym title="Server Application Programming Interface">SAPI</acronym> provides a built-in web server.
+  </p>
+
+  <p class="para">
+   This web server is designed for developmental purposes only, and should not
+   be used in production.
+  </p>
+
+  <p class="para">
+    URI requests are served from the current working directory where
+    PHP was started, unless the -t option is used to specify an
+    explicit document root.
+  </p>
+
+  <p class="para">
+    If a URI request does not specify a file, then either index.php
+    or index.html in the given directory are returned.  If neither file
+    exists, then a 404 response code is returned.
+  </p>
+
+  <p class="para">
+    If a PHP file is given on the command line when the web server is
+    started it is treated as a &quot;router&quot; script for the web server.
+    The script is run at the start of each HTTP request.  If this
+    script returns <strong><code>FALSE</code></strong>, then the requested resource is returned
+    as-is.  Otherwise the script&#039;s output is returned to the browser.
+  </p>
+
+  <div class="example" id="example-378">
+   <p><strong>Example #1 Starting the web server</strong></p> 
+   <div class="example-contents">
+<div class="shellcode"><pre class="shellcode">$ cd ~/public_html
+$ php -S localhost:8000</pre>
+</div>
+   </div>
+
+   <div class="example-contents"><p>
+     The terminal will show:
+   </p></div>
+   <div class="example-contents screen">
+<div class="cdata"><pre>
+PHP 5.4.0 Development Server started at Thu Jul 21 10:43:28 2011
+Listening on localhost:8000
+Document root is /home/me/public_html
+Press Ctrl-C to quit
+</pre></div>
+   </div>
+   <div class="example-contents"><p>
+     After URI requests for http://localhost:8000/ and
+     http://localhost:8000/myscript.html the terminal will show
+     something similar to:
+   </p></div>
+   <div class="example-contents screen">
+<div class="cdata"><pre>
+PHP 5.4.0 Development Server started at Thu Jul 21 10:43:28 2011
+Listening on localhost:8000
+Document root is /home/me/public_html
+Press Ctrl-C to quit.
+[Thu Jul 21 10:48:48 2011] ::1:39144 GET /favicon.ico - Request read
+[Thu Jul 21 10:48:50 2011] ::1:39146 GET / - Request read
+[Thu Jul 21 10:48:50 2011] ::1:39147 GET /favicon.ico - Request read
+[Thu Jul 21 10:48:52 2011] ::1:39148 GET /myscript.html - Request read
+[Thu Jul 21 10:48:52 2011] ::1:39149 GET /favicon.ico - Request read
+</pre></div>
+   </div>
+  </div>
+
+  <div class="example" id="example-379">
+   <p><strong>Example #2 Starting with a specific document root directory</strong></p> 
+   <div class="example-contents">
+<div class="shellcode"><pre class="shellcode">$ cd ~/public_html
+$ php -S localhost:8000 -t foo/</pre>
+</div>
+   </div>
+
+   <div class="example-contents"><p>
+     The terminal will show:
+   </p></div>
+   <div class="example-contents screen">
+<div class="cdata"><pre>
+PHP 5.4.0 Development Server started at Thu Jul 21 10:50:26 2011
+Listening on localhost:8000
+Document root is /home/me/public_html/foo
+Press Ctrl-C to quit
+</pre></div>
+   </div>
+  </div>
+
+  <div class="example" id="example-380">
+   <p><strong>Example #3 Using a Router Script</strong></p> 
+<div class="example-contents"><p>
+  Requests for images will display them, but requests for HTML files will display &quot;Welcome to PHP&quot;
+</p></div>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">//&nbsp;router.php<br /></span><span style="color: #007700">if&nbsp;(</span><span style="color: #0000BB">preg_match</span><span style="color: #007700">(</span><span style="color: #DD0000">'/\.(?:png|jpg|jpeg|gif)$/'</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$_SERVER</span><span style="color: #007700">[</span><span style="color: #DD0000">"REQUEST_URI"</span><span style="color: #007700">]))<br />&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;</span><span style="color: #0000BB">false</span><span style="color: #007700">;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;serve&nbsp;the&nbsp;requested&nbsp;resource&nbsp;as-is.<br /></span><span style="color: #007700">else&nbsp;{&nbsp;<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"&lt;p&gt;Welcome&nbsp;to&nbsp;PHP&lt;/p&gt;"</span><span style="color: #007700">;<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+   <div class="example-contents">
+<div class="shellcode"><pre class="shellcode">$ php -S localhost:8000 router.php</pre>
+</div>
+   </div>
+
+   <div class="example-contents"><p>
+     After several URI requests the terminal will show something similar to:
+   </p></div>
+   <div class="example-contents screen">
+<div class="cdata"><pre>
+PHP 5.4.0 Development Server started at Thu Jul 21 10:53:19 2011
+Listening on localhost:8000
+Document root is /home/me/public_html
+Press Ctrl-C to quit.
+[Thu Jul 21 10:53:45 2011] ::1:55801 GET /mylogo.jpg - Request read
+[Thu Jul 21 10:53:52 2011] ::1:55803 GET /abc.html - Request read
+[Thu Jul 21 10:53:52 2011] ::1:55804 GET /favicon.ico - Request read
+</pre></div>
+   </div>
+  </div>
+
+ </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="116858""></a>
+  <div class="note">
+   <strong class="user">simonbengt at gmail dot com</strong>
+   <a href="#116858" class="date">11-Mar-2015 07:59</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+My routing file looks like this: <br />
+<br />
+if (file_exists($_SERVER["DOCUMENT_ROOT"] . $_SERVER["REQUEST_URI"])) {<br />
+&nbsp;&nbsp;&nbsp; return false;<br />
+} else {<br />
+&nbsp;&nbsp;&nbsp; require "index.php";<br />
+}<br />
+<br />
+The reason is to support all static files.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115917""></a>
+  <div class="note">
+   <strong class="user">Tan</strong>
+   <a href="#115917" class="date">14-Oct-2014 08:19</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Is there anyway to unassign the port used?</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115907""></a>
+  <div class="note">
+   <strong class="user">tamas at bartatamas dot hu</strong>
+   <a href="#115907" class="date">13-Oct-2014 11:19</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If your URI contains a dot, you'll lose the $_SERVER['PATH_INFO'] variable, when using the built-in webserver.<br />
+I wanted to write an API, and use .json ending in the URI-s, but then the framework's routing mechanism broke, and it took a lot of time to discover that the reason behind it was its router relying on $_SERVER['PATH_INFO'].<br />
+<br />
+References:<br />
+https://bugs.php.net/bug.php?id=61286</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115886""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#115886" class="date">10-Oct-2014 04:19</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+PLEASE provide a means to disable this.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="114865""></a>
+  <div class="note">
+   <strong class="user">sixd at php dot net</strong>
+   <a href="#114865" class="date">17-Apr-2014 01:38</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The .xml, .xsl, and .xsd extensions were added to PHP 5.5.12 (and what will be PHP 5.6) (bug #67079 )</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="114494""></a>
+  <div class="note">
+   <strong class="user">shenzhuxi at gmail dot com</strong>
+   <a href="#114494" class="date">27-Feb-2014 07:51</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+How to avoid this error. <br />
+<br />
+This page contains the following errors:<br />
+error on line XX at column X: Extra content at the end of the document<br />
+Below is a rendering of the page up to the first error.<br />
+<br />
+<span class="default">&lt;?php<br />
+$path </span><span class="keyword">= </span><span class="default">pathinfo</span><span class="keyword">(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">"SCRIPT_FILENAME"</span><span class="keyword">]);<br />
+if (</span><span class="default">$path</span><span class="keyword">[</span><span class="string">'extension'</span><span class="keyword">]==</span><span class="string">'xhtml'</span><span class="keyword">) {<br />
+&nbsp; </span><span class="default">header</span><span class="keyword">(</span><span class="string">'Content-Type: application/xhtml+xml;CHARSET=gb2312'</span><span class="keyword">);<br />
+&nbsp; </span><span class="default">readfile</span><span class="keyword">(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">"SCRIPT_FILENAME"</span><span class="keyword">]);<br />
+&nbsp; exit;</span><span class="comment">//Without it, the file will be output twice. <br />
+</span><span class="keyword">}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="114492""></a>
+  <div class="note">
+   <strong class="user">tobi at saibotd dot com</strong>
+   <a href="#114492" class="date">27-Feb-2014 02:34</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+A more complete example of a router file:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">// router.php<br />
+<br />
+</span><span class="default">$route </span><span class="keyword">= </span><span class="default">parse_url</span><span class="keyword">(</span><span class="default">substr</span><span class="keyword">(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">"REQUEST_URI"</span><span class="keyword">], </span><span class="default">1</span><span class="keyword">))[</span><span class="string">"path"</span><span class="keyword">];<br />
+<br />
+if (</span><span class="default">is_file</span><span class="keyword">(</span><span class="default">$route</span><span class="keyword">)) {<br />
+&nbsp;&nbsp;&nbsp; if(</span><span class="default">substr</span><span class="keyword">(</span><span class="default">$route</span><span class="keyword">, -</span><span class="default">4</span><span class="keyword">) == </span><span class="string">".php"</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; require </span><span class="default">$route</span><span class="keyword">;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Include requested script files<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">exit;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Serve file as is<br />
+</span><span class="keyword">} else {&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="comment">// Fallback to index.php<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">"q"</span><span class="keyword">] = </span><span class="default">$route</span><span class="keyword">;&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="comment">// Try to emulate the behaviour of your htaccess here, if needed<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">require </span><span class="string">"index.php"</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="default">This should give you a basic development enviroment</span><span class="keyword">.</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="114189""></a>
+  <div class="note">
+   <strong class="user">jonathan at reinink dot ca</strong>
+   <a href="#114189" class="date">23-Jan-2014 12:26</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+In order to set project specific configuration options, simply add a php.ini file to your project, and then run the built-in server with this flag:<br />
+<br />
+php -S localhost:8000 -c php.ini<br />
+<br />
+This is especially helpful for settings that cannot be set at runtime (ini_set()).</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="112667""></a>
+  <div class="note">
+   <strong class="user">Ivan Ferrer</strong>
+   <a href="#112667" class="date">11-Jul-2013 05:03</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+On Windows you may find useful to have a phpserver.bat file in shell:sendto with the folowing:<br />
+explorer <a href="http://localhost:8888" rel="nofollow" target="_blank">http://localhost:8888</a><br />
+rem check if arg is file or dir<br />
+if exist "%~1\" (<br />
+&nbsp; php -S localhost:8888 -t "%~1"<br />
+) else (<br />
+&nbsp; php -S localhost:8888 -t "%~dp1"<br />
+)<br />
+<br />
+then for fast web testing you only have to SendTo a file or folder to this bat and it will open your explorer and run the server.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="111966""></a>
+  <div class="note">
+   <strong class="user">dstrout at dstrout dot net</strong>
+   <a href="#111966" class="date">18-Apr-2013 02:16</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Just gave it a try, and it is IPv6 compatible, if anyone was wondering.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="107843""></a>
+  <div class="note">
+   <strong class="user">Stefano F. Rausch</strong>
+   <a href="#107843" class="date">09-Mar-2012 09:25</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+To develop / deploy websites in 3 stages, i.e. ( 1 ) locally, ( 2 ) with an access controlled dedicated beta / test website in the www and ( 3 ) the production site, you can have ( 1 ) &amp; ( 2 ) using the same domain name - port free - as follows:<br />
+<br />
+- look up the IP address of the beta.web.site<br />
+<br />
+and edit the hosts file to reflect:<br />
+<br />
+- &lt;IP&gt; beta.web.site<br />
+- 127.0.0.1 beta.web.site<br />
+<br />
+Start the built-in web server to work locally with:<br />
+<br />
+- sudo php -S beta.web.site:80<br />
+<br />
+and just hit <a href="http://beta.web.site as usual. Switching back and forth between ( 1 " rel="nofollow" target="_blank">http://beta.web.site as usual. Switching back and forth between ( 1 </a>) and ( 2 ) is as easy as telling the php engine not to fake a server any more :) Nice!<br />
+<br />
+Happy PHP'ing.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

@@ -1,0 +1,148 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Architecture and Concepts</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="mysqlnd-qc.quickstart.html">? Quickstart and Examples</a></li>
+      <li style="float: right;"><a href="mysqlnd-qc.quickstart.configuration.html">Setup ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="mysqlnd-qc.quickstart.html">Quickstart and Examples</a></li>
+    <li>Architecture and Concepts</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="mysqlnd-qc.quickstart.concepts" class="section">
+  <h2 class="title">Architecture and Concepts</h2>
+   <p class="para">
+    The query cache plugin is implemented as a PHP extension.
+    It is written in C and operates under the hood of PHP. During the
+    startup of the PHP interpreter, it gets registered as a
+    <a href="book.mysqlnd.html" class="link">mysqlnd</a> plugin to replace selected
+    mysqlnd C methods. Hereby, it can change the behaviour of any
+    PHP MySQL extension (<a href="ref.mysqli.html" class="link">mysqli</a>,
+    <a href="ref.pdo-mysql.html" class="link">PDO_MYSQL</a>,
+    <a href="ref.mysql.html" class="link">mysql</a>) compiled to use the
+    mysqlnd library without changing the extensions API. This makes
+    the plugin compatible with each and every PHP MySQL application.
+    Because existing APIs are not changed, it is almost transparent
+    to use. Please, see the
+    <a href="mysqlnd.plugin.html" class="link">mysqlnd plugin API description</a>
+    for a discussion of the advantages of the plugin architecture and
+    a comparison with proxy based solutions.
+   </p>
+   <p class="para">
+    <em class="emphasis">Transparent to use</em>
+   </p>
+   <p class="para">
+    At PHP run time PECL/mysqlnd_qc can proxy queries send from PHP
+    (<a href="book.mysqlnd.html" class="link">mysqlnd</a>) to the MySQL server.
+    It then inspects the statement string to find whether it shall cache
+    its results. If so, result set is cached using a storage handler and
+    further executions of the statement are served from the cache for
+    a user-defined period. The Time to Live (TTL) of the cache entry
+    can either be set globally or on a per statement basis.
+   </p>
+   <p class="para">
+    A statement is either cached if the plugin is instructed to cache all
+    statements globally using a or, if the query string starts with the SQL hint
+    (<em>/*qc=on*/</em>). The plugin is capable of caching any
+    query issued by calling appropriate API calls of any of the existing
+    PHP MySQL extensions.
+   </p>
+   <p class="para">
+    <em class="emphasis">Flexible storage: various storage handler</em>
+   </p>
+   <p class="para">
+    Various storage handler are supported to offer different scopes for cache
+    entries. Different scopes allow for different degrees in sharing cache
+    entries among clients.
+   </p>
+   <p class="para">
+    <ul class="itemizedlist">
+     <li class="listitem">
+     <p class="para">
+      <em>default</em> (built-in): process memory, scope: process, one or more web requests depending on PHP deployment model used
+     </p>
+    </li>
+    <li class="listitem">
+     <p class="para">
+      <em>APC</em>: shared memory, scope: single server, multiple web requests
+     </p>
+    </li>
+    <li class="listitem">
+     <p class="para">
+      <em>SQLite</em>: memory or file, scope: single server, multiple web requests
+     </p>
+    </li>
+    <li class="listitem">
+     <p class="para">
+      <em>MEMCACHE</em>: main memory, scope: single or multiple server, multiple web requests
+     </p>
+    </li>
+    <li class="listitem">
+     <p class="para">
+      <em>user</em> (built-in): user-defined - any, scope: user-defined - any
+     </p>
+    </li>
+   </ul>
+  </p>
+  <p class="para">
+   Support for the <em>APC</em>, <em>SQLite</em> and <em>
+   MEMCACHE</em> storage handler has to be enabled at compile time. The <em>
+   default</em> and <em>user</em> handler are built-in. It is possible
+   to switch between compiled-in storage handlers on a per query basis at run time.
+   However, it is recommended to pick one storage handler and use it for all cache entries.
+  </p>
+  <p class="para">
+   <em class="emphasis">Built-in slam defense to avoid overloading</em>
+  </p>
+  <p class="para">
+   To avoid overload situations the cache plugin has a built-in slam defense mechanism.
+   If a popular cache entries expires many clients using the cache entries will try
+   to refresh the cache entry. For the duration of the refresh many clients may
+   access the database server concurrently. In the worst case, the database server
+   becomes overloaded and it takes more and more time to refresh the cache entry, which
+   in turn lets more and more clients try to refresh the cache entry. To prevent
+   this from happening the plugin has a slam defense mechanism. If slam defense is
+   enabled and the plugin detects an expired cache entry it extends the life time
+   of the cache entry before it refreshes the cache entry. This way other concurrent
+   accesses to the expired cache entry are still served from the cache for a certain
+   time. The other concurrent accesses to not trigger a concurrent refresh. Ideally,
+   the cache entry gets refreshed by the client which extended the cache entries lifespan
+   before other clients try to refresh the cache and potentially cause an overload
+   situation.
+  </p>
+  <p class="para">
+   <em class="emphasis">Unique approach to caching</em>
+  </p>
+  <p class="para">
+   PECL/mysqlnd_qc has a unique approach to caching result sets that is superior
+   to application based cache solutions. Application based solutions first fetch
+   a result set into PHP variables. Then, the PHP variables are serialized for
+   storage in a persistent cache, and then unserialized when fetching. The mysqlnd
+   query cache stores the raw wire protocol data sent from MySQL to PHP in its cache
+   and replays it, if still valid, on a cache hit. This way, it saves an extra
+   serialization step for a cache put that all application based solutions have to
+   do. It can store the raw wire protocol data in the cache without having to
+   serialize into a PHP variable first and deserializing the PHP variable for storing
+   in the cache again.
+  </p>
+ </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+ <div class="note">There are no user contributed notes for this page.</div>
+</div>
+</div></div></body></html>

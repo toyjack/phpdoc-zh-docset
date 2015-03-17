@@ -1,0 +1,153 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>简介</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="book.sdodasrel.html">? SDO-DAS-Relational</a></li>
+      <li style="float: right;"><a href="sdodasrel.setup.html">安装／配置 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="book.sdodasrel.html">SDO-DAS-Relational</a></li>
+    <li>简介</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="intro.sdodasrel" class="preface">
+  <h1 class="title">简介</h1>
+  <p class="para">
+   
+    <div class="warning"><strong class="warning">Warning</strong><p class="simpara">此扩展是<em class="emphasis">实验性 </em>的。
+此扩展的表象，包括其函数名称以及其他此扩展的相关文档都可能在未来的 PHP 发布版本中未通知就被修改。使用本扩展风险自担 。</p></div>
+  </p>
+  <p class="para">
+   In order to use the Relational Data Access Service for 
+   Service Data Objects,
+   you will need to understand some of the concepts behind SDO: 
+   the data graph, the data object, the disconnected way of working, 
+   the change summary, XPath and property expressions, and so on.
+   If you are not familiar with these ideas, you might want to look first at
+   <a href="ref.sdo.html" class="link">the section on SDO</a>.
+   In addition, the Relational DAS makes use of the PDO extension to 
+   isolate itself from specifics of different back-end relational databases.
+   In order to use the Relational DAS you will need to be able to 
+   create and pass a PDO database connection;
+   for this reason you might also want to take a look at
+   <a href="intro.pdo.html" class="link">the section on PDO</a>.
+  </p>
+
+  <p class="para">
+   The job of the Relational DAS is to move data between the application
+   and a relational database. In order to do this it needs to be told 
+   the mapping between the database entities 
+   - tables, columns, primary keys and foreign keys - 
+   and the elements of the SDO model 
+   - types, properties, containment relationships and so on.
+   You specify this information as metadata when you 
+   construct the Relational DAS.
+  </p>
+     
+  <div class="procedure">
+   <strong class="title">Overview of Operation</strong>
+   <ol type="1"><li>
+    <p class="para">
+     The first step is to call the Relational DAS&#039;s constructor,
+     passing the metadata that defines the mapping between 
+     database and SDO model.
+     There are examples of this below.
+    </p>
+   </li>
+
+   <li>
+    <p class="para">
+     The next step might be to call the
+     <span class="function"><strong>executeQuery()</strong></span>
+     or
+     <span class="function"><strong>executePreparedQuery()</strong></span>
+     methods on the Relational DAS, passing either a literal SQL statement
+     for the DAS to prepare and execute, or a prepared statement with 
+     placeholders and a list of values to be inserted.
+     You may also need to specify a small amount of metadata 
+     about the query itself, so that the Relational DAS knows 
+     exactly what columns will be returned from the database and 
+     in what order. You will also need to pass a PDO database connection.
+    </p>
+         
+    <p class="para">
+     The return value from
+     <span class="function"><strong>executeQuery()</strong></span>
+     or 
+     <span class="function"><strong>executePreparedQuery()</strong></span>
+     is a normalised data graph containing all the data from the result set.
+     For a query that returns data obtained from a number of tables, 
+     this graph will contain a number of data objects, 
+     linked by SDO containment relationships. 
+     There may also be SDO non-containment references within the data.
+    </p>
+
+    <p class="para">
+     Once the query has been executed and the data graph constructed, 
+     there is no need for either that instance of the Relational DAS or 
+     the database connection. There are no locks held on the database.
+     Both the Relational DAS and the PDO database connection can be 
+     garbage collected.
+    </p>
+   </li>
+   <li>
+    <p class="para">
+     Quite possibly the data in the data graph will go through 
+     a number of modifications. The data graph can be serialised 
+     into the PHP session and so may have a lifetime beyond just 
+     one client-server interaction. Data objects can be created 
+     and added to the graph, the data objects already in the graph 
+     can be deleted, and data objects in the graph can be modified.
+    </p>
+   </li>
+   <li>
+    <p class="para">
+     Finally, the changes made to the data graph can be applied 
+     back to the database using the
+     <span class="function"><strong>applyChanges()</strong></span>
+      method of the Relational DAS. For this, another instance 
+      of the Relational DAS  must be constructed, using the 
+      same metadata, and another connection to the database obtained.
+      The connection and the data graph are passed to
+     <span class="function"><strong>applyChanges()</strong></span>.
+     At this point the Relational DAS examines the change summary 
+     and generates the necessary INSERT, UPDATE and DELETE SQL statements 
+     to apply the changes. Any UPDATE and DELETE statements are qualified 
+     with the original values of the data so that should the data have 
+     changed in the database in the meantime this will be detected.
+     Assuming no such collisions have occurred the changes will be 
+     committed to the database. The application can then continue to work 
+     with the data graph, make more changes and apply them, or can discard 
+     it.
+    </p>
+   </li>
+  </ol></div>
+  <p class="para">
+   There are other ways of working with the data in the database: 
+   it is possible to just create data objects and write them to the 
+   database without a preliminary call to
+   <span class="function"><strong>executeQuery()</strong></span>,
+   for example. This scenario and others are explored in the
+   <a href="sdodasrel.examples.html" class="link">Examples</a>
+   section below.
+  </p>
+ </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+ <div class="note">There are no user contributed notes for this page.</div>
+</div>
+</div></div></body></html>

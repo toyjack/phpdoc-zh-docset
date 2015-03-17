@@ -1,0 +1,112 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Reflecting on Service Data Objects</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="sdo.sample.sequence.html">? Working with Sequenced Data Objects</a></li>
+      <li style="float: right;"><a href="ref.sdo.html">SDO 函数 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="sdo.examples.html">范例</a></li>
+    <li>Reflecting on Service Data Objects</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="sdo.sample.reflection" class="section">
+  <h2 class="title">Reflecting on Service Data Objects</h2>
+  <p class="para">
+   SDOs have a knowledge of the structure they have been created to 
+   represent (the model).  For example, a Company SDO created using 
+   <a href="sdo.examples.html" class="link">the Company XML schema</a> above
+   would only be permitted to contain DepartmentType data objects 
+   which in turn could only contain EmployeeType data objects.
+  </p>
+  <p class="para">
+   Sometimes it is useful to be able to access this model information at 
+   runtime.  For example, this could be used to automatically generate 
+   a user interface for populating a data object.  The model information 
+   is accessed using reflection.  
+  </p>
+
+  <p class="para">
+   <div class="example" id="example-5449">
+    <p><strong>Example #1 Reflecting on a Data Object</strong></p>
+    <div class="example-contents"><p>
+     The following example shows how we can reflect on an empty Employee 
+     data object.
+    </p></div>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;Create&nbsp;the&nbsp;employee&nbsp;data&nbsp;object&nbsp;(e.g.&nbsp;from&nbsp;an&nbsp;XML&nbsp;Data&nbsp;Access&nbsp;Service)<br />&nbsp;&nbsp;</span><span style="color: #0000BB">$employee&nbsp;</span><span style="color: #007700">=&nbsp;...;<br />&nbsp;&nbsp;</span><span style="color: #0000BB">$reflection&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">SDO_Model_ReflectionDataObject</span><span style="color: #007700">(</span><span style="color: #0000BB">$employee</span><span style="color: #007700">);<br />&nbsp;&nbsp;print(</span><span style="color: #0000BB">$reflection</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+    <div class="example-contents"><p>以上例程会输出：</p></div>
+
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+object(SDO_Model_ReflectionDataObject)#4 { - ROOT OBJECT - Type { 
+companyNS:EmployeeType[3] { commonj.sdo:String $name; 
+commonj.sdo:String $SN; commonj.sdo:Boolean $manager; } }
+</pre></div>
+   </div>
+   <div class="example-contents"><p>
+     Using print on the SDO_Model_ReflectionDataObject writes out the data 
+     object&#039;s model.  We can see from the output how the type 
+     companyNS:EmployeeType has three properties and we can see the names 
+     of the properties along with their types.  Note, the primitive types
+     are listed as SDO types (e.g. commonj.sdo namespace, String type).  
+     It is worth noting that this is the SDO model and when these are 
+     surfaced to an application they can be treated as the PHP equivalent 
+     types (e.g. string and boolean).
+    </p></div>
+   </div>
+  </p>
+
+  <p class="para">
+   <div class="example" id="example-5450">
+    <p><strong>Example #2 Accessing the type information</strong></p>
+    <div class="example-contents"><p>
+     We can query the type information of a data object using reflection.  
+     The following example checks the type corresponds to a data object
+     rather than a primitive and then iterates through the properties of
+     the type, writing out the name of each property ($type and $property 
+     are SDO_Model_Type and SDO_Model_Property objects, respectively).
+    </p></div>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;Create&nbsp;the&nbsp;employee&nbsp;data&nbsp;object&nbsp;(e.g.&nbsp;from&nbsp;an&nbsp;XML&nbsp;Data&nbsp;Access&nbsp;Service)<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$employee&nbsp;</span><span style="color: #007700">=&nbsp;...;<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$reflection&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">SDO_Model_ReflectionDataObject</span><span style="color: #007700">(</span><span style="color: #0000BB">$employee</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$type&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$reflection</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">getType</span><span style="color: #007700">();<br />&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(!&nbsp;</span><span style="color: #0000BB">$type</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">isDataType</span><span style="color: #007700">())&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;foreach&nbsp;(</span><span style="color: #0000BB">$type</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">getProperties</span><span style="color: #007700">()&nbsp;as&nbsp;</span><span style="color: #0000BB">$property</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print&nbsp;</span><span style="color: #0000BB">$property</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">getName</span><span style="color: #007700">()&nbsp;.&nbsp;</span><span style="color: #DD0000">"\n"</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+    <div class="example-contents"><p>以上例程会输出：</p></div>
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+name
+SN
+manager
+</pre></div>
+    </div>
+   </div>
+  </p>
+
+ </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+ <div class="note">There are no user contributed notes for this page.</div>
+</div>
+</div></div></body></html>
