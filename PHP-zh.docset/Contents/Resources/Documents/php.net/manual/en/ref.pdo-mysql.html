@@ -56,11 +56,34 @@
 <div class="section" id="ref.pdo-mysql.installation">
  <h2 class="title">安装</h2>
  <p class="para">
-  Use <strong class="option configure">--with-pdo-mysql[=DIR]</strong>
+  The common Unix distributions include binary versions of PHP that can
+  be installed. Although these binary versions are typically built with
+  support for the MySQL extensions, the extension libraries
+  themselves may need to be installed using an additional package. Check
+  the package manager than comes with your chosen distribution for
+  availability.
+ </p>
+ 
+ <p class="para">
+  For example, on Ubuntu the <em>php5-mysql</em> package installs
+  the ext/mysql, ext/mysqli, and PDO_MYSQL PHP extensions. On CentOS, 
+  the <em>php-mysql</em> package also installs these three 
+  PHP extensions.
+ </p>
+
+ <p class="para">
+  Alternatively, you can compile this extension yourself. Building PHP from 
+  source allows you to specify the MySQL extensions you want to use, as well 
+  as your choice of client library for each extension.
+ </p>
+
+ <p class="para">
+  When compiling, use <strong class="option configure">--with-pdo-mysql[=DIR]</strong>
  to install
   the PDO MySQL extension, where the optional <em>[=DIR]</em>
-  is the MySQL base install directory. If <a href="book.mysqlnd.html" class="link">mysqlnd</a>
-  is passed as <em>[=DIR]</em>, then the MySQL native driver will be used.
+  is the MySQL base library. As of PHP 5.4, <a href="book.mysqlnd.html" class="link">mysqlnd</a>
+  is the default library. For details about choosing a library, see
+  <a href="mysqlinfo.library.choosing.html" class="link">Choosing a MySQL library</a>.
  </p>
  <p class="para">
   Optionally, the <strong class="option configure">--with-mysql-sock[=DIR]</strong>
@@ -103,7 +126,15 @@ $ ./configure --with-pdo-mysql --with-mysql-sock=/var/mysql/mysql.sock
     <tr>
      <td>5.4.0</td>
      <td>
-      MySQL client libraries 4.1 and below are no longer supported.
+      <a href="book.mysqlnd.html" class="link">mysqlnd</a> became the default MySQL library 
+      when compiling PDO_MYSQL. Previously, libmysqlclient was the default MySQL library.
+     </td>
+    </tr>
+
+    <tr>
+     <td>5.4.0</td>
+     <td>
+      MySQL client libraries 4.1 and below are no longer supported. 
      </td>
     </tr>
 
@@ -156,7 +187,7 @@ $ ./configure --with-pdo-mysql --with-mysql-sock=/var/mysql/mysql.sock
      should use <span class="function"><a href="pdostatement.fetchall.html" class="function">PDOStatement::fetchAll()</a></span> instead.
     </span>
     <p class="para">
-     <div class="example" id="example-1000"><p><strong>Example #1 Forcing queries to be buffered in mysql</strong></p>
+     <div class="example" id="example-1040"><p><strong>Example #1 Forcing queries to be buffered in mysql</strong></p>
      <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
 <span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">if&nbsp;(</span><span style="color: #0000BB">$db</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">getAttribute</span><span style="color: #007700">(</span><span style="color: #0000BB">PDO</span><span style="color: #007700">::</span><span style="color: #0000BB">ATTR_DRIVER_NAME</span><span style="color: #007700">)&nbsp;==&nbsp;</span><span style="color: #DD0000">'mysql'</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$stmt&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$db</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">prepare</span><span style="color: #007700">(</span><span style="color: #DD0000">'select&nbsp;*&nbsp;from&nbsp;foo'</span><span style="color: #007700">,<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;array(</span><span style="color: #0000BB">PDO</span><span style="color: #007700">::</span><span style="color: #0000BB">MYSQL_ATTR_USE_BUFFERED_QUERY&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #0000BB">true</span><span style="color: #007700">));<br />}&nbsp;else&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;die(</span><span style="color: #DD0000">"my&nbsp;application&nbsp;only&nbsp;works&nbsp;with&nbsp;mysql;&nbsp;I&nbsp;should&nbsp;use&nbsp;\$stmt-&gt;fetchAll()&nbsp;instead"</span><span style="color: #007700">);<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
@@ -308,8 +339,8 @@ $ ./configure --with-pdo-mysql --with-mysql-sock=/var/mysql/mysql.sock
    <dd>
 
     <p class="para">
-     Enable network communication compression. This is not supported when 
-     compiled against mysqlnd.
+     Enable network communication compression. This is also supported when 
+     compiled against mysqlnd as of PHP 5.3.11.
     </p>
    </dd>
 
@@ -402,6 +433,29 @@ $ ./configure --with-pdo-mysql --with-mysql-sock=/var/mysql/mysql.sock
     </p>
     <p class="para">
      自以下版本起 PHP  5.3.7.
+    </p>
+   </dd>
+
+  
+
+  
+   <dt id="pdo.constants.mysql-attr-multi-statements">
+    <strong><code>PDO::MYSQL_ATTR_MULTI_STATEMENTS</code></strong>
+     (<span class="type"><a href="language.types.integer.html" class="type integer">integer</a></span>)
+   </dt>
+
+   <dd>
+
+    <p class="para">
+     Disables multi query execution in both <span class="function"><a href="pdo.prepare.html" class="function">PDO::prepare()</a></span>
+     and <span class="function"><a href="pdo.query.html" class="function">PDO::query()</a></span> when set to <strong><code>FALSE</code></strong>.
+    </p>
+    <p class="para">
+     Note, this constant can only be used in the <code class="parameter">driver_options</code> 
+     array when constructing a new database handle.
+    </p>
+    <p class="para">
+     自以下版本起 PHP  5.5.21 and PHP 5.6.5.
     </p>
    </dd>
 
@@ -505,7 +559,34 @@ $ ./configure --with-pdo-mysql --with-mysql-sock=/var/mysql/mysql.sock
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116040""></a>
+<div id="allnotes">  <a name="119054""></a>
+  <div class="note">
+   <strong class="user">hadibere at gmail dot com</strong>
+   <a href="#119054" class="date">25-Mar-2016 02:33</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+$dbhost = "localhost";<br />
+&nbsp; $dbname = "dbb";<br />
+&nbsp; $dbuser = " ";<br />
+&nbsp; $dbpswd = " ";<br />
+<br />
+&nbsp; try {<br />
+<br />
+&nbsp;&nbsp;&nbsp; $db = new PDO("mysql:host=".$dbhost.";dbname=".$dbname,$dbuser,$dbpswd);<br />
+&nbsp;&nbsp;&nbsp; $db-&gt;setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);<br />
+&nbsp;&nbsp;&nbsp; $db-&gt;setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_OBJ);<br />
+&nbsp;&nbsp;&nbsp; $db-&gt;setAttribute(PDO::MYSQL_ATTR_INIT_COMMAND,'SET NAMES UTF8');<br />
+<br />
+&nbsp; } catch (PDOException $e) {<br />
+&nbsp;&nbsp;&nbsp; throw new PDOException("Error&nbsp; : " .$e-&gt;getMessage());<br />
+&nbsp; }</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116040""></a>
   <div class="note">
    <strong class="user">info at westgatesearch dot com</strong>
    <a href="#116040" class="date">01-Nov-2014 08:39</a>

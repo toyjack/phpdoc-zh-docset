@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="domdocument.schemavalidate" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">DOMDocument::schemaValidate</h1>
-  <p class="verinfo">(PHP 5)</p><p class="refpurpose"><span class="refname">DOMDocument::schemaValidate</span> &mdash; <span class="dc-title">
+  <p class="verinfo">(PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">DOMDocument::schemaValidate</span> &mdash; <span class="dc-title">
    Validates a document based on a schema
   </span></p>
 
@@ -129,7 +129,44 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="112954""></a>
+<div id="allnotes">  <a name="117995""></a>
+  <div class="note">
+   <strong class="user">mmamsch at googlemail dot com</strong>
+   <a href="#117995" class="date">16-Sep-2015 07:01</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+A note for people trying to validate complex schemas with PHP.&nbsp; It seems that libxml will not automatically try to import referenced schemas, but simply skip the validation if the schemas were not explicitly imported. <br />
+<br />
+In our example we tried to validate an XML file against a schema with the namespace "xttp://automotive-his.de/200706/rif" that contains a reference to the namespace "xttp://automotive-his.de/200706/rif-xhtml":<br />
+<br />
+&nbsp; &lt;xsd:complexType name="XHTML-CONTENT"&gt;<br />
+&nbsp;&nbsp;&nbsp; &lt;xsd:sequence&gt;<br />
+&nbsp;&nbsp; &nbsp;&nbsp; &lt;xsd:any namespace="xttp://automotive-his.de/200706/rif-xhtml"/&gt;<br />
+&nbsp;&nbsp;&nbsp; &lt;/xsd:sequence&gt;<br />
+&nbsp; &lt;/xsd:complexType&gt;<br />
+<br />
+which basically says that an xhtml-content element can contain any element from the rif-xhtml namespace. <br />
+<br />
+However since libxml does not know where to find the schema file, it will stop the validation if the elements from the referenced namespace, passing also document with invalid xhtml content as valid. <br />
+<br />
+The solution was to create a combined schema, which contains import statements for all files matching the referenced schemas: <br />
+<br />
+&lt;xsd:schema xmlns:xs="xttp://www.w3.org/2001/XMLSchema"&gt;<br />
+&lt;xs:import namespace="xttp://automotive-his.de/200706/rif-xhtml" schemaLocation="rif-xhtml.xsd"/&gt;<br />
+&lt;xs:import namespace="xttp://automotive-his.de/200706/rif" schemaLocation="rif.xsd"/&gt;<br />
+&lt;xs:import namespace="xttp://www.w3.org/XML/1998/namespace" schemaLocation="../xml.xsd"/&gt;<br />
+&lt;/xsd:schema&gt;<br />
+<br />
+Note that the schemaLocation tells the validator, where to find the files for the corresponding namespaces. When validating the XML document against this combined schema, libxml validated correctly the content inside the XHTML-Content. <br />
+<br />
+Hope this helps someone out there.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="112954""></a>
   <div class="note">
    <strong class="user">mati</strong>
    <a href="#112954" class="date">12-Aug-2013 06:15</a>

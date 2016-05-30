@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="reflectionclass.getdefaultproperties" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">ReflectionClass::getDefaultProperties</h1>
-  <p class="verinfo">(PHP 5)</p><p class="refpurpose"><span class="refname">ReflectionClass::getDefaultProperties</span> &mdash; <span class="dc-title">获取默认属性</span></p>
+  <p class="verinfo">(PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">ReflectionClass::getDefaultProperties</span> &mdash; <span class="dc-title">获取默认属性</span></p>
 
  </div>
 
@@ -68,7 +68,7 @@
  <div class="refsect1 examples" id="refsect1-reflectionclass.getdefaultproperties-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-5214">
+   <div class="example" id="example-5590">
     <p><strong>Example #1 <span class="methodname"><strong>ReflectionClass::getDefaultProperties()</strong></span> 例子</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -115,7 +115,68 @@ array(5) {
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="105234""></a>
+<div id="allnotes">  <a name="119013""></a>
+  <div class="note">
+   <strong class="user">articice at ua dot fm</strong>
+   <a href="#119013" class="date">17-Mar-2016 09:15</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+runaurufu is not quite right, get_class_vars() does not return protected params, while this one does.<br />
+<br />
+Thus it's extremely useful when having an abstract parent class and protected properties overriding in children.<br />
+For example, I use a class factory and one of the children has some static test methods that still need to output a paramether name, like $this-&gt;name, etc. With this example code, one can use static::getNotStaticProperty('name'), but not get_class_vars('name').<br />
+<br />
+Try it:<br />
+<br />
+trait static_reflector {<br />
+&nbsp;&nbsp;&nbsp; /*<br />
+&nbsp;&nbsp; &nbsp; * a purely static function that returns default properties of the non-static instance of the same class<br />
+&nbsp;&nbsp; &nbsp; */<br />
+&nbsp;&nbsp;&nbsp; static protected function getNonStaticProperty($key) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $me = get_class();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $reflectionClass = new \ReflectionClass($me);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $properties_list = $reflectionClass-&gt;getDefaultProperties();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (isset($properties_list[$key]))<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return $var_name = $properties_list[$key];<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; else throw new RuntimeException("BUG: Unable to reflect non-static property '{$key}' from default properties of class {$me}");<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+class a {<br />
+<br />
+&nbsp;&nbsp;&nbsp; use \static_reflector;<br />
+<br />
+&nbsp;&nbsp;&nbsp; protected $key_a = 'test ok';<br />
+<br />
+&nbsp;&nbsp;&nbsp; public static function test() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo static::getNonStaticProperty('key_a')."\n";<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; try {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; print static::getNonStaticProperty('key_b');<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; echo "FAIL No exception thrown";<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; } catch (RuntimeException $e) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; echo "OK ".$e-&gt;getMessage();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+echo get_class_vars('a')['key_a']; <br />
+a::test();<br />
+<br />
+this will return:<br />
+Notice: Undefined index: key_a in ...<br />
+test ok<br />
+OK BUG: Unable to reflect non-static property 'key_b' from default properties of class a<br />
+<br />
+ps: Yes, this is copied from a unit test.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="105234""></a>
   <div class="note">
    <strong class="user">runaurufu AT gmail.com</strong>
    <a href="#105234" class="date">04-Aug-2011 10:02</a>

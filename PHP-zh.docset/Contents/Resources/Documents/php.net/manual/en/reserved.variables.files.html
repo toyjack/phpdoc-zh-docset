@@ -97,7 +97,134 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116149""></a>
+<div id="allnotes">  <a name="118294""></a>
+  <div class="note">
+   <strong class="user">Jack Sleight</strong>
+   <a href="#118294" class="date">10-Nov-2015 09:05</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I've written this function to restructure deeply nested $_FILES arrays, so that the parameters for each file are grouped together.<br />
+<br />
+function restructure_files(array $input)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; $output = [];<br />
+&nbsp;&nbsp;&nbsp; foreach ($input as $name =&gt; $array) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach ($array as $field =&gt; $value) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $pointer = &amp;$output[$name];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (!is_array($value)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $pointer[$field] = $value;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; continue;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $stack = [&amp;$pointer];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $iterator = new \RecursiveIteratorIterator(<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; new \RecursiveArrayIterator($value),<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; \RecursiveIteratorIterator::SELF_FIRST<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; );<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; foreach ($iterator as $key =&gt; $value) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; array_splice($stack, $iterator-&gt;getDepth() + 1);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $pointer = &amp;$stack[count($stack) - 1];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $pointer = &amp;$pointer[$key];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $stack[] = &amp;$pointer;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (!$iterator-&gt;hasChildren()) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $pointer[$field] = $value;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; return $output;<br />
+}<br />
+<br />
+Turns this:<br />
+<br />
+array (size=2)<br />
+&nbsp; 'one' =&gt; <br />
+&nbsp;&nbsp;&nbsp; array (size=5)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 'name' =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; array (size=1)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 'inner' =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; array (size=2)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 11 =&gt; string 'DM4C2738.jpg' (length=12)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 5 =&gt; string 'DM4C2760.jpg' (length=12)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 'type' =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; array (size=1)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 'inner' =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; array (size=2)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 11 =&gt; string 'image/jpeg' (length=10)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 5 =&gt; string 'image/jpeg' (length=10)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 'tmp_name' =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; array (size=1)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 'inner' =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; array (size=2)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 11 =&gt; string '/private/var/tmp/phploOZRb' (length=26)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 5 =&gt; string '/private/var/tmp/phpsFkmIh' (length=26)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 'error' =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; array (size=1)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 'inner' =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; array (size=2)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 11 =&gt; int 0<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 5 =&gt; int 0<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 'size' =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; array (size=1)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 'inner' =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; array (size=2)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 11 =&gt; int 1031601<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 5 =&gt; int 674697<br />
+&nbsp; 'two' =&gt; <br />
+&nbsp;&nbsp;&nbsp; array (size=5)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 'name' =&gt; string '9ncYySC.jpg' (length=11)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 'type' =&gt; string 'image/jpeg' (length=10)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 'tmp_name' =&gt; string '/private/var/tmp/phpuG99X9' (length=26)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 'error' =&gt; int 0<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 'size' =&gt; int 882422<br />
+<br />
+Into this:<br />
+<br />
+array (size=2)<br />
+&nbsp; 'one' =&gt; <br />
+&nbsp;&nbsp;&nbsp; array (size=1)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 'inner' =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; array (size=2)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 11 =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; array (size=5)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 'name' =&gt; string 'DM4C2738.jpg' (length=12)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 'type' =&gt; string 'image/jpeg' (length=10)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 'tmp_name' =&gt; string '/private/var/tmp/phploOZRb' (length=26)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 'error' =&gt; int 0<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 'size' =&gt; int 1031601<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 5 =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; array (size=5)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 'name' =&gt; string 'DM4C2760.jpg' (length=12)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 'type' =&gt; string 'image/jpeg' (length=10)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 'tmp_name' =&gt; string '/private/var/tmp/phpsFkmIh' (length=26)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 'error' =&gt; int 0<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 'size' =&gt; int 674697<br />
+&nbsp; 'two' =&gt; <br />
+&nbsp;&nbsp;&nbsp; array (size=5)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 'name' =&gt; string '9ncYySC.jpg' (length=11)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 'type' =&gt; string 'image/jpeg' (length=10)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 'tmp_name' =&gt; string '/private/var/tmp/phpuG99X9' (length=26)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 'error' =&gt; int 0<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 'size' =&gt; int 882422</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117647""></a>
+  <div class="note">
+   <strong class="user">kennyp33 at gmail dot com</strong>
+   <a href="#117647" class="date">14-Jul-2015 09:46</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you are getting NULL values and want to see what error is being returned you can add ' 2&gt;&amp;1' to the end of your command. On a linux server this will redirect the stderr to stdout (so the string error will be output). This probably saved me a ton of time.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116149""></a>
   <div class="note">
    <strong class="user">scohen987 at gmail dot com</strong>
    <a href="#116149" class="date">15-Nov-2014 06:49</a>

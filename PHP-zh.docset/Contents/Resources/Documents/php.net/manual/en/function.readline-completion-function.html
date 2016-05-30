@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.readline-completion-function" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">readline_completion_function</h1>
-  <p class="verinfo">(PHP 4, PHP 5)</p><p class="refpurpose"><span class="refname">readline_completion_function</span> &mdash; <span class="dc-title">注册一个完成函数</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">readline_completion_function</span> &mdash; <span class="dc-title">注册一个完成函数</span></p>
 
  </div>
  
@@ -78,7 +78,58 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="94855""></a>
+<div id="allnotes">  <a name="117110""></a>
+  <div class="note">
+   <strong class="user">cameron at cloudix dot co dot nz</strong>
+   <a href="#117110" class="date">16-Apr-2015 12:36</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The readline extension can be a bit flakey due to bugs in libedit (PHP 5.3.10-1ubuntu3.15 with Suhosin-Patch (cli) (built: Oct 29 2014 12:19:04)).<br />
+<br />
+I created many segfaults returning an empty array on the autocompletion function:<br />
+<br />
+// Autocomplete<br />
+readline_completion_function(function($Input, $Index){<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; global $Commands;<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; // Filter Matches&nbsp; &nbsp; <br />
+&nbsp;&nbsp;&nbsp; $Matches = array();<br />
+&nbsp;&nbsp;&nbsp; foreach(array_keys($Commands) as $Command)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(stripos($Command, $Input) === 0)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $Matches[] = $Command;<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; return $Matches;<br />
+});<br />
+<br />
+I found adding an empty string to the matches array prevents the segfault:<br />
+<br />
+// Autocomplete<br />
+readline_completion_function(function($Input, $Index){<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; global $Commands;<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; // Filter Matches&nbsp; &nbsp; <br />
+&nbsp;&nbsp;&nbsp; $Matches = array();<br />
+&nbsp;&nbsp;&nbsp; foreach(array_keys($Commands) as $Command)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(stripos($Command, $Input) === 0)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $Matches[] = $Command;<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; // Prevent Segfault<br />
+&nbsp;&nbsp;&nbsp; if($Matches == false)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $Matches[] = '';<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; return $Matches;<br />
+});<br />
+<br />
+Hopefully this is helpful to someone.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="94855""></a>
   <div class="note">
    <strong class="user">chris AT w3style DOT co  UK</strong>
    <a href="#94855" class="date">29-Nov-2009 05:39</a>

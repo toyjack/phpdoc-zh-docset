@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.connection-aborted" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">connection_aborted</h1>
-  <p class="verinfo">(PHP 4, PHP 5)</p><p class="refpurpose"><span class="refname">connection_aborted</span> &mdash; <span class="dc-title">检查客户端是否已经断开</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">connection_aborted</span> &mdash; <span class="dc-title">检查客户端是否已经断开</span></p>
 
  </div>
  
@@ -70,7 +70,68 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="111167""></a>
+<div id="allnotes">  <a name="119111""></a>
+  <div class="note">
+   <strong class="user">sivann at gmail dot com</strong>
+   <a href="#119111" class="date">03-Apr-2016 05:06</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I have failed to get accurate results from this even with echo, flush(), and other buffer manipulation trickery. The following function detects connection status from the OS netstat(1) in linux, even without echoing anything. You may need to alter the parsing for windows or older versions of netstat. It calls an external command so it consume some resources, use it with care e.g. you can call it every some seconds while waiting for long-poll requests. Not tested with ipv6.<br />
+<br />
+//returns connection status (ESTABLISHED, TIME_WAIT, etc) or NOT_FOUND<br />
+function getConnectionStatus() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $remote_ip = $_SERVER['REMOTE_ADDR']?:($_SERVER['HTTP_X_FORWARDED_FOR']?:$_SERVER['HTTP_CLIENT_IP']);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $remote_port=$_SERVER['REMOTE_PORT'];<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $cmd="netstat -tn | fgrep ' $remote_ip:$remote_port '";<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $pfp=popen($cmd,"r");<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(!$pfp) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; error_log ("getConnectionStatus: $cmd");<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $buf = fgets($pfp, 1024);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; pclose($pfp);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $buf=preg_replace('!\s+!', ' ', $buf); //remove multiple spaces<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $buf=trim($buf);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $buf_r=explode(" ",$buf);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (count($buf_r)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $state=$buf_r[count($buf_r)-1];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return trim($state);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return "NOTFOUND";<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+//check for it:<br />
+if (getConnectionStatus() != "ESTABLISHED") { ...}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118216""></a>
+  <div class="note">
+   <strong class="user">jeff1326 at hotmail dot com</strong>
+   <a href="#118216" class="date">28-Oct-2015 06:21</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+From ignore_user_abort function : <br />
+<br />
+PHP will not detect that the user has aborted the connection until an attempt is made to send information to the client. Simply using an echo statement does not guarantee that information is sent, see flush().<br />
+<br />
+This rule seems to apply here too.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="111167""></a>
   <div class="note">
    <strong class="user">nathanb at php dot net</strong>
    <a href="#111167" class="date">22-Jan-2013 05:50</a>

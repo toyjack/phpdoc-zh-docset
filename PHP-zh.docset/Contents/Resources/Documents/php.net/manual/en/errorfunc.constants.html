@@ -282,7 +282,74 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="115636""></a>
+<div id="allnotes">  <a name="119019""></a>
+  <div class="note">
+   <strong class="user">damian at thebestisp dot  dot  dot com</strong>
+   <a href="#119019" class="date">17-Mar-2016 11:22</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I saw that Chris seems to think that errors might be combined in some cases, I don't know of any cases, but his code is overly verbose, inefficient, and doesn't take into account future E_ constants. Here's my version of handling multiple errors (which probably wont ever happen) using my other code as a base. The only real difference is that this doesn't bother to split out undefined bits, which is pretty much useless and would get rather messy if you have more than a few bits set above 2**14 (0 to 14 have an associated error).<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">friendly_error_type</span><span class="keyword">(</span><span class="default">$type</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; static </span><span class="default">$levels</span><span class="keyword">=</span><span class="default">null</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">$levels</span><span class="keyword">===</span><span class="default">null</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$levels</span><span class="keyword">=[];<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach (</span><span class="default">get_defined_constants</span><span class="keyword">() as </span><span class="default">$key</span><span class="keyword">=&gt;</span><span class="default">$value</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">strpos</span><span class="keyword">(</span><span class="default">$key</span><span class="keyword">,</span><span class="string">'E_'</span><span class="keyword">)!==</span><span class="default">0</span><span class="keyword">) {continue;}<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$levels</span><span class="keyword">[</span><span class="default">$value</span><span class="keyword">]=</span><span class="default">substr</span><span class="keyword">(</span><span class="default">$key</span><span class="keyword">,</span><span class="default">2</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$out</span><span class="keyword">=[];<br />
+&nbsp;&nbsp;&nbsp; foreach (</span><span class="default">$levels </span><span class="keyword">as </span><span class="default">$int</span><span class="keyword">=&gt;</span><span class="default">$string</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$int</span><span class="keyword">&amp;</span><span class="default">$type</span><span class="keyword">) {</span><span class="default">$out</span><span class="keyword">[]=</span><span class="default">$string</span><span class="keyword">;}<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$type</span><span class="keyword">&amp;=~</span><span class="default">$int</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">$type</span><span class="keyword">) {</span><span class="default">$out</span><span class="keyword">[]=</span><span class="string">"Error Remainder [</span><span class="keyword">{</span><span class="default">$type</span><span class="keyword">}</span><span class="string">]"</span><span class="keyword">;}<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">implode</span><span class="keyword">(</span><span class="string">' &amp; '</span><span class="keyword">,</span><span class="default">$out</span><span class="keyword">);<br />
+}<br />
+echo </span><span class="default">friendly_error_type</span><span class="keyword">(</span><span class="default">E_ERROR</span><span class="keyword">|</span><span class="default">E_USER_DEPRECATED</span><span class="keyword">); </span><span class="comment">//ERROR &amp; USER_DEPRECATED<br />
+</span><span class="keyword">echo </span><span class="default">friendly_error_type</span><span class="keyword">(</span><span class="default">2</span><span class="keyword">**</span><span class="default">20</span><span class="keyword">-</span><span class="default">1</span><span class="keyword">); </span><span class="comment">//ERROR &amp; RECOVERABLE_ERROR &amp; WARNING &amp; PARSE &amp; NOTICE &amp; STRICT &amp; DEPRECATED &amp; CORE_ERROR &amp; CORE_WARNING &amp; COMPILE_ERROR &amp; COMPILE_WARNING &amp; USER_ERROR &amp; USER_WARNING &amp; USER_NOTICE &amp; USER_DEPRECATED &amp; Error Remainder [1015808]<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119003""></a>
+  <div class="note">
+   <strong class="user">damian at thebestisp dot  dot  dot com</strong>
+   <a href="#119003" class="date">16-Mar-2016 01:21</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I use this code to help mimic the default error handler, the only difference is that the levels end up being all caps, which I don't care to fix. You could also get rid of the underscores, but again, I don't care :P<br />
+Until php starts adding constants starting with E_ that have values overlapping with other E_ constants, this seems to be the shortest way of converting error code integers to strings understandable by meat bags. It will also work with new types, so that's nice.<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">friendly_error_type</span><span class="keyword">(</span><span class="default">$type</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; static </span><span class="default">$levels</span><span class="keyword">=</span><span class="default">null</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">$levels</span><span class="keyword">===</span><span class="default">null</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$levels</span><span class="keyword">=[];<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach (</span><span class="default">get_defined_constants</span><span class="keyword">() as </span><span class="default">$key</span><span class="keyword">=&gt;</span><span class="default">$value</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">strpos</span><span class="keyword">(</span><span class="default">$key</span><span class="keyword">,</span><span class="string">'E_'</span><span class="keyword">)!==</span><span class="default">0</span><span class="keyword">) {continue;}<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$levels</span><span class="keyword">[</span><span class="default">$value</span><span class="keyword">]=</span><span class="default">substr</span><span class="keyword">(</span><span class="default">$key</span><span class="keyword">,</span><span class="default">2</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; return (isset(</span><span class="default">$levels</span><span class="keyword">[</span><span class="default">$type</span><span class="keyword">]) ? </span><span class="default">$levels</span><span class="keyword">[</span><span class="default">$type</span><span class="keyword">] : </span><span class="string">"Error #</span><span class="keyword">{</span><span class="default">$type</span><span class="keyword">}</span><span class="string">"</span><span class="keyword">);<br />
+}<br />
+echo </span><span class="default">friendly_error_type</span><span class="keyword">(</span><span class="default">1</span><span class="keyword">); </span><span class="comment">#ERROR<br />
+</span><span class="keyword">echo </span><span class="default">friendly_error_type</span><span class="keyword">(</span><span class="default">2</span><span class="keyword">); </span><span class="comment">#WARNING<br />
+</span><span class="keyword">echo </span><span class="default">friendly_error_type</span><span class="keyword">(</span><span class="default">3</span><span class="keyword">); </span><span class="comment">#Error #3<br />
+</span><span class="default">?&gt;<br />
+</span>Tested on 5.6.12 and 7.0.3 (The first was by accident, didn't realize I was sshed into production :3)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115636""></a>
   <div class="note">
    <strong class="user">chris-php at IGNORETHISPART dot cybermato dot com</strong>
    <a href="#115636" class="date">29-Aug-2014 04:06</a>
@@ -328,36 +395,6 @@ How about this?&nbsp; Unlike the examples below, it will show all the bits that 
 &nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $tmpErrNo &amp;= ~$bit;<br />
 &nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $bit &lt;&lt;= 1;<br />
 &nbsp;&nbsp;&nbsp; }</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="115119""></a>
-  <div class="note">
-   <strong class="user">tedmasterweb at gmail dot com</strong>
-   <a href="#115119" class="date">29-May-2014 01:17</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Setting error_reporting in .htaccess or even httpd.conf can be confusing since you can't combine values as you can in php.ini.<br />
-<br />
-To set error_reporting to return multiple values, just repeat the setting in .htaccess for each type of error you want to see. For example, the default PHP setting (E_ALL &amp; ~E_NOTICE &amp; ~E_STRICT &amp; ~E_DEPRECATED) would be something like:<br />
-<br />
-php_value error_reporting 1<br />
-php_value error_reporting 2<br />
-php_value error_reporting 4<br />
-php_value error_reporting 16<br />
-php_value error_reporting 32<br />
-php_value error_reporting 64<br />
-php_value error_reporting 128<br />
-php_value error_reporting 256<br />
-php_value error_reporting 1024<br />
-php_value error_reporting 2048<br />
-php_value error_reporting 4096<br />
-php_value error_reporting 16384<br />
-<br />
-Note that this is not exactly the same as E_ALL (if I understand correctly) catches all errors not indicated here, but please correct me if I'm wrong.</span>
 </code>
     </div>
    </div>

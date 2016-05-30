@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.fgets" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">fgets</h1>
-  <p class="verinfo">(PHP 4, PHP 5)</p><p class="refpurpose"><span class="refname">fgets</span> &mdash; <span class="dc-title">从文件指针中读取一行</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">fgets</span> &mdash; <span class="dc-title">从文件指针中读取一行</span></p>
 
  </div>
  <div class="refsect1 description" id="refsect1-function.fgets-description">
@@ -139,7 +139,7 @@
  <div class="refsect1 examples" id="refsect1-function.fgets-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-2376">
+   <div class="example" id="example-2503">
     <p><strong>Example #1 逐行读取文件</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -187,7 +187,120 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="114247""></a>
+<div id="allnotes">  <a name="118733""></a>
+  <div class="note">
+   <strong class="user">bfb1985 at yahoo dot es</strong>
+   <a href="#118733" class="date">28-Jan-2016 08:59</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I had loads of trouble while reading with fgets on a WAMP (Windows server). On local the file went unto a &lt;pre&gt; tag without a hitch, but when I moved the code to a LAMP production server, every \r\n created two fgets and I got free empty lines.<br />
+<br />
+I tried deleting with $string=str_replace("\r\n","\n",$string); but it had no effect whatsoever. The solution was to do an fread() and explode the contents by PHP_EOL and do a foreach($lines as $line) so every line did not get duplicated.<br />
+<br />
+Here is the example code:<br />
+<br />
+$file=fopen("test.txt,"r");<br />
+$text=fread($file,filesize("test.txt"));<br />
+$lines=explode(PHP_EOL,$text);<br />
+foreach($lines as $line)<br />
+&nbsp; {<br />
+&nbsp; // Do something<br />
+&nbsp; }</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118250""></a>
+  <div class="note">
+   <strong class="user">alex at alex-at dot ru</strong>
+   <a href="#118250" class="date">03-Nov-2015 07:28</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+For anyone who wants a proper non-blocking fgets for sockets, there is a tiny snippet that does just that (performance should be horrible compared to fgets though):<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">read_line_nb</span><span class="keyword">(</span><span class="default">$handle</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; static </span><span class="default">$buffer </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; static </span><span class="default">$lastOffset </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$buffer </span><span class="keyword">.= </span><span class="default">fread</span><span class="keyword">(</span><span class="default">$handle</span><span class="keyword">, </span><span class="default">0x1000</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">preg_match</span><span class="keyword">(</span><span class="string">'#\\R#'</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">, </span><span class="default">$m</span><span class="keyword">, </span><span class="default">PREG_OFFSET_CAPTURE</span><span class="keyword">, </span><span class="default">$lastOffset</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$line </span><span class="keyword">= </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$buffer</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">, </span><span class="default">$m</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">][</span><span class="default">1</span><span class="keyword">] + </span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$m</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">][</span><span class="default">0</span><span class="keyword">]));<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$buffer</span><span class="keyword">, </span><span class="default">$m</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">][</span><span class="default">1</span><span class="keyword">] + </span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$m</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">][</span><span class="default">0</span><span class="keyword">]));<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$line</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$lastOffset </span><span class="keyword">= </span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$buffer</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117050""></a>
+  <div class="note">
+   <strong class="user">Leigh Purdie</strong>
+   <a href="#117050" class="date">08-Apr-2015 12:03</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+A better example, to illustrate the differences in speed for large files, between fgets and stream_get_line.<br />
+<br />
+This example simulates situations where you are reading potentially very long lines, of an uncertain length (but with a maximum buffer size), from an input source.<br />
+<br />
+As Dade pointed out, the previous example I provided was much to easy to pick apart, and did not adequately highlight the issue I was trying to address.<br />
+<br />
+Note that specifying a definitive end-character for fgets (ie: newline), generally decreases the speed difference reasonably significantly. <br />
+<br />
+#!/usr/bin/php<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $plaintext</span><span class="keyword">=</span><span class="default">file_get_contents</span><span class="keyword">(</span><span class="string">'<a href="http://loripsum.net/api/60/verylong/plaintext" rel="nofollow" target="_blank">http://loripsum.net/api/60/verylong/plaintext</a>'</span><span class="keyword">);&nbsp; </span><span class="comment"># Should be around 90k characters<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$plaintext</span><span class="keyword">=</span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">"\n"</span><span class="keyword">,</span><span class="string">" "</span><span class="keyword">,</span><span class="default">$plaintext</span><span class="keyword">); </span><span class="comment"># Get rid of newlines<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$fp</span><span class="keyword">=</span><span class="default">fopen</span><span class="keyword">(</span><span class="string">"/tmp/SourceFile.txt"</span><span class="keyword">,</span><span class="string">"w"</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; for(</span><span class="default">$i</span><span class="keyword">=</span><span class="default">0</span><span class="keyword">;</span><span class="default">$i</span><span class="keyword">&lt;</span><span class="default">100000</span><span class="keyword">;</span><span class="default">$i</span><span class="keyword">++) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fputs</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">,</span><span class="default">substr</span><span class="keyword">(</span><span class="default">$plaintext</span><span class="keyword">,</span><span class="default">0</span><span class="keyword">,</span><span class="default">rand</span><span class="keyword">(</span><span class="default">4096</span><span class="keyword">,</span><span class="default">65534</span><span class="keyword">)) . </span><span class="string">"\n"</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$fp</span><span class="keyword">=</span><span class="default">fopen</span><span class="keyword">(</span><span class="string">"/tmp/SourceFile.txt"</span><span class="keyword">,</span><span class="string">"r"</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$start</span><span class="keyword">=</span><span class="default">microtime</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; while(</span><span class="default">$line</span><span class="keyword">=</span><span class="default">fgets</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">,</span><span class="default">65535</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">1</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$end</span><span class="keyword">=</span><span class="default">microtime</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$delta1</span><span class="keyword">=(</span><span class="default">$end </span><span class="keyword">- </span><span class="default">$start</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$fp</span><span class="keyword">=</span><span class="default">fopen</span><span class="keyword">(</span><span class="string">"/tmp/SourceFile.txt"</span><span class="keyword">,</span><span class="string">"r"</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$start</span><span class="keyword">=</span><span class="default">microtime</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; while(</span><span class="default">$line</span><span class="keyword">=</span><span class="default">stream_get_line</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">,</span><span class="default">65535</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">1</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$end</span><span class="keyword">=</span><span class="default">microtime</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$delta2</span><span class="keyword">=(</span><span class="default">$end </span><span class="keyword">- </span><span class="default">$start</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$pdiff</span><span class="keyword">=</span><span class="default">$delta1</span><span class="keyword">/</span><span class="default">$delta2</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; print </span><span class="string">"stream_get_line is " </span><span class="keyword">. (</span><span class="default">$pdiff</span><span class="keyword">&gt;</span><span class="default">1</span><span class="keyword">?</span><span class="string">"faster"</span><span class="keyword">:</span><span class="string">"slower"</span><span class="keyword">) . </span><span class="string">" than fgets - pdiff is </span><span class="default">$pdiff</span><span class="string">\n"</span><span class="keyword">;<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+$ ./testcase.php <br />
+stream_get_line is faster than fgets - pdiff is 1.760398041785<br />
+<br />
+Note that, in a vast majority of situations in which php is employed, tiny differences in speed between system calls are of negligible importance.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="114247""></a>
   <div class="note">
    <strong class="user">wojons</strong>
    <a href="#114247" class="date">29-Jan-2014 08:32</a>

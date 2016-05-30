@@ -941,7 +941,77 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="106150""></a>
+<div id="allnotes">  <a name="117021""></a>
+  <div class="note">
+   <strong class="user">str_replace(&amp;#39;o&amp;#39;, &amp;#39;x&amp;#39;, &amp;#39;nitrogen&amp;#39;);</strong>
+   <a href="#117021" class="date">03-Apr-2015 09:31</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I was after a technique to produce an image by using the image resources available to PHP and to have access to the image's binary data directly in PHP WITHOUT saving to a temporary file.<br />
+<br />
+My purpose of this was to produce a directory of images with small image thumbnails (16x16) next to the filenames. Instead of having countless tiny images saved, I wanted to print out the image data into the &lt;img&gt; HTML tag (inline) using the data URI scheme.<br />
+<br />
+I found no such code or suggestion for this, and I've done some digging around at likely approaches and finally came up with a solution. There may or may not be a better way of doing this, but this way works for me.<br />
+<br />
+The guts of the approach started here with the example of registering a class as a stream wrapper: <a href="http://php.net/manual/en/stream.streamwrapper.example-1.php - this way we have access to, and can over-ride, the behaviour of " rel="nofollow" target="_blank">http://php.net/manual/en/stream.streamwrapper.example-1.php - this way we have access to, and can over-ride, the behaviour of </a>"file" I/O with a custom wrapper.<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="comment">// first, we define our class for the stream wrapper<br />
+</span><span class="keyword">class </span><span class="default">VariableStream </span><span class="keyword">{<br />
+&nbsp; var </span><span class="default">$position</span><span class="keyword">;<br />
+&nbsp; var </span><span class="default">$varname</span><span class="keyword">;<br />
+<br />
+&nbsp; function </span><span class="default">stream_open</span><span class="keyword">(</span><span class="default">$path</span><span class="keyword">, </span><span class="default">$mode</span><span class="keyword">, </span><span class="default">$options</span><span class="keyword">, &amp;</span><span class="default">$opened_path</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$url </span><span class="keyword">= </span><span class="default">parse_url</span><span class="keyword">(</span><span class="default">$path</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">varname </span><span class="keyword">= </span><span class="default">$url</span><span class="keyword">[</span><span class="string">'host'</span><span class="keyword">];<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">position </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">TRUE</span><span class="keyword">;<br />
+&nbsp; }<br />
+<br />
+&nbsp; function </span><span class="default">stream_write</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$left </span><span class="keyword">= </span><span class="default">substr</span><span class="keyword">(@</span><span class="default">$GLOBALS</span><span class="keyword">[</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">varname</span><span class="keyword">], </span><span class="default">0</span><span class="keyword">, </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">position</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$right </span><span class="keyword">= </span><span class="default">substr</span><span class="keyword">(@</span><span class="default">$GLOBALS</span><span class="keyword">[</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">varname</span><span class="keyword">], </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">position</span><span class="keyword">+</span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">));<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$GLOBALS</span><span class="keyword">[</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">varname</span><span class="keyword">] = </span><span class="default">$left</span><span class="keyword">.</span><span class="default">$data</span><span class="keyword">.</span><span class="default">$right</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">position</span><span class="keyword">+= </span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">);<br />
+&nbsp; }<br />
+<br />
+&nbsp; function </span><span class="default">stream_eof</span><span class="keyword">() {<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">position</span><span class="keyword">&gt;=</span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$GLOBALS</span><span class="keyword">[</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">varname</span><span class="keyword">]);<br />
+&nbsp; }<br />
+}<br />
+<br />
+</span><span class="comment">// register the class as a stream wrapper ("var://asdf")<br />
+</span><span class="default">stream_wrapper_register</span><span class="keyword">(</span><span class="string">'var'</span><span class="keyword">, </span><span class="string">'VariableStream'</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// create a really simple dynamically-generated image<br />
+// in my case, I used imagecreatefromjpeg to create 16x16 thumbnails<br />
+</span><span class="default">$im </span><span class="keyword">= </span><span class="default">imagecreatetruecolor</span><span class="keyword">(</span><span class="default">130</span><span class="keyword">, </span><span class="default">36</span><span class="keyword">);<br />
+</span><span class="default">imagefill</span><span class="keyword">(</span><span class="default">$im</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">, </span><span class="default">0xAAAAAA</span><span class="keyword">);<br />
+</span><span class="default">imagestring</span><span class="keyword">(</span><span class="default">$im</span><span class="keyword">, </span><span class="default">5</span><span class="keyword">, </span><span class="default">10</span><span class="keyword">, </span><span class="default">10</span><span class="keyword">, </span><span class="string">'Hello world!'</span><span class="keyword">, </span><span class="default">0x0000FF</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// and output it to our wrapper!<br />
+</span><span class="default">imagepng</span><span class="keyword">(</span><span class="default">$im</span><span class="keyword">, </span><span class="string">'var://asdf/'</span><span class="keyword">); </span><span class="comment">// $asdf now contains our image binary!<br />
+</span><span class="default">imagedestroy</span><span class="keyword">(</span><span class="default">$im</span><span class="keyword">); </span><span class="comment">// free memory<br />
+<br />
+</span><span class="default">$asdf </span><span class="keyword">= </span><span class="default">base64_encode</span><span class="keyword">(</span><span class="default">$asdf</span><span class="keyword">); </span><span class="comment">// base64 encode our data for...<br />
+</span><span class="default">printf</span><span class="keyword">(</span><span class="string">"&lt;img alt=\"\" src=\"data:image/png;base64,%s\"/&gt;"</span><span class="keyword">, </span><span class="default">$asdf</span><span class="keyword">); <br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+The class 'VariableStream' lacks ability to seek, ftell, and read for the sake of simple code for my purpose. More complete code for I/O operations can be found in the example document I references above. You could also then use fopen using the wrapper and variable name to access it like a file again.<br />
+<br />
+This technique can be applied to other functions that don't allow direct access to the data generated to files or sockets.<br />
+<br />
+Hope this helps!</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="106150""></a>
   <div class="note">
    <strong class="user">ingo at jache dot de</strong>
    <a href="#106150" class="date">14-Oct-2011 12:16</a>

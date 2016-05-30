@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.ini-get-all" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">ini_get_all</h1>
-  <p class="verinfo">(PHP 4 &gt;= 4.2.0, PHP 5)</p><p class="refpurpose"><span class="refname">ini_get_all</span> &mdash; <span class="dc-title">获取所有配置选项</span></p>
+  <p class="verinfo">(PHP 4 &gt;= 4.2.0, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">ini_get_all</span> &mdash; <span class="dc-title">获取所有配置选项</span></p>
 
  </div>
  
@@ -133,7 +133,7 @@
  <div class="refsect1 examples" id="refsect1-function.ini-get-all-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-492">
+   <div class="example" id="example-525">
     <p><strong>Example #1 <span class="function"><strong>ini_get_all()</strong></span> 例子</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -184,7 +184,7 @@ Array
 </pre></div>
     </div>
    </div>
-   <div class="example" id="example-493">
+   <div class="example" id="example-526">
     <p><strong>Example #2 禁用 <code class="parameter">details</code></strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -224,7 +224,7 @@ Array
     <li class="member"><span class="function"><a href="function.ini-set.html" class="function" rel="rdfs-seeAlso">ini_set()</a> - 为一个配置选项设置值</span></li>
     <li class="member"><span class="function"><a href="function.get-loaded-extensions.html" class="function" rel="rdfs-seeAlso">get_loaded_extensions()</a> - 返回所有编译并加载模块名的 array</span></li>
     <li class="member"><span class="function"><a href="function.phpinfo.html" class="function" rel="rdfs-seeAlso">phpinfo()</a> - 输出关于 PHP 配置的信息</span></li>
-    <li class="member"><span class="methodname"><a href="reflectionextension.getinientries.html" class="methodname" rel="rdfs-seeAlso">ReflectionExtension::getINIEntries()</a> - Gets extension ini entries</span></li>
+    <li class="member"><span class="methodname"><a href="reflectionextension.getinientries.html" class="methodname" rel="rdfs-seeAlso">ReflectionExtension::getINIEntries()</a> - 获取ini配置</span></li>
    </ul>
   </p>
  </div>
@@ -234,7 +234,74 @@ Array
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="80548""></a>
+<div id="allnotes">  <a name="119036""></a>
+  <div class="note">
+   <strong class="user">pmdumuid at gmail dot com</strong>
+   <a href="#119036" class="date">22-Mar-2016 08:09</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+echo recreate_php_ini();<br />
+<br />
+/**<br />
+&nbsp; * Sample function to re-create a php ini config file.<br />
+&nbsp; *<br />
+&nbsp; * @return string<br />
+&nbsp; */<br />
+function recreate_php_ini() {<br />
+&nbsp;&nbsp;&nbsp; $a = ini_get_all();<br />
+<br />
+&nbsp;&nbsp;&nbsp; $data = [];<br />
+&nbsp;&nbsp;&nbsp; foreach (array_keys($a) as $k) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $ss = split("\.", $k);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (count($ss) == 1) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $sec = "PHP";<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $v = $k;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $sec = $ss[0];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $v = $ss[1];<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $data[$sec][$v] = $a[$k]['global_value'];<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; ksort($data);<br />
+&nbsp;&nbsp;&nbsp; $out = "";<br />
+&nbsp;&nbsp;&nbsp; foreach ($data as $sec =&gt; $data) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $out .= "[$sec]\n";<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; ksort($data);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach ($data as $k =&gt; $v) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (is_numeric($v)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $out .= sprintf("%-40s = %s\n", $k, $v);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $out .= sprintf("%-40s = \"%s\"\n", $k, $v);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $out .= "\n";<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; return $out;<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118444""></a>
+  <div class="note">
+   <strong class="user">peter at peteraba dot com</strong>
+   <a href="#118444" class="date">07-Dec-2015 08:13</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+You can use the following snippet on servers to grab the live/staging configs in order to be able to replicate those in your development environment. (I use `php -a` for this)<br />
+&nbsp;<span class="default">&lt;?php<br />
+</span><span class="keyword">foreach (</span><span class="default">ini_get_all</span><span class="keyword">(</span><span class="default">null</span><span class="keyword">, </span><span class="default">false</span><span class="keyword">) as </span><span class="default">$key </span><span class="keyword">=&gt; </span><span class="default">$value</span><span class="keyword">) echo </span><span class="string">"</span><span class="default">$key</span><span class="string">=</span><span class="default">$value</span><span class="string">;\n"</span><span class="keyword">;<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="80548""></a>
   <div class="note">
    <strong class="user">root at mantoru dot de</strong>
    <a href="#80548" class="date">21-Jan-2008 10:33</a>

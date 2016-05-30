@@ -253,7 +253,137 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="115118""></a>
+<div id="allnotes">  <a name="118996""></a>
+  <div class="note">
+   <strong class="user">meadowsjared at gmail dot com</strong>
+   <a href="#118996" class="date">15-Mar-2016 04:16</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Please note, when using the collect function, it's important that you extend the pool class so you can keep checking for finished threads until they're all done.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">TestWork </span><span class="keyword">extends </span><span class="default">Threaded </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; protected </span><span class="default">$complete</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">//$pData is the data sent to your worker thread to do it's job.<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">public function </span><span class="default">__construct</span><span class="keyword">(</span><span class="default">$pData</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">//transfer all the variables to local variables<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">complete </span><span class="keyword">= </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">testData </span><span class="keyword">= </span><span class="default">$pData</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">//This is where all of your work will be done.<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">public function </span><span class="default">run</span><span class="keyword">(){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">usleep</span><span class="keyword">(</span><span class="default">2000000</span><span class="keyword">); </span><span class="comment">//sleep 2 seconds to simulate a large job<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">complete </span><span class="keyword">= </span><span class="default">true</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">isGarbage</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">complete</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+class </span><span class="default">ExamplePool </span><span class="keyword">extends </span><span class="default">Pool<br />
+</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public </span><span class="default">$data </span><span class="keyword">= array();<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">process</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Run this loop as long as we have<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; // jobs in the pool<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">while (</span><span class="default">count</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">work</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">collect</span><span class="keyword">(function (</span><span class="default">TestWork $task</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// If a task was marked as done<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; // collect its results<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if (</span><span class="default">$task</span><span class="keyword">-&gt;</span><span class="default">isGarbage</span><span class="keyword">()) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$tmpObj </span><span class="keyword">= new </span><span class="default">stdclass</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$tmpObj</span><span class="keyword">-&gt;</span><span class="default">complete </span><span class="keyword">= </span><span class="default">$task</span><span class="keyword">-&gt;</span><span class="default">complete</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">//this is how you get your completed data back out [accessed by $pool-&gt;process()]<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">data</span><span class="keyword">[] = </span><span class="default">$tmpObj</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$task</span><span class="keyword">-&gt;</span><span class="default">isGarbage</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; });<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// All jobs are done<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; // we can shutdown the pool<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">shutdown</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">data</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+</span><span class="default">$pool </span><span class="keyword">= new </span><span class="default">ExamplePool</span><span class="keyword">(</span><span class="default">3</span><span class="keyword">);<br />
+</span><span class="default">$testData </span><span class="keyword">= </span><span class="string">'asdf'</span><span class="keyword">;<br />
+for(</span><span class="default">$i</span><span class="keyword">=</span><span class="default">0</span><span class="keyword">;</span><span class="default">$i</span><span class="keyword">&lt;</span><span class="default">5</span><span class="keyword">;</span><span class="default">$i</span><span class="keyword">++) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$pool</span><span class="keyword">-&gt;</span><span class="default">submit</span><span class="keyword">(new </span><span class="default">TestWork</span><span class="keyword">(</span><span class="default">$testData</span><span class="keyword">));<br />
+}<br />
+</span><span class="default">$retArr </span><span class="keyword">= </span><span class="default">$pool</span><span class="keyword">-&gt;</span><span class="default">process</span><span class="keyword">(); </span><span class="comment">//get all of the results<br />
+</span><span class="keyword">echo </span><span class="string">'&lt;pre&gt;'</span><span class="keyword">;<br />
+</span><span class="default">print_r</span><span class="keyword">(</span><span class="default">$retArr</span><span class="keyword">); </span><span class="comment">//return the array of results (and maybe errors)<br />
+</span><span class="keyword">echo </span><span class="string">'&lt;/pre&gt;'</span><span class="keyword">;<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116980""></a>
+  <div class="note">
+   <strong class="user">olavk</strong>
+   <a href="#116980" class="date">30-Mar-2015 10:48</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Simple example with Collectable (basically Thread meant for Pool) and Pool<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">class </span><span class="default">job </span><span class="keyword">extends </span><span class="default">Collectable </span><span class="keyword">{<br />
+&nbsp; public </span><span class="default">$val</span><span class="keyword">;<br />
+<br />
+&nbsp; public function </span><span class="default">__construct</span><span class="keyword">(</span><span class="default">$val</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// init some properties<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">val </span><span class="keyword">= </span><span class="default">$val</span><span class="keyword">;<br />
+&nbsp; }<br />
+&nbsp; public function </span><span class="default">run</span><span class="keyword">(){<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// do some work<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">val </span><span class="keyword">= </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">val </span><span class="keyword">. </span><span class="default">file_get_contents</span><span class="keyword">(</span><span class="string">'<a href="http://www.example.com/" rel="nofollow" target="_blank">http://www.example.com/</a>'</span><span class="keyword">, </span><span class="default">null</span><span class="keyword">, </span><span class="default">null</span><span class="keyword">, </span><span class="default">3</span><span class="keyword">, </span><span class="default">20</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">setGarbage</span><span class="keyword">();<br />
+&nbsp; }<br />
+}<br />
+<br />
+</span><span class="comment">// At most 3 threads will work at once<br />
+</span><span class="default">$p </span><span class="keyword">= new </span><span class="default">Pool</span><span class="keyword">(</span><span class="default">3</span><span class="keyword">);<br />
+<br />
+</span><span class="default">$tasks </span><span class="keyword">= array(<br />
+&nbsp; new </span><span class="default">job</span><span class="keyword">(</span><span class="string">'0'</span><span class="keyword">),<br />
+&nbsp; new </span><span class="default">job</span><span class="keyword">(</span><span class="string">'1'</span><span class="keyword">),<br />
+&nbsp; new </span><span class="default">job</span><span class="keyword">(</span><span class="string">'2'</span><span class="keyword">),<br />
+&nbsp; new </span><span class="default">job</span><span class="keyword">(</span><span class="string">'3'</span><span class="keyword">),<br />
+&nbsp; new </span><span class="default">job</span><span class="keyword">(</span><span class="string">'4'</span><span class="keyword">),<br />
+&nbsp; new </span><span class="default">job</span><span class="keyword">(</span><span class="string">'5'</span><span class="keyword">),<br />
+&nbsp; new </span><span class="default">job</span><span class="keyword">(</span><span class="string">'6'</span><span class="keyword">),<br />
+&nbsp; new </span><span class="default">job</span><span class="keyword">(</span><span class="string">'7'</span><span class="keyword">),<br />
+&nbsp; new </span><span class="default">job</span><span class="keyword">(</span><span class="string">'8'</span><span class="keyword">),<br />
+&nbsp; new </span><span class="default">job</span><span class="keyword">(</span><span class="string">'9'</span><span class="keyword">),<br />
+&nbsp; new </span><span class="default">job</span><span class="keyword">(</span><span class="string">'10'</span><span class="keyword">),<br />
+);<br />
+</span><span class="comment">// Add tasks to pool queue<br />
+</span><span class="keyword">foreach (</span><span class="default">$tasks </span><span class="keyword">as </span><span class="default">$task</span><span class="keyword">) {<br />
+&nbsp; </span><span class="default">$p</span><span class="keyword">-&gt;</span><span class="default">submit</span><span class="keyword">(</span><span class="default">$task</span><span class="keyword">);<br />
+}<br />
+<br />
+</span><span class="comment">// shutdown will wait for current queue to be completed<br />
+</span><span class="default">$p</span><span class="keyword">-&gt;</span><span class="default">shutdown</span><span class="keyword">();<br />
+</span><span class="comment">// garbage collection check / read results<br />
+</span><span class="default">$p</span><span class="keyword">-&gt;</span><span class="default">collect</span><span class="keyword">(function(</span><span class="default">$checkingTask</span><span class="keyword">){<br />
+&nbsp; echo </span><span class="default">$checkingTask</span><span class="keyword">-&gt;</span><span class="default">val</span><span class="keyword">;<br />
+&nbsp; return </span><span class="default">$checkingTask</span><span class="keyword">-&gt;</span><span class="default">isGarbage</span><span class="keyword">();<br />
+});<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115118""></a>
   <div class="note">
    <strong class="user">fajan</strong>
    <a href="#115118" class="date">28-May-2014 10:18</a>

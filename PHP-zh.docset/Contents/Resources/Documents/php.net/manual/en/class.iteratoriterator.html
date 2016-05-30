@@ -28,7 +28,7 @@
  <h1 class="title">The IteratorIterator class</h1>
  
 
- <div class="partintro"><p class="verinfo">(PHP 5 &gt;= 5.1.0)</p>
+ <div class="partintro"><p class="verinfo">(PHP 5 &gt;= 5.1.0, PHP 7)</p>
 
 
   <div class="section" id="iteratoriterator.intro">
@@ -97,7 +97,15 @@
 
 
   </div>
-
+ 
+  <div class="section">
+   <h2 class="title">×¢ÊÍ</h2>
+   <blockquote class="note"><p><strong class="note">Note</strong>: 
+    <p class="para">
+     This class permits access to methods of the inner iterator via the __call magic method.
+    </p>
+   </p></blockquote>
+  </div>
  </div>
 
  
@@ -157,6 +165,167 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
- <div class="note">There are no user contributed notes for this page.</div>
+<div id="allnotes">  <a name="118825""></a>
+  <div class="note">
+   <strong class="user">max-p at max-p dot me</strong>
+   <a href="#118825" class="date">12-Feb-2016 10:53</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Little note for anyone that wants to emulate the behavior of foreach as close as possible in order to work with somewhat picky Traversable objects, without using foreach:<br />
+<br />
+- Before starting the iteration, rewind() is called.<br />
+- For every iteration, the following methods are called on the iterator:<br />
+&nbsp;&nbsp;&nbsp; - valid()<br />
+&nbsp;&nbsp;&nbsp; - current()<br />
+&nbsp;&nbsp;&nbsp; - key()<br />
+&nbsp;&nbsp;&nbsp; - next()<br />
+<br />
+Sounds like a silly thing to do put this way, but in my use case I needed to convert a Traversable database result cursor into a procedural-style cursor (hasNext + fetchArray) for backward compatibility, and the driver required every function to be called in the appropriate order.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118660""></a>
+  <div class="note">
+   <strong class="user">wallacemaxters at gmail dot lcom</strong>
+   <a href="#118660" class="date">16-Jan-2016 01:46</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Another example of the efficiency for IteratorIterator is a small class for enumerate for iterations of an interator implementation.<br />
+<br />
+Example:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">class </span><span class="default">Enumerator </span><span class="keyword">extends </span><span class="default">IteratorIterator<br />
+</span><span class="keyword">{&nbsp; &nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">/**<br />
+&nbsp;&nbsp;&nbsp; * Initial value for enumerator<br />
+&nbsp;&nbsp;&nbsp; * @param int&nbsp; <br />
+&nbsp;&nbsp;&nbsp; */<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">protected </span><span class="default">$start </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">/**<br />
+&nbsp;&nbsp;&nbsp; * @param int<br />
+&nbsp;&nbsp;&nbsp; */<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">protected </span><span class="default">$key </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">/**<br />
+&nbsp;&nbsp;&nbsp; * @param Traversable $iterator<br />
+&nbsp;&nbsp;&nbsp; * @param scalar $start<br />
+&nbsp;&nbsp;&nbsp; */<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">public function </span><span class="default">__construct</span><span class="keyword">(</span><span class="default">Traversable $iterator</span><span class="keyword">, </span><span class="default">$start </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">parent</span><span class="keyword">::</span><span class="default">__construct</span><span class="keyword">(</span><span class="default">$iterator</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">start </span><span class="keyword">= </span><span class="default">$start</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">key </span><span class="keyword">= </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">start</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">key</span><span class="keyword">()</span><span class="default">var_dump<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">{<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">key</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">next</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; ++</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">key</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">parent</span><span class="keyword">::</span><span class="default">next</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">rewind</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">key </span><span class="keyword">= </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">start</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">parent</span><span class="keyword">::</span><span class="default">rewind</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+This produces:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+$enumerator </span><span class="keyword">= new </span><span class="default">Enumerator</span><span class="keyword">(<br />
+&nbsp;&nbsp; &nbsp; &nbsp; new </span><span class="default">ArrayIterator</span><span class="keyword">([</span><span class="string">'php'</span><span class="keyword">, </span><span class="string">'java'</span><span class="keyword">, </span><span class="string">'python'</span><span class="keyword">]); </span><span class="default">7000<br />
+</span><span class="keyword">);<br />
+<br />
+</span><span class="default">print_r</span><span class="keyword">(</span><span class="default">iterator_to_array</span><span class="keyword">(</span><span class="default">$enumerator</span><span class="keyword">));<br />
+<br />
+</span><span class="comment">/*<br />
+*&nbsp; &nbsp; array(3) { <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 7000 =&gt; 'php',<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 7001 =&gt; 'java',<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 7002 =&gt; 'python'<br />
+&nbsp;&nbsp; &nbsp; }<br />
+*/<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117108""></a>
+  <div class="note">
+   <strong class="user">sven at rtbg dot de</strong>
+   <a href="#117108" class="date">16-Apr-2015 05:57</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+This iterator basically is only a wrapper around another iterator. It does nothing fancy, it simply forwards any calls of rewind(), next(), valid(), current() and key() to the inner iterator. This inner iterator can be fetched with getInnerIterator().<br />
+<br />
+One special case: When passing an IteratorAggregate object, the getIterator() method of that object will be called and THAT iterator will be iterated over, and this will also be returned when calling getInnerIterator().<br />
+<br />
+This class can be extended, so it's an ideal building block for your own classes that only want to modify one or two of the iterator methods, but not all.<br />
+<br />
+Want to trim the strings returned by the current() method?<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">class </span><span class="default">TrimIterator </span><span class="keyword">extends </span><span class="default">IteratorIterator<br />
+</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">current</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">trim</span><span class="keyword">(</span><span class="default">parent</span><span class="keyword">::</span><span class="default">current</span><span class="keyword">());<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">$innerIterator </span><span class="keyword">= new </span><span class="default">ArrayIterator</span><span class="keyword">(array(</span><span class="string">'normal'</span><span class="keyword">, </span><span class="string">' trimmable '</span><span class="keyword">));<br />
+<br />
+</span><span class="default">$trim </span><span class="keyword">= new </span><span class="default">TrimIterator</span><span class="keyword">(</span><span class="default">$innerIterator</span><span class="keyword">);<br />
+<br />
+foreach (</span><span class="default">$trim </span><span class="keyword">as </span><span class="default">$key </span><span class="keyword">=&gt; </span><span class="default">$value</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"Key:\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$key</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"Value:\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"---next---"</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Output:<br />
+<br />
+Key:<br />
+int(0)<br />
+Value:<br />
+string(6) "normal"<br />
+---next---Key:<br />
+int(1)<br />
+Value:<br />
+string(9) "trimmable"<br />
+---next---</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
 </div>
 </div></div></body></html>

@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.mb-substr" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">mb_substr</h1>
-  <p class="verinfo">(PHP 4 &gt;= 4.0.6, PHP 5)</p><p class="refpurpose"><span class="refname">mb_substr</span> &mdash; <span class="dc-title">获取字符串的部分</span></p>
+  <p class="verinfo">(PHP 4 &gt;= 4.0.6, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">mb_substr</span> &mdash; <span class="dc-title">获取字符串的部分</span></p>
 
  </div>
    
@@ -132,7 +132,53 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116272""></a>
+<div id="allnotes">  <a name="117764""></a>
+  <div class="note">
+   <strong class="user">qbolec at gmail dot com</strong>
+   <a href="#117764" class="date">06-Aug-2015 12:10</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+As you often need to iterate over UTF-8 characters inside a string, you might be tempted to use mb_substr($text,$i,1).<br />
+The problem with this is that there is no "magic" way to find $i-th character inside UTF-8 string, other than reading it byte by byte from the begining. Thus a loop which calls mb_substr($text,$i,1) N times for all possible N values of $i, will take much longer than expected. The larger the $i gets, the longer is the search for $i-th letter. As characters are between 1 to 6 bytes long, one can convince oneself, that the execution time of such loop is actually Theta(N^2), which can be really slow even for moderately long texts.<br />
+One way to work around it is to first split your text into an array of letters using some smart preprocessing, and only then iterate over the array.<br />
+Here is the idea:<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">Strings<br />
+</span><span class="keyword">{<br />
+&nbsp; public static function </span><span class="default">len</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">mb_strlen</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">,</span><span class="string">'UTF-8'</span><span class="keyword">);<br />
+&nbsp; }<br />
+&nbsp; public static function </span><span class="default">charAt</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">,</span><span class="default">$i</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">self</span><span class="keyword">::</span><span class="default">substr</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">,</span><span class="default">$i</span><span class="keyword">,</span><span class="default">1</span><span class="keyword">);<br />
+&nbsp; }<br />
+&nbsp; public static function </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">,</span><span class="default">$x</span><span class="keyword">,</span><span class="default">$y</span><span class="keyword">=</span><span class="default">null</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; if(</span><span class="default">$y</span><span class="keyword">===</span><span class="default">NULL</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$y</span><span class="keyword">=</span><span class="default">self</span><span class="keyword">::</span><span class="default">len</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">mb_substr</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">,</span><span class="default">$x</span><span class="keyword">,</span><span class="default">$y</span><span class="keyword">,</span><span class="string">'UTF-8'</span><span class="keyword">);<br />
+&nbsp; }<br />
+&nbsp; public static function </span><span class="default">letters</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$len </span><span class="keyword">= </span><span class="default">self</span><span class="keyword">::</span><span class="default">len</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; if(</span><span class="default">$len</span><span class="keyword">==</span><span class="default">0</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp;&nbsp; return array();<br />
+&nbsp;&nbsp;&nbsp; }else if(</span><span class="default">$len </span><span class="keyword">== </span><span class="default">1</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp;&nbsp; return array(</span><span class="default">$a</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }else{<br />
+&nbsp;&nbsp; &nbsp;&nbsp; return </span><span class="default">Arrays</span><span class="keyword">::</span><span class="default">concat</span><span class="keyword">(<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">self</span><span class="keyword">::</span><span class="default">letters</span><span class="keyword">(</span><span class="default">self</span><span class="keyword">::</span><span class="default">substr</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">,</span><span class="default">0</span><span class="keyword">,</span><span class="default">$len</span><span class="keyword">&gt;&gt;</span><span class="default">1</span><span class="keyword">)),<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">self</span><span class="keyword">::</span><span class="default">letters</span><span class="keyword">(</span><span class="default">self</span><span class="keyword">::</span><span class="default">substr</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">,</span><span class="default">$len</span><span class="keyword">&gt;&gt;</span><span class="default">1</span><span class="keyword">))<br />
+&nbsp;&nbsp; &nbsp;&nbsp; );<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp; }<br />
+</span><span class="default">?&gt;<br />
+</span>As you can see, the Strings::letters($text) split the text recursively into two parts. Each level of the recursion requires time linear in the length of the string, and there is logarithmic number of levels, so the total runtime is O(N log N), which is still more than theoretically optimal O(N), but sadly this is the best idea I've got.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116272""></a>
   <div class="note">
    <strong class="user">247hastings at gmail dot com</strong>
    <a href="#116272" class="date">04-Dec-2014 10:17</a>
@@ -243,34 +289,6 @@ Array<br />
    </div>
   </div>
  <div class="foot"></div>
-  <a name="107698""></a>
-  <div class="note">
-   <strong class="user">qeremy [atta] gmail [dotta] com</strong>
-   <a href="#107698" class="date">28-Feb-2012 12:58</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-A proper (logical) alternative for unicode strings;<br />
-<br />
-<span class="default">&lt;?php<br />
-</span><span class="keyword">function </span><span class="default">substr_unicode</span><span class="keyword">(</span><span class="default">$str</span><span class="keyword">, </span><span class="default">$s</span><span class="keyword">, </span><span class="default">$l </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">) {<br />
-&nbsp;&nbsp;&nbsp; return </span><span class="default">join</span><span class="keyword">(</span><span class="string">""</span><span class="keyword">, </span><span class="default">array_slice</span><span class="keyword">(<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">preg_split</span><span class="keyword">(</span><span class="string">"//u"</span><span class="keyword">, </span><span class="default">$str</span><span class="keyword">, -</span><span class="default">1</span><span class="keyword">, </span><span class="default">PREG_SPLIT_NO_EMPTY</span><span class="keyword">), </span><span class="default">$s</span><span class="keyword">, </span><span class="default">$l</span><span class="keyword">));<br />
-}<br />
-<br />
-</span><span class="default">$str </span><span class="keyword">= </span><span class="string">"Büyük"</span><span class="keyword">;<br />
-</span><span class="default">$s </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">; </span><span class="comment">// start from "0" (nth) char<br />
-</span><span class="default">$l </span><span class="keyword">= </span><span class="default">3</span><span class="keyword">; </span><span class="comment">// get "3" chars<br />
-</span><span class="keyword">echo </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$str</span><span class="keyword">, </span><span class="default">$s</span><span class="keyword">, </span><span class="default">$l</span><span class="keyword">) .</span><span class="string">"\n"</span><span class="keyword">;&nbsp; &nbsp; </span><span class="comment">// Bü<br />
-</span><span class="keyword">echo </span><span class="default">mb_substr</span><span class="keyword">(</span><span class="default">$str</span><span class="keyword">, </span><span class="default">$s</span><span class="keyword">, </span><span class="default">$l</span><span class="keyword">) .</span><span class="string">"\n"</span><span class="keyword">; </span><span class="comment">// Bü<br />
-</span><span class="keyword">echo </span><span class="default">substr_unicode</span><span class="keyword">(</span><span class="default">$str</span><span class="keyword">, </span><span class="default">$s</span><span class="keyword">, </span><span class="default">$l</span><span class="keyword">);&nbsp; </span><span class="comment">// Büy<br />
-</span><span class="default">?&gt;</span>
-</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
   <a name="106737""></a>
   <div class="note">
    <strong class="user">p dot assenov at aip-solutions dot com</strong>
@@ -295,22 +313,6 @@ I'm trying to capitalize only the first character of the string and tried some o
 </span>
 <br />
 cheers!</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="98958""></a>
-  <div class="note">
-   <strong class="user">levani9191 at gmail dot com</strong>
-   <a href="#98958" class="date">18-Jul-2010 12:37</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-A simple code that check if the latest symbol in the string is a question mark and adds one if it doesn't...<br />
-<br />
-<span class="default">&lt;?php $string </span><span class="keyword">= (</span><span class="default">mb_substr</span><span class="keyword">(</span><span class="default">$string</span><span class="keyword">, -</span><span class="default">1</span><span class="keyword">, </span><span class="default">1</span><span class="keyword">, </span><span class="string">'UTF-8'</span><span class="keyword">) != </span><span class="string">'?'</span><span class="keyword">) ? </span><span class="default">$string</span><span class="keyword">.</span><span class="string">'?' </span><span class="keyword">: </span><span class="default">$string</span><span class="keyword">; </span><span class="default">?&gt;</span>
-</span>
 </code>
     </div>
    </div>

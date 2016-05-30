@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="domdocument.save" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">DOMDocument::save</h1>
-  <p class="verinfo">(PHP 5)</p><p class="refpurpose"><span class="refname">DOMDocument::save</span> &mdash; <span class="dc-title">
+  <p class="verinfo">(PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">DOMDocument::save</span> &mdash; <span class="dc-title">
     Dumps the internal XML tree back into a file
   </span></p>
 
@@ -121,7 +121,7 @@
  <div class="refsect1 examples" id="refsect1-domdocument.save-examples">
   <h3 class="title">·¶Àý</h3>
   <p class="para">
-   <div class="example" id="example-5400">
+   <div class="example" id="example-5785">
     <p><strong>Example #1 Saving a DOM tree into a file</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -149,7 +149,48 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116028""></a>
+<div id="allnotes">  <a name="118908""></a>
+  <div class="note">
+   <strong class="user">dubois-holvoet dot patrick at neuf dot fr</strong>
+   <a href="#118908" class="date">26-Feb-2016 05:13</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I just intend to bring my little contribution to the use of DOMDocument::save() function along with PHP serialize() function.<br />
+<br />
+Sometimes you could have to serialize a PHP object before you put it into a XML structure (or other..). And then I suppose you could have to save this XML structure in a file. Of course, you will further need to read this file and unserialize it before to use its content. <br />
+<br />
+The problem appears when there are some properties described as Protected in the object to be serialized. <br />
+<br />
+As it's written in the PHP documentation, serialize function add for those protected properties an asterisk before the name of the property along with a NULL character on each side of the asterisk. <br />
+In this case, the DOMDocument::save function will stop the save operation just before the first NULL character met in the string to be saved, because PHP consider it as a potential risk. <br />
+So, after that, the unserialize operation of the file become impossible.<br />
+<br />
+To solve that, here is a first solution to apply :<br />
+<br />
+For the serialize , before the DOMDocument::save() ::<br />
+$data_serial = explode("\x00\x2A\x00", serialize($object));&nbsp; //take off the 'NULL * NULL' string<br />
+$data_serial = implode("\x5C\x30\x2A\x5C\x30", $data_serial);&nbsp; &nbsp; //and replace with '\0*\0' string <br />
+<br />
+Before the unserialize :<br />
+$data_serial = explode("\x5C\x30\x2A\x5C\x30", $serialized_object);&nbsp; &nbsp; // take off the '\0*\0' string<br />
+$serial_object = implode("\x00\x2A\x00", $data_serial);&nbsp; &nbsp; &nbsp; // and replace with 'NULL * NULL' string as included by the previous serialize<br />
+<br />
+And a second solution :<br />
+<br />
+For the serialize, before the DOMDocument::save() :<br />
+$serialized_object = addslashes(serialize($object)) ;<br />
+<br />
+Before re-using the object in your application :<br />
+$object = unserialize(stripslashes($serialized_object)) ; <br />
+<br />
+Hope this will help some.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116028""></a>
   <div class="note">
    <strong class="user">ludvig at ergopedia dot no</strong>
    <a href="#116028" class="date">31-Oct-2014 07:21</a>

@@ -93,7 +93,7 @@
    <p class="para">
     <a href="language.oop5.magic.html#object.wakeup" class="link">__wakeup()</a> 经常用在反序列化操作中，例如重新建立数据库连接，或执行其它初始化操作。
    </p>
-   <div class="example" id="example-233">
+   <div class="example" id="example-244">
     <p><strong>Example #1 Sleep 和 wakeup</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -124,7 +124,7 @@
      方法中抛出异常。这么做会导致致命错误。
     </p>
    </div>
-   <div class="example" id="example-234">
+   <div class="example" id="example-245">
     <p><strong>Example #2 简单示例</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -166,7 +166,7 @@ Hello
      本特性只在 PHP 5.3.0 及以上版本有效。
     </p>
    </p></blockquote>
-   <div class="example" id="example-235">
+   <div class="example" id="example-246">
     <p><strong>Example #3 使用 <a href="language.oop5.magic.html#object.invoke" class="link">__invoke()</a></strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -198,7 +198,7 @@ bool(true)
    <p class="para">
     本方法的唯一参数是一个数组，其中包含按 <em>array(&#039;property&#039; =&gt; value, ...)</em> 格式排列的类属性。
    </p>
-   <div class="example" id="example-236">
+   <div class="example" id="example-247">
     <p><strong>Example #4 使用 <a href="language.oop5.magic.html#object.set-state" class="link">__set_state()</a>&gt;（PHP 5.1.0 起）</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -236,7 +236,7 @@ object(A)#2 (2) {
    <p class="para">
     This feature was added in PHP 5.6.0.
    </p>
-   <div class="example" id="example-237">
+   <div class="example" id="example-248">
     <p><strong>Example #5 Using <a href="language.oop5.magic.html#object.debuginfo" class="link">__debugInfo()</a></strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -260,7 +260,110 @@ object(C)#1 (1) {
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="112209""></a>
+<div id="allnotes">  <a name="118617""></a>
+  <div class="note">
+   <strong class="user">smiley at HELLOSPAMBOT dot chillerlan dot net</strong>
+   <a href="#118617" class="date">09-Jan-2016 01:30</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+A simple API wrapper, using __call() and the PHP 5.6 "..." token.<br />
+<a href="http://php.net/manual/functions.arguments.php#functions.variable-arg-list" rel="nofollow" target="_blank">http://php.net/manual/functions.arguments.php#functions.variable-arg-list</a><br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">namespace </span><span class="default">Example</span><span class="keyword">;<br />
+<br />
+use </span><span class="default">Exception</span><span class="keyword">;<br />
+use </span><span class="default">ReflectionClass</span><span class="keyword">;<br />
+use </span><span class="default">SomeApiInterface</span><span class="keyword">;<br />
+use </span><span class="default">SomeHttpClient</span><span class="keyword">;<br />
+use </span><span class="default">SomeEndpointHandler</span><span class="keyword">;<br />
+<br />
+</span><span class="comment">/**<br />
+&nbsp;* Class SomeApiWrapper<br />
+&nbsp;* <br />
+&nbsp;* @method SomeEndpointHandler method1(MethodParams $param1)<br />
+&nbsp;* @method SomeEndpointHandler method2(MethodParams $param1, AuthParams $param2 = null)<br />
+&nbsp;* ...<br />
+&nbsp;* @method SomeEndpointHandler method42()<br />
+&nbsp;*/<br />
+</span><span class="keyword">class </span><span class="default">SomeApiWrapper</span><span class="keyword">{<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">/**<br />
+&nbsp;&nbsp; &nbsp; * @var \SomeHttpClient<br />
+&nbsp;&nbsp; &nbsp; */<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">private </span><span class="default">$httpClient</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">/**<br />
+&nbsp;&nbsp; &nbsp; * @var array<br />
+&nbsp;&nbsp; &nbsp; */<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">private </span><span class="default">$methodMap </span><span class="keyword">= [];<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">/**<br />
+&nbsp;&nbsp; &nbsp; * SomeApiWrapper constructor.<br />
+&nbsp;&nbsp; &nbsp; */<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">public function </span><span class="default">__construct</span><span class="keyword">(){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">mapApiMethods</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">httpClient </span><span class="keyword">= new </span><span class="default">SomeHttpClient</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">/**<br />
+&nbsp;&nbsp; &nbsp; * The API is flat and has ~ 150 endpoints, all of which take optional parameters<br />
+&nbsp;&nbsp; &nbsp; * from up to 3 groups (method params, authentication, filters). Instead of<br />
+&nbsp;&nbsp; &nbsp; * implementing the interface and adding countless stubs that have basically<br />
+&nbsp;&nbsp; &nbsp; * the same signature, i just map its methods here and use __call().<br />
+&nbsp;&nbsp; &nbsp; */<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">private function </span><span class="default">mapApiMethods</span><span class="keyword">(){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$reflectionClass </span><span class="keyword">= new </span><span class="default">ReflectionClass</span><span class="keyword">(</span><span class="default">SomeApiInterface</span><span class="keyword">::class);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach(</span><span class="default">$reflectionClass</span><span class="keyword">-&gt;</span><span class="default">getMethods</span><span class="keyword">() as </span><span class="default">$m</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">methodMap</span><span class="keyword">[] = </span><span class="default">$m</span><span class="keyword">-&gt;</span><span class="default">name</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">/**<br />
+&nbsp;&nbsp; &nbsp; * Thanks to the PHP 5.6+ "..." token, there's no hassle with the arguments anymore<br />
+&nbsp;&nbsp; &nbsp; * (ugh, bad pun). Just hand the method parameters into the endpoint handler,<br />
+&nbsp;&nbsp; &nbsp; * along with other mandatory params - type hints are your friends.<br />
+&nbsp;&nbsp; &nbsp; * <br />
+&nbsp;&nbsp; &nbsp; * It's magic!<br />
+&nbsp;&nbsp; &nbsp; * <br />
+&nbsp;&nbsp; &nbsp; * @param string $method<br />
+&nbsp;&nbsp; &nbsp; * @param array&nbsp; $arguments<br />
+&nbsp;&nbsp; &nbsp; *<br />
+&nbsp;&nbsp; &nbsp; * @return \SomeEndpointHandler<br />
+&nbsp;&nbsp; &nbsp; * @throws \Exception<br />
+&nbsp;&nbsp; &nbsp; */<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">public function </span><span class="default">__call</span><span class="keyword">(</span><span class="default">$method</span><span class="keyword">, </span><span class="default">$arguments</span><span class="keyword">){<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">in_array</span><span class="keyword">(</span><span class="default">$method</span><span class="keyword">, </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">methodMap</span><span class="keyword">)){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return new </span><span class="default">SomeEndpointHandler</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">httpClient</span><span class="keyword">, </span><span class="default">$method</span><span class="keyword">, ...</span><span class="default">$arguments</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; throw new </span><span class="default">Exception</span><span class="keyword">(</span><span class="string">'Endpoint "'</span><span class="keyword">.</span><span class="default">$method</span><span class="keyword">.</span><span class="string">'" does not exist'</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+}</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116899""></a>
+  <div class="note">
+   <strong class="user">firefoxegy at gmail dot com</strong>
+   <a href="#116899" class="date">17-Mar-2015 09:42</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I have been trying to test the __debugInfo but no luck. I am running php 5.6.5 on MAC OSX Yosemite and tried even the example above but nothing seems to be called. When calling var_dump on an object it doesn't trigger the __debugInfo magic method. Any Idea ?</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="112209""></a>
   <div class="note">
    <strong class="user">danillo dot paiva dot toledo at gmail dot com</strong>
    <a href="#112209" class="date">17-May-2013 04:39</a>

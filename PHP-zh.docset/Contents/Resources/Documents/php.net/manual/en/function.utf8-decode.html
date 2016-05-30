@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.utf8-decode" class="refentry">
    <div class="refnamediv">
     <h1 class="refname">utf8_decode</h1> 
-    <p class="verinfo">(PHP 4, PHP 5)</p><p class="refpurpose"><span class="refname">utf8_decode</span> &mdash; <span class="dc-title">
+    <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">utf8_decode</span> &mdash; <span class="dc-title">
      将用 UTF-8 方式编码的 ISO-8859-1 字符串转换成单字节的 ISO-8859-1 字符串。
     </span></p>
 
@@ -50,7 +50,61 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116671""></a>
+<div id="allnotes">  <a name="119280""></a>
+  <div class="note">
+   <strong class="user">kode68</strong>
+   <a href="#119280" class="date">03-May-2016 03:09</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Update Answer from okx dot oliver dot koenig at gmail dot com for PHP 5.6 since e/ modifier is depreciated<br />
+<br />
+// This finally helped me to do the job, thanks to Blackbit, had to modify deprecated ereg:<br />
+// original comment: "Squirrelmail contains a nice function in the sources to convert unicode to entities:"<br />
+<br />
+function charset_decode_utf_8($string)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; /* Only do the slow convert if there are 8-bit characters */<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ( !preg_match("/[\200-\237]/", $string) &amp;&amp; !preg_match("/[\241-\377]/", $string) )<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; return $string;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; // decode three byte unicode characters<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $string = preg_replace_callback("/([\340-\357])([\200-\277])([\200-\277])/",<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; create_function ('$matches', 'return \'&amp;#\'.((ord($matches[1])-224)*4096+(ord($matches[2])-128)*64+(ord($matches[3])-128)).\';\';'),<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $string);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; // decode two byte unicode characters<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $string = preg_replace_callback("/([\300-\337])([\200-\277])/",<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; create_function ('$matches', 'return \'&amp;#\'.((ord($matches[1])-192)*64+(ord($matches[2])-128)).\';\';'),<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $string);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return $string;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+Enjoy</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118182""></a>
+  <div class="note">
+   <strong class="user">solomon_closson at yahoo dot com</strong>
+   <a href="#118182" class="date">22-Oct-2015 04:11</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Getting rid of all unicode characters in a string seems fairly simple to me using the following:<br />
+<br />
+$str = str_replace('?', '', utf8_decode($str));<br />
+<br />
+Not sure why the long, dragged-out functions for this are needed.&nbsp; The above seems to work just fine.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116671""></a>
   <div class="note">
    <strong class="user">okx dot oliver dot koenig at gmail dot com</strong>
    <a href="#116671" class="date">08-Feb-2015 08:48</a>
@@ -2942,69 +2996,6 @@ function utf2html ($utf2html_string)<br />
 &nbsp; endfor;<br />
 &nbsp; return $utf2html_retstr;<br />
 }</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="24747""></a>
-  <div class="note">
-   
-   <a href="#24747" class="date">27-Aug-2002 09:22</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-echo utf8_decode(<br />
-"Ekonomi_ve_\xc4\xb0\xc5\x9f_D\xc3xbcnyas\xc4\xb1");<br />
-<br />
-Outputs: Ekonomi_ve_??_D?nyas?<br />
-<br />
-This is not a bug. For example "\xc4\xb0" is decoded like this:<br />
-0xC4 = 110 00100 (110 prefix for 2 bytes)<br />
-0xB0 = 10 110000 (10 for trailing byte)<br />
-Character = 001 0011 0000 = 0x130<br />
-<br />
-This U+0130 Unicode character is not defined in ISO-8859-1<br />
-(where all codes are below 0x100), so the utf8_decode() function<br />
-cannot represent it, and inserts a '?' replacement character<br />
-in the result string...<br />
-<br />
-There's no alternative in the utf8_decode() function<br />
-which returns a string made of<br />
-single-byte characters.<br />
-<br />
-PHP really lacks a datatype for UTF-16 (a.k.a. Unicode) strings,<br />
-unlike Java whose strings are always natively encoded<br />
-with UTF-16...<br />
-<br />
-The alternative for PHP would be that it allows inserting SGML<br />
-character entities. In the above example, it could return<br />
-"&amp;#x130;" when decoding "\xc4\xb0".<br />
-<br />
-May be a future version of PHP could make strings using<br />
-double-byte UTF-16 encoding, so that Unicode could be natively<br />
-supported, but this would require adding new functions to<br />
-define the behavior of I/O functions to provide external<br />
-encode/decode capabilities when sending Unicode strings to<br />
-a file stream, or with echo and print builtins for the<br />
-standard input and output streams:<br />
-<br />
-- What would be the semantic of fwrite($fp, $string)<br />
-if $string can contain any UTF-16 characters ?<br />
-- Should fwrite() truncate the highest byte of each UTF-16<br />
-character, letting the user anticipating this truncation by<br />
-performing the conversion to UTF-8 or character entities himself ?<br />
-- Should the user be able to specify an encoder/decoder object<br />
-used by all I/O operations performed on a file ?<br />
-<br />
-For example:<br />
-- set_encoder($fp, 'utf8_encode') would define the PHP function<br />
-to call to encode a string.<br />
-- set_encoder($fp) or set_encoder($fp, null) would restore the<br />
-default (stripping) encoder...<br />
-- then fwrite($fp, $string) would return the number of bytes<br />
-written to the stream, which may be larger than the length of<br />
-$string...</span>
 </code>
     </div>
    </div>

@@ -27,7 +27,7 @@
  <h1 class="title">The DOMDocument class</h1>
  
  
- <div class="partintro"><p class="verinfo">(PHP 5)</p>
+ <div class="partintro"><p class="verinfo">(PHP 5, PHP 7)</p>
  
 
   <div class="section" id="domdocument.intro">
@@ -868,7 +868,82 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116118""></a>
+<div id="allnotes">  <a name="118509""></a>
+  <div class="note">
+   <strong class="user">developer at nabtron dot com</strong>
+   <a href="#118509" class="date">17-Dec-2015 04:34</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+For those landing here and checking for encoding issue with utf-8 characteres, it's pretty easy to correct it, without adding any additional output tag to your html.<br />
+<br />
+We'll be utilizing: mb_convert_encoding<br />
+<br />
+Thanks to the user who shared: SmartDOMDocument in previous comments, I got the idea of solving it. However I truly wish that he shared the method instead of giving a link.<br />
+<br />
+Anyway coming back to the solution, you can simply use:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// checks if the content we're receiving isn't empty, to avoid the warning<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if ( empty( </span><span class="default">$content </span><span class="keyword">) ) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// converts all special characters to utf-8<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$content </span><span class="keyword">= </span><span class="default">mb_convert_encoding</span><span class="keyword">(</span><span class="default">$content</span><span class="keyword">, </span><span class="string">'HTML-ENTITIES'</span><span class="keyword">, </span><span class="string">'UTF-8'</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// creating new document<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$doc </span><span class="keyword">= new </span><span class="default">DOMDocument</span><span class="keyword">(</span><span class="string">'1.0'</span><span class="keyword">, </span><span class="string">'utf-8'</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">//turning off some errors<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">libxml_use_internal_errors</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// it loads the content without adding enclosing html/body tags and also the doctype declaration<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$doc</span><span class="keyword">-&gt;</span><span class="default">LoadHTML</span><span class="keyword">(</span><span class="default">$content</span><span class="keyword">, </span><span class="default">LIBXML_HTML_NOIMPLIED </span><span class="keyword">| </span><span class="default">LIBXML_HTML_NODEFDTD</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// do whatever you want to do with this code now<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+I hope it solves the issue for someone! If you need my help or service to fix your code, you can reach me on nabtron.com or contact me at the email mentioned with this comment.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117274""></a>
+  <div class="note">
+   <strong class="user">ingjetel at gmail dot com</strong>
+   <a href="#117274" class="date">14-May-2015 08:54</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Easy function for basic output of XML file via DOM parsing<br />
+<br />
+<span class="default">&lt;?php<br />
+$dom </span><span class="keyword">= new </span><span class="default">DomDocument</span><span class="keyword">();<br />
+</span><span class="default">$dom</span><span class="keyword">-&gt;</span><span class="default">load</span><span class="keyword">(</span><span class="string">"./file.xml"</span><span class="keyword">) or die(</span><span class="string">"error"</span><span class="keyword">);<br />
+</span><span class="default">$start </span><span class="keyword">= </span><span class="default">$dom</span><span class="keyword">-&gt;</span><span class="default">documentElement</span><span class="keyword">;<br />
+</span><span class="default">fc</span><span class="keyword">(</span><span class="default">$start</span><span class="keyword">);<br />
+<br />
+function </span><span class="default">fc</span><span class="keyword">(</span><span class="default">$node</span><span class="keyword">) {<br />
+&nbsp; </span><span class="default">$child </span><span class="keyword">= </span><span class="default">$node</span><span class="keyword">-&gt;</span><span class="default">childNodes</span><span class="keyword">;<br />
+&nbsp; foreach(</span><span class="default">$child </span><span class="keyword">as </span><span class="default">$item</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">$item</span><span class="keyword">-&gt;</span><span class="default">nodeType </span><span class="keyword">== </span><span class="default">XML_TEXT_NODE</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; if (</span><span class="default">strlen</span><span class="keyword">(</span><span class="default">trim</span><span class="keyword">(</span><span class="default">$item</span><span class="keyword">-&gt;</span><span class="default">nodeValue</span><span class="keyword">))) echo </span><span class="default">trim</span><span class="keyword">(</span><span class="default">$item</span><span class="keyword">-&gt;</span><span class="default">nodeValue</span><span class="keyword">).</span><span class="string">"&lt;br/&gt;"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; else if (</span><span class="default">$item</span><span class="keyword">-&gt;</span><span class="default">nodeType </span><span class="keyword">== </span><span class="default">XML_ELEMENT_NODE</span><span class="keyword">) </span><span class="default">fc</span><span class="keyword">(</span><span class="default">$item</span><span class="keyword">);<br />
+&nbsp; }<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116118""></a>
   <div class="note">
    <strong class="user">qrworld.net</strong>
    <a href="#116118" class="date">12-Nov-2014 01:35</a>

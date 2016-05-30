@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.gzopen" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">gzopen</h1>
-  <p class="verinfo">(PHP 4, PHP 5)</p><p class="refpurpose"><span class="refname">gzopen</span> &mdash; <span class="dc-title">Open gz-file</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">gzopen</span> &mdash; <span class="dc-title">Open gz-file</span></p>
 
  </div>
  <div class="refsect1 description" id="refsect1-function.gzopen-description">
@@ -117,7 +117,7 @@
  <div class="refsect1 examples" id="refsect1-function.gzopen-examples">
   <h3 class="title">·¶Àý</h3>
   <p class="para">
-   <div class="example" id="example-832">
+   <div class="example" id="example-868">
     <p><strong>Example #1 <span class="function"><strong>gzopen()</strong></span> Example</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -143,7 +143,96 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="105676""></a>
+<div id="allnotes">  <a name="117973""></a>
+  <div class="note">
+   <strong class="user">dj8 at joesvolcano dot net</strong>
+   <a href="#117973" class="date">11-Sep-2015 11:17</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+An OO-version of David Gero's excellent GZ File format note also on this page:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="comment">// David Gero's example: read a file and output GZ<br />
+</span><span class="default">$gz_to_out </span><span class="keyword">= new </span><span class="default">GZTempFile</span><span class="keyword">(</span><span class="default">basename</span><span class="keyword">(</span><span class="default">$file</span><span class="keyword">), </span><span class="string">"php://output"</span><span class="keyword">);<br />
+</span><span class="default">$fin </span><span class="keyword">= </span><span class="default">fopen</span><span class="keyword">(</span><span class="default">$file</span><span class="keyword">, </span><span class="string">"rb"</span><span class="keyword">);<br />
+while(</span><span class="default">$data </span><span class="keyword">= </span><span class="default">fread</span><span class="keyword">(</span><span class="default">$fin</span><span class="keyword">, </span><span class="default">64 </span><span class="keyword">* </span><span class="default">1024</span><span class="keyword">)) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$gz_to_out</span><span class="keyword">-&gt;</span><span class="default">fwrite</span><span class="keyword">();<br />
+}<br />
+</span><span class="default">close</span><span class="keyword">(</span><span class="default">$fin</span><span class="keyword">);<br />
+</span><span class="default">$gz_to_out</span><span class="keyword">-&gt;</span><span class="default">flushBuffer</span><span class="keyword">();<br />
+<br />
+</span><span class="comment">// Example of building your GZ file content on the fly (temp filehandle)<br />
+</span><span class="default">$gz_custom </span><span class="keyword">= new </span><span class="default">GZTempFile</span><span class="keyword">();<br />
+foreach ( ... ) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">//&nbsp; Some work<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$str </span><span class="keyword">= ...<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$gz_custom</span><span class="keyword">-&gt;</span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$str</span><span class="keyword">);<br />
+}<br />
+</span><span class="comment">//&nbsp; Store it in a database<br />
+</span><span class="default">$m </span><span class="keyword">= new </span><span class="default">MongoClient</span><span class="keyword">();<br />
+</span><span class="default">$gridfs </span><span class="keyword">= </span><span class="default">$m</span><span class="keyword">-&gt;</span><span class="default">selectDB</span><span class="keyword">(</span><span class="string">'test'</span><span class="keyword">)-&gt;</span><span class="default">getGridFS</span><span class="keyword">();<br />
+</span><span class="default">$id </span><span class="keyword">= </span><span class="default">$gridfs</span><span class="keyword">-&gt;</span><span class="default">storeFile</span><span class="keyword">(</span><span class="default">$gz_custom</span><span class="keyword">-&gt;</span><span class="default">getReadFilehandle</span><span class="keyword">(), array(</span><span class="string">'contentType' </span><span class="keyword">=&gt; </span><span class="string">'application/x-gzip'</span><span class="keyword">));<br />
+<br />
+class </span><span class="default">GZTempFile </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; private </span><span class="default">$__fh </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; public </span><span class="default">$uncompressed_bytes </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; public </span><span class="default">$filesize </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; private </span><span class="default">$gz_filter </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; private </span><span class="default">$file_hash </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; private </span><span class="default">$final_read_fh </span><span class="keyword">= </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; private </span><span class="default">$__buffer </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; private </span><span class="default">$__buffer_len </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__construct</span><span class="keyword">(</span><span class="default">$filename </span><span class="keyword">= </span><span class="string">'data'</span><span class="keyword">, </span><span class="default">$fh </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">__fh </span><span class="keyword">= </span><span class="default">is_null</span><span class="keyword">(</span><span class="default">$fh</span><span class="keyword">) ? </span><span class="default">fopen</span><span class="keyword">(</span><span class="string">'php://temp'</span><span class="keyword">,</span><span class="string">'w+'</span><span class="keyword">) : </span><span class="default">$fh</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">__fh</span><span class="keyword">, </span><span class="string">"\x1F\x8B\x08\x08"</span><span class="keyword">.</span><span class="default">pack</span><span class="keyword">(</span><span class="string">"V"</span><span class="keyword">, </span><span class="default">time</span><span class="keyword">()).</span><span class="string">"\0\xFF"</span><span class="keyword">, </span><span class="default">10</span><span class="keyword">); </span><span class="comment">// GZ file header<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">__fh</span><span class="keyword">, </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">"\0"</span><span class="keyword">, </span><span class="string">""</span><span class="keyword">, </span><span class="default">basename</span><span class="keyword">(</span><span class="default">$filename</span><span class="keyword">)) .</span><span class="string">"\0"</span><span class="keyword">);&nbsp; </span><span class="comment">// GZ filename = data, needed???<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">gz_filter </span><span class="keyword">= </span><span class="default">stream_filter_append</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">__fh</span><span class="keyword">, </span><span class="string">"zlib.deflate"</span><span class="keyword">, </span><span class="default">STREAM_FILTER_WRITE</span><span class="keyword">, -</span><span class="default">1</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">uncompressed_bytes </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">file_hash </span><span class="keyword">= </span><span class="default">hash_init</span><span class="keyword">(</span><span class="string">"crc32b"</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$str</span><span class="keyword">,</span><span class="default">$length </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ( </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">final_read_fh </span><span class="keyword">) { throw new </span><span class="default">Exception</span><span class="keyword">(</span><span class="string">"GZTempFile has already been finalized and closed.&nbsp; No more writing"</span><span class="keyword">); }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">hash_update</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">file_hash</span><span class="keyword">, </span><span class="default">$str</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">uncompressed_bytes </span><span class="keyword">+= </span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$str</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">__buffer_len </span><span class="keyword">+= </span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$str</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">__buffer </span><span class="keyword">.= </span><span class="default">$str</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ( </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">__buffer_len </span><span class="keyword">&gt;= </span><span class="default">64 </span><span class="keyword">* </span><span class="default">1024 </span><span class="keyword">) { </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">flushBuffer</span><span class="keyword">(); }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">flushBuffer</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ( </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">__buffer_len </span><span class="keyword">== </span><span class="default">0 </span><span class="keyword">) { return </span><span class="default">false</span><span class="keyword">; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$return </span><span class="keyword">= </span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">__fh</span><span class="keyword">, </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">__buffer</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">__buffer_len </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">__buffer </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$return</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">getReadFilehandle</span><span class="keyword">() {&nbsp; &nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ( ! </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">final_read_fh </span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">flushBuffer</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">stream_filter_remove</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">gz_filter</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$crc </span><span class="keyword">= </span><span class="default">hash_final</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">file_hash</span><span class="keyword">, </span><span class="default">TRUE</span><span class="keyword">);&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="comment">// hash_final is a string, not an integer<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">__fh</span><span class="keyword">, </span><span class="default">$crc</span><span class="keyword">[</span><span class="default">3</span><span class="keyword">].</span><span class="default">$crc</span><span class="keyword">[</span><span class="default">2</span><span class="keyword">].</span><span class="default">$crc</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">].</span><span class="default">$crc</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">]); </span><span class="comment">// need to reverse the hash_final string so it's little endian<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">__fh</span><span class="keyword">, </span><span class="default">pack</span><span class="keyword">(</span><span class="string">"V"</span><span class="keyword">, </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">uncompressed_bytes</span><span class="keyword">), </span><span class="default">4</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filesize </span><span class="keyword">= </span><span class="default">ftell</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">__fh</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">rewind</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">__fh</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">final_read_fh </span><span class="keyword">= </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">__fh</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">final_read_fh</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="105676""></a>
   <div class="note">
    <strong class="user">David Gero dave at havidave dot com</strong>
    <a href="#105676" class="date">06-Sep-2011 11:02</a>

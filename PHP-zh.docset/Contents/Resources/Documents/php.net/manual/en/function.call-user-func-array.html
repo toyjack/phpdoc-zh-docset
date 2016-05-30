@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.call-user-func-array" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">call_user_func_array</h1>
-  <p class="verinfo">(PHP 4 &gt;= 4.0.4, PHP 5)</p><p class="refpurpose"><span class="refname">call_user_func_array</span> &mdash; <span class="dc-title">调用回调函数，并把一个数组参数作为回调函数的参数</span></p>
+  <p class="verinfo">(PHP 4 &gt;= 4.0.4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">call_user_func_array</span> &mdash; <span class="dc-title">调用回调函数，并把一个数组参数作为回调函数的参数</span></p>
 
  </div>
  
@@ -119,7 +119,7 @@
  <div class="refsect1 examples" id="refsect1-function.call-user-func-array-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-5131">
+   <div class="example" id="example-5507">
     <p><strong>Example #1 <span class="function"><strong>call_user_func_array()</strong></span>例子</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -136,7 +136,7 @@ foo::bar got three and four
 </pre></div>
     </div>
    </div>
-   <div class="example" id="example-5132">
+   <div class="example" id="example-5508">
     <p><strong>Example #2 <span class="function"><strong>call_user_func_array()</strong></span>使用命名空间的情况</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -153,7 +153,7 @@ Hello Philip!
 </pre></div>
     </div>
    </div>
-   <div class="example" id="example-5133">
+   <div class="example" id="example-5509">
     <p><strong>Example #3 把完整的函数作为回调传入<span class="function"><strong>call_user_func_array()</strong></span></strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -202,24 +202,126 @@ int(8)
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116328""></a>
+<div id="allnotes">  <a name="118147""></a>
   <div class="note">
-   <strong class="user">admin at NOSPAM dot t61 dot org</strong>
-   <a href="#116328" class="date">13-Dec-2014 12:13</a>
+   <strong class="user">james dot patrick at lifeshop dot vn</strong>
+   <a href="#118147" class="date">14-Oct-2015 01:00</a>
    <div class="text">
     <div class="phpcode">
 <code><span class="html">
-There is a easy way to bind NULL values: just replace your type with integer (use "i"), and value NULL will be inserted as NULL because "i" builds a query without quotes.<br />
+I've found the solution to resolve my need while writing the str_replace function for processing the multi array as first two arguments of str_replace built-in function(although its pass each array of argument 1 &amp; 2)<br />
 <br />
 <span class="default">&lt;?php<br />
-</span><span class="keyword">private static function </span><span class="default">_determine_variable_type</span><span class="keyword">( </span><span class="default">$value </span><span class="keyword">= </span><span class="string">'' </span><span class="keyword">) {<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">$type </span><span class="keyword">= </span><span class="default">substr</span><span class="keyword">( </span><span class="default">gettype</span><span class="keyword">( </span><span class="default">$value </span><span class="keyword">), </span><span class="default">0</span><span class="keyword">, </span><span class="default">1 </span><span class="keyword">);<br />
-&nbsp;&nbsp;&nbsp; if (</span><span class="default">$type </span><span class="keyword">== </span><span class="string">'N'</span><span class="keyword">)<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$type </span><span class="keyword">= </span><span class="string">'i'</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; return </span><span class="default">$type</span><span class="keyword">;<br />
+</span><span class="comment">// custom the str_replace function<br />
+</span><span class="keyword">function </span><span class="default">p_str_replace</span><span class="keyword">(</span><span class="default">$argFind</span><span class="keyword">, </span><span class="default">$agrReplace</span><span class="keyword">, </span><span class="default">$theString</span><span class="keyword">) {<br />
+&nbsp; </span><span class="default">$needle_replace </span><span class="keyword">= </span><span class="default">$theString</span><span class="keyword">; </span><span class="comment">// handle the string need to be replace<br />
+&nbsp; </span><span class="default">array_walk</span><span class="keyword">(</span><span class="default">$argFind</span><span class="keyword">, function(</span><span class="default">$val</span><span class="keyword">, </span><span class="default">$key</span><span class="keyword">) use(&amp;</span><span class="default">$needle_replace</span><span class="keyword">, </span><span class="default">$agrReplace</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$needle_replace </span><span class="keyword">= </span><span class="default">call_user_func_array</span><span class="keyword">(</span><span class="string">'str_replace'</span><span class="keyword">, array(</span><span class="default">$val</span><span class="keyword">, </span><span class="default">$agrReplace</span><span class="keyword">[</span><span class="default">$key</span><span class="keyword">], </span><span class="default">$needle_replace</span><span class="keyword">));<br />
+&nbsp; });<br />
+&nbsp; return </span><span class="default">$needle_replace</span><span class="keyword">;<br />
 }<br />
-</span><span class="default">?&gt;</span>
-</span>
+<br />
+</span><span class="comment">// test<br />
+</span><span class="default">$the_str </span><span class="keyword">= array(<br />
+&nbsp; </span><span class="string">'coa' </span><span class="keyword">=&gt; </span><span class="string">':col: :op1: :val: AND :col: :op2: :val:'<br />
+</span><span class="keyword">);<br />
+</span><span class="default">$ope </span><span class="keyword">= array(</span><span class="string">'&gt;='</span><span class="keyword">, </span><span class="string">'&lt;='</span><span class="keyword">);<br />
+</span><span class="default">$colsdata </span><span class="keyword">= array(</span><span class="string">'date_start'</span><span class="keyword">, </span><span class="string">'2015-10-14'</span><span class="keyword">);<br />
+<br />
+echo </span><span class="default">p_str_replace</span><span class="keyword">(array(<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; array(</span><span class="string">':col:'</span><span class="keyword">, </span><span class="string">':val:'</span><span class="keyword">),<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; array(</span><span class="string">':op1:'</span><span class="keyword">, </span><span class="string">':op2:'</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; ), array(<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$colsdata</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$ope<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">), </span><span class="default">$the_str</span><span class="keyword">[</span><span class="string">'coa'</span><span class="keyword">]);<br />
+<br />
+echo </span><span class="string">'-------------------------------' </span><span class="keyword">. </span><span class="string">"\n"</span><span class="keyword">;<br />
+<br />
+</span><span class="comment">// more complexity<br />
+</span><span class="default">$complex </span><span class="keyword">= </span><span class="string">'(:col: :op1: :val: AND :col: :op2: :val:) AND (:col2: :op1: :val2: AND :col2: :op1: :val2:)'</span><span class="keyword">;<br />
+<br />
+echo </span><span class="default">p_str_replace</span><span class="keyword">(array(<br />
+&nbsp; array(</span><span class="string">':col:'</span><span class="keyword">, </span><span class="string">':val:'</span><span class="keyword">),<br />
+&nbsp; array(</span><span class="string">':col2:'</span><span class="keyword">, </span><span class="string">':val2:'</span><span class="keyword">),<br />
+&nbsp; array(</span><span class="string">':op1:'</span><span class="keyword">, </span><span class="string">':op2:'</span><span class="keyword">)<br />
+), array(<br />
+&nbsp; array(</span><span class="string">'date_start'</span><span class="keyword">, </span><span class="string">'2015-10-01'</span><span class="keyword">),<br />
+&nbsp; array(</span><span class="string">'date_end'</span><span class="keyword">, </span><span class="string">'2015-10-14'</span><span class="keyword">),<br />
+&nbsp; array(</span><span class="string">'&gt;'</span><span class="keyword">, </span><span class="string">'&lt;'</span><span class="keyword">)<br />
+), </span><span class="default">$complex</span><span class="keyword">);<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Sorry about my bad English :)<br />
+Hope this help someone.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117792""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#117792" class="date">11-Aug-2015 06:51</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+$param_arr may be empty, though it can't be null.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">foo</span><span class="keyword">( </span><span class="default">$first </span><span class="keyword">= </span><span class="string">'default1'</span><span class="keyword">, </span><span class="default">$second </span><span class="keyword">= </span><span class="string">'default2' </span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"first: '</span><span class="default">$first</span><span class="string">', second: '</span><span class="default">$second</span><span class="string">'\n"</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">call_user_func_array</span><span class="keyword">( </span><span class="string">'foo'</span><span class="keyword">, array( </span><span class="string">'one'</span><span class="keyword">, </span><span class="string">'two' </span><span class="keyword">) );<br />
+</span><span class="default">call_user_func_array</span><span class="keyword">( </span><span class="string">'foo'</span><span class="keyword">, array( </span><span class="string">'only one' </span><span class="keyword">) );<br />
+</span><span class="default">call_user_func_array</span><span class="keyword">( </span><span class="string">'foo'</span><span class="keyword">, array() );<br />
+</span><span class="default">call_user_func_array</span><span class="keyword">( </span><span class="string">'foo'</span><span class="keyword">, </span><span class="default">null </span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Output:<br />
+first: 'one', second: 'two'<br />
+first: 'only one', second: 'default2'<br />
+first: 'default1', second: 'default2'<br />
+/* error message or nothing printed depending on version */</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117655""></a>
+  <div class="note">
+   <strong class="user">admin at torntech dot com</strong>
+   <a href="#117655" class="date">15-Jul-2015 11:06</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+As of PHP 5.6 you can utilize argument unpacking as an alternative to call_user_func_array, and is often 3 to 4 times faster.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">foo </span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">, </span><span class="default">$b</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; return </span><span class="default">$a </span><span class="keyword">+ </span><span class="default">$b</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="default">$func </span><span class="keyword">= </span><span class="string">'foo'</span><span class="keyword">;<br />
+</span><span class="default">$values </span><span class="keyword">= array(</span><span class="default">1</span><span class="keyword">, </span><span class="default">2</span><span class="keyword">);<br />
+</span><span class="default">call_user_func_array</span><span class="keyword">(</span><span class="default">$func</span><span class="keyword">, </span><span class="default">$values</span><span class="keyword">); <br />
+</span><span class="comment">//returns 3<br />
+<br />
+</span><span class="default">$func</span><span class="keyword">(...</span><span class="default">$values</span><span class="keyword">);<br />
+</span><span class="comment">//returns 3<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Benchmarks from https://gist.github.com/nikic/6390366<br />
+cufa&nbsp;&nbsp; with 0 args took 0.43453288078308<br />
+switch with 0 args took 0.24134302139282<br />
+unpack with 0 args took 0.12418699264526<br />
+cufa&nbsp;&nbsp; with 5 args took 0.73408579826355<br />
+switch with 5 args took 0.49595499038696<br />
+unpack with 5 args took 0.18640494346619<br />
+cufa&nbsp;&nbsp; with 100 args took 5.0327250957489<br />
+switch with 100 args took 5.291127204895<br />
+unpack with 100 args took 1.2362589836121</span>
 </code>
     </div>
    </div>
@@ -327,40 +429,6 @@ if ( </span><span class="default">is_callable</span><span class="keyword">(</spa
    </div>
   </div>
  <div class="foot"></div>
-  <a name="103041""></a>
-  <div class="note">
-   <strong class="user">tracid2008 AT googlemail.com</strong>
-   <a href="#103041" class="date">22-Mar-2011 11:42</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-I think a better solution is to use ReflectionClass instead of call_user_func_array:<br />
-<br />
-<span class="default">&lt;?php<br />
-$rc </span><span class="keyword">= new </span><span class="default">ReflectionClass</span><span class="keyword">(</span><span class="string">'SomeClass'</span><span class="keyword">);<br />
-</span><span class="default">$class </span><span class="keyword">= </span><span class="default">$rc</span><span class="keyword">-&gt;</span><span class="default">newInstanceArgs</span><span class="keyword">(array(</span><span class="string">'foo'</span><span class="keyword">, </span><span class="string">'bar'</span><span class="keyword">));<br />
-&nbsp;<br />
-echo </span><span class="default">$class</span><span class="keyword">-&gt;</span><span class="default">doSomething</span><span class="keyword">();<br />
-</span><span class="default">?&gt;</span>
-</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="101850""></a>
-  <div class="note">
-   <strong class="user">gaojingjing2008 at gmail dot com</strong>
-   <a href="#101850" class="date">14-Jan-2011 10:28</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-in PHP 5.2.* when pass string to $param_arr, there will not be warning, but in PHP 5.3, there was a warning</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
   <a name="100794""></a>
   <div class="note">
    <strong class="user">Brad Proctor</strong>
@@ -419,161 +487,6 @@ However, If you are able to take this code out of the function and use it inline
 &nbsp;&nbsp;&nbsp; }
 <br />
 }
-<br />
-</span><span class="default">?&gt;</span>
-</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="100782""></a>
-  <div class="note">
-   <strong class="user">orestes at orestescarracedo dot com</strong>
-   <a href="#100782" class="date">05-Nov-2010 10:24</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-It's not commented above:
-<br />
-
-<br />
-This function behaves as call_user_func. To call a method of a class instace, instead of passing the function name as the first argument, pass an array like ($classInstance, 'methodName')
-<br />
-
-<br />
-<span class="default">&lt;?php
-<br />
-</span><span class="keyword">public class </span><span class="default">Person </span><span class="keyword">{
-<br />
-&nbsp;&nbsp;&nbsp; private </span><span class="default">$name </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">;
-<br />
-&nbsp;&nbsp;&nbsp; private </span><span class="default">$pocketContents</span><span class="keyword">= </span><span class="default">null</span><span class="keyword">;
-<br />
-
-<br />
-&nbsp;&nbsp;&nbsp; protected function </span><span class="default">__construct</span><span class="keyword">() {
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">name </span><span class="keyword">= </span><span class="string">'My creator was too lazy to name me'</span><span class="keyword">;
-<br />
-&nbsp;&nbsp;&nbsp; }
-<br />
-&nbsp;&nbsp;&nbsp; public function </span><span class="default">getName</span><span class="keyword">() {
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">name</span><span class="keyword">;
-<br />
-&nbsp;&nbsp;&nbsp; }
-<br />
-&nbsp;&nbsp;&nbsp; public function </span><span class="default">setName</span><span class="keyword">(</span><span class="default">$name</span><span class="keyword">) {
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">name </span><span class="keyword">= </span><span class="default">$name</span><span class="keyword">;
-<br />
-&nbsp;&nbsp;&nbsp; }
-<br />
-&nbsp;&nbsp;&nbsp; public function </span><span class="default">getPocketContents</span><span class="keyword">() {
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">$pocketContents</span><span class="keyword">;
-<br />
-&nbsp;&nbsp;&nbsp; }
-<br />
-&nbsp;&nbsp;&nbsp; public function </span><span class="default">setPocketContents</span><span class="keyword">() {
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$args </span><span class="keyword">= </span><span class="default">func_get_args</span><span class="keyword">();
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">$pocketContents </span><span class="keyword">= </span><span class="default">$args</span><span class="keyword">;
-<br />
-&nbsp;&nbsp;&nbsp; }
-<br />
-}
-<br />
-
-<br />
-</span><span class="default">$contents </span><span class="keyword">= array();
-<br />
-</span><span class="default">$contents</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">] = </span><span class="string">'random'</span><span class="keyword">;
-<br />
-</span><span class="default">$contents</span><span class="keyword">[</span><span class="string">'foo'</span><span class="keyword">] = </span><span class="string">'bar'</span><span class="keyword">;
-<br />
-
-<br />
-</span><span class="default">$subobject </span><span class="keyword">= array();
-<br />
-</span><span class="default">$subobject</span><span class="keyword">[</span><span class="string">'param'</span><span class="keyword">] = </span><span class="string">'value'</span><span class="keyword">;
-<br />
-</span><span class="default">$contents</span><span class="keyword">[</span><span class="string">'subobject'</span><span class="keyword">] = </span><span class="default">$subobject</span><span class="keyword">;
-<br />
-
-<br />
-</span><span class="default">call_user_func</span><span class="keyword">((</span><span class="default">$myInstance</span><span class="keyword">, </span><span class="string">'setPocketContents'</span><span class="keyword">), </span><span class="default">$contents</span><span class="keyword">);
-<br />
-</span><span class="default">?&gt;</span>
-</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="99921""></a>
-  <div class="note">
-   <strong class="user">hinom06 [at] hotmail.co.jp</strong>
-   <a href="#99921" class="date">15-Sep-2010 06:27</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-<span class="default">&lt;?php<br />
-<br />
-</span><span class="comment">/*<br />
-Usage sample to apply any filter in a string.<br />
-*/<br />
-<br />
-</span><span class="keyword">class </span><span class="default">Strings<br />
-</span><span class="keyword">{<br />
-&nbsp;&nbsp;&nbsp; function </span><span class="default">Foo</span><span class="keyword">( </span><span class="default">$v</span><span class="keyword">, </span><span class="default">$allow </span><span class="keyword">= </span><span class="string">'' </span><span class="keyword">)<br />
-&nbsp;&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">strip_tags</span><span class="keyword">( </span><span class="default">$v</span><span class="keyword">, </span><span class="default">$allow </span><span class="keyword">);<br />
-&nbsp;&nbsp;&nbsp; }<br />
-<br />
-&nbsp;&nbsp;&nbsp; </span><span class="comment">// add an element at the beginning of an array<br />
-&nbsp;&nbsp;&nbsp; // thanks for Vidal Rodríguez<br />
-&nbsp;&nbsp;&nbsp; // <a href="http://www.php.net/manual/en/function.array-push.php#98299" rel="nofollow" target="_blank">http://www.php.net/manual/en/function.array-push.php#98299</a><br />
-&nbsp;&nbsp;&nbsp; </span><span class="keyword">function </span><span class="default">ArrayRpush</span><span class="keyword">( </span><span class="default">$arr</span><span class="keyword">, </span><span class="default">$item </span><span class="keyword">)<br />
-&nbsp;&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp;&nbsp; return </span><span class="default">array_pad</span><span class="keyword">( </span><span class="default">$arr</span><span class="keyword">, -( </span><span class="default">count</span><span class="keyword">( </span><span class="default">$arr </span><span class="keyword">) + </span><span class="default">1 </span><span class="keyword">), </span><span class="default">$item </span><span class="keyword">);<br />
-&nbsp;&nbsp;&nbsp; }<br />
-<br />
-}<br />
-<br />
-Class </span><span class="default">Functions<br />
-</span><span class="keyword">{<br />
-<br />
-&nbsp;&nbsp;&nbsp; function </span><span class="default">Call</span><span class="keyword">( </span><span class="default">$f </span><span class="keyword">)<br />
-&nbsp;&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">call_user_func_array</span><span class="keyword">( </span><span class="default">$f</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">], </span><span class="default">$f</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">] );<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">/* usage sample:<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; // <br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; // calling function<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; Functions::Call( 'strip_tags', array( '&lt;br&gt;foo&lt;br&gt;bar&lt;/b&gt;', '&lt;br&gt;&lt;b&gt;' ) );<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; // calling object<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; Functions::Call( array( 'Strings', 'StripTags' ), array( '&lt;br&gt;foo&lt;br&gt;bar&lt;/b&gt;', '&lt;br&gt;&lt;b&gt;' ) );<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; */<br />
-&nbsp;&nbsp;&nbsp; </span><span class="keyword">}<br />
-<br />
-}<br />
-<br />
-</span><span class="default">$form </span><span class="keyword">= array(<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'field' </span><span class="keyword">=&gt; array(<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'value'&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">=&gt; </span><span class="string">'&lt;b&gt;foo bar&lt;/b&gt;&lt;br&gt;&lt;script&gt;alert("1");&lt;/script&gt;'</span><span class="keyword">,<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'pre-filter'&nbsp; &nbsp; </span><span class="keyword">=&gt; array( array( </span><span class="string">'Strings'</span><span class="keyword">, </span><span class="string">'Foo' </span><span class="keyword">) , array( </span><span class="string">'&lt;b&gt;&lt;br&gt;' </span><span class="keyword">) ),<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; ),<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; );<br />
-<br />
-</span><span class="default">$v&nbsp; &nbsp; </span><span class="keyword">= </span><span class="default">$form</span><span class="keyword">[</span><span class="string">'field'</span><span class="keyword">];<br />
-</span><span class="default">$f&nbsp; &nbsp; </span><span class="keyword">= </span><span class="default">$v</span><span class="keyword">[</span><span class="string">'pre-filter'</span><span class="keyword">];<br />
-</span><span class="default">$f</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">] = isset( </span><span class="default">$v</span><span class="keyword">[</span><span class="string">'pre-filter'</span><span class="keyword">][</span><span class="default">1</span><span class="keyword">] ) ? </span><span class="default">Strings</span><span class="keyword">::</span><span class="default">ArrayRpush</span><span class="keyword">( </span><span class="default">$f</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="default">$v</span><span class="keyword">[</span><span class="string">'value'</span><span class="keyword">] ) : </span><span class="default">$f</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">] = array( </span><span class="default">$v</span><span class="keyword">[</span><span class="string">'value'</span><span class="keyword">] );<br />
-<br />
-echo </span><span class="default">Functions</span><span class="keyword">::</span><span class="default">Call</span><span class="keyword">( </span><span class="default">$f </span><span class="keyword">);<br />
 <br />
 </span><span class="default">?&gt;</span>
 </span>
@@ -674,40 +587,6 @@ Note that eval() is about 10 times slower than a straight statement to call a fu
    </div>
   </div>
  <div class="foot"></div>
-  <a name="97362""></a>
-  <div class="note">
-   <strong class="user">Guy Paddock</strong>
-   <a href="#97362" class="date">15-Apr-2010 11:14</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-It appears that it is safe to pass an associative array in for $param_arr. The parameters will still be passed in the order the elements appear in the array, not alphabetical key order.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="95814""></a>
-  <div class="note">
-   <strong class="user">kweejee at gmail dot com</strong>
-   <a href="#95814" class="date">23-Jan-2010 05:04</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-I recently had<br />
-<span class="default">&lt;?php<br />
-&nbsp; call_user_func_array</span><span class="keyword">(</span><span class="string">'MyClass::myFunction'</span><span class="keyword">, array(</span><span class="default">0</span><span class="keyword">, </span><span class="default">10</span><span class="keyword">));<br />
-</span><span class="default">?&gt;<br />
-</span>working on my home server, but when I uploaded it to a host with a different version of PHP it stopped working and gave the error message "call_user_func_array() [function.call-user-func-array]: Unable to call MyClass::myFunction()" The solution I found was to use this instead:<br />
-<span class="default">&lt;?php<br />
-&nbsp; call_user_func_array</span><span class="keyword">(array(</span><span class="string">'MyClass'</span><span class="keyword">, </span><span class="string">'myFunction'</span><span class="keyword">), array(</span><span class="default">0</span><span class="keyword">, </span><span class="default">10</span><span class="keyword">));<br />
-</span><span class="default">?&gt;</span>
-</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
   <a name="95271""></a>
   <div class="note">
    <strong class="user">aj at ajbrown dot org</strong>
@@ -776,37 +655,6 @@ In 5.3 you should write it:
 <br />
 <span class="default">&lt;?php call_user_func_array</span><span class="keyword">(</span><span class="string">'parent::func'</span><span class="keyword">, </span><span class="default">$args</span><span class="keyword">); </span><span class="default">?&gt;</span>
 </span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="91565""></a>
-  <div class="note">
-   <strong class="user">al dot james at NOSPAMGMAIL dot com</strong>
-   <a href="#91565" class="date">17-Jun-2009 12:19</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-If you want to use call_user_func_array to call an objects constructor, this works for me:
-<br />
-
-<br />
-<span class="default">&lt;?php
-<br />
-$obj </span><span class="keyword">= new </span><span class="default">$object_class</span><span class="keyword">();
-<br />
-</span><span class="default">call_user_func_array</span><span class="keyword">(array(</span><span class="default">$obj</span><span class="keyword">, </span><span class="string">'__construct'</span><span class="keyword">), </span><span class="default">$args</span><span class="keyword">);
-<br />
-</span><span class="default">?&gt;
-<br />
-</span>
-<br />
-(However it does depend on having a constructor where all arguments are optional, which may or may not be possible)
-<br />
-
-<br />
-So this is a two part initiation, the object gets initiated with no arguments first (hence requiring options constructor params), and then __construct gets called again. Thus, you should not do anything in your constructor that triggers effects outside the class... it should just set the objects state.</span>
 </code>
     </div>
    </div>
@@ -1013,27 +861,6 @@ suddenly, inside foo, the second parameter is passed by reference!<br />
 And you can't call this wrong, only another subtly of references.<br />
 <br />
 Note it appears that ksort($a) will remove the reference as well as put the elements in key order so you (probably) get what you expect. (see below on the use of a foreach ($a as &amp;v).)</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="83682""></a>
-  <div class="note">
-   <strong class="user">dnhuff at acm.org</strong>
-   <a href="#83682" class="date">07-Jun-2008 08:38</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-the order of argument correspondence from the array to the function formal parameters is by 'natural order' of the array and not explicit numerical key order.<br />
-<br />
-So: $a[0] = 'arg 1'; $a[2] = 'arg 2'; $a[1] = 'arg 3';<br />
-&nbsp;&nbsp;&nbsp; call_user_func_array('foo', $a);<br />
-<br />
-delivers the args to foo in the order the keys were inserted! as in...<br />
-&nbsp;&nbsp;&nbsp; foo($a[0], $a[2], $a[1]);<br />
-<br />
-if you wanted something else, ksort the array first.</span>
 </code>
     </div>
    </div>
@@ -1321,41 +1148,6 @@ Would be good to add error checking, but it works.</span>
    </div>
   </div>
  <div class="foot"></div>
-  <a name="52636""></a>
-  <div class="note">
-   <strong class="user">taylor</strong>
-   <a href="#52636" class="date">08-May-2005 12:04</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-<span class="default">&lt;?php<br />
-&nbsp;&nbsp;&nbsp; </span><span class="comment">/**<br />
-&nbsp;&nbsp; &nbsp; * Create an object of a specified type using an array as the parameters<br />
-&nbsp;&nbsp; &nbsp; * to the constructor.&nbsp; NOTE: does not maintain proper <br />
-&nbsp;&nbsp; &nbsp; * types for the arguments.&nbsp; They are all converted to strings.<br />
-&nbsp;&nbsp; &nbsp; * @param $type Type type of object to create (class name)<br />
-&nbsp;&nbsp; &nbsp; * @param $args The arguments to pass to the constructor<br />
-&nbsp;&nbsp; &nbsp; */<br />
-&nbsp;&nbsp;&nbsp; </span><span class="keyword">function </span><span class="default">createObjArray</span><span class="keyword">(</span><span class="default">$type</span><span class="keyword">, </span><span class="default">$args</span><span class="keyword">=array()) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ( !</span><span class="default">class_exists</span><span class="keyword">(</span><span class="default">$type</span><span class="keyword">) ) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">NULL</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// build argument list; be sure to escape string delimeters<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$func </span><span class="keyword">= </span><span class="default">create_function</span><span class="keyword">(</span><span class="string">'$str'</span><span class="keyword">, </span><span class="string">'return str_replace("\'","\\\'",$str);'</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$sargs </span><span class="keyword">= </span><span class="string">"'" </span><span class="keyword">. </span><span class="default">join</span><span class="keyword">( </span><span class="string">"','"</span><span class="keyword">, </span><span class="default">array_map</span><span class="keyword">(</span><span class="default">$func</span><span class="keyword">,</span><span class="default">$args</span><span class="keyword">) ). </span><span class="string">"'"</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// build &amp; eval code; return result<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$seval </span><span class="keyword">= </span><span class="string">"return new </span><span class="default">$type</span><span class="string">(</span><span class="default">$sargs</span><span class="string">);"</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return eval(</span><span class="default">$seval</span><span class="keyword">);<br />
-&nbsp;&nbsp;&nbsp; }<br />
-</span><span class="default">?&gt;</span>
-</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
   <a name="49232""></a>
   <div class="note">
    <strong class="user">amer at o2 dot pl</strong>
@@ -1475,129 +1267,6 @@ Here is a function you can use in place of call_user_func_array which returns a 
    </div>
   </div>
  <div class="foot"></div>
-  <a name="46837""></a>
-  <div class="note">
-   <strong class="user">php at pjt33 dot f2g dot net</strong>
-   <a href="#46837" class="date">25-Oct-2004 02:31</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Note that, although it doesn't say so here or in the linked page with information about the callback type, the changelog ( <a href="http://www.php.net/ChangeLog-4.php#4.0.5 " rel="nofollow" target="_blank">http://www.php.net/ChangeLog-4.php#4.0.5 </a>) states that call_user_func_array in PHP 4.0.4 won't take an array as the first argument. This was added in 4.0.5.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="44465""></a>
-  <div class="note">
-   <strong class="user">patripaq at hotmail dot com</strong>
-   <a href="#44465" class="date">07-Aug-2004 12:49</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-I just started using PHP 5.0 and, so far, I'm loving it !&nbsp; However, I had a problem the other day and thought it would be a good idea to inform other programmers about the solution I found to get around it.&nbsp; It concerns the new __constructor() function and the call_user_func_array() function.&nbsp; What I wanted to do is create an object that can manage any number and any kind of parameters.&nbsp; Here's the problematic code:
-<br />
-
-<br />
-<span class="default">&lt;?php
-<br />
-</span><span class="comment">//--------------------------
-<br />
-</span><span class="keyword">class </span><span class="default">A </span><span class="keyword">{
-<br />
-&nbsp; function </span><span class="default">__construct</span><span class="keyword">() {
-<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">$args </span><span class="keyword">= </span><span class="default">func_get_args</span><span class="keyword">(); </span><span class="comment">// Get arguments
-<br />
-&nbsp;&nbsp;&nbsp; // Class initialization...
-<br />
-&nbsp; </span><span class="keyword">}
-<br />
-&nbsp; function </span><span class="default">A</span><span class="keyword">() {
-<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">$args </span><span class="keyword">= </span><span class="default">func_get_args</span><span class="keyword">(); </span><span class="comment">// Get arguments
-<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">call_user_func_array</span><span class="keyword">( array(&amp;</span><span class="default">$this</span><span class="keyword">, </span><span class="string">'__construct'</span><span class="keyword">), </span><span class="default">$args </span><span class="keyword">); </span><span class="comment">// Infinite loop to B::__construct()...
-<br />
-&nbsp; </span><span class="keyword">}
-<br />
-}
-<br />
-
-<br />
-class </span><span class="default">B </span><span class="keyword">{
-<br />
-&nbsp; function </span><span class="default">__construct</span><span class="keyword">() {
-<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">$args </span><span class="keyword">= </span><span class="default">func_get_args</span><span class="keyword">(); </span><span class="comment">// Get arguments
-<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">call_user_func_array</span><span class="keyword">( array(&amp;</span><span class="default">$this</span><span class="keyword">, </span><span class="string">'A'</span><span class="keyword">), </span><span class="default">$args </span><span class="keyword">); </span><span class="comment">// Initialize parent with arguments
-<br />
-&nbsp;&nbsp;&nbsp; // Class initialization...
-<br />
-&nbsp; </span><span class="keyword">}
-<br />
-}
-<br />
-
-<br />
-</span><span class="default">$obj </span><span class="keyword">= new </span><span class="default">B</span><span class="keyword">( </span><span class="string">'param1'</span><span class="keyword">, </span><span class="string">'param2' </span><span class="keyword">);
-<br />
-</span><span class="comment">//--------------------------
-<br />
-</span><span class="default">?&gt;
-<br />
-</span>
-<br />
-I suppose you can guess where the problem is located... In the A::A() function, the call to __construct() using call_user_func_array() is redirected to B::__construct() instead of A::__construct().&nbsp; The only way I found to specify which constructor function I wanted to call was to stop using A::__construct() and use the old fashion constructor instead.&nbsp; If anyone can find a better way, feel free to add comments.&nbsp; Here's my solution.&nbsp; Hope it helps anyone.
-<br />
-
-<br />
-<span class="default">&lt;?php
-<br />
-</span><span class="comment">//--------------------------
-<br />
-</span><span class="keyword">class </span><span class="default">A </span><span class="keyword">{
-<br />
-&nbsp; function </span><span class="default">A</span><span class="keyword">() {
-<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">$args </span><span class="keyword">= </span><span class="default">func_get_args</span><span class="keyword">(); </span><span class="comment">// Get arguments
-<br />
-&nbsp;&nbsp;&nbsp; // Class initialization...
-<br />
-&nbsp; </span><span class="keyword">}
-<br />
-}
-<br />
-
-<br />
-class </span><span class="default">B </span><span class="keyword">{
-<br />
-&nbsp; function </span><span class="default">__construct</span><span class="keyword">() {
-<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">$args </span><span class="keyword">= </span><span class="default">func_get_args</span><span class="keyword">(); </span><span class="comment">// Get arguments
-<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">call_user_func_array</span><span class="keyword">( array(&amp;</span><span class="default">$this</span><span class="keyword">, </span><span class="string">'A'</span><span class="keyword">), </span><span class="default">$args </span><span class="keyword">); </span><span class="comment">// Initialize parent with arguments
-<br />
-&nbsp;&nbsp;&nbsp; // Class initialization...
-<br />
-&nbsp; </span><span class="keyword">}
-<br />
-}
-<br />
-
-<br />
-</span><span class="default">$obj </span><span class="keyword">= new </span><span class="default">B</span><span class="keyword">( </span><span class="string">'param1'</span><span class="keyword">, </span><span class="string">'param2' </span><span class="keyword">);
-<br />
-</span><span class="comment">//--------------------------
-<br />
-</span><span class="default">?&gt;</span>
-</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
   <a name="41207""></a>
   <div class="note">
    <strong class="user">hong dot nguyen at k-edge dot com</strong>
@@ -1683,155 +1352,6 @@ array(4) {
 
 <br />
 The neat feature is that $array could have any number of arrays inside it.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="31858""></a>
-  <div class="note">
-   <strong class="user">gord at fig dot org</strong>
-   <a href="#31858" class="date">07-May-2003 01:30</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-If you need to call object and class methods in PHP &lt; 4.0.4, the following code ought to do the trick:
-<br />
-
-<br />
-<span class="default">&lt;?php
-<br />
-</span><span class="keyword">if (!</span><span class="default">function_exists</span><span class="keyword">(</span><span class="string">'call_user_func_array'</span><span class="keyword">)) {
-<br />
-&nbsp;&nbsp;&nbsp; function </span><span class="default">call_user_func_array</span><span class="keyword">(</span><span class="default">$func</span><span class="keyword">, </span><span class="default">$args</span><span class="keyword">)
-<br />
-&nbsp;&nbsp;&nbsp; {
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$argString </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">;
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$comma </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">;
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; for (</span><span class="default">$i </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">; </span><span class="default">$i </span><span class="keyword">&lt; </span><span class="default">count</span><span class="keyword">(</span><span class="default">$args</span><span class="keyword">); </span><span class="default">$i </span><span class="keyword">++) {
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$argString </span><span class="keyword">.= </span><span class="default">$comma </span><span class="keyword">. </span><span class="string">"\$args[</span><span class="default">$i</span><span class="string">]"</span><span class="keyword">;
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$comma </span><span class="keyword">= </span><span class="string">', '</span><span class="keyword">;
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }
-<br />
-
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">is_array</span><span class="keyword">(</span><span class="default">$func</span><span class="keyword">)) {
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$obj </span><span class="keyword">=&amp; </span><span class="default">$func</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">];
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$meth </span><span class="keyword">= </span><span class="default">$func</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">];
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">is_string</span><span class="keyword">(</span><span class="default">$func</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">])) {
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; eval(</span><span class="string">"\$retval = </span><span class="default">$obj</span><span class="string">::\$meth(</span><span class="default">$argString</span><span class="string">);"</span><span class="keyword">);
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else {
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; eval(</span><span class="string">"\$retval = \$obj-&gt;\$meth(</span><span class="default">$argString</span><span class="string">);"</span><span class="keyword">);
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; } else {
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; eval(</span><span class="string">"\$retval = \$func(</span><span class="default">$argString</span><span class="string">);"</span><span class="keyword">);
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$retval</span><span class="keyword">;
-<br />
-&nbsp;&nbsp;&nbsp; }
-<br />
-}
-<br />
-</span><span class="default">?&gt;</span>
-</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="30273""></a>
-  <div class="note">
-   <strong class="user">nutbar at innocent dot com</strong>
-   <a href="#30273" class="date">12-Mar-2003 09:29</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-This function, combined with some others, can allow you to make some really easy &amp; generic function macros (since real macros don't exist in PHP yet).
-<br />
-
-<br />
-<span class="default">&lt;?php
-<br />
-</span><span class="keyword">function </span><span class="default">my_printf</span><span class="keyword">() {
-<br />
-&nbsp;&nbsp; </span><span class="default">$args </span><span class="keyword">= </span><span class="default">func_get_args</span><span class="keyword">();
-<br />
-&nbsp;&nbsp; return </span><span class="default">call_user_func_array</span><span class="keyword">(</span><span class="string">'printf'</span><span class="keyword">, </span><span class="default">$args</span><span class="keyword">);
-<br />
-}
-<br />
-</span><span class="default">?&gt;
-<br />
-</span>
-<br />
-This allows you to use my_printf() just as if it were printf() itself.&nbsp; Very useful since you don't have to worry about how many arguments any functions take.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="22564""></a>
-  <div class="note">
-   <strong class="user">NOSPAM dot dont dot remove at thekid dot de</strong>
-   <a href="#22564" class="date">23-Jun-2002 01:19</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Unified constructors in PHP4:<br />
-<br />
-<span class="default">&lt;?php<br />
-&nbsp; </span><span class="keyword">class </span><span class="default">Object </span><span class="keyword">{<br />
-&nbsp;&nbsp;&nbsp; function </span><span class="default">Object</span><span class="keyword">() {<br />
-&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$args</span><span class="keyword">= </span><span class="default">func_get_args</span><span class="keyword">();<br />
-&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">call_user_func_array</span><span class="keyword">(array(&amp;</span><span class="default">$this</span><span class="keyword">, </span><span class="string">'__construct'</span><span class="keyword">), </span><span class="default">$args</span><span class="keyword">);<br />
-&nbsp;&nbsp;&nbsp; }<br />
-<br />
-&nbsp;&nbsp;&nbsp; function </span><span class="default">__construct</span><span class="keyword">(</span><span class="default">$args</span><span class="keyword">= </span><span class="default">NULL</span><span class="keyword">) {<br />
-&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$args</span><span class="keyword">);<br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp; }<br />
-<br />
-&nbsp; class </span><span class="default">Exception </span><span class="keyword">extends </span><span class="default">Object </span><span class="keyword">{<br />
-&nbsp;&nbsp;&nbsp; var<br />
-&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$message</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp;&nbsp; <br />
-&nbsp;&nbsp;&nbsp; function </span><span class="default">__construct</span><span class="keyword">(</span><span class="default">$message</span><span class="keyword">) {<br />
-&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">message</span><span class="keyword">= </span><span class="default">$message</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">parent</span><span class="keyword">::</span><span class="default">__construct</span><span class="keyword">();<br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp; }<br />
-<br />
-&nbsp; class </span><span class="default">IOException </span><span class="keyword">extends </span><span class="default">Exception </span><span class="keyword">{<br />
-&nbsp; }<br />
-&nbsp; <br />
-&nbsp; </span><span class="default">var_dump</span><span class="keyword">(<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">error_reporting</span><span class="keyword">(), <br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">zend_version</span><span class="keyword">(), <br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">phpversion</span><span class="keyword">()<br />
-&nbsp; );<br />
-&nbsp; <br />
-&nbsp; </span><span class="default">$c</span><span class="keyword">= new </span><span class="default">IOException</span><span class="keyword">(</span><span class="string">'file not found'</span><span class="keyword">);<br />
-&nbsp; <br />
-&nbsp; echo </span><span class="string">'===&gt; Result: '</span><span class="keyword">; </span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$c</span><span class="keyword">);<br />
-</span><span class="default">?&gt;</span>
-</span>
 </code>
     </div>
    </div>

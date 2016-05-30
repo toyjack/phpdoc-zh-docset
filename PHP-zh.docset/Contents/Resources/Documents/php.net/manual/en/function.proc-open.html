@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.proc-open" class="refentry">
    <div class="refnamediv">
     <h1 class="refname">proc_open</h1>
-    <p class="verinfo">(PHP 4 &gt;= 4.3.0, PHP 5)</p><p class="refpurpose"><span class="refname">proc_open</span> &mdash; <span class="dc-title">
+    <p class="verinfo">(PHP 4 &gt;= 4.3.0, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">proc_open</span> &mdash; <span class="dc-title">
      执行一个命令，并且打开用来输入/输出的文件指针。
     </span></p>
 
@@ -210,14 +210,6 @@
        </td>
       </tr>
 
-      <tr>
-       <td>5.0.0</td>
-       <td>
-        增加 <code class="parameter">cwd</code>， <code class="parameter">env</code> 和
-        <code class="parameter">other_options</code> 参数。
-       </td>
-      </tr>
-
      </tbody>
     
    </table>
@@ -229,7 +221,7 @@
  <div class="refsect1 examples" id="refsect1-function.proc-open-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-3669">
+   <div class="example" id="example-4058">
     <p><strong>Example #1 <span class="function"><strong>proc_open()</strong></span> 例程</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -297,7 +289,143 @@ command returned 0
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="115541""></a>
+<div id="allnotes">  <a name="119134""></a>
+  <div class="note">
+   <strong class="user">stoller at leonex dot de</strong>
+   <a href="#119134" class="date">08-Apr-2016 04:37</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you are working on Windows and try to proc_open an executable that contains spaces in its path, you will get into trouble.<br />
+<br />
+But there's a workaround which works quite well. I have found it here: <a href="http://stackoverflow.com/a/4410389/1119601" rel="nofollow" target="_blank">http://stackoverflow.com/a/4410389/1119601</a><br />
+<br />
+For example, if you want to execute "C:\Program Files\nodejs\node.exe", you will get the error that the command could not be found.<br />
+Try this:<br />
+<span class="default">&lt;?php<br />
+$cmd </span><span class="keyword">= </span><span class="string">'C:\\Program Files\\nodejs\\node.exe'</span><span class="keyword">;<br />
+if (</span><span class="default">strtolower</span><span class="keyword">(</span><span class="default">substr</span><span class="keyword">(</span><span class="default">PHP_OS</span><span class="keyword">,</span><span class="default">0</span><span class="keyword">,</span><span class="default">3</span><span class="keyword">)) === </span><span class="string">'win'</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$cmd </span><span class="keyword">= </span><span class="default">sprintf</span><span class="keyword">(</span><span class="string">'cd %s &amp;&amp; %s'</span><span class="keyword">, </span><span class="default">escapeshellarg</span><span class="keyword">(</span><span class="default">dirname</span><span class="keyword">(</span><span class="default">$cmd</span><span class="keyword">)), </span><span class="default">basename</span><span class="keyword">(</span><span class="default">$cmd</span><span class="keyword">));<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118111""></a>
+  <div class="note">
+   <strong class="user">aaronw at catalyst dot net dot nz</strong>
+   <a href="#118111" class="date">06-Oct-2015 08:16</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you have a CLI script that prompts you for a password via STDIN, and you need to run it from PHP, proc_open() can get you there. It's better than doing "echo $password | command.sh", because then your password will be visible in the process list to any user who runs "ps". Alternately you could print the password to a file and use cat: "cat passwordfile.txt | command.sh", but then you've got to manage that file in a secure manner.<br />
+<br />
+If your command will always prompt you for responses in a specific order, then proc_open() is quite simple to use and you don't really have to worry about blocking &amp; non-blocking streams. For instance, to run the "passwd" command:<br />
+<br />
+<span class="default">&lt;?php<br />
+$descriptorspec </span><span class="keyword">= array(<br />
+&nbsp;&nbsp; </span><span class="default">0 </span><span class="keyword">=&gt; array(</span><span class="string">"pipe"</span><span class="keyword">, </span><span class="string">"r"</span><span class="keyword">),<br />
+&nbsp;&nbsp; </span><span class="default">1 </span><span class="keyword">=&gt; array(</span><span class="string">"pipe"</span><span class="keyword">, </span><span class="string">"w"</span><span class="keyword">),<br />
+&nbsp;&nbsp; </span><span class="default">2 </span><span class="keyword">=&gt; array(</span><span class="string">"pipe"</span><span class="keyword">, </span><span class="string">"w"</span><span class="keyword">)<br />
+);<br />
+</span><span class="default">$process </span><span class="keyword">= </span><span class="default">proc_open</span><span class="keyword">(<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'/usr/bin/passwd ' </span><span class="keyword">. </span><span class="default">escapeshellarg</span><span class="keyword">(</span><span class="default">$username</span><span class="keyword">),<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$descriptorspec</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$pipes<br />
+</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// It wil prompt for existing password, then new password twice.<br />
+// You don't need to escapeshellarg() these, but you should whitelist<br />
+// them to guard against control characters, perhaps by using ctype_print()<br />
+</span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$pipes</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">], </span><span class="string">"</span><span class="default">$oldpassword</span><span class="string">\n</span><span class="default">$newpassword</span><span class="string">\n</span><span class="default">$newpassword</span><span class="string">\n"</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// Read the responses if you want to look at them<br />
+</span><span class="default">$stdout </span><span class="keyword">= </span><span class="default">fread</span><span class="keyword">(</span><span class="default">$pipes</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="default">1024</span><span class="keyword">);<br />
+</span><span class="default">$stderr </span><span class="keyword">= </span><span class="default">fread</span><span class="keyword">(</span><span class="default">$pipes</span><span class="keyword">[</span><span class="default">2</span><span class="keyword">], </span><span class="default">1024</span><span class="keyword">);<br />
+<br />
+</span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$pipes</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">]);<br />
+</span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$pipes</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">]);<br />
+</span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$pipes</span><span class="keyword">[</span><span class="default">2</span><span class="keyword">]);<br />
+</span><span class="default">$exit_status </span><span class="keyword">= </span><span class="default">proc_close</span><span class="keyword">(</span><span class="default">$process</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// It returns 0 on successful password change<br />
+</span><span class="default">$success </span><span class="keyword">= (</span><span class="default">$exit_status </span><span class="keyword">=== </span><span class="default">0</span><span class="keyword">);<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117912""></a>
+  <div class="note">
+   <strong class="user">stevebaldwin21 at googlemail dot com</strong>
+   <a href="#117912" class="date">01-Sep-2015 03:32</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+For those who are finding that using the $cwd and $env options cause proc_open to fail (windows). You will need to pass all other server environment variables; <br />
+<br />
+$descriptorSpec = array(<br />
+&nbsp;&nbsp; &nbsp; &nbsp; 0 =&gt; array("pipe", "r"),<br />
+&nbsp;&nbsp; &nbsp; &nbsp; 1 =&gt; array("pipe", "w"),&nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; );<br />
+<br />
+proc_open(<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; "C:\\Windows\\System32\\PING.exe localhost, <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $descriptorSpec , <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $pipes, <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; "C:\\Windows\\System32", <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; array($_SERVER)<br />
+);</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117531""></a>
+  <div class="note">
+   <strong class="user">vanyazin at gmail dot com</strong>
+   <a href="#117531" class="date">25-Jun-2015 01:47</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you want to use proc_open() function with socket streams, you can open connection with help of fsockopen() function and then just put handlers into array of io descriptors:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+&nbsp;&nbsp;&nbsp; $fh </span><span class="keyword">= </span><span class="default">fsockopen</span><span class="keyword">(</span><span class="default">$address</span><span class="keyword">, </span><span class="default">$port</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$descriptors </span><span class="keyword">= [<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$fh</span><span class="keyword">,&nbsp;&nbsp; </span><span class="comment">// stdin<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$fh</span><span class="keyword">,&nbsp;&nbsp; </span><span class="comment">// stdout<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$fh</span><span class="keyword">,&nbsp;&nbsp; </span><span class="comment">// stderr<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">];<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$proc </span><span class="keyword">= </span><span class="default">proc_open</span><span class="keyword">(</span><span class="default">$cmd</span><span class="keyword">, </span><span class="default">$descriptors</span><span class="keyword">, </span><span class="default">$pipes</span><span class="keyword">);</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117107""></a>
+  <div class="note">
+   <strong class="user">hablutzel1 at gmail dot com</strong>
+   <a href="#117107" class="date">16-Apr-2015 02:26</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Note that the usage of "bypass_shell" in Windows allows you to pass a command of length around ~32767 characters. If you do not use it, your limit is around ~8191 characters only. <br />
+<br />
+See https://support.microsoft.com/en-us/kb/830473.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115541""></a>
   <div class="note">
    <strong class="user">sergioshev at gmail dot com</strong>
    <a href="#115541" class="date">13-Aug-2014 01:38</a>
@@ -1386,60 +1514,6 @@ while(</span><span class="default">play_stop</span><span class="keyword">()){</s
    </div>
   </div>
  <div class="foot"></div>
-  <a name="76711""></a>
-  <div class="note">
-   <strong class="user">Antti Kauppinen</strong>
-   <a href="#76711" class="date">27-Jul-2007 09:48</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-missilesilo at gmail dot com had a great example. However error messages didn't work because of wrong stderr argument.
-<br />
-
-<br />
-I changed last value 'r' of
-<br />
-
-<br />
-<span class="default">&lt;?php
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $descriptorspec </span><span class="keyword">= array(
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">0 </span><span class="keyword">=&gt; array(</span><span class="string">'pipe'</span><span class="keyword">, </span><span class="string">'r'</span><span class="keyword">),
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">1 </span><span class="keyword">=&gt; array(</span><span class="string">'pipe'</span><span class="keyword">, </span><span class="string">'w'</span><span class="keyword">),
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">2 </span><span class="keyword">=&gt; array(</span><span class="string">'pipe'</span><span class="keyword">, </span><span class="string">'r'</span><span class="keyword">)
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; );
-<br />
-</span><span class="default">?&gt;
-<br />
-</span>
-<br />
-to 'w' so that error messages are actually written.
-<br />
-
-<br />
-<span class="default">&lt;?php
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $descriptorspec </span><span class="keyword">= array(
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">0 </span><span class="keyword">=&gt; array(</span><span class="string">"pipe"</span><span class="keyword">, </span><span class="string">"r"</span><span class="keyword">),&nbsp; </span><span class="comment">// stdin is a pipe that the child will read from
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">1 </span><span class="keyword">=&gt; array(</span><span class="string">"pipe"</span><span class="keyword">, </span><span class="string">"w"</span><span class="keyword">),&nbsp; </span><span class="comment">// stdout is a pipe that the child will write to
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">2 </span><span class="keyword">=&gt; array(</span><span class="string">"pipe"</span><span class="keyword">, </span><span class="string">"w"</span><span class="keyword">) </span><span class="comment">// stderr is a file to write to
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">);
-<br />
-</span><span class="default">?&gt;</span>
-</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
   <a name="70429""></a>
   <div class="note">
    <strong class="user">mjutras at beenox dot com</strong>
@@ -1795,34 +1869,6 @@ The magic max buffer size I found with winxp is 63488 bytes, (62k). Anything lar
    </div>
   </div>
  <div class="foot"></div>
-  <a name="42647""></a>
-  <div class="note">
-   <strong class="user">Andre Caldas</strong>
-   <a href="#42647" class="date">25-May-2004 12:13</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-About the comment by&nbsp; ch at westend dot com<br />
-of 28-Aug-2003 08:46<br />
-<br />
-File streams are buffers. The data is not actualy written if you do not flush the buffer. In your case, fclose has the side effect of flushing the buffer you are closing.<br />
-<br />
-The program "hangs" because it tries to read some data that was not written (since it is buffered).<br />
-<br />
-You must do something like:<br />
-<span class="default">&lt;?php<br />
-&nbsp; fwrite</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">);<br />
-&nbsp; </span><span class="default">fflush</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">);<br />
-&nbsp; </span><span class="default">fread</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">);<br />
-</span><span class="default">?&gt;<br />
-</span><br />
-Good luck,<br />
-&nbsp;&nbsp;&nbsp; Andre Caldas.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
   <a name="42310""></a>
   <div class="note">
    <strong class="user">list[at]public[dot]lt</strong>
@@ -1908,25 +1954,6 @@ Stream functions can be used on pipes like :<br />
 <br />
 More informations about streams (you'll find many useful functions there) :<br />
 <a href="http://www.php.net/manual/en/ref.stream.php" rel="nofollow" target="_blank">http://www.php.net/manual/en/ref.stream.php</a></span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="35355""></a>
-  <div class="note">
-   <strong class="user">ch at westend dot com</strong>
-   <a href="#35355" class="date">28-Aug-2003 05:46</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-I had trouble with this function as my script always hung like in a deadlock until I figured out that I had to strictly keep the following<br />
-order. Trying to close all at the end did not work!<br />
-&nbsp; proc_open();<br />
-&nbsp; fwrite(pipes[0]); fclose(pipes[0]); # stdin<br />
-&nbsp; fread(pipes[1]);&nbsp; fclose(pipes[1]); # stdout<br />
-&nbsp; fread(pipes[2]);&nbsp; flcose(pipes[2]); # stderr<br />
-&nbsp; proc_close();</span>
 </code>
     </div>
    </div>

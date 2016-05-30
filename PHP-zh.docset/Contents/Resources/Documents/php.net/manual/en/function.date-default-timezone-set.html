@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.date-default-timezone-set" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">date_default_timezone_set</h1>
-  <p class="verinfo">(PHP 5 &gt;= 5.1.0)</p><p class="refpurpose"><span class="refname">date_default_timezone_set</span> &mdash; <span class="dc-title">设定用于一个脚本中所有日期时间函数的默认时区</span></p>
+  <p class="verinfo">(PHP 5 &gt;= 5.1.0, PHP 7)</p><p class="refpurpose"><span class="refname">date_default_timezone_set</span> &mdash; <span class="dc-title">设定用于一个脚本中所有日期时间函数的默认时区</span></p>
 
  </div>
  <div class="refsect1 description" id="refsect1-function.date-default-timezone-set-description">
@@ -88,7 +88,7 @@
  <div class="refsect1 examples" id="refsect1-function.date-default-timezone-set-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-2307">
+   <div class="example" id="example-2433">
     <p><strong>Example #1 获取默认时区</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -152,7 +152,60 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116430""></a>
+<div id="allnotes">  <a name="117130""></a>
+  <div class="note">
+   <strong class="user">Jesse dot Chisholm at gmail dot com</strong>
+   <a href="#117130" class="date">19-Apr-2015 09:10</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I found a need to change the timezone based on a DB record, so it would display properly for each record.&nbsp; So I wrapped some of the other posts into this small class:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">TZStack<br />
+</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; private </span><span class="default">$stack </span><span class="keyword">= array();<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__construct</span><span class="keyword">(){}<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">push</span><span class="keyword">(</span><span class="default">$newTZ</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">array_push</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">stack</span><span class="keyword">, </span><span class="default">date_default_timezone_get</span><span class="keyword">());<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (isset(</span><span class="default">$newTZ</span><span class="keyword">) &amp;&amp; (</span><span class="string">"" </span><span class="keyword">!= </span><span class="default">$newTZ</span><span class="keyword">))<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">date_default_timezone_set</span><span class="keyword">(</span><span class="default">$newTZ</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">pop</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">count</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">stack</span><span class="keyword">) &gt; </span><span class="default">0</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">date_default_timezone_set</span><span class="keyword">(</span><span class="default">array_pop</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">stack</span><span class="keyword">));<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+</span><span class="comment">// the global TZ stack for the rest of the code&nbsp; to use.<br />
+</span><span class="default">$tzStack </span><span class="keyword">= new </span><span class="default">TZStack</span><span class="keyword">();<br />
+</span><span class="comment">// In case I need to know the TZ at the web server. :)<br />
+</span><span class="default">$script_tz </span><span class="keyword">= </span><span class="default">date_default_timezone_get</span><span class="keyword">();<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Then in my per-record code:<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">foreach(</span><span class="default">$records </span><span class="keyword">as </span><span class="default">$item</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$tzStack</span><span class="keyword">-&gt;</span><span class="default">push</span><span class="keyword">(</span><span class="default">$item</span><span class="keyword">[</span><span class="string">'TZ'</span><span class="keyword">]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$TZ </span><span class="keyword">= </span><span class="default">date</span><span class="keyword">(</span><span class="string">"T"</span><span class="keyword">, </span><span class="default">time</span><span class="keyword">());<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// code that displays this record, using $TZ.<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$tzStack</span><span class="keyword">-&gt;</span><span class="default">pop</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; }<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116430""></a>
   <div class="note">
    <strong class="user">Anteaus</strong>
    <a href="#116430" class="date">02-Jan-2015 09:04</a>

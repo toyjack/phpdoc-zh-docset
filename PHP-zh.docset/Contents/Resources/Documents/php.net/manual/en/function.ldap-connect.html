@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.ldap-connect" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">ldap_connect</h1>
-  <p class="verinfo">(PHP 4, PHP 5)</p><p class="refpurpose"><span class="refname">ldap_connect</span> &mdash; <span class="dc-title">Connect to an LDAP server</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">ldap_connect</span> &mdash; <span class="dc-title">Connect to an LDAP server</span></p>
 
  </div>
  
@@ -34,13 +34,18 @@
   <h3 class="title">说明</h3>
   <div class="methodsynopsis dc-description">
    <span class="type">resource</span> <span class="methodname"><strong>ldap_connect</strong></span>
-    ([ <span class="methodparam"><span class="type">string</span> <code class="parameter">$hostname</code><span class="initializer"> = <strong><code>NULL</code></strong></span></span>
+    ([ <span class="methodparam"><span class="type">string</span> <code class="parameter">$host</code><span class="initializer"> = <strong><code>NULL</code></strong></span></span>
    [, <span class="methodparam"><span class="type">int</span> <code class="parameter">$port</code><span class="initializer"> = 389</span></span>
   ]] )</div>
 
   <p class="para rdfs-comment">
-   Establishes a connection to a LDAP server on a specified
-   <code class="parameter">hostname</code> and <code class="parameter">port</code>.
+   Creates an LDAP link identifier and checks whether the given
+   <code class="parameter">host</code> and <code class="parameter">port</code> are plausible.
+  </p>
+  <p class="para">
+   Note: This function does <em class="emphasis">not</em> open a connection.
+   It checks whether the given parameters are plausibe and can be used
+   to open a connection as soon as one is needed.
   </p>
  </div>
 
@@ -52,15 +57,20 @@
 
     
      <dt>
-<code class="parameter">hostname</code></dt>
+<code class="parameter">host</code></dt>
 
      <dd>
 
       <p class="para">
-       If you are using OpenLDAP 2.x.x you can specify a URL instead of the
-       hostname. To use LDAP with SSL, compile OpenLDAP 2.x.x with SSL
-       support, configure PHP with SSL, and set this parameter as  
-       <em>ldaps://hostname/</em>.
+       This field supports using a hostname or, with OpenLDAP 2.x.x and
+       later, a full LDAP URI of the form <em>ldap://hostname:port</em>
+       or <em>ldaps://hostname:port</em> for SSL encryption.
+      </p>
+      <p class="para">
+       You can also provide multiple LDAP-URIs separated by a space as one string
+      </p>
+      <p class="para">
+       Note that <em>hostname:port</em> is not a supported LDAP URI as the schema is missing.
       </p>
      </dd>
 
@@ -72,7 +82,7 @@
      <dd>
 
       <p class="para">
-       The port to connect to. Not used when using URLs.
+       The port to connect to. Not used when using LDAP URIs.
       </p>
      </dd>
 
@@ -86,7 +96,9 @@
  <div class="refsect1 returnvalues" id="refsect1-function.ldap-connect-returnvalues">
   <h3 class="title">返回值</h3>
   <p class="para">
-   Returns a positive LDAP link identifier on success, or <strong><code>FALSE</code></strong> on error.
+   Returns a positive LDAP link identifier when the provided hostname/port combination or LDAP URI
+   seems plausible. It&#039;s a syntactic check of the provided parameters but the server(s) will not
+   be contacted! If the syntactic check fails it returns <strong><code>FALSE</code></strong>.
    When OpenLDAP 2.x.x is used, <span class="function"><strong>ldap_connect()</strong></span> will always
    return a <span class="type"><a href="language.types.resource.html" class="type resource">resource</a></span> as it does not actually connect but just
    initializes the connecting parameters.  The actual connect happens with
@@ -103,7 +115,7 @@
  <div class="refsect1 examples" id="refsect1-function.ldap-connect-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-4391">
+   <div class="example" id="example-4754">
     <p><strong>Example #1 Example of connecting to LDAP server.</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -113,7 +125,7 @@
     </div>
 
    </div>
-   <div class="example" id="example-4392">
+   <div class="example" id="example-4755">
     <p><strong>Example #2 Example of connecting securely to LDAP server.</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -141,7 +153,135 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116853""></a>
+<div id="allnotes">  <a name="118363""></a>
+  <div class="note">
+   <strong class="user">antoine dot php dot net at bonnefoy dot eu</strong>
+   <a href="#118363" class="date">23-Nov-2015 07:30</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Hello,<br />
+<br />
+Little corrections to nemanja&nbsp; post. <br />
+- There was a warning if connection is denied by firewall (adding @ before fsockopen)<br />
+- fclose parameter was incorrect. <br />
+<br />
+With this approach, you get a real nice failover functionality, take for an example a company with a dozen of DC-a distributed along distant places, this way your PHP program will always have high availability if at least one DC is active at present.<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">serviceping</span><span class="keyword">(</span><span class="default">$_host</span><span class="keyword">, </span><span class="default">$_port </span><span class="keyword">= </span><span class="default">389</span><span class="keyword">, </span><span class="default">$_timeout </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$op </span><span class="keyword">= @</span><span class="default">fsockopen</span><span class="keyword">(</span><span class="default">$_host</span><span class="keyword">, </span><span class="default">$_port</span><span class="keyword">, </span><span class="default">$errno</span><span class="keyword">, </span><span class="default">$errstr</span><span class="keyword">, </span><span class="default">$_timeout</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; if (!</span><span class="default">$op</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"KO!"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">0</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; } </span><span class="comment">//DC is N/A<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$op</span><span class="keyword">); </span><span class="comment">//explicitly close open socket connection<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">return </span><span class="default">1</span><span class="keyword">; </span><span class="comment">//DC is up &amp; running, we can safely connect with ldap_connect<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">}<br />
+}<br />
+<br />
+function </span><span class="default">ldap_connect_failover</span><span class="keyword">(</span><span class="default">$_domain</span><span class="keyword">) {<br />
+</span><span class="comment">// ##### STATIC DC LIST, if your DNS round robin is not setup<br />
+//$dclist = array('10.111.222.111', '10.111.222.100', '10.111.222.200');<br />
+// ##### DYNAMIC DC LIST, reverse DNS lookup sorted by round-robin result<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$dclist </span><span class="keyword">= </span><span class="default">gethostbynamel</span><span class="keyword">(</span><span class="default">$_domain</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp;&nbsp; foreach (</span><span class="default">$dclist </span><span class="keyword">as </span><span class="default">$dc</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">serviceping</span><span class="keyword">(</span><span class="default">$dc</span><span class="keyword">) == </span><span class="default">true</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$dc </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+</span><span class="comment">//after this loop, either there will be at least one DC which is available at present, or $dc would return bool false while the next line stops program from further execution<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">if (!</span><span class="default">$dc</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; } </span><span class="comment">//user being notified<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">return </span><span class="default">ldap_connect</span><span class="keyword">(</span><span class="default">$dc</span><span class="keyword">);<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117685""></a>
+  <div class="note">
+   <strong class="user">Nixahnung</strong>
+   <a href="#117685" class="date">23-Jul-2015 12:13</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I have spent a lot of time to make an LDAPS connection to a MS AD Global Catalog port 3269<br />
+<br />
+My five Cents:<br />
+<br />
+ldap_connect("ldaps://example.com", 3269)<br />
+=&gt; Connection to 636.... :(, DC only<br />
+<br />
+ldap_connect("ldaps://example.com:3269")<br />
+=&gt; Connection to 3269.... :), GC as expected<br />
+<br />
+May it helps...</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117611""></a>
+  <div class="note">
+   <strong class="user">lee at lareck70 dot net</strong>
+   <a href="#117611" class="date">08-Jul-2015 03:20</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+To use LDAPS on Windows whitout "c:\openldap\sysconf\ldap.conf":<br />
+Generate a file like ldap.conf, name it "ldaprc".<br />
+For PHP script running on command line put the file to the script.<br />
+For PHP script running on webserver put the file in home directory of PHP.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117296""></a>
+  <div class="note">
+   <strong class="user">mwilmes at avc dot edu</strong>
+   <a href="#117296" class="date">19-May-2015 02:26</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I support a LAMP stack with PHP-FPM on CentOS 7 that needs to connect to Active Directory over SSL.&nbsp; We have a root certificate for the domain.&nbsp; I was able to set this up in five steps.<br />
+<br />
+1. Get the domain's root SSL certificate in base64. (Must be an Enterprise Administrator - talk with your admin if you are not one.)<br />
+Run mmc.exe<br />
+File -&gt; Add/Remove Snap-in<br />
+Select Certification Authority, then the server that generates certificates for your domain.<br />
+Expand the tree until you find the entry for the root certificate, then right click-&gt;Properties.<br />
+Click the "View Certificate" button, The "Details" tab, then the "Copy to File..." button.<br />
+Use the wizard to export the root certificate to your computer. Ensure you use the Base-64 format.<br />
+<br />
+2. Copy the root cert to the Linux server.&nbsp; You can open the certificate in notepad and copy and paste the contents.<br />
+<br />
+3. Convert the certificate to pem format.&nbsp; Substitute the names of files as needed.<br />
+openssl x509 -in &lt;copied certificate file&gt; -out /etc/openldap/certs/&lt;cert&gt;.pem<br />
+<br />
+4. Add a line in ldap.conf to use new root cert.<br />
+vi /etc/openldap/ldap.conf<br />
+TLS_CACERT&nbsp; &nbsp; &nbsp; /etc/openldap/certs/&lt;cert&gt;.pem<br />
+<br />
+5.Restart the PHP service.<br />
+systemctl restart php-fpm.service</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116853""></a>
   <div class="note">
    <strong class="user">harrison at glsan dot com</strong>
    <a href="#116853" class="date">11-Mar-2015 03:07</a>

@@ -40,7 +40,7 @@
    <span class="type"><a href="language.types.string.html" class="type string">string</a></span>。<a href="language.oop5.traits.html" class="link">Traits</a> 也不允许。
   </p>
 
-  <div class="example" id="example-242">
+  <div class="example" id="example-253">
    <p><strong>Example #1 类型约束示例</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -84,7 +84,91 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="114559""></a>
+<div id="allnotes">  <a name="119208""></a>
+  <div class="note">
+   <strong class="user">mrice at rcs dot us</strong>
+   <a href="#119208" class="date">19-Apr-2016 10:31</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+In regards to <a href="http://php.net/manual/en/language.oop5.typehinting.php#103729 , when using PHP in Eclipse, the best way to typehint is already available in Eclipse natively. " rel="nofollow" target="_blank">http://php.net/manual/en/language.oop5.typehinting.php#103729 , when using PHP in Eclipse, the best way to typehint is already available in Eclipse natively. </a><br />
+<br />
+The format is /* @var $variable ObjectName */<br />
+<br />
+The single /* is important. You can also use namespaces, IE <br />
+<br />
+/* @var $variable \Some\Namespace */<br />
+<br />
+In short, there is no reason to create functions that return itself.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117907""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#117907" class="date">30-Aug-2015 10:52</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+i think this is pretty close.<br />
+<br />
+$lines=hhb_mustbe('array',file("foofile"));<br />
+//either file succeeds, and returns an array, or file returns FALSE which is not an array, which throws an unexpectedValueException.<br />
+<br />
+$socket=hhb_mustbe('Socket',socket_create(AF_INET,SOCK_STREAM,getprotobyname('tcp')));<br />
+//either socket_create succeeds, and returns a Socket, or socket_create returns False, which is not a resource of type Socket, and you get an UnexpectedValueException<br />
+<br />
+$size=hhb_mustbe('int',filesize(somefile));<br />
+//either filesize() returns an integer, or returns FALSE wich is not an int, and you'll get UnexpectedValueException.<br />
+<br />
+&nbsp;&nbsp;&nbsp; function hhb_mustbe(/*string*/$type,/*mixed*/$variable){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; //should it be UnexpectedValueException or InvalidArgumentException?<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; //going with UnexpectedValueException for now...<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $actual_type=gettype($variable);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if($actual_type==='unknown type'){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; //i dont know how this can happen, but it is documented as a possible return value of gettype...<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; throw new Exception('could not determine the type of the variable!');<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if($actual_type==='object'){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(!is_a($variable,$type)){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $dbg=get_class($variable);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; throw new UnexpectedValueException('variable is an object which does NOT implement class: '.$type.'. it is of class: '.$dbg);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return $variable;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if($actual_type==='resource'){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $dbg=get_resource_type($variable);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if($dbg!==$type){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; throw new UnexpectedValueException('variable is a resource, which is NOT of type: '.$type.'. it is of type: '.$dbg);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return $variable;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; //now a few special cases<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if($type==='bool'){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $parsed_type='boolean';&nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else if($type==='int'){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $parsed_type='integer';<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else if($type==='float'){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $parsed_type='double';<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else if($type==='null'){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $parsed_type='NULL';<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else{<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $parsed_type=$type;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if($parsed_type!==$actual_type &amp;&amp; $type!==$actual_type){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; throw new UnexpectedValueException('variable is NOT of type: '.$type.'. it is of type: '.$actual_type);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; //ok, variable passed all tests.<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return $variable;<br />
+&nbsp;&nbsp;&nbsp; }</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="114559""></a>
   <div class="note">
    <strong class="user">doom at doom dot pl</strong>
    <a href="#114559" class="date">06-Mar-2014 06:16</a>

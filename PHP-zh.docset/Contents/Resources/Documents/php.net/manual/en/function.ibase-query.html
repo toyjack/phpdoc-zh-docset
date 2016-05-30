@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.ibase-query" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">ibase_query</h1>
-  <p class="verinfo">(PHP 5)</p><p class="refpurpose"><span class="refname">ibase_query</span> &mdash; <span class="dc-title">Execute a query on an InterBase database</span></p>
+  <p class="verinfo">(PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">ibase_query</span> &mdash; <span class="dc-title">Execute a query on an InterBase database</span></p>
 
  </div>
  
@@ -157,7 +157,7 @@
  <div class="refsect1 examples" id="refsect1-function.ibase-query-examples">
   <h3 class="title">·¶Àý</h3>
   <p class="para">
-   <div class="example" id="example-1135">
+   <div class="example" id="example-1176">
     <p><strong>Example #1 <span class="function"><strong>ibase_query()</strong></span> example</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -188,7 +188,39 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="44830""></a>
+<div id="allnotes">  <a name="117900""></a>
+  <div class="note">
+   <strong class="user">coladict at gmail dot com</strong>
+   <a href="#117900" class="date">28-Aug-2015 08:18</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Contrary to it's description, the function does not always execute the query, unless you try fetching the results. I discovered this through the following code:<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $result </span><span class="keyword">= </span><span class="default">ibase_query</span><span class="keyword">(</span><span class="default">$dbh</span><span class="keyword">,</span><span class="string">"SELECT boniid FROM PROC_INS_OBONI_DELIV_ADDBONITM ( ? , ? , ? , ? , null , ? )"</span><span class="keyword">, </span><span class="default">$bon_id </span><span class="keyword">, </span><span class="default">$plucode2 </span><span class="keyword">, </span><span class="default">$amount </span><span class="keyword">, </span><span class="default">$note </span><span class="keyword">,&nbsp; </span><span class="default">$discount</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">log_add</span><span class="keyword">(</span><span class="default">mb_convert_encoding</span><span class="keyword">(</span><span class="string">"SELECT boniid FROM PROC_INS_OBONI_DELIV_ADDBONITM ( " </span><span class="keyword">. </span><span class="default">$bon_id </span><span class="keyword">. </span><span class="string">", " </span><span class="keyword">. </span><span class="default">$plucode2 </span><span class="keyword">. </span><span class="string">", " </span><span class="keyword">. </span><span class="default">$amount </span><span class="keyword">. </span><span class="string">", " </span><span class="keyword">. </span><span class="default">$note </span><span class="keyword">. </span><span class="string">", " </span><span class="keyword">. </span><span class="default">$nullparent </span><span class="keyword">. </span><span class="string">", " </span><span class="keyword">. </span><span class="default">$discount </span><span class="keyword">. </span><span class="string">" )"</span><span class="keyword">,</span><span class="string">'utf8'</span><span class="keyword">,</span><span class="string">'cp1251'</span><span class="keyword">));<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (!</span><span class="default">$result</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$errmsg </span><span class="keyword">= </span><span class="default">ibase_errmsg</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">ibase_rollback</span><span class="keyword">(</span><span class="default">$dbh</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">ibase_close</span><span class="keyword">(</span><span class="default">$dbh</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">log_add</span><span class="keyword">(</span><span class="string">"Item (" </span><span class="keyword">. </span><span class="default">$mid </span><span class="keyword">. </span><span class="string">" - " </span><span class="keyword">. </span><span class="default">$plucode2 </span><span class="keyword">. </span><span class="string">") : Error returned (" </span><span class="keyword">. </span><span class="default">__LINE__ </span><span class="keyword">. </span><span class="string">"): " </span><span class="keyword">. </span><span class="default">$errmsg</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="string">"Error sending product ( </span><span class="default">$m_name</span><span class="string">). Error message:&nbsp; </span><span class="default">$errmsg</span><span class="string">"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// item data does NOT enter the database if I don't call ibase_fetch_assoc<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$row </span><span class="keyword">= </span><span class="default">ibase_fetch_assoc</span><span class="keyword">(</span><span class="default">$result</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+This problem may be limited to FireBird 1.5 or it may not be. Either way, be wary of it.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="44830""></a>
   <div class="note">
    <strong class="user">escoric at latinmail dot com</strong>
    <a href="#44830" class="date">17-Aug-2004 07:43</a>

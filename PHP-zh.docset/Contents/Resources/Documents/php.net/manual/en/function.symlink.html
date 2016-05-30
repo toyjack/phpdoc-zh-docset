@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.symlink" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">symlink</h1>
-  <p class="verinfo">(PHP 4, PHP 5)</p><p class="refpurpose"><span class="refname">symlink</span> &mdash; <span class="dc-title">建立符号连接</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">symlink</span> &mdash; <span class="dc-title">建立符号连接</span></p>
 
  </div>
  <div class="refsect1 description" id="refsect1-function.symlink-description">
@@ -121,7 +121,7 @@
  <div class="refsect1 examples" id="refsect1-function.symlink-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-2447">
+   <div class="example" id="example-2574">
     <p><strong>Example #1 创建一个符号连接</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -162,7 +162,70 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="115626""></a>
+<div id="allnotes">  <a name="117795""></a>
+  <div class="note">
+   <strong class="user">raat1979 at gmail dot com</strong>
+   <a href="#117795" class="date">11-Aug-2015 09:20</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Be warned that at least with php 5.3 on windows 2008 R2 the symlink function is effected by the statcache. <br />
+<br />
+I got error 183 indicating the link existed. While the symlink was actually moved to a different location by&nbsp; another process and would certainly not exist anymore.<br />
+Calling clearstatcache with a filename does not work. Most probably as the filename is converted to a device path (e.g. "\Device\HarddiskVolume1\D-Drive\www\pp\#static\index.html") which is a requirement for the windows call.<br />
+<br />
+easiest is to just call clearstatcache without a filename to resolve the issue.<br />
+<br />
+if you really want to call clearstatcache with a filename you could use readlink on the already deleted symlink (that still lives in the statcache) to get the filename. <br />
+For example something like this:<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">if(@</span><span class="default">symlink</span><span class="keyword">(</span><span class="string">'d:/www/pp/#static/index.html'</span><span class="keyword">,</span><span class="string">'d:/www/index.html'</span><span class="keyword">)===</span><span class="default">false</span><span class="keyword">){<br />
+</span><span class="comment">//link failed, perhaps a statcache issue? We try to get the target, if it is a statcache issue this should work just fine<br />
+<br />
+</span><span class="keyword">if((</span><span class="default">$rl </span><span class="keyword">= @</span><span class="default">readlink</span><span class="keyword">(</span><span class="default">$target</span><span class="keyword">))===</span><span class="default">false</span><span class="keyword">) return </span><span class="default">false</span><span class="keyword">; </span><span class="comment">//not a cache issue as stat on a non-existing file failed, something else must be wrong...<br />
+<br />
+//clear the stat cache for the actual target, strangely enough this works even-though this is the target and not the symlink to be created (*)<br />
+</span><span class="default">clearstatcache</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">,</span><span class="default">$rl</span><span class="keyword">); <br />
+<br />
+if(@</span><span class="default">symlink</span><span class="keyword">(</span><span class="default">$source</span><span class="keyword">,</span><span class="default">$target</span><span class="keyword">) ===</span><span class="default">false</span><span class="keyword">) return </span><span class="default">false</span><span class="keyword">; </span><span class="comment">//can't create the symlink<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+*It looks for PHP on windows like the statcache is maintained on the target instead of the actual symlink (this would ease in getting the file properties and limit the size of the statcache)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116958""></a>
+  <div class="note">
+   <strong class="user">flobee</strong>
+   <a href="#116958" class="date">27-Mar-2015 12:55</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+sym/hard linking i love to do it relative a lot but not that trivial when thinking wrong :-)<br />
+manpage says: the target is the _linkname_ and from that point to create relative links successful is to start from the directory where the link should be created e.g.: <br />
+/myfiles/now/here/<br />
+/myfiles/links/<br />
+<br />
+chdir( realpath(dirname($target))); <br />
+You need to create/find out the relativ path to the source, otherwise the absolut path will be used in a link.<br />
+<br />
+if you start to create the target path from the source eg: <br />
+"/myfiles/now/here/../../later/" and links should go to /myfiles/later/ you need to use realpath( dirname() ) set the new location using chdir() and start from here to link to the source which is ../now/here/<br />
+This you can find out e.g.: when having the absolut path of source and target:<br />
+$dirTo = realpath(dirname($to));<br />
+chdir($dirTo);<br />
+$linkName = basename($to);<br />
+$target = $dirTo . DIRECTORY_SEPARATOR . $linkName;<br />
+$srcFile = getRelativeDirectory($from, $to); //basicly a function which will find the from -&gt; to, but in this case the from ist the target where you need to start. <br />
+below you can find some examples how to split the path in chunks to find a relativ path</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115626""></a>
   <div class="note">
    <strong class="user">lingtalfi</strong>
    <a href="#115626" class="date">28-Aug-2014 06:09</a>

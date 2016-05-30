@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.iconv" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">iconv</h1>
-  <p class="verinfo">(PHP 4 &gt;= 4.0.5, PHP 5)</p><p class="refpurpose"><span class="refname">iconv</span> &mdash; <span class="dc-title">字符串按要求的字符编码来转换</span></p>
+  <p class="verinfo">(PHP 4 &gt;= 4.0.5, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">iconv</span> &mdash; <span class="dc-title">字符串按要求的字符编码来转换</span></p>
 
  </div>
  
@@ -108,7 +108,7 @@
  <div class="refsect1 examples" id="refsect1-function.iconv-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-2494">
+   <div class="example" id="example-2622">
     <p><strong>Example #1 <span class="function"><strong>iconv()</strong></span> 例子</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -137,7 +137,124 @@ This is the Euro symbol &#039;
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116178""></a>
+<div id="allnotes">  <a name="119137""></a>
+  <div class="note">
+   <strong class="user">Daniel Klein</strong>
+   <a href="#119137" class="date">08-Apr-2016 06:12</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I just found out today that the Windows and *NIX versions of PHP use different iconv libraries and are not very consistent with each other.<br />
+<br />
+Here is a repost of my earlier code that now works on more systems. It converts as much as possible and replaces the rest with question marks:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">if (!</span><span class="default">function_exists</span><span class="keyword">(</span><span class="string">'utf8_to_ascii'</span><span class="keyword">)) {<br />
+&nbsp; </span><span class="default">setlocale</span><span class="keyword">(</span><span class="default">LC_CTYPE</span><span class="keyword">, </span><span class="string">'en_AU.utf8'</span><span class="keyword">);<br />
+&nbsp; if (@</span><span class="default">iconv</span><span class="keyword">(</span><span class="string">"UTF-8"</span><span class="keyword">, </span><span class="string">"ASCII//IGNORE//TRANSLIT"</span><span class="keyword">, </span><span class="string">'é'</span><span class="keyword">) === </span><span class="default">false</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// PHP is probably using the glibc library (*NIX)<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">function </span><span class="default">utf8_to_ascii</span><span class="keyword">(</span><span class="default">$text</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; return </span><span class="default">iconv</span><span class="keyword">(</span><span class="string">"UTF-8"</span><span class="keyword">, </span><span class="string">"ASCII//TRANSLIT"</span><span class="keyword">, </span><span class="default">$text</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp; }<br />
+&nbsp; else {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// PHP is probably using the libiconv library (Windows)<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">function </span><span class="default">utf8_to_ascii</span><span class="keyword">(</span><span class="default">$text</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; if (</span><span class="default">is_string</span><span class="keyword">(</span><span class="default">$text</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Includes combinations of characters that present as a single glyph<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$text </span><span class="keyword">= </span><span class="default">preg_replace_callback</span><span class="keyword">(</span><span class="string">'/\X/u'</span><span class="keyword">, </span><span class="default">__FUNCTION__</span><span class="keyword">, </span><span class="default">$text</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp;&nbsp; elseif (</span><span class="default">is_array</span><span class="keyword">(</span><span class="default">$text</span><span class="keyword">) &amp;&amp; </span><span class="default">count</span><span class="keyword">(</span><span class="default">$text</span><span class="keyword">) == </span><span class="default">1 </span><span class="keyword">&amp;&amp; </span><span class="default">is_string</span><span class="keyword">(</span><span class="default">$text</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">])) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// IGNORE characters that can't be TRANSLITerated to ASCII<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$text </span><span class="keyword">= </span><span class="default">iconv</span><span class="keyword">(</span><span class="string">"UTF-8"</span><span class="keyword">, </span><span class="string">"ASCII//IGNORE//TRANSLIT"</span><span class="keyword">, </span><span class="default">$text</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// The documentation says that iconv() returns false on failure but it returns ''<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if (</span><span class="default">$text </span><span class="keyword">=== </span><span class="string">'' </span><span class="keyword">|| !</span><span class="default">is_string</span><span class="keyword">(</span><span class="default">$text</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$text </span><span class="keyword">= </span><span class="string">'?'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; elseif (</span><span class="default">preg_match</span><span class="keyword">(</span><span class="string">'/\w/'</span><span class="keyword">, </span><span class="default">$text</span><span class="keyword">)) {&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="comment">// If the text contains any letters...<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$text </span><span class="keyword">= </span><span class="default">preg_replace</span><span class="keyword">(</span><span class="string">'/\W+/'</span><span class="keyword">, </span><span class="string">''</span><span class="keyword">, </span><span class="default">$text</span><span class="keyword">); </span><span class="comment">// ...then remove all non-letters<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">}<br />
+&nbsp;&nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp;&nbsp; else {&nbsp; </span><span class="comment">// $text was not a string<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$text </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp;&nbsp; return </span><span class="default">$text</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp; }<br />
+}</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117312""></a>
+  <div class="note">
+   <strong class="user">Bas Vijfwinkel</strong>
+   <a href="#117312" class="date">20-May-2015 04:13</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+You can use iconv in order to access filenames or paths that containt Japanese (and probably also Koreans and Chinese) characters that would normally not be processed correctly by 'copy', 'fopen', 'rename', etc...<br />
+<br />
+<span class="default">&lt;?PHP<br />
+<br />
+</span><span class="keyword">function </span><span class="default">convertPath</span><span class="keyword">(</span><span class="default">$path</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">//split networkpath into parts<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$parts </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">(</span><span class="string">'\\'</span><span class="keyword">,</span><span class="default">$path</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// convert each part to SJIS<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">foreach(</span><span class="default">$parts </span><span class="keyword">as </span><span class="default">$index </span><span class="keyword">=&gt; </span><span class="default">$part</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="default">$parts</span><span class="keyword">[</span><span class="default">$index</span><span class="keyword">] = </span><span class="default">iconv</span><span class="keyword">(</span><span class="string">'UTF-8'</span><span class="keyword">,</span><span class="string">'SJIS//IGNORE'</span><span class="keyword">,</span><span class="default">$part</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }&nbsp; &nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// put the network path back together <br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">return </span><span class="default">implode</span><span class="keyword">(</span><span class="string">'\\'</span><span class="keyword">,</span><span class="default">$parts</span><span class="keyword">);<br />
+}<br />
+<br />
+</span><span class="default">$oldname </span><span class="keyword">= </span><span class="default">convertPath</span><span class="keyword">(</span><span class="string">'c:/Temp/ほげほげ.pdf'</span><span class="keyword">);<br />
+</span><span class="default">$newname&nbsp; </span><span class="keyword">= </span><span class="default">convertPath</span><span class="keyword">(</span><span class="string">'\\\\PFSV0100\\DATA\\06：個人別\\333328_ほげほげ\\test_あいうえお.pdf'</span><span class="keyword">);<br />
+<br />
+</span><span class="default">copy</span><span class="keyword">(</span><span class="default">$oldname</span><span class="keyword">, </span><span class="default">$newname</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Note that there are some characters which do not have a SJIS equivalent like '②'.<br />
+They will be omitted by iconv without any error or warning.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117066""></a>
+  <div class="note">
+   <strong class="user">slogic</strong>
+   <a href="#117066" class="date">10-Apr-2015 04:46</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Valid cyrillic OEM codepage name is "cp866".</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116951""></a>
+  <div class="note">
+   <strong class="user">Nopius</strong>
+   <a href="#116951" class="date">26-Mar-2015 11:08</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+As orrd101 said, there is a bug with //IGNORE in recent PHP versions (we use 5.6.5) where we couldn't convert some strings (i.e. "?" from UTF8 to CP1251 with //IGNORE). <br />
+But we have found a workaround and now we use both //TRANSLIT and //IGNORE flags:<br />
+$text="?";<br />
+iconv("UTF8", "CP1251//TRANSLIT//IGNORE", $text);</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116178""></a>
   <div class="note">
    <strong class="user">atelier at degoy dot com</strong>
    <a href="#116178" class="date">19-Nov-2014 04:41</a>

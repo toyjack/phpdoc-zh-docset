@@ -27,7 +27,7 @@
  <div class="refnamediv">
   <h1 class="refname">mysqli_stmt::bind_param</h1>
   <h1 class="refname">mysqli_stmt_bind_param</h1>
-  <p class="verinfo">(PHP 5)</p><p class="refpurpose"><span class="refname">mysqli_stmt::bind_param</span> -- <span class="refname">mysqli_stmt_bind_param</span> &mdash; <span class="dc-title">Binds variables to a prepared statement as parameters</span></p>
+  <p class="verinfo">(PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">mysqli_stmt::bind_param</span> -- <span class="refname">mysqli_stmt_bind_param</span> &mdash; <span class="dc-title">Binds variables to a prepared statement as parameters</span></p>
 
  </div>
 
@@ -163,7 +163,7 @@ stmt</code></dt>
 
  <div class="refsect1 examples" id="refsect1-mysqli-stmt.bind-param-examples">
   <h3 class="title">范例</h3>
-  <div class="example" id="example-1731">
+  <div class="example" id="example-1797">
    <p><strong>Example #1 面向对象风格</strong></p>
    <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -173,7 +173,7 @@ stmt</code></dt>
    </div>
 
   </div>
-  <div class="example" id="example-1732">
+  <div class="example" id="example-1798">
    <p><strong>Example #2 过程化风格</strong></p>
    <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -213,7 +213,142 @@ stmt</code></dt>
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="115028""></a>
+<div id="allnotes">  <a name="118951""></a>
+  <div class="note">
+   <strong class="user">travis at twooutrally dot com</strong>
+   <a href="#118951" class="date">06-Mar-2016 02:59</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Parameter type matters more than you might think!<br />
+<br />
+A cautionary tail to any who would seek to find less than thorough solutions for automating prepared statements. Take the following mysqli_stmt extension method for example. <br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">public function </span><span class="default">param_type</span><span class="keyword">(</span><span class="default">$param</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">ctype_digit</span><span class="keyword">((string) </span><span class="default">$param</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$param </span><span class="keyword">&lt;= </span><span class="default">PHP_INT_MAX </span><span class="keyword">? </span><span class="string">'i' </span><span class="keyword">: </span><span class="string">'s'</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">is_numeric</span><span class="keyword">(</span><span class="default">$param</span><span class="keyword">))<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="string">'d'</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="string">'s'</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+At face value this seems like a perfectly straightforward and innocuous function. Something like this served as a small piece in a larger automation extension which dutifully served its purpose efficiently handling hundreds of thousands of queries a day.<br />
+<br />
+Now I know what you're thinking: it doesn't handle blob types. Well we didn't work with blob types (and still don't) so that's never been an issue. This problem was far more insidious and ultimately pernicious than that.<br />
+<br />
+So what went wrong? The problem began to surface when we started automating SELECT queries on a newly created index for a column designed to store telephone numbers. The column was of type VARCHAR but the data stored was always formatted as an integer. Not a problem when performing a write operation but as soon as we went to read from the table on this index everything went to hell.<br />
+<br />
+We're not entirely sure, but as near as we can tell the act of binding a parameter to a VARCHAR index as 'i' instead of 's' on a read query is detrimental in the following way: MySQL will ignore the b-tree on the index and perform a full table scan. With smaller tables this may never present itself as a significant performance issue. When your tables get into the tens of millions of rows, however...</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117761""></a>
+  <div class="note">
+   <strong class="user">bboymarco</strong>
+   <a href="#117761" class="date">04-Aug-2015 09:14</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I did for myself a really useful function (cause I didn't want to use eval() or reflection) that create for you a prepared statement with an indefinite number of parameters and return an indefinite number of result columns. Last two arguments are optional so when you don't have parameters to send to MySQL you can avoid them. I decided to share it here cause it may&nbsp; be helpful and save some time and brainstorming:<br />
+<br />
+function prepared_stmt($con, $query, $type = "", $param = array()){<br />
+<br />
+&nbsp;&nbsp;&nbsp; if($stmt = mysqli_prepare($con, $query)){<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $refarg = array($stmt, $type);//First two parameter of mysqli_stmt_bind_param<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach ($param as $key =&gt; $value)//create array of parameters' references<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $refarg[] =&amp; $param[$key];<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if($type != "")//Jump instruction if argument $type is missing<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; call_user_func_array("mysqli_stmt_bind_param", $refarg);//bind parameters with dinamic length<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(mysqli_stmt_execute($stmt)){//check if execution go fine<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $cols = mysqli_field_count($con);//retrive the number of columns of the resultset<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $result = array_fill(0, $cols, NULL);//create an empty array with the same length of the columns<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $ref = array($stmt);//first argument of mysqli_stmt_bind_result<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; foreach ($result as $key =&gt; $value)//create array of empty cells' references<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $ref[] =&amp; $result[$key];<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; call_user_func_array("mysqli_stmt_bind_result", $ref);//bind results with dinamic length<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return $ref;//return statement and columns references<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }//if<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; else<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return false;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+<br />
+&nbsp;&nbsp;&nbsp; }//if<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; else<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return false;<br />
+<br />
+}//prepared_stmt<br />
+<br />
+Example of call:<br />
+<br />
+$hello = prepared_stmt($con, "SELECT Example FROM table WHERE Col=?", "s", array("LOL");<br />
+//count($hello) is equal to 2<br />
+//$hello[0] Statement reference<br />
+//$hello[1] Example column field where to find values after fetching<br />
+<br />
+while(mysqli_stmt_fetch($hello[0]))<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; echo $hello[1] . "&lt;br&gt;";//This will print all value of the Example column</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117627""></a>
+  <div class="note">
+   <strong class="user">code at roberthairgrove dot com</strong>
+   <a href="#117627" class="date">12-Jul-2015 06:14</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+When I tried to use nickv9's class BindParam, I had to make a small change to get it to work:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">// snip...<br />
+</span><span class="keyword">public function </span><span class="default">add</span><span class="keyword">( </span><span class="default">$type</span><span class="keyword">, &amp;</span><span class="default">$value </span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">values</span><span class="keyword">[] = &amp;</span><span class="default">$value</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">types </span><span class="keyword">.= </span><span class="default">$type</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+</span><span class="comment">// snip...<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Note the additional reference notation used within the function to add the parameter to the class variable (&amp;$value instead of $value), not just in the parameter list.<br />
+<br />
+Otherwise, I got an error from call_user_func_array():<br />
+"Parameter 2 to mysqli_stmt::bind_param() expected to be a reference, value given..."</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115028""></a>
   <div class="note">
    <strong class="user">jmdoren at ok dot cl</strong>
    <a href="#115028" class="date">15-May-2014 03:36</a>

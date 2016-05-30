@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.base64-encode" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">base64_encode</h1>
-  <p class="verinfo">(PHP 4, PHP 5)</p><p class="refpurpose"><span class="refname">base64_encode</span> &mdash; <span class="dc-title">使用 MIME base64 对数据进行编码</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">base64_encode</span> &mdash; <span class="dc-title">使用 MIME base64 对数据进行编码</span></p>
 
  </div>
  <div class="refsect1 description" id="refsect1-function.base64-encode-description">
@@ -83,7 +83,7 @@
  <div class="refsect1 examples" id="refsect1-function.base64-encode-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-4101">
+   <div class="example" id="example-4492">
     <p><strong>Example #1 <span class="function"><strong>base64_encode()</strong></span> 示例</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -119,7 +119,99 @@ VGhpcyBpcyBhbiBlbmNvZGVkIHN0cmluZw==
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116348""></a>
+<div id="allnotes">  <a name="119327""></a>
+  <div class="note">
+   <strong class="user">alf at trance dot net</strong>
+   <a href="#119327" class="date">13-May-2016 11:31</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+@gutzmer at usa dot net<br />
+<br />
+Nice idea! However...<br />
+<br />
+The function base64url_decode doesn't pad strings longer than 4 chars.<br />
+str_pad will only pad the string if the second argument is larger than the length of the original string. So the correct function should be:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">base64url_decode</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">) {<br />
+&nbsp; </span><span class="default">$len </span><span class="keyword">= </span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">);<br />
+&nbsp; return </span><span class="default">base64_decode</span><span class="keyword">(</span><span class="default">str_pad</span><span class="keyword">(</span><span class="default">strtr</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">, </span><span class="string">'-_'</span><span class="keyword">, </span><span class="string">'+/'</span><span class="keyword">), </span><span class="default">$len </span><span class="keyword">+ </span><span class="default">$len </span><span class="keyword">% </span><span class="default">4</span><span class="keyword">, </span><span class="string">'='</span><span class="keyword">, </span><span class="default">STR_PAD_RIGHT</span><span class="keyword">));<br />
+} <br />
+<br />
+</span><span class="default">Note that base64_decode works fine without the padding</span><span class="keyword">, </span><span class="default">that is why your </span><span class="keyword">function </span><span class="default">works</span><span class="keyword">.</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118051""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#118051" class="date">25-Sep-2015 02:26</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Wikipedia has a list of 8 or so variations on the last 2 characters in Base64&nbsp; (https://en.wikipedia.org/wiki/Base64). The following functions can handle all of them:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">base64_encode2</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">, </span><span class="default">$a </span><span class="keyword">= </span><span class="string">"+/="</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$l </span><span class="keyword">= </span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">$l </span><span class="keyword">=== </span><span class="default">3</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">strtr</span><span class="keyword">(</span><span class="default">base64_encode</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">), </span><span class="string">"+/="</span><span class="keyword">, </span><span class="default">$a</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; } else if (</span><span class="default">$l </span><span class="keyword">=== </span><span class="default">2</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">rtrim</span><span class="keyword">(</span><span class="default">strtr</span><span class="keyword">(</span><span class="default">base64_encode</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">), </span><span class="string">"+/"</span><span class="keyword">, </span><span class="default">$a</span><span class="keyword">), </span><span class="string">'='</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; throw new </span><span class="default">InvalidArgumentException</span><span class="keyword">(</span><span class="string">"Argument #2 must be 2 or 3 bytes."</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+function </span><span class="default">base64_decode2</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">, </span><span class="default">$strict </span><span class="keyword">= </span><span class="default">false</span><span class="keyword">, </span><span class="default">$a </span><span class="keyword">= </span><span class="string">"+/="</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$l </span><span class="keyword">= </span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">$l </span><span class="keyword">=== </span><span class="default">3</span><span class="keyword">) {&nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">base64_decode</span><span class="keyword">(</span><span class="default">strtr</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">, </span><span class="default">$a</span><span class="keyword">, </span><span class="string">"+/="</span><span class="keyword">), </span><span class="default">$strict</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; } else if (</span><span class="default">$l </span><span class="keyword">=== </span><span class="default">2</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">base64_decode</span><span class="keyword">(</span><span class="default">strtr</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">, </span><span class="default">$a</span><span class="keyword">, </span><span class="string">"+/"</span><span class="keyword">), </span><span class="default">$strict</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; throw new </span><span class="default">InvalidArgumentException</span><span class="keyword">(</span><span class="string">"Argument #2 must be 2 or 3 bytes."</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Example usage:<br />
+<br />
+<span class="default">&lt;?php<br />
+$decoded </span><span class="keyword">= </span><span class="string">"ABC123"</span><span class="keyword">;<br />
+<br />
+</span><span class="comment">// base64 XML identifier:<br />
+</span><span class="default">$encoded </span><span class="keyword">= </span><span class="default">base64_encode2</span><span class="keyword">(</span><span class="default">$decoded</span><span class="keyword">, </span><span class="string">"_:"</span><span class="keyword">);<br />
+</span><span class="default">$decoded </span><span class="keyword">= </span><span class="default">base64_decode2</span><span class="keyword">(</span><span class="default">$encoded</span><span class="keyword">, </span><span class="default">false</span><span class="keyword">, </span><span class="string">"_:"</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// base64 URL (RFC 6920):<br />
+// base64 XML name token:<br />
+</span><span class="default">$encoded </span><span class="keyword">= </span><span class="default">base64_encode</span><span class="keyword">(</span><span class="default">$decoded</span><span class="keyword">, </span><span class="string">"-_"</span><span class="keyword">)<br />
+</span><span class="default">$decoded </span><span class="keyword">= </span><span class="default">base64_decode</span><span class="keyword">(</span><span class="default">$encoded</span><span class="keyword">, </span><span class="default">false</span><span class="keyword">, </span><span class="string">"-_"</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// modified base64 XML name token:<br />
+</span><span class="default">$encoded </span><span class="keyword">= </span><span class="default">base64_encode2</span><span class="keyword">(</span><span class="default">$decoded</span><span class="keyword">, </span><span class="string">".-"</span><span class="keyword">);<br />
+</span><span class="default">$decoded </span><span class="keyword">= </span><span class="default">base64_decode2</span><span class="keyword">(</span><span class="default">$encoded</span><span class="keyword">, </span><span class="default">false</span><span class="keyword">, </span><span class="string">".-"</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// modified base64 for Regular Expressions:<br />
+</span><span class="default">$encoded </span><span class="keyword">= </span><span class="default">base64_encode2</span><span class="keyword">(</span><span class="default">$decoded</span><span class="keyword">, </span><span class="string">"!-"</span><span class="keyword">);<br />
+</span><span class="default">$decoded </span><span class="keyword">= </span><span class="default">base64_decode2</span><span class="keyword">(</span><span class="default">$encoded</span><span class="keyword">, </span><span class="default">false</span><span class="keyword">, </span><span class="string">"!-"</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// base64 used in YUI library:<br />
+</span><span class="default">$encoded </span><span class="keyword">= </span><span class="default">base64_encode2</span><span class="keyword">(</span><span class="default">$decoded</span><span class="keyword">, </span><span class="string">"._-"</span><span class="keyword">);<br />
+</span><span class="default">$decoded </span><span class="keyword">= </span><span class="default">base64_decode2</span><span class="keyword">(</span><span class="default">$encoded</span><span class="keyword">, </span><span class="default">false</span><span class="keyword">, </span><span class="string">"._-"</span><span class="keyword">);<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116348""></a>
   <div class="note">
    <strong class="user">sadhooklay [at] gmail [dot] com</strong>
    <a href="#116348" class="date">16-Dec-2014 09:26</a>
@@ -1134,37 +1226,6 @@ header("Content-type: $row[1]");<br />
 echo stripslashes(base64_decode($row[0]));<br />
 <br />
 This strategy is good for Microsoft Word, Acrobat PDF, JPG image and so on (even zipped files!!!)</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="46962""></a>
-  <div class="note">
-   <strong class="user">mightymrj at hotmail dot com</strong>
-   <a href="#46962" class="date">28-Oct-2004 07:35</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Problem: mime attachments sending as blank or almost completely blank documents (all data is lost)<br />
-<br />
-Explanation: After a couple days of trying to mime pdf attachments without losing all data, I finally came across this function in some obsolete obscure post: <br />
-<br />
-set_magic_quotes_runtime()<br />
-<br />
-This is set to on by default in the machine, and it causes fread() and/or base64_encode() (both used in most mime examples I've seen) to read or encrypt binary without slashes for special characters.&nbsp; This causes sent files to process incorrectly, breaking, thus truncating most of the data in the file.&nbsp; <br />
-<br />
-Fix: pass 0 to this function and it will do a one time turn off while your code executes.<br />
-<br />
-example:<br />
-<span class="default">&lt;?php<br />
-&nbsp;&nbsp; set_magic_quotes_runtime</span><span class="keyword">(</span><span class="default">0</span><span class="keyword">);<br />
-</span><span class="default">?&gt;<br />
-</span><br />
-This can also been turned off in the php.ini file, but I'm not sure what uses that setting or what the consequences might be.<br />
-<br />
-info:<br />
-&nbsp;&nbsp; <a href="http://us2.php.net/manual/en/function.set-magic-quotes-runtime.php" rel="nofollow" target="_blank">http://us2.php.net/manual/en/function.set-magic-quotes-runtime.php</a></span>
 </code>
     </div>
    </div>

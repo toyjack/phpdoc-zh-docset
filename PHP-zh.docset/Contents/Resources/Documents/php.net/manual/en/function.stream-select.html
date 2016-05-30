@@ -28,7 +28,7 @@
   <div id="layout-content"><div id="function.stream-select" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">stream_select</h1>
-  <p class="verinfo">(PHP 4 &gt;= 4.3.0, PHP 5)</p><p class="refpurpose"><span class="refname">stream_select</span> &mdash; <span class="dc-title">Runs the equivalent of the select() system call on the given
+  <p class="verinfo">(PHP 4 &gt;= 4.3.0, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">stream_select</span> &mdash; <span class="dc-title">Runs the equivalent of the select() system call on the given
    arrays of streams with a timeout specified by tv_sec and tv_usec </span></p>
 
  </div>
@@ -191,7 +191,7 @@
  <div class="refsect1 examples" id="refsect1-function.stream-select-examples">
   <h3 class="title">·¶Àý</h3>
   <p class="para">
-   <div class="example" id="example-4051">
+   <div class="example" id="example-4442">
     <p><strong>Example #1 <span class="function"><strong>stream_select()</strong></span> Example</strong></p>
     <div class="example-contents"><p>
      This example checks to see if data has arrived for reading on either
@@ -283,7 +283,41 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="115400""></a>
+<div id="allnotes">  <a name="118775""></a>
+  <div class="note">
+   <strong class="user">asphp at dsgml dot com</strong>
+   <a href="#118775" class="date">05-Feb-2016 06:28</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Make sure not to pass the same variable in the 3 arguments to stream_select, or you'll only get the results from one of them and the others will be overwritten.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117492""></a>
+  <div class="note">
+   <strong class="user">doingitwrong at mailismagic dot com</strong>
+   <a href="#117492" class="date">18-Jun-2015 07:35</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you use stream_select() with a blocking stream, you are doing it wrong!<br />
+<br />
+Just because this function returns something in one or more of the arrays does NOT mean that a future read or write operation will not block.<br />
+<br />
+The above sentence is the most important sentence you will ever read regarding stream manipulation.&nbsp; Using stream_select() with blocking streams is a very common amateur mistake and causes major headaches when tracking down usage of this and similar select() system functions.&nbsp; PHP (and really the underlying OS) should verify that the supplied stream set is not blocking and throw an error/exception if any socket is set to block so that people are forced to fix their code.&nbsp; The documentation for stream_select() is, at best, misleading.<br />
+<br />
+If you want a non-blocking stream, then set the stream to not block.&nbsp; Otherwise, live with the blocking stream.&nbsp; That is, after all, the whole point of blocking - to block indefinitely until the operation completes.&nbsp; select() is built for non-blocking streams ONLY.&nbsp; Any other use will result in very hard to track down bugs.<br />
+<br />
+I got the above lecture many years ago after encountering the very bugs I mention.&nbsp; I fixed my code and now correct similar mistakes when I run into the issue elsewhere.&nbsp; Writing code for non-blocking streams is simpler than trying to write hacks for blocking streams with select() functions and ending up with application bugs.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115400""></a>
   <div class="note">
    <strong class="user">rob at associatedtechs dot com</strong>
    <a href="#115400" class="date">18-Jul-2014 09:26</a>

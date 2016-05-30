@@ -27,7 +27,7 @@
 
  <div class="refnamediv">
   <h1 class="refname">preg_match_all</h1>
-  <p class="verinfo">(PHP 4, PHP 5)</p><p class="refpurpose"><span class="refname">preg_match_all</span> &mdash; <span class="dc-title">执行一个全局正则表达式匹配</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">preg_match_all</span> &mdash; <span class="dc-title">执行一个全局正则表达式匹配</span></p>
 
  </div>
 
@@ -290,7 +290,7 @@ example: , this is a test
  <div class="refsect1 examples" id="refsect1-function.preg-match-all-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-4817">
+   <div class="example" id="example-5192">
     <p><strong>Example #1 查找所有文本中的电话号码。</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -302,7 +302,7 @@ example: , this is a test
    </div>
   </p>
   <p class="para">
-   <div class="example" id="example-4818">
+   <div class="example" id="example-5193">
     <p><strong>Example #2 查找匹配的HTML标签（贪婪）</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -330,7 +330,7 @@ part 4: &lt;/a&gt;
    </div>
   </p>
   <p class="para">
-   <div class="example" id="example-4819">
+   <div class="example" id="example-5194">
     <p><strong>Example #3 使用子命名组</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -405,7 +405,221 @@ Array
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="114857""></a>
+<div id="allnotes">  <a name="118805""></a>
+  <div class="note">
+   <strong class="user">stamster at gmail dot com</strong>
+   <a href="#118805" class="date">09-Feb-2016 08:55</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Be careful with this pattern match and large input buffer on preg_match_* functions.<br />
+<br />
+<span class="default">&lt;?php<br />
+$pattern </span><span class="keyword">= </span><span class="string">'/\{(?:[^{}]|(?R))*\}/'</span><span class="keyword">;<br />
+<br />
+</span><span class="default">preg_match_all</span><span class="keyword">(</span><span class="default">$pattern</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">, </span><span class="default">$matches</span><span class="keyword">); <br />
+</span><span class="default">?&gt;<br />
+</span><br />
+if $buffer is 80+ KB in size, you'll end up with segfault! <br />
+<br />
+[89396.588854] php[4384]: segfault at 7ffd6e2bdeb0 ip 00007fa20c8d67ed sp 00007ffd6e2bde70 error 6 in libpcre.so.3.13.1[7fa20c8c3000+3c000]<br />
+<br />
+This is due to the PCRE recursion. This is a known bug in PHP since 2008, but it's source is not PHP itself but PCRE library. <br />
+<br />
+Rasmus Lerdorf has the answer: https://bugs.php.net/bug.php?id=45735#1365812629<br />
+<br />
+"The problem here is that there is no way to detect run-away regular expressions <br />
+here without huge performance and memory penalties. Yes, we could build PCRE in a <br />
+way that it wouldn't segfault and we could crank up the default backtrack limit <br />
+to something huge, but it would slow every regex call down by a lot. If PCRE <br />
+provided a way to handle this in a more graceful manner without the performance <br />
+hit we would of course use it."</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118345""></a>
+  <div class="note">
+   <strong class="user">matt at lvl99 dot com</strong>
+   <a href="#118345" class="date">19-Nov-2015 11:30</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I had been crafting and testing some regexp patterns online using the tools Regex101 and a `preg_match_all()` tester and found that the regexp patterns I wrote worked fine on them, just not in my code.<br />
+<br />
+My problem was not double-escaping backslash characters:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">// Input test<br />
+</span><span class="default">$input </span><span class="keyword">= </span><span class="string">"\"something\",\"something here\",\"some\nnew\nlines\",\"this is the end\""</span><span class="keyword">;<br />
+<br />
+</span><span class="comment">// Work with online regexp testers, doesn't work in PHP<br />
+</span><span class="default">preg_match_all</span><span class="keyword">( </span><span class="string">"/(?:,|^)(?&lt;!\\)\".*?(?&lt;!\\)\"(?:(?=,)|$)/s"</span><span class="keyword">, </span><span class="default">$input</span><span class="keyword">, </span><span class="default">$matches </span><span class="keyword">);<br />
+<br />
+</span><span class="comment">/*<br />
+Outputs: NULL<br />
+*/<br />
+<br />
+// Works with online regexp testers, does work in PHP<br />
+</span><span class="default">preg_match_all</span><span class="keyword">( </span><span class="string">"/(?:,|^)(?&lt;!\\\\)\".*?(?&lt;!\\\\)\"(?:(?=,)|$)/s"</span><span class="keyword">, </span><span class="default">$input</span><span class="keyword">, </span><span class="default">$matches </span><span class="keyword">);<br />
+<br />
+</span><span class="comment">/*<br />
+Outputs:<br />
+array(2) {<br />
+&nbsp; [0]=&gt;<br />
+&nbsp; array(4) {<br />
+&nbsp;&nbsp;&nbsp; [0]=&gt;<br />
+&nbsp;&nbsp;&nbsp; string(11) ""something""<br />
+&nbsp;&nbsp;&nbsp; [1]=&gt;<br />
+&nbsp;&nbsp;&nbsp; string(17) ","something here""<br />
+&nbsp;&nbsp;&nbsp; [2]=&gt;<br />
+&nbsp;&nbsp;&nbsp; string(17) ","some<br />
+new<br />
+lines""<br />
+&nbsp;&nbsp;&nbsp; [3]=&gt;<br />
+&nbsp;&nbsp;&nbsp; string(18) ","this is the end""<br />
+&nbsp; }<br />
+&nbsp; [1]=&gt;<br />
+&nbsp; array(4) {<br />
+&nbsp;&nbsp;&nbsp; [0]=&gt;<br />
+&nbsp;&nbsp;&nbsp; string(9) "something"<br />
+&nbsp;&nbsp;&nbsp; [1]=&gt;<br />
+&nbsp;&nbsp;&nbsp; string(14) "something here"<br />
+&nbsp;&nbsp;&nbsp; [2]=&gt;<br />
+&nbsp;&nbsp;&nbsp; string(14) "some<br />
+new<br />
+lines"<br />
+&nbsp;&nbsp;&nbsp; [3]=&gt;<br />
+&nbsp;&nbsp;&nbsp; string(15) "this is the end"<br />
+&nbsp; }<br />
+}<br />
+*/<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118289""></a>
+  <div class="note">
+   <strong class="user">stas kuryan aka stafox</strong>
+   <a href="#118289" class="date">09-Nov-2015 05:57</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Here is a awesome online regex editor https://regex101.com/<br />
+which helps you test your regular expressions (prce, js, python) with real-time highlighting of regex match on data input.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117352""></a>
+  <div class="note">
+   <strong class="user">vojjov dot artem at ya dot ru</strong>
+   <a href="#117352" class="date">27-May-2015 12:40</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+// Here is function that allows you to preg_match_all array of patters<br />
+<br />
+function getMatches($pattern, $subject) {<br />
+&nbsp;&nbsp;&nbsp; $matches = array();<br />
+<br />
+&nbsp;&nbsp;&nbsp; if (is_array($pattern)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach ($pattern as $p) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $m = getMatches($p, $subject);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; foreach ($m as $key =&gt; $match) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (isset($matches[$key])) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $matches[$key] = array_merge($matches[$key], $m[$key]);&nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $matches[$key] = $m[$key];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; preg_match_all($pattern, $subject, $matches);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; return $matches;<br />
+}<br />
+<br />
+$patterns = array(<br />
+&nbsp;&nbsp;&nbsp; '/&lt;span&gt;(.*?)&lt;\/span&gt;/',<br />
+&nbsp;&nbsp;&nbsp; '/&lt;a href=".*?"&gt;(.*?)&lt;\/a&gt;/'<br />
+);<br />
+<br />
+$html = '&lt;span&gt;some text&lt;/span&gt;';<br />
+$html .= '&lt;span&gt;some text in another span&lt;/span&gt;';<br />
+$html .= '&lt;a href="path/"&gt;here is the link&lt;/a&gt;';<br />
+$html .= '&lt;address&gt;address is here&lt;/address&gt;';<br />
+$html .= '&lt;span&gt;here is one more span&lt;/span&gt;';<br />
+<br />
+$matches = getMatches($patterns, $html);<br />
+<br />
+print_r($matches); // result is below<br />
+<br />
+/*<br />
+Array<br />
+(<br />
+&nbsp;&nbsp;&nbsp; [0] =&gt; Array<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; (<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [0] =&gt; &lt;span&gt;some text&lt;/span&gt;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [1] =&gt; &lt;span&gt;some text in another span&lt;/span&gt;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [2] =&gt; &lt;span&gt;here is one more span&lt;/span&gt;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [3] =&gt; &lt;a href="path/"&gt;here is the link&lt;/a&gt;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; )<br />
+<br />
+&nbsp;&nbsp;&nbsp; [1] =&gt; Array<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; (<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [0] =&gt; some text<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [1] =&gt; some text in another span<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [2] =&gt; here is one more span<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [3] =&gt; here is the link<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; )<br />
+<br />
+)<br />
+*/</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117285""></a>
+  <div class="note">
+   <strong class="user">Daniel Klein</strong>
+   <a href="#117285" class="date">17-May-2015 02:26</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The code that john at mccarthy dot net posted is not necessary. If you want your results grouped by individual match simply use:<br />
+<br />
+&lt;?<br />
+preg_match_all($pattern, $string, $matches, PREG_SET_ORDER);<br />
+?&gt;<br />
+<br />
+E.g.<br />
+<br />
+&lt;?<br />
+preg_match_all('/([GH])([12])([!?])/', 'G1? H2!', $matches); // Default PREG_PATTERN_ORDER<br />
+// $matches = array(0 =&gt; array(0 =&gt; 'G1?', 1 =&gt; 'H2!'),<br />
+//&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 1 =&gt; array(0 =&gt; 'G', 1 =&gt; 'H'),<br />
+//&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 2 =&gt; array(0 =&gt; '1', 1 =&gt; '2'),<br />
+//&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 3 =&gt; array(0 =&gt; '?', 1 =&gt; '!'))<br />
+<br />
+preg_match_all('/([GH])([12])([!?])/', 'G1? H2!', $matches, PREG_SET_ORDER);<br />
+// $matches = array(0 =&gt; array(0 =&gt; 'G1?', 1 =&gt; 'G', 2 =&gt; '1', 3 =&gt; '?'),<br />
+//&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 1 =&gt; array(0 =&gt; 'H2!', 1 =&gt; 'H', 2 =&gt; '2', 3 =&gt; '!'))<br />
+?&gt;</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="114857""></a>
   <div class="note">
    <strong class="user">DarkSide</strong>
    <a href="#114857" class="date">15-Apr-2014 11:03</a>

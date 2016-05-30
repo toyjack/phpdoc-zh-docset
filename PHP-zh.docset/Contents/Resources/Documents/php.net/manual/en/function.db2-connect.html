@@ -599,7 +599,7 @@ db2set DB2COMM=TCPIP</pre>
  <div class="refsect1 examples" id="refsect1-function.db2-connect-examples">
   <h3 class="title">·¶Àý</h3>
   <p class="para">
-   <div class="example" id="example-1170">
+   <div class="example" id="example-1211">
     <p><strong>Example #1 Creating a cataloged connection</strong></p>
     <div class="example-contents"><p>
      Cataloged connections require you to have previously cataloged the target
@@ -620,7 +620,7 @@ Connection succeeded.
 </pre></div>
     </div>
    </div>
-   <div class="example" id="example-1171">
+   <div class="example" id="example-1212">
     <p><strong>Example #2 Creating an uncataloged connection</strong></p>
     <div class="example-contents"><p>
      An uncataloged connection enables you to dynamically connect to a
@@ -640,7 +640,7 @@ Connection succeeded.
 </pre></div>
     </div>
    </div>
-   <div class="example" id="example-1172">
+   <div class="example" id="example-1213">
     <p><strong>Example #3 Creating a connection with autocommit off by default</strong></p>
     <div class="example-contents"><p>
      Passing an array of options to <span class="function"><strong>db2_connect()</strong></span> enables
@@ -661,7 +661,7 @@ Autocommit is off.
 </pre></div>
     </div>
    </div>
-   <div class="example" id="example-1173">
+   <div class="example" id="example-1214">
     <p><strong>Example #4 i5/OS best performance</strong></p>
     <div class="example-contents"><p>
      To achieve best performance for your i5/OS ibm_db2 1.5.1 PHP application 
@@ -684,7 +684,7 @@ PICTURES
 </pre></div>
     </div>
    </div>
-   <div class="example" id="example-1174">
+   <div class="example" id="example-1215">
     <p><strong>Example #5 Using trusted context</strong></p>
     <div class="example-contents"><p>
      The following example shows how to enable trusted context, switch 
@@ -725,6 +725,87 @@ User has been switched.
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
- <div class="note">There are no user contributed notes for this page.</div>
+<div id="allnotes">  <a name="118073""></a>
+  <div class="note">
+   <strong class="user">d dot lanza38 at gmail dot com</strong>
+   <a href="#118073" class="date">29-Sep-2015 10:16</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+As of 09/29/2015 when using the ibm_db2 driver and specifying an invalid library list with the 'i5_libl' option, the connection will be successfully created but with a default library list.&nbsp; What happens is the connection is made and THEN the library list is attempted to be changed.&nbsp; The connection will be a success but the library list change will fail without "db2_conn_error()" or "db2_conn_errormsg()" reporting anything and a default library list will be used.&nbsp; However, "db2_stmt_error()" and "db2_stmt_errormsg()" will register with a value.&nbsp; Also if error reporting is enable, the warning will be output to the screen.&nbsp; This is not a bug, rather intended behavior according to Zend (I opened a ticked) and depending on which library list is used/swapped could lead to major problems (development VS production).&nbsp; I stumbled upon this behavior when an anomaly (which I still can't explain) was imploding my library list with the character 'Z'.&nbsp; I realized I was in my development environment but accessing production data as a result.&nbsp; Going forward I will make sure to add this additional check for good measure.<br />
+<br />
+See below to recreate behavior:<br />
+<br />
+<span class="default">&lt;?php<br />
+ini_set</span><span class="keyword">(</span><span class="string">"display_errors"</span><span class="keyword">, </span><span class="default">1</span><span class="keyword">);<br />
+<br />
+</span><span class="default">$systemName </span><span class="keyword">= </span><span class="string">'systemName'</span><span class="keyword">;<br />
+</span><span class="default">$userID </span><span class="keyword">= </span><span class="string">'userName'</span><span class="keyword">;<br />
+</span><span class="default">$password </span><span class="keyword">= </span><span class="string">'password'</span><span class="keyword">;<br />
+<br />
+</span><span class="default">$options</span><span class="keyword">[</span><span class="string">'i5_libl'</span><span class="keyword">] = </span><span class="default">implode</span><span class="keyword">(</span><span class="string">'Z'</span><span class="keyword">, array(<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'INVALID'</span><span class="keyword">,&nbsp; &nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="string">'LIB'</span><span class="keyword">,&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="string">'LIST'</span><span class="keyword">,&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="string">'IMPLODED'</span><span class="keyword">,&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="string">'WITH'</span><span class="keyword">,&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="string">'THE'</span><span class="keyword">,&nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="string">'LETTER'</span><span class="keyword">,&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="string">'Z'<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">));<br />
+<br />
+</span><span class="default">$options</span><span class="keyword">[</span><span class="string">'i5_naming'</span><span class="keyword">] = </span><span class="default">DB2_I5_NAMING_ON</span><span class="keyword">;<br />
+<br />
+</span><span class="default">$conn </span><span class="keyword">= </span><span class="default">db2_connect</span><span class="keyword">(</span><span class="default">$systemName</span><span class="keyword">, </span><span class="default">$userID</span><span class="keyword">, </span><span class="default">$password</span><span class="keyword">, </span><span class="default">$options</span><span class="keyword">);<br />
+</span><span class="comment">//This line causes "ini_set("display_errors", 1)" to dislay this warning on the screen:<br />
+//Warning: db2_connect(): Statement Execute Failed in /PATH/TO/FILE/test.php on line 58<br />
+<br />
+</span><span class="keyword">if (</span><span class="default">db2_stmt_error</span><span class="keyword">()) { </span><span class="comment">//Evaluates to true<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">echo </span><span class="string">"error ID: " </span><span class="keyword">. (</span><span class="default">db2_stmt_error</span><span class="keyword">()); </span><span class="comment">//Displays error code: 38501<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">echo </span><span class="string">"&lt;br&gt;error message: " </span><span class="keyword">. (</span><span class="default">db2_stmt_errormsg</span><span class="keyword">()); </span><span class="comment">//Displays: Trigger program or external routine detected an error. SQLCODE=-443<br />
+</span><span class="keyword">}<br />
+<br />
+echo </span><span class="string">"&lt;br /&gt;|"</span><span class="keyword">.</span><span class="default">db2_conn_error</span><span class="keyword">().</span><span class="string">" ||| "</span><span class="keyword">.</span><span class="default">db2_conn_errormsg</span><span class="keyword">().</span><span class="string">"|&lt;br /&gt;"</span><span class="keyword">; </span><span class="comment">//Only "| ||| |" is displayed<br />
+</span><span class="default">print_r</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">); </span><span class="comment">//A resource ID is displayed<br />
+</span><span class="keyword">echo </span><span class="string">"&lt;br /&gt;"</span><span class="keyword">;<br />
+<br />
+if(isset(</span><span class="default">$conn</span><span class="keyword">) &amp;&amp; </span><span class="default">$conn </span><span class="keyword">=== </span><span class="default">true</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"Boolean true&lt;br /&gt;"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">//never executes, but not expected since either false or a resource ID should be returned.<br />
+&nbsp;&nbsp;&nbsp; //Plus it is clear $conn contains a resource ID from above.<br />
+</span><span class="keyword">}<br />
+if(isset(</span><span class="default">$conn</span><span class="keyword">) &amp;&amp; </span><span class="default">$conn </span><span class="keyword">== </span><span class="default">true</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"Non-Boolean true 2&lt;br /&gt;"</span><span class="keyword">; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">//This always executes regardless of an accurate library list or not<br />
+&nbsp;&nbsp;&nbsp; //I suppose "if($conn)" would evaluate to non-boolean true so this makes sense.<br />
+</span><span class="keyword">}<br />
+if(isset(</span><span class="default">$conn</span><span class="keyword">) &amp;&amp; </span><span class="default">$conn </span><span class="keyword">== </span><span class="string">"true"</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"String true"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">//Never executes, but not expected.<br />
+</span><span class="keyword">}<br />
+if(isset(</span><span class="default">$conn</span><span class="keyword">) &amp;&amp; </span><span class="default">$conn </span><span class="keyword">=== </span><span class="default">false</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"Boolean false&lt;br /&gt;"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">//never executes because the connection itself was a success.<br />
+&nbsp;&nbsp;&nbsp; //If invalid credentials were provided this executes.<br />
+</span><span class="keyword">}<br />
+if(isset(</span><span class="default">$conn</span><span class="keyword">) &amp;&amp; </span><span class="default">$conn </span><span class="keyword">== </span><span class="default">false</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"Non-Boolean false 2&lt;br /&gt;"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">//never executes because the connection itself was a success.<br />
+&nbsp;&nbsp;&nbsp; //Added this here because I was unsure if a boolean false would be returned or not.<br />
+&nbsp;&nbsp;&nbsp; //If invalid credentials were provided this executes as well.<br />
+</span><span class="keyword">}<br />
+if(isset(</span><span class="default">$conn</span><span class="keyword">) &amp;&amp; </span><span class="default">$conn </span><span class="keyword">== </span><span class="string">"false"</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"String false"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">//never executes because the connection itself was a success.<br />
+&nbsp;&nbsp;&nbsp; //Added this here because I was unsure if a String "false" would be returned<br />
+</span><span class="keyword">}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
 </div>
 </div></div></body></html>

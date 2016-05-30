@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.openssl-csr-new" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">openssl_csr_new</h1>
-  <p class="verinfo">(PHP 4 &gt;= 4.2.0, PHP 5)</p><p class="refpurpose"><span class="refname">openssl_csr_new</span> &mdash; <span class="dc-title">Generates a CSR</span></p>
+  <p class="verinfo">(PHP 4 &gt;= 4.2.0, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">openssl_csr_new</span> &mdash; <span class="dc-title">Generates a CSR</span></p>
 
  </div>
  
@@ -215,7 +215,7 @@
  <div class="refsect1 examples" id="refsect1-function.openssl-csr-new-examples">
   <h3 class="title">·¶Àý</h3>
   <p class="para">
-   <div class="example" id="example-871">
+   <div class="example" id="example-910">
     <p><strong>Example #1 Creating a self-signed-certificate</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -233,7 +233,61 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116719""></a>
+<div id="allnotes">  <a name="117474""></a>
+  <div class="note">
+   <strong class="user">james at kirk dot com</strong>
+   <a href="#117474" class="date">16-Jun-2015 03:56</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+When in doubt, read the source code to PHP!<br />
+<br />
+$configargs is fairly opaque as to what is going on behind the scenes.&nbsp; That is, until you actually look at php_openssl_parse_config() in '/ext/openssl/openssl.c':<br />
+<br />
+&nbsp;&nbsp;&nbsp; SET_OPTIONAL_STRING_ARG("digest_alg", req-&gt;digest_name,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; CONF_get_string(req-&gt;req_config, req-&gt;section_name, "default_md"));<br />
+&nbsp;&nbsp;&nbsp; SET_OPTIONAL_STRING_ARG("x509_extensions", req-&gt;extensions_section,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; CONF_get_string(req-&gt;req_config, req-&gt;section_name, "x509_extensions"));<br />
+&nbsp;&nbsp;&nbsp; SET_OPTIONAL_STRING_ARG("req_extensions", req-&gt;request_extensions_section,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; CONF_get_string(req-&gt;req_config, req-&gt;section_name, "req_extensions"));<br />
+&nbsp;&nbsp;&nbsp; SET_OPTIONAL_LONG_ARG("private_key_bits", req-&gt;priv_key_bits,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; CONF_get_number(req-&gt;req_config, req-&gt;section_name, "default_bits"));<br />
+<br />
+&nbsp;&nbsp;&nbsp; SET_OPTIONAL_LONG_ARG("private_key_type", req-&gt;priv_key_type, OPENSSL_KEYTYPE_DEFAULT);<br />
+<br />
+Here we can see that SET_OPTIONAL_STRING_ARG() is called for most inputs but for 'private_key_bits' SET_OPTIONAL_LONG_ARG() is called.&nbsp; Both calls are C macros that expand to code that enforces the expected input type.&nbsp; The generated code ignores the input without warning/notice if an unexpected type is used and just uses the default from the configuration file.&nbsp; This is why using a string with 'private_key_bits' will result in unexpected behavior.<br />
+<br />
+Further inspection of the earlier initialization in the same function:<br />
+<br />
+&nbsp;&nbsp;&nbsp; SET_OPTIONAL_STRING_ARG("config", req-&gt;config_filename, default_ssl_conf_filename);<br />
+&nbsp;&nbsp;&nbsp; SET_OPTIONAL_STRING_ARG("config_section_name", req-&gt;section_name, "req");<br />
+&nbsp;&nbsp;&nbsp; req-&gt;global_config = CONF_load(NULL, default_ssl_conf_filename, NULL);<br />
+&nbsp;&nbsp;&nbsp; req-&gt;req_config = CONF_load(NULL, req-&gt;config_filename, NULL);<br />
+<br />
+&nbsp;&nbsp;&nbsp; if (req-&gt;req_config == NULL) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return FAILURE;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+And elsewhere in another function:<br />
+<br />
+&nbsp;&nbsp;&nbsp; /* default to 'openssl.cnf' if no environment variable is set */<br />
+&nbsp;&nbsp;&nbsp; if (config_filename == NULL) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; snprintf(default_ssl_conf_filename, sizeof(default_ssl_conf_filename), "%s/%s",<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; X509_get_default_cert_area(),<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; "openssl.cnf");<br />
+&nbsp;&nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; strlcpy(default_ssl_conf_filename, config_filename, sizeof(default_ssl_conf_filename));<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+Reveals that 'config' in $configargs is an override for any default setting elsewhere.&nbsp; This actually negates the comment in the documentation that says "Note: You need to have a valid openssl.cnf installed for this function to operate correctly. See the notes under the installation section for more information."&nbsp; A more correct sentence would be "Note:&nbsp; You need to either have a valid openssl.cnf set up or use $configargs to point at a valid openssl.cnf file for this function to operate correctly."<br />
+<br />
+All of that goes to show that looking at the PHP source code is the only real way to figure out what is actually happening.&nbsp; Doing so saves time and effort.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116719""></a>
   <div class="note">
    <strong class="user">Anonymous</strong>
    <a href="#116719" class="date">19-Feb-2015 01:44</a>

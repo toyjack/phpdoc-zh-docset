@@ -284,7 +284,179 @@ Static object: object(stdClass)(1) {<br />
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="115085""></a>
+<div id="allnotes">  <a name="118666""></a>
+  <div class="note">
+   <strong class="user">gried at NOSPAM dot nsys dot by</strong>
+   <a href="#118666" class="date">17-Jan-2016 06:12</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+In fact all variables represent pointers that hold address of memory area with data that was assigned to this variable. When you assign some variable value by reference you in fact write address of source variable to recepient variable. Same happens when you declare some variable as global in function, it receives same address as global variable outside of function. If you consider forementioned explanation it's obvious that mixing usage of same variable declared with keyword global and via superglobal array at the same time is very bad idea. In some cases they can point to different memory areas, giving you headache. Consider code below:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+error_reporting</span><span class="keyword">(</span><span class="default">E_ALL</span><span class="keyword">);<br />
+<br />
+</span><span class="default">$GLOB </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
+<br />
+function </span><span class="default">test_references</span><span class="keyword">() {<br />
+&nbsp;&nbsp;&nbsp; global </span><span class="default">$GLOB</span><span class="keyword">; </span><span class="comment">// get reference to global variable using keyword global, at this point local variable $GLOB points to same address as global variable $GLOB<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$test </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">; </span><span class="comment">// declare some local var<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$GLOBALS</span><span class="keyword">[</span><span class="string">'GLOB'</span><span class="keyword">] = &amp;</span><span class="default">$test</span><span class="keyword">; </span><span class="comment">// make global variable reference to this local variable using superglobal array, at this point global variable $GLOB points to new memory address, same as local variable $test<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$GLOB </span><span class="keyword">= </span><span class="default">2</span><span class="keyword">; </span><span class="comment">// set new value to global variable via earlier set local representation, write to old address<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">echo </span><span class="string">"Value of global variable (via local representation set by keyword global): </span><span class="default">$GLOB</span><span class="string"> &lt;hr&gt;"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// check global variable via local representation =&gt; 2 (OK, got value that was just written to it, cause old address was used to get value) <br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">echo </span><span class="string">"Value of global variable (via superglobal array GLOBALS): </span><span class="default">$GLOBALS</span><span class="keyword">[</span><span class="default">GLOB</span><span class="keyword">]</span><span class="string"> &lt;hr&gt;"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// check global variable using superglobal array =&gt; 1 (got value of local variable $test, new address was used)<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">echo </span><span class="string">"Value ol local variable \$test: </span><span class="default">$test</span><span class="string"> &lt;hr&gt;"</span><span class="keyword">; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// check local variable that was linked with global using superglobal array =&gt; 1 (its value was not affected)<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">global </span><span class="default">$GLOB</span><span class="keyword">; </span><span class="comment">// update reference to global variable using keyword global, at this point we update address that held in local variable $GLOB and it gets same address as local variable $test<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">echo </span><span class="string">"Value of global variable (via updated local representation set by keyword global): </span><span class="default">$GLOB</span><span class="string"> &lt;hr&gt;"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// check global variable via local representation =&gt; 1 (also value of local variable $test, new address was used) <br />
+</span><span class="keyword">}<br />
+<br />
+</span><span class="default">test_references</span><span class="keyword">();<br />
+echo </span><span class="string">"Value of global variable outside of function: </span><span class="default">$GLOB</span><span class="string"> &lt;hr&gt;"</span><span class="keyword">;<br />
+</span><span class="comment">// check global variable outside function =&gt; 1 (equal to value of local variable $test from function, global variable also points to new address)<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118079""></a>
+  <div class="note">
+   <strong class="user">nino dot skopac at gmail dot com</strong>
+   <a href="#118079" class="date">30-Sep-2015 05:01</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Interesting behavior in PHP 5.6.12 and PHP 7 RC3:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">Foo </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">Bar</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; static </span><span class="default">$var </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return ++</span><span class="default">$var</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">$Foo_instance </span><span class="keyword">= new </span><span class="default">Foo</span><span class="keyword">;<br />
+<br />
+print </span><span class="default">$Foo_instance</span><span class="keyword">-&gt;</span><span class="default">Bar</span><span class="keyword">(); </span><span class="comment">// prints 1<br />
+</span><span class="keyword">print </span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+<br />
+unset(</span><span class="default">$Foo_instance</span><span class="keyword">);<br />
+<br />
+</span><span class="default">$Foo_instance2 </span><span class="keyword">= new </span><span class="default">Foo</span><span class="keyword">;<br />
+<br />
+print </span><span class="default">$Foo_instance2</span><span class="keyword">-&gt;</span><span class="default">Bar</span><span class="keyword">(); </span><span class="comment">// prints 2<br />
+</span><span class="keyword">print </span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+How can a 2 be printed, since we unseted the whole instance before?<br />
+<br />
+Consider a similar example:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">Foo </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public static </span><span class="default">$var </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public static function </span><span class="default">Bar</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return ++</span><span class="default">self</span><span class="keyword">::</span><span class="default">$var</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">$Foo_instance </span><span class="keyword">= new </span><span class="default">Foo</span><span class="keyword">;<br />
+<br />
+print </span><span class="default">$Foo_instance</span><span class="keyword">-&gt;</span><span class="default">Bar</span><span class="keyword">(); </span><span class="comment">// prints 1<br />
+</span><span class="keyword">print </span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+<br />
+unset(</span><span class="default">$Foo_instance</span><span class="keyword">);<br />
+<br />
+</span><span class="default">$Foo_instance2 </span><span class="keyword">= new </span><span class="default">Foo</span><span class="keyword">;<br />
+<br />
+print </span><span class="default">$Foo_instance2</span><span class="keyword">-&gt;</span><span class="default">Bar</span><span class="keyword">(); </span><span class="comment">// prints 2<br />
+</span><span class="keyword">print </span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+No idea why is this happening.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118004""></a>
+  <div class="note">
+   <strong class="user">Bowser65</strong>
+   <a href="#118004" class="date">18-Sep-2015 12:13</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you want use all globals function, you can do :<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">my_function1</span><span class="keyword">(){<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">extract</span><span class="keyword">(</span><span class="default">$GLOBALS</span><span class="keyword">);<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117267""></a>
+  <div class="note">
+   <strong class="user">zweibieren at yahoo dot com</strong>
+   <a href="#117267" class="date">13-May-2015 03:32</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Take to heart this hard-won rule:<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; Declare AT THE TOP any variable that is to be global. <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; Both at the top of the FILE <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; AND at the top of any FUNCTION where it appears.<br />
+<br />
+Why AT THE TOP? So it is sure to be declared before use. Otherwise a non-global version of the variable will be created and your code will fail.<br />
+<br />
+Why at the top of a FUNCTION? Because otherwise the function will refer only to its local version of the variable and your code will fail.<br />
+<br />
+Why at the top of the FILE? Because someday--a day that you cannot now imagine--you will want to "include" the file. And when you do, instances of the variable outside functions will not go in the global scope and your code will fail. (When the "include" is inside a calling function, variables in the included file go into the scope of the calling function.)<br />
+&nbsp;<br />
+Example file where variable $x is used outside and inside functions:<br />
+&nbsp;&nbsp;&nbsp; |&lt;!DOCTYPE html ...&gt;<br />
+&nbsp;&nbsp;&nbsp; |&lt;html xmlns ...&gt;<br />
+&nbsp;&nbsp;&nbsp; |&nbsp; &nbsp; <span class="default">&lt;?php </span><span class="keyword">global </span><span class="default">$x</span><span class="keyword">; </span><span class="default">?&gt;<br />
+</span>&nbsp; &nbsp; |&lt;head&gt; <br />
+&nbsp;&nbsp;&nbsp; |&nbsp; &nbsp; Some html headers<br />
+&nbsp;&nbsp;&nbsp; |&nbsp; &nbsp; <span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">|&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="default">$x </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; |&nbsp; &nbsp; &nbsp; &nbsp; function </span><span class="default">bump_x</span><span class="keyword">() {<br />
+&nbsp;&nbsp;&nbsp; |&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; global </span><span class="default">$x</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; |&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="default">$x </span><span class="keyword">+= </span><span class="default">1</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; |&nbsp; &nbsp; &nbsp; &nbsp; }<br />
+&nbsp;&nbsp;&nbsp; |&nbsp; &nbsp; </span><span class="default">?&gt;<br />
+</span>&nbsp; &nbsp; |&lt;/head&gt;<br />
+&nbsp;&nbsp;&nbsp; |&lt;body&gt;<br />
+&nbsp;&nbsp;&nbsp; |&nbsp; &nbsp; More html <br />
+&nbsp;&nbsp;&nbsp; |&nbsp; &nbsp; <span class="default">&lt;?php </span><span class="keyword">echo </span><span class="default">$x</span><span class="keyword">; </span><span class="default">bump_x</span><span class="keyword">(); </span><span class="default">?&gt;<br />
+</span>&nbsp; &nbsp; |&nbsp; &nbsp; Yet more html.<br />
+&nbsp;&nbsp;&nbsp; |&lt;/body&gt;<br />
+&lt;/html&gt;</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115085""></a>
   <div class="note">
    <strong class="user">Anonymous</strong>
    <a href="#115085" class="date">23-May-2014 09:35</a>

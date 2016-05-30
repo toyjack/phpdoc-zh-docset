@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.strtr" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">strtr</h1>
-  <p class="verinfo">(PHP 4, PHP 5)</p><p class="refpurpose"><span class="refname">strtr</span> &mdash; <span class="dc-title">转换指定字符</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">strtr</span> &mdash; <span class="dc-title">转换指定字符</span></p>
 
  </div>
  
@@ -147,7 +147,7 @@
  <div class="refsect1 examples" id="refsect1-function.strtr-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-4944">
+   <div class="example" id="example-5320">
     <p><strong>Example #1 <span class="function"><strong>strtr()</strong></span> 范例</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -164,7 +164,7 @@
    (<em>&quot;h&quot;</em> is not picked because there are longer matches)
    and how replaced text was not searched again.
   </p>
-  <div class="example" id="example-4945">
+  <div class="example" id="example-5321">
    <p><strong>Example #2 使用两个参数的 <span class="function"><strong>strtr()</strong></span> 范例</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -185,7 +185,7 @@ hello all, I said hi
    <span class="function"><strong>strtr()</strong></span> will replace bytes; with two, it may replace
    longer substrings.
   </p>
-  <div class="example" id="example-4946">
+  <div class="example" id="example-5322">
    <p><strong>Example #3 <span class="function"><strong>strtr()</strong></span> behavior comparison</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -219,7 +219,46 @@ ba01
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="115988""></a>
+<div id="allnotes">  <a name="117169""></a>
+  <div class="note">
+   <strong class="user">evan dot king at NOSPAM dot example dot com</strong>
+   <a href="#117169" class="date">25-Apr-2015 12:05</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Here's an important real-world example use-case for strtr where str_replace will not work or will introduce obscure bugs:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+$strTemplate </span><span class="keyword">= </span><span class="string">"My name is :name, not :name2."</span><span class="keyword">;<br />
+</span><span class="default">$strParams </span><span class="keyword">= [<br />
+&nbsp; </span><span class="string">':name' </span><span class="keyword">=&gt; </span><span class="string">'Dave'</span><span class="keyword">,<br />
+&nbsp; </span><span class="string">'Dave' </span><span class="keyword">=&gt; </span><span class="string">':name2 or :password'</span><span class="keyword">, </span><span class="comment">// a wrench in the otherwise sensible input<br />
+&nbsp; </span><span class="string">':name2' </span><span class="keyword">=&gt; </span><span class="string">'Steve'</span><span class="keyword">,<br />
+&nbsp; </span><span class="string">':pass' </span><span class="keyword">=&gt; </span><span class="string">'7hf2348'</span><span class="keyword">, </span><span class="comment">// sensitive data that maybe shouldn't be here<br />
+</span><span class="keyword">];<br />
+<br />
+echo </span><span class="default">strtr</span><span class="keyword">(</span><span class="default">$strTemplate</span><span class="keyword">, </span><span class="default">$strParams</span><span class="keyword">);<br />
+</span><span class="comment">// "My name is Dave, not Steve."<br />
+<br />
+</span><span class="keyword">echo </span><span class="default">str_replace</span><span class="keyword">(</span><span class="default">array_keys</span><span class="keyword">(</span><span class="default">$strParams</span><span class="keyword">), </span><span class="default">array_values</span><span class="keyword">(</span><span class="default">$strParams</span><span class="keyword">), </span><span class="default">$strTemplate</span><span class="keyword">);<br />
+</span><span class="comment">// "My name is Steve or 7hf2348word, not Steve or 7hf2348word2."<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Any time you're trying to template out a string and don't necessarily know what the replacement keys/values will be (or fully understand the implications of and control their content and order), str_replace will introduce the potential to incorrectly match your keys because it does not expand the longest keys first.<br />
+<br />
+Further, str_replace will replace in previous replacements, introducing potential for unintended nested expansions.&nbsp; Doing so can put the wrong data into the "sub-template" or even give users a chance to provide input that exposes data (if they get to define some of the replacement strings).<br />
+<br />
+Don't support recursive expansion unless you need it and know it will be safe.&nbsp; When you do support it, do so explicitly by repeating strtr calls until no more expansions are occurring or a sane iteration limit is reached, so that the results never implicitly depend on order of your replacement keys.&nbsp; Also make certain that any user input will expanded in an isolated step after any sensitive data is already expanded into the output and no longer available as input.<br />
+<br />
+Note: using some character(s) around your keys to designate them also reduces the possibility of unintended mangling of output, whether maliciously triggered or otherwise.&nbsp; Thus the use of a colon prefix in these examples, which you can easily enforce when accepting replacement input to your templating/translation system.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115988""></a>
   <div class="note">
    <strong class="user">Romain</strong>
    <a href="#115988" class="date">23-Oct-2014 06:44</a>

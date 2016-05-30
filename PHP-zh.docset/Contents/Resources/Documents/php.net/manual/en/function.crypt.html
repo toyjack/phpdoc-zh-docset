@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.crypt" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">crypt</h1>
-  <p class="verinfo">(PHP 4, PHP 5)</p><p class="refpurpose"><span class="refname">crypt</span> &mdash; <span class="dc-title">单向字符串散列</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">crypt</span> &mdash; <span class="dc-title">单向字符串散列</span></p>
 
  </div>
  
@@ -40,6 +40,12 @@
 
   <p class="para rdfs-comment">
    <span class="function"><strong>crypt()</strong></span> 返回一个基于标准 UNIX <abbr class="abbrev">DES</abbr> 算法或系统上其他可用的替代算法的散列字符串。
+  </p>
+  <p class="para">
+   <code class="parameter">salt</code> 参数是可选的。然而，如果没有<code class="parameter">salt</code>的话，<span class="function"><strong>crypt()</strong></span>创建出来的会是弱密码。 php 5.6及之后的版本会在没有它的情况下抛出一个 E_NOTICE 级别的错误。为了更好的安全性，请确保指定一个足够强度的盐值。
+  </p>
+  <p class="para">
+   <span class="function"><a href="function.password-hash.html" class="function">password_hash()</a></span>使用了一个强的哈希算法，来产生足够强的盐值，并且会自动进行合适的轮次。<span class="function"><a href="function.password-hash.html" class="function">password_hash()</a></span>是<span class="function"><strong>crypt()</strong></span>的一个简单封装，并且完全与现有的密码哈希兼容。推荐使用<span class="function"><a href="function.password-hash.html" class="function">password_hash()</a></span>。
   </p>
   <p class="para">
    有些系统支持不止一种散列类型。实际上，有时候，基于 MD5 的算法被用来替代基于标准 DES 的算法。这种散列类型由盐值参数触发。在 5.3 之前，PHP 在安装时根据系统的 crypt() 决定可用的算法。如果没有提供盐值，PHP 将自动生成一个 2 个字符（DES）或者 12 个字符（MD5）的盐值 ，这取决于 MD5 crypt() 的可用性。PHP 设置了一个名为 <strong><code>CRYPT_SALT_LENGTH</code></strong> 的常量，用来表示可用散列允许的最长可用盐值。
@@ -69,6 +75,7 @@
    <li class="listitem">
     <span class="simpara">
      <strong><code>CRYPT_BLOWFISH</code></strong> - Blowfish 算法使用如下盐值："$2a$"，一个两位 cost 参数，"$" 以及 64 位由 "./0-9A-Za-z" 中的字符组合而成的字符串。在盐值中使用此范围之外的字符将导致 crypt() 返回一个空字符串。两位 cost 参数是循环次数以 2 为底的对数，它的范围是 04-31，超出这个范围将导致 crypt() 失败。
+     PHP 5.3.7 之前只支持 "$2a$" 作为盐值的前缀，PHP 5.3.7 开始引入了新的前缀来修正一个在Blowfish实现上的安全风险。可以参考<a href="http://www.php.net/security/crypt_blowfish.php" class="link external" title="Link : http://www.php.net/security/crypt_blowfish.php">&raquo;&nbsp;this document</a>来了解关于这个修复的更多信息。总而言之，开发者如果仅针对 PHP 5.3.7及之后版本进行开发，那应该使用 "$2y$" 而非 "$2a$"
     </span>
    </li>
    <li class="listitem">
@@ -104,6 +111,11 @@
       <p class="para">
        待散列的字符串。
       </p>
+      <div class="caution"><strong class="caution">Caution</strong>
+       <p class="para">
+        使用 <strong><code>CRYPT_BLOWFISH</code></strong> 算法将导致<code class="parameter">str</code>被裁剪为一个最长72个字符的字符串。
+       </p>
+      </div>
      </dd>
 
     
@@ -130,6 +142,11 @@
   <p class="para">
    返回散列后的字符串或一个少于 13 字符的字符串，从而保证在失败时与盐值区分开来。
   </p>
+  <div class="warning"><strong class="warning">Warning</strong>
+   <p class="simpara">
+    当校验密码时，应该使用一个不容易被时间攻击的字符串比较函数来比较<span class="function"><strong>crypt()</strong></span>的输出与之前已知的哈希。出于这个目的，PHP5.6开始提供了<span class="function"><a href="function.hash-equals.html" class="function">hash_equals()</a></span>。
+   </p>
+  </div>
  </div>
 
  
@@ -147,6 +164,41 @@
      </thead>
 
      <tbody class="tbody">
+      <tr>
+       <td>5.6.5</td>
+       <td>
+        When the failure string &quot;*0&quot; is given as the
+        <code class="parameter">salt</code>, &quot;*1&quot; will now be returned for consistency
+        with other crypt implementations. Prior to this version, PHP 5.6 would
+        incorrectly return a DES hash.
+       </td>
+      </tr>
+
+      <tr>
+       <td>5.6.0</td>
+       <td>
+        Raise E_NOTICE security warning if <code class="parameter">salt</code> is omitted.
+       </td>
+      </tr>
+
+      <tr>
+       <td>5.5.21</td>
+       <td>
+        When the failure string &quot;*0&quot; is given as the
+        <code class="parameter">salt</code>, &quot;*1&quot; will now be returned for consistency
+        with other crypt implementations. Prior to this version, PHP 5.5 (and
+        earlier branches) would incorrectly return a DES hash.
+       </td>
+      </tr>
+
+      <tr>
+       <td>5.3.7</td>
+       <td>
+        Added <em>$2x$</em> and <em>$2y$</em> Blowfish
+        modes to deal with potential high-bit attacks.
+       </td>
+      </tr>
+
       <tr>
        <td>5.3.2</td>
        <td>
@@ -179,11 +231,11 @@
  <div class="refsect1 examples" id="refsect1-function.crypt-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-4856">
+   <div class="example" id="example-5232">
     <p><strong>Example #1 <span class="function"><strong>crypt()</strong></span> 范例</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
-<span style="color: #0000BB">&lt;?php<br />$password&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">crypt</span><span style="color: #007700">(</span><span style="color: #DD0000">'mypassword'</span><span style="color: #007700">);&nbsp;</span><span style="color: #FF8000">//&nbsp;自动生成盐值<br /><br />/*&nbsp;你应当使用&nbsp;crypt()&nbsp;得到的完整结果作为盐值进行密码校验，以此来避免使用不同散列算法导致的问题。（如上所述，基于标准&nbsp;DES&nbsp;算法的密码散列使用&nbsp;2&nbsp;字符盐值，但是基于&nbsp;MD5&nbsp;算法的散列使用&nbsp;12&nbsp;个字符盐值。）*/<br /></span><span style="color: #007700">if&nbsp;(</span><span style="color: #0000BB">crypt</span><span style="color: #007700">(</span><span style="color: #0000BB">$user_input</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$password</span><span style="color: #007700">)&nbsp;==&nbsp;</span><span style="color: #0000BB">$password</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"Password&nbsp;verified!"</span><span style="color: #007700">;<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+<span style="color: #0000BB">&lt;?php<br />$hashed_password&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">crypt</span><span style="color: #007700">(</span><span style="color: #DD0000">'mypassword'</span><span style="color: #007700">);&nbsp;</span><span style="color: #FF8000">//&nbsp;自动生成盐值<br /><br />/*&nbsp;你应当使用&nbsp;crypt()&nbsp;得到的完整结果作为盐值进行密码校验，以此来避免使用不同散列算法导致的问题。（如上所述，基于标准&nbsp;DES&nbsp;算法的密码散列使用&nbsp;2&nbsp;字符盐值，但是基于&nbsp;MD5&nbsp;算法的散列使用&nbsp;12&nbsp;个字符盐值。）*/<br /></span><span style="color: #007700">if&nbsp;(</span><span style="color: #0000BB">hash_equals</span><span style="color: #007700">(</span><span style="color: #0000BB">$hashed_password</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">crypt</span><span style="color: #007700">(</span><span style="color: #0000BB">$user_input</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$hashed_password</span><span style="color: #007700">)))&nbsp;{<br />&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"Password&nbsp;verified!"</span><span style="color: #007700">;<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
 </span>
 </code></div>
     </div>
@@ -191,7 +243,7 @@
    </div>
   </p>
   <p class="para">
-   <div class="example" id="example-4857">
+   <div class="example" id="example-5233">
     <p><strong>Example #2 利用 htpasswd 进行 <span class="function"><strong>crypt()</strong></span> 加密</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -203,7 +255,7 @@
    </div>
   </p>
   <p class="para">
-   <div class="example" id="example-4858">
+   <div class="example" id="example-5234">
     <p><strong>Example #3 以不同散列类型使用 <span class="function"><strong>crypt()</strong></span></strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -242,6 +294,8 @@ SHA-512:      $6$rounds=5000$usesomesillystri$D4IrlXatmP7rx3P3InaxBeoomnAihCKRVQ
   <h3 class="title">参见</h3>
   <p class="para">
    <ul class="simplelist">
+    <li class="member"><span class="function"><a href="function.hash-equals.html" class="function" rel="rdfs-seeAlso">hash_equals()</a> - 可防止时序攻击的字符串比较</span></li>
+    <li class="member"><span class="function"><a href="function.password-hash.html" class="function" rel="rdfs-seeAlso">password_hash()</a> - 创建密码的哈希（hash）</span></li>
     <li class="member"><span class="function"><a href="function.md5.html" class="function" rel="rdfs-seeAlso">md5()</a> - 计算字符串的 MD5 散列值</span></li>
     <li class="member"><a href="ref.mcrypt.html" class="link">Mcrypt</a> 扩展</li>
     <li class="member">更多关于 crypt 函数的信息，请阅读 Unix man 页面</li>
@@ -269,19 +323,6 @@ For those who want details:&nbsp; md5() with microtime() are a fallback position
    </div>
   </div>
  <div class="foot"></div>
-  <a name="115866""></a>
-  <div class="note">
-   <strong class="user">sandeep</strong>
-   <a href="#115866" class="date">06-Oct-2014 06:29</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Sometimes because of crypt function used in code, a user may not be able to login on a site on one server but succeeds on another server. It may be because the hash generated on the development server is using different hash type and the&nbsp; testing/production server&nbsp; hash type&nbsp; is different. PHP version also plays some role here.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
   <a name="115041""></a>
   <div class="note">
    <strong class="user">ian+php dot net at eiloart dot ocm</strong>
@@ -303,21 +344,6 @@ _ZZZZ time: 1.9124970436096<br />
 _...A time: 0.61211705207825<br />
 <br />
 I think a half a second is reasonable for an application, but for the back end authentication? I'm not so sure: there's a significant risk of overloading the back end if we're getting lots of authentication requests.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="114893""></a>
-  <div class="note">
-   <strong class="user">chris at seccosquared dot com</strong>
-   <a href="#114893" class="date">22-Apr-2014 01:59</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-A great implementation of crypt, that will generate the password and a unique salt used for it for you to easily add the data to your Database.&nbsp; It is called Encryptor and it is available on github: <br />
-<br />
-<a href="http://git.io/mSJqpw" rel="nofollow" target="_blank">http://git.io/mSJqpw</a></span>
 </code>
     </div>
    </div>
@@ -381,70 +407,6 @@ As I understand it, blowfish is generally seen a secure hashing algorithm, even 
    </div>
   </div>
  <div class="foot"></div>
-  <a name="112817""></a>
-  <div class="note">
-   <strong class="user">mrdaniel619 at gmail dot com</strong>
-   <a href="#112817" class="date">26-Jul-2013 05:16</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-<span class="default">&lt;?php<br />
-<br />
-</span><span class="comment">/*<br />
-nice script for creating a hash with random salt<br />
-*/<br />
-<br />
-&nbsp;&nbsp;&nbsp; </span><span class="keyword">function </span><span class="default">rand_str</span><span class="keyword">(</span><span class="default">$length</span><span class="keyword">, </span><span class="default">$charset</span><span class="keyword">=</span><span class="string">'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'</span><span class="keyword">)<br />
-&nbsp;&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$str </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$count </span><span class="keyword">= </span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$charset</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; while (</span><span class="default">$length</span><span class="keyword">--) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$str </span><span class="keyword">.= </span><span class="default">$charset</span><span class="keyword">[</span><span class="default">mt_rand</span><span class="keyword">(</span><span class="default">0</span><span class="keyword">, </span><span class="default">$count</span><span class="keyword">-</span><span class="default">1</span><span class="keyword">)];<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$str</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; }<br />
-<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">$hash </span><span class="keyword">= </span><span class="string">""</span><span class="keyword">;<br />
-<br />
-&nbsp;&nbsp;&nbsp; if(isset(</span><span class="default">$_POST</span><span class="keyword">[</span><span class="string">'string'</span><span class="keyword">]) &amp;&amp; !empty(</span><span class="default">$_POST</span><span class="keyword">[</span><span class="string">'string'</span><span class="keyword">]) &amp;&amp; </span><span class="default">is_string</span><span class="keyword">(</span><span class="default">$_POST</span><span class="keyword">[</span><span class="string">'string'</span><span class="keyword">]))<br />
-&nbsp;&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$salt </span><span class="keyword">= </span><span class="default">rand_str</span><span class="keyword">(</span><span class="default">rand</span><span class="keyword">(</span><span class="default">100</span><span class="keyword">,</span><span class="default">200</span><span class="keyword">));<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$hash </span><span class="keyword">= </span><span class="default">crypt</span><span class="keyword">(</span><span class="default">$_POST</span><span class="keyword">[</span><span class="string">'string'</span><span class="keyword">], </span><span class="string">'$6$rounds=9000$'</span><span class="keyword">.</span><span class="default">$salt</span><span class="keyword">.</span><span class="string">'$'</span><span class="keyword">);<br />
-&nbsp;&nbsp;&nbsp; }<br />
-<br />
-</span><span class="default">?&gt;<br />
-</span>&lt;!DOCTYPE html&gt;<br />
-&lt;html&gt;<br />
-&nbsp;&nbsp;&nbsp; &lt;head&gt;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; &lt;meta http-equiv="Content-Type" content="text/html; CHARSET=gb2312"&gt;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; &lt;title&gt;&lt;/title&gt;<br />
-&nbsp;&nbsp;&nbsp; &lt;/head&gt;<br />
-&nbsp;&nbsp;&nbsp; &lt;body&gt;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; &lt;h1&gt;512 Hash&lt;/h1&gt;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; &lt;div&gt;<span class="default">&lt;?= $hash ?&gt;</span>&lt;/div&gt;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; &lt;form method ="post"&gt;<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &lt;table&gt;<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &lt;tr&gt;<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &lt;td&gt;<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &lt;input type ="text" <br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; value ="<span class="default">&lt;?php </span><span class="keyword">if(</span><span class="default">$hash</span><span class="keyword">!== </span><span class="string">""</span><span class="keyword">){ echo </span><span class="default">htmlspecialchars</span><span class="keyword">(</span><span class="default">$_POST</span><span class="keyword">[</span><span class="string">'string'</span><span class="keyword">]); } </span><span class="default">?&gt;</span>" <br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; id ="string" <br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; name ="string" /&gt;<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &lt;/td&gt;<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &lt;td&gt;<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &lt;input type ="submit" value ="hash" /&gt;<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &lt;/td&gt;<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &lt;/tr&gt;<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &lt;/table&gt;&nbsp;&nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; &lt;/form&gt;<br />
-&nbsp;&nbsp;&nbsp; &lt;/body&gt;<br />
-&lt;/html&gt;</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
   <a name="112035""></a>
   <div class="note">
    <strong class="user">jette at nerdgirl dot dk</strong>
@@ -466,21 +428,6 @@ if (</span><span class="default">$pass_crypt </span><span class="keyword">== </s
 } <br />
 </span><span class="default">?&gt;</span>
 </span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="112006""></a>
-  <div class="note">
-   <strong class="user">mblaney at gmail dot com</strong>
-   <a href="#112006" class="date">22-Apr-2013 10:46</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-For those wondering, like I did, what the maximum length of the returned hash can be for the purpose of storing it in a database, the answer is:<br />
-<br />
-123 characters.</span>
 </code>
     </div>
    </div>
@@ -518,108 +465,6 @@ $2y$05$.....................uMMcgjnOELIa6oydRivPkiMrBG8.aFp.</span>
    </div>
   </div>
  <div class="foot"></div>
-  <a name="108704""></a>
-  <div class="note">
-   <strong class="user">Matteo</strong>
-   <a href="#108704" class="date">19-May-2012 07:39</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Password hashing should be done only with crypt and NEVER with SHA* and MD5 or hash(). The fundamental reason is that crypt is designed to be SLOW which is a VERY good thing for password hashing.
-<br />
-
-<br />
-It also automatically generate a salt every time which makes pre-computed tables to "decrypt" passwords useless (the generated salt is stored in the returned string for convenience).</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="105949""></a>
-  <div class="note">
-   <strong class="user">harry at simans dot net</strong>
-   <a href="#105949" class="date">27-Sep-2011 01:34</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-I made a nice little wrapper function for crypt():
-<br />
-
-<br />
-<span class="default">&lt;?php
-<br />
-</span><span class="keyword">function </span><span class="default">hasher</span><span class="keyword">(</span><span class="default">$info</span><span class="keyword">, </span><span class="default">$encdata </span><span class="keyword">= </span><span class="default">false</span><span class="keyword">)
-<br />
-{
-<br />
-&nbsp; </span><span class="default">$strength </span><span class="keyword">= </span><span class="string">"08"</span><span class="keyword">;
-<br />
-&nbsp; </span><span class="comment">//if encrypted data is passed, check it against input ($info)
-<br />
-&nbsp; </span><span class="keyword">if (</span><span class="default">$encdata</span><span class="keyword">) {
-<br />
-&nbsp;&nbsp;&nbsp; if (</span><span class="default">substr</span><span class="keyword">(</span><span class="default">$encdata</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">, </span><span class="default">60</span><span class="keyword">) == </span><span class="default">crypt</span><span class="keyword">(</span><span class="default">$info</span><span class="keyword">, </span><span class="string">"$2a$"</span><span class="keyword">.</span><span class="default">$strength</span><span class="keyword">.</span><span class="string">"$"</span><span class="keyword">.</span><span class="default">substr</span><span class="keyword">(</span><span class="default">$encdata</span><span class="keyword">, </span><span class="default">60</span><span class="keyword">))) {
-<br />
-&nbsp;&nbsp; &nbsp;&nbsp; return </span><span class="default">true</span><span class="keyword">;
-<br />
-&nbsp;&nbsp;&nbsp; }
-<br />
-&nbsp;&nbsp;&nbsp; else {
-<br />
-&nbsp;&nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;
-<br />
-&nbsp;&nbsp;&nbsp; }
-<br />
-&nbsp; }
-<br />
-&nbsp; else {
-<br />
-&nbsp; </span><span class="comment">//make a salt and hash it with input, and add salt to end
-<br />
-&nbsp; </span><span class="default">$salt </span><span class="keyword">= </span><span class="string">""</span><span class="keyword">;
-<br />
-&nbsp; for (</span><span class="default">$i </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">; </span><span class="default">$i </span><span class="keyword">&lt; </span><span class="default">22</span><span class="keyword">; </span><span class="default">$i</span><span class="keyword">++) {
-<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">$salt </span><span class="keyword">.= </span><span class="default">substr</span><span class="keyword">(</span><span class="string">"./ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"</span><span class="keyword">, </span><span class="default">mt_rand</span><span class="keyword">(</span><span class="default">0</span><span class="keyword">, </span><span class="default">63</span><span class="keyword">), </span><span class="default">1</span><span class="keyword">);
-<br />
-&nbsp; }
-<br />
-&nbsp; </span><span class="comment">//return 82 char string (60 char hash &amp; 22 char salt)
-<br />
-</span><span class="keyword">return </span><span class="default">crypt</span><span class="keyword">(</span><span class="default">$info</span><span class="keyword">, </span><span class="string">"$2a$"</span><span class="keyword">.</span><span class="default">$strength</span><span class="keyword">.</span><span class="string">"$"</span><span class="keyword">.</span><span class="default">$salt</span><span class="keyword">).</span><span class="default">$salt</span><span class="keyword">;
-<br />
-}
-<br />
-}
-<br />
-</span><span class="default">?&gt;
-<br />
-</span>
-<br />
-This wrapper will accept a string as input and hash it, and output the hash result of the string and salt together, plus the salt added on the end. You can then store that output in a db, and pass it on to the function as the 2nd parameter when you go to verify it, along with the user input or whatever as the first.
-<br />
-
-<br />
-Examples:
-<br />
-
-<br />
-<span class="default">&lt;?php
-<br />
-$hash </span><span class="keyword">= </span><span class="default">hasher</span><span class="keyword">(</span><span class="default">$userinput</span><span class="keyword">);
-<br />
-if (</span><span class="default">$hash </span><span class="keyword">== </span><span class="default">hasher</span><span class="keyword">(</span><span class="default">$userinput</span><span class="keyword">, </span><span class="default">$hash</span><span class="keyword">) {</span><span class="comment">//authed}
-<br />
-</span><span class="default">?&gt;
-<br />
-</span>
-<br />
-Neat huh?</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
   <a name="102278""></a>
   <div class="note">
    <strong class="user">kaminski at istori dot com</strong>
@@ -636,153 +481,6 @@ It is intended for use on systems where mt_getrandmax() == 2147483647.<br />
 The salt created will be 128 bits in length, padded to 132 bits and then expressed in 22 base64 characters.&nbsp; (CRYPT_BLOWFISH only uses 128 bits for the salt, even though there are 132 bits in 22 base64 characters.&nbsp; If you examine the CRYPT_BLOWFISH input and output, you can see that it ignores the last four bits on input, and sets them to zero on output.)<br />
 <br />
 Note that the high-order bits of the four 32-bit dwords returned by mt_rand() will always be zero (since mt_getrandmax == 2^31), so only 124 of the 128 bits will be pseudorandom.&nbsp; I found that acceptable for my application.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="73619""></a>
-  <div class="note">
-   <strong class="user">mikey_nich (at) hotmáil . com</strong>
-   <a href="#73619" class="date">04-Mar-2007 04:47</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Are you using Apache2 on f.i. WinXP and want to create .htpasswd files via php? Then you need to use the APR1-MD5 encryption method. Here is a function for that:<br />
-<br />
-<span class="default">&lt;?php<br />
-<br />
-</span><span class="keyword">function </span><span class="default">crypt_apr1_md5</span><span class="keyword">(</span><span class="default">$plainpasswd</span><span class="keyword">) {<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">$salt </span><span class="keyword">= </span><span class="default">substr</span><span class="keyword">(</span><span class="default">str_shuffle</span><span class="keyword">(</span><span class="string">"abcdefghijklmnopqrstuvwxyz0123456789"</span><span class="keyword">), </span><span class="default">0</span><span class="keyword">, </span><span class="default">8</span><span class="keyword">);<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">$len </span><span class="keyword">= </span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$plainpasswd</span><span class="keyword">);<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">$text </span><span class="keyword">= </span><span class="default">$plainpasswd</span><span class="keyword">.</span><span class="string">'$apr1$'</span><span class="keyword">.</span><span class="default">$salt</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">$bin </span><span class="keyword">= </span><span class="default">pack</span><span class="keyword">(</span><span class="string">"H32"</span><span class="keyword">, </span><span class="default">md5</span><span class="keyword">(</span><span class="default">$plainpasswd</span><span class="keyword">.</span><span class="default">$salt</span><span class="keyword">.</span><span class="default">$plainpasswd</span><span class="keyword">));<br />
-&nbsp;&nbsp;&nbsp; for(</span><span class="default">$i </span><span class="keyword">= </span><span class="default">$len</span><span class="keyword">; </span><span class="default">$i </span><span class="keyword">&gt; </span><span class="default">0</span><span class="keyword">; </span><span class="default">$i </span><span class="keyword">-= </span><span class="default">16</span><span class="keyword">) { </span><span class="default">$text </span><span class="keyword">.= </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$bin</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">, </span><span class="default">min</span><span class="keyword">(</span><span class="default">16</span><span class="keyword">, </span><span class="default">$i</span><span class="keyword">)); }<br />
-&nbsp;&nbsp;&nbsp; for(</span><span class="default">$i </span><span class="keyword">= </span><span class="default">$len</span><span class="keyword">; </span><span class="default">$i </span><span class="keyword">&gt; </span><span class="default">0</span><span class="keyword">; </span><span class="default">$i </span><span class="keyword">&gt;&gt;= </span><span class="default">1</span><span class="keyword">) { </span><span class="default">$text </span><span class="keyword">.= (</span><span class="default">$i </span><span class="keyword">&amp; </span><span class="default">1</span><span class="keyword">) ? </span><span class="default">chr</span><span class="keyword">(</span><span class="default">0</span><span class="keyword">) : </span><span class="default">$plainpasswd</span><span class="keyword">{</span><span class="default">0</span><span class="keyword">}; }<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">$bin </span><span class="keyword">= </span><span class="default">pack</span><span class="keyword">(</span><span class="string">"H32"</span><span class="keyword">, </span><span class="default">md5</span><span class="keyword">(</span><span class="default">$text</span><span class="keyword">));<br />
-&nbsp;&nbsp;&nbsp; for(</span><span class="default">$i </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">; </span><span class="default">$i </span><span class="keyword">&lt; </span><span class="default">1000</span><span class="keyword">; </span><span class="default">$i</span><span class="keyword">++) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$new </span><span class="keyword">= (</span><span class="default">$i </span><span class="keyword">&amp; </span><span class="default">1</span><span class="keyword">) ? </span><span class="default">$plainpasswd </span><span class="keyword">: </span><span class="default">$bin</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$i </span><span class="keyword">% </span><span class="default">3</span><span class="keyword">) </span><span class="default">$new </span><span class="keyword">.= </span><span class="default">$salt</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$i </span><span class="keyword">% </span><span class="default">7</span><span class="keyword">) </span><span class="default">$new </span><span class="keyword">.= </span><span class="default">$plainpasswd</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$new </span><span class="keyword">.= (</span><span class="default">$i </span><span class="keyword">&amp; </span><span class="default">1</span><span class="keyword">) ? </span><span class="default">$bin </span><span class="keyword">: </span><span class="default">$plainpasswd</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$bin </span><span class="keyword">= </span><span class="default">pack</span><span class="keyword">(</span><span class="string">"H32"</span><span class="keyword">, </span><span class="default">md5</span><span class="keyword">(</span><span class="default">$new</span><span class="keyword">));<br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; for (</span><span class="default">$i </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">; </span><span class="default">$i </span><span class="keyword">&lt; </span><span class="default">5</span><span class="keyword">; </span><span class="default">$i</span><span class="keyword">++) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$k </span><span class="keyword">= </span><span class="default">$i </span><span class="keyword">+ </span><span class="default">6</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$j </span><span class="keyword">= </span><span class="default">$i </span><span class="keyword">+ </span><span class="default">12</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$j </span><span class="keyword">== </span><span class="default">16</span><span class="keyword">) </span><span class="default">$j </span><span class="keyword">= </span><span class="default">5</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$tmp </span><span class="keyword">= </span><span class="default">$bin</span><span class="keyword">[</span><span class="default">$i</span><span class="keyword">].</span><span class="default">$bin</span><span class="keyword">[</span><span class="default">$k</span><span class="keyword">].</span><span class="default">$bin</span><span class="keyword">[</span><span class="default">$j</span><span class="keyword">].</span><span class="default">$tmp</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">$tmp </span><span class="keyword">= </span><span class="default">chr</span><span class="keyword">(</span><span class="default">0</span><span class="keyword">).</span><span class="default">chr</span><span class="keyword">(</span><span class="default">0</span><span class="keyword">).</span><span class="default">$bin</span><span class="keyword">[</span><span class="default">11</span><span class="keyword">].</span><span class="default">$tmp</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">$tmp </span><span class="keyword">= </span><span class="default">strtr</span><span class="keyword">(</span><span class="default">strrev</span><span class="keyword">(</span><span class="default">substr</span><span class="keyword">(</span><span class="default">base64_encode</span><span class="keyword">(</span><span class="default">$tmp</span><span class="keyword">), </span><span class="default">2</span><span class="keyword">)),<br />
-&nbsp;&nbsp;&nbsp; </span><span class="string">"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"</span><span class="keyword">,<br />
-&nbsp;&nbsp;&nbsp; </span><span class="string">"./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"</span><span class="keyword">);<br />
-&nbsp;&nbsp;&nbsp; return </span><span class="string">"$"</span><span class="keyword">.</span><span class="string">"apr1"</span><span class="keyword">.</span><span class="string">"$"</span><span class="keyword">.</span><span class="default">$salt</span><span class="keyword">.</span><span class="string">"$"</span><span class="keyword">.</span><span class="default">$tmp</span><span class="keyword">;<br />
-}<br />
-<br />
-</span><span class="default">?&gt;</span>
-</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="60056""></a>
-  <div class="note">
-   <strong class="user">solar at openwall dot com</strong>
-   <a href="#60056" class="date">24-Dec-2005 08:20</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-With different password hashing methods supported on different systems and with the need to generate salts with your own PHP code in order to use the more advanced / more secure methods, it takes special knowledge to use crypt() optimally, producing strong password hashes.&nbsp; Other message digest / hashing functions supported by PHP, such as md5() and sha1(), are really no good for password hashing if used naively, resulting in hashes which may be brute-forced at rates much higher than those possible for hashes produced by crypt().<br />
-<br />
-I have implemented a PHP password hashing framework (in PHP, tested with all of PHP 3, 4, and 5) which hides the complexity from your PHP applications (no need for you to worry about salts, etc.), yet does things in almost the best way possible given the constraints of the available functions.&nbsp; The homepage for the framework is:<br />
-<br />
-<a href="http://www.openwall.com/phpass/" rel="nofollow" target="_blank">http://www.openwall.com/phpass/</a><br />
-<br />
-I have placed this code in the public domain, so there are no copyrights or licensing restrictions to worry about.<br />
-<br />
-P.S. I have 10 years of experience in password (in)security and I've developed several other password security tools and libraries.&nbsp; So most people can feel confident they're getting this done better by using my framework than they could have done it on their own.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="58805""></a>
-  <div class="note">
-   <strong class="user">hotdog (at) gmx (dot) net</strong>
-   <a href="#58805" class="date">16-Nov-2005 04:34</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-WRONG:<br />
-<br />
-$mypassword = "toto";<br />
-$smd5_pass = "{SMD5}......." // in openldap<br />
-<br />
-if (preg_match ("/{SMD5}/i", $smd5_pass))<br />
-&nbsp;{<br />
-&nbsp; $encrypted = substr($md5_pass, 6);<br />
-&nbsp; $hash = base64_decode($encrypted);<br />
-&nbsp; $salt = substr($hash,16);<br />
-&nbsp; $mhashed =&nbsp; mhash(MHASH_MD5, $mypassword . $salt) ;<br />
-&nbsp; $without_salt = explode($salt,$hash_hex);<br />
-&nbsp;&nbsp; if ($without_salt[0] == $mhashed) {<br />
-&nbsp;&nbsp;&nbsp; echo "Password verified &lt;br&gt;";<br />
-&nbsp;&nbsp;&nbsp; } else {<br />
-&nbsp;&nbsp;&nbsp; echo "Password Not verified&lt;br&gt;";<br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp;}<br />
-<br />
-$without_salt = explode($salt,$hash_hex); should be $without_salt = explode($salt,$hash); <br />
-<br />
-RIGHT:<br />
-<br />
-$mypassword = "toto";<br />
-$smd5_pass = "{SMD5}......." // in openldap<br />
-<br />
-if (preg_match ("/{SMD5}/i", $smd5_pass))<br />
-&nbsp;{<br />
-&nbsp; $encrypted = substr($md5_pass, 6);<br />
-&nbsp; $hash = base64_decode($encrypted);<br />
-&nbsp; $salt = substr($hash,16);<br />
-&nbsp; $mhashed =&nbsp; mhash(MHASH_MD5, $mypassword . $salt) ;<br />
-&nbsp; $without_salt = explode($salt,$hash);<br />
-&nbsp;&nbsp; if ($without_salt[0] == $mhashed) {<br />
-&nbsp;&nbsp;&nbsp; echo "Password verified &lt;br&gt;";<br />
-&nbsp;&nbsp;&nbsp; } else {<br />
-&nbsp;&nbsp;&nbsp; echo "Password Not verified&lt;br&gt;";<br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp;}</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="45350""></a>
-  <div class="note">
-   <strong class="user">thorhajo at gmail dot com</strong>
-   <a href="#45350" class="date">03-Sep-2004 12:34</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Here's a little function I wrote to generate MD5 password hashes in the format they're found in /etc/shadow:<br />
-<br />
-function shadow($password)<br />
-{<br />
-&nbsp; $hash = '';<br />
-&nbsp; for($i=0;$i&lt;8;$i++)<br />
-&nbsp; {<br />
-&nbsp;&nbsp;&nbsp; $j = mt_rand(0,53);<br />
-&nbsp;&nbsp;&nbsp; if($j&lt;26)$hash .= chr(rand(65,90));<br />
-&nbsp;&nbsp;&nbsp; else if($j&lt;52)$hash .= chr(rand(97,122));<br />
-&nbsp;&nbsp;&nbsp; else if($j&lt;53)$hash .= '.';<br />
-&nbsp;&nbsp;&nbsp; else $hash .= '/';<br />
-&nbsp; }<br />
-&nbsp; return crypt($password,'$1$'.$hash.'$');<br />
-}<br />
-<br />
-I've written this so that each character in the a-zA-Z./ set has a 1/54 of a chance of being selected (26 + 26 + 2 = 54), thus being statistically even.</span>
 </code>
     </div>
    </div>

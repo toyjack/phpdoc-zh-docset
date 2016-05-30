@@ -47,7 +47,114 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="114620""></a>
+<div id="allnotes">  <a name="119048""></a>
+  <div class="note">
+   <strong class="user">jszoja at gmail dot com</strong>
+   <a href="#119048" class="date">24-Mar-2016 08:09</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Be aware of a reference to another reference. It is probably bad practice to even do that.<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">class </span><span class="default">Obj1 </span><span class="keyword">{ public </span><span class="default">$name </span><span class="keyword">= </span><span class="string">'Obj1'</span><span class="keyword">; }<br />
+&nbsp;&nbsp;&nbsp; class </span><span class="default">Obj2 </span><span class="keyword">{ public </span><span class="default">$name </span><span class="keyword">= </span><span class="string">'Obj2'</span><span class="keyword">; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$objects </span><span class="keyword">= [];<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$toLoad </span><span class="keyword">= [ </span><span class="string">'Obj1'</span><span class="keyword">, </span><span class="string">'Obj2' </span><span class="keyword">];<br />
+<br />
+&nbsp;&nbsp;&nbsp; foreach( </span><span class="default">$toLoad </span><span class="keyword">as </span><span class="default">$i </span><span class="keyword">=&gt; </span><span class="default">$obj </span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$ref </span><span class="keyword">= new </span><span class="default">$obj</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$objects</span><span class="keyword">[</span><span class="default">$i</span><span class="keyword">] =&amp; </span><span class="default">$ref</span><span class="keyword">; </span><span class="comment">// a reference to a reference<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; // $objects[$i] = $ref; // that would work<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">}<br />
+<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="default">$objects</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">]-&gt;</span><span class="default">name</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// outputs 'Obj2' !<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118500""></a>
+  <div class="note">
+   <strong class="user">Someone</strong>
+   <a href="#118500" class="date">16-Dec-2015 06:37</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Another example of something to watch out for when using references with arrays.&nbsp; It seems that even an usused reference to an array cell modifies the *source* of the reference.&nbsp; Strange behavior for an assignment statement (is this why I've seen it written as an =&amp; operator?&nbsp; - although this doesn't happen with regular variables).<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; $array1 </span><span class="keyword">= array(</span><span class="default">1</span><span class="keyword">,</span><span class="default">2</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$x </span><span class="keyword">= &amp;</span><span class="default">$array1</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">];&nbsp;&nbsp; </span><span class="comment">// Unused reference<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$array2 </span><span class="keyword">= </span><span class="default">$array1</span><span class="keyword">;&nbsp; </span><span class="comment">// reference now also applies to $array2 !<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$array2</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">]=</span><span class="default">22</span><span class="keyword">;&nbsp; &nbsp; &nbsp; </span><span class="comment">// (changing [0] will not affect $array1)<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">print_r</span><span class="keyword">(</span><span class="default">$array1</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span>Produces:<br />
+&nbsp;&nbsp;&nbsp; Array<br />
+&nbsp;&nbsp;&nbsp; (<br />
+&nbsp;&nbsp;&nbsp; [0] =&gt; 1<br />
+&nbsp;&nbsp;&nbsp; [1] =&gt; 22&nbsp; &nbsp; // var_dump() will show the &amp; here<br />
+&nbsp;&nbsp;&nbsp; )<br />
+<br />
+//above was Noted By Dave at SymmetricDesign dot com//<br />
+//and below is my opinion to this simple problem. //<br />
+<br />
+This is an normal referencing problem.<br />
+<br />
+when you gain an reference to a memory at some variable.<br />
+this variable, means "memory itself". (in above example, this would be -&gt;&nbsp; $x = &amp;$array1[1];&nbsp;&nbsp; // Unused reference)<br />
+<br />
+and you've copied original one($array1) to another one($array2).<br />
+and the copy means "paste everything on itself". including references or pointers, etcs. so, when you copied $array1 to $array2, this $array2 has same referencers that original $array1 has. meaning that $x = &amp;$array1[1]&nbsp; = &amp;$array2[1];<br />
+and again i said above. this reference means "memory itself".<br />
+when you choose to inserting some values to $array2[1], <br />
+$x; reference is affected by $array2[1]'s value. because, in allocated memory, $array2[1] is a copy of $array1[1]. this means that $array2[1] = $array1[1], also means &amp;$array2[1] = &amp;$array1[1]&nbsp; as said above. this causes memory's&nbsp; value reallocation on $array1[1]. at this moment. the problem of this topic is cleared by '$x', the memory itself.&nbsp; and this problem was solved by unsetting the '$x'. unsetting this reference triggers memory reallocation of $array2[1]. this closes the reference link between the copied one($array1, which is the original) and copy($array2). this is where that bug(clearly, it's not a bug. it's just a missunderstanding) has triggered by. closing reference link makes two array object to be separated on memory. and this work was done through the unset() function. this topic was posted 7 years ago, but i just want to clarify that it's not a bug.<br />
+<br />
+if there's some problems in my notes, plz, note that on above.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118271""></a>
+  <div class="note">
+   <strong class="user">www.reddit.com/user/Tiny_Mo</strong>
+   <a href="#118271" class="date">07-Nov-2015 03:57</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Another very interesting example:<br />
+<span class="default">&lt;?php<br />
+$a </span><span class="keyword">= [</span><span class="default">1</span><span class="keyword">, </span><span class="default">2</span><span class="keyword">];<br />
+</span><span class="default">$b </span><span class="keyword">= [</span><span class="default">3</span><span class="keyword">, </span><span class="default">4</span><span class="keyword">];<br />
+</span><span class="default">$b</span><span class="keyword">[] = &amp;</span><span class="default">$a</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">];<br />
+</span><span class="default">print_r</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">);<br />
+</span><span class="default">print_r</span><span class="keyword">(</span><span class="default">$b</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span>gives:<br />
+Array<br />
+(<br />
+&nbsp;&nbsp;&nbsp; [0] =&gt; 3<br />
+&nbsp;&nbsp;&nbsp; [1] =&gt; 4<br />
+&nbsp;&nbsp;&nbsp; [2] =&gt; 4<br />
+)<br />
+Array<br />
+(<br />
+&nbsp;&nbsp;&nbsp; [0] =&gt; 3<br />
+&nbsp;&nbsp;&nbsp; [1] =&gt; 4<br />
+&nbsp;&nbsp;&nbsp; [2] =&gt; 4<br />
+)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="114620""></a>
   <div class="note">
    <strong class="user">alexander at gamerev dot org</strong>
    <a href="#114620" class="date">13-Mar-2014 11:47</a>
@@ -1128,49 +1235,6 @@ Responding to Slava Kudinov.&nbsp; The only reason why your script takes longer 
    </div>
   </div>
  <div class="foot"></div>
-  <a name="60979""></a>
-  <div class="note">
-   <strong class="user">Slava Kudinov &lt;skudinov gmail com&gt;</strong>
-   <a href="#60979" class="date">22-Jan-2006 11:01</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-In addition to the "array vs &amp;array" example below, php 5.1.2. It seems passing an array by reference slower than by value, consider:<br />
-<span class="default">&lt;?php<br />
-</span><span class="keyword">function </span><span class="default">test_ref</span><span class="keyword">(&amp;</span><span class="default">$arr</span><span class="keyword">) {<br />
-&nbsp;&nbsp; </span><span class="default">$size </span><span class="keyword">= </span><span class="default">sizeof</span><span class="keyword">(</span><span class="default">$arr</span><span class="keyword">);<br />
-&nbsp;&nbsp; for(</span><span class="default">$n</span><span class="keyword">=</span><span class="default">0</span><span class="keyword">; </span><span class="default">$n</span><span class="keyword">&lt;</span><span class="default">$size</span><span class="keyword">; </span><span class="default">$n</span><span class="keyword">++) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; </span><span class="default">$x </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">;<br />
-&nbsp;&nbsp; }<br />
-}<br />
-<br />
-function </span><span class="default">test_val</span><span class="keyword">(</span><span class="default">$arr</span><span class="keyword">) {<br />
-&nbsp;&nbsp; </span><span class="default">$size </span><span class="keyword">= </span><span class="default">sizeof</span><span class="keyword">(</span><span class="default">$arr</span><span class="keyword">);<br />
-&nbsp;&nbsp; for(</span><span class="default">$n</span><span class="keyword">=</span><span class="default">0</span><span class="keyword">; </span><span class="default">$n</span><span class="keyword">&lt;</span><span class="default">$size</span><span class="keyword">; </span><span class="default">$n</span><span class="keyword">++) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; </span><span class="default">$x </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">;<br />
-&nbsp;&nbsp; }<br />
-}<br />
-<br />
-</span><span class="comment">// fill array<br />
-</span><span class="keyword">for(</span><span class="default">$n</span><span class="keyword">=</span><span class="default">0</span><span class="keyword">; </span><span class="default">$n</span><span class="keyword">&lt;</span><span class="default">2000</span><span class="keyword">; </span><span class="default">$n</span><span class="keyword">++) {<br />
-&nbsp;&nbsp; </span><span class="default">$ar</span><span class="keyword">[] = </span><span class="string">"test"</span><span class="keyword">.</span><span class="default">$n</span><span class="keyword">;<br />
-}<br />
-</span><span class="default">$time </span><span class="keyword">= </span><span class="default">microtime</span><span class="keyword">();<br />
-</span><span class="default">test_ref</span><span class="keyword">(</span><span class="default">$ar</span><span class="keyword">);<br />
-echo </span><span class="string">"&lt;br /&gt;The function using a reference took "</span><span class="keyword">.(</span><span class="default">microtime</span><span class="keyword">() - </span><span class="default">$time</span><span class="keyword">).</span><span class="string">" s"</span><span class="keyword">;<br />
-</span><span class="default">$time </span><span class="keyword">= </span><span class="default">microtime</span><span class="keyword">();<br />
-</span><span class="default">test_val</span><span class="keyword">(</span><span class="default">$ar</span><span class="keyword">);<br />
-echo </span><span class="string">"&lt;br /&gt;The funktion using a value took: "</span><span class="keyword">.(</span><span class="default">microtime</span><span class="keyword">() - </span><span class="default">$time</span><span class="keyword">).</span><span class="string">" s"</span><span class="keyword">;<br />
-echo </span><span class="string">"&lt;br /&gt;Done"</span><span class="keyword">;<br />
-</span><span class="default">?&gt;<br />
-</span>output:<br />
-The function using a reference took 0.002694 s<br />
-The funktion using a value took: 0.000847 s</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
   <a name="59611""></a>
   <div class="note">
    <strong class="user">cesoid at yahoo dot com</strong>
@@ -1614,70 +1678,6 @@ Does the same exact thing as:<br />
 &nbsp; $object =&amp; $object-&gt;getNext();<br />
 <br />
 when you refernce $temp to $object all it does is make $temp an alias to the same memory as $object, so doing $temp-&gt;getNext(); and $object-&gt;getNext(); are calling the same function on the same object.&nbsp; Try it out if you don't believe me.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="42192""></a>
-  <div class="note">
-   <strong class="user">thenewparadigm at hotmail dot com</strong>
-   <a href="#42192" class="date">07-May-2004 09:33</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-one very useful aspect for reference that i don't think i saw documented was the ability to skip a few steps with objects stored in objects.<br />
-<br />
-for example:<br />
-<br />
-assuming the object structure is correctly constructed (and mind you i haven't tried this in php, but it does work in most other high-end programming languages), instead of using this structure to get a variable/function<br />
-<br />
-//start<br />
-<br />
-$obj1 -&gt; obj2 -&gt; obj3 -&gt; varX = 0;<br />
-$obj1 -&gt; obj2 -&gt; obj3 -&gt; varY = 0;<br />
-$obj1 -&gt; obj2 -&gt; obj3 -&gt; functionX();<br />
-$obj1 -&gt; obj2 -&gt; obj3 -&gt; functionY();<br />
-<br />
-//end<br />
-<br />
-you can use this method:<br />
-<br />
-//start<br />
-<br />
-$tempObj = &amp; $obj1 -&gt; obj2 -&gt; obj3;<br />
-<br />
-$tempObj -&gt; varX = 0;<br />
-$tempObj -&gt; varY = 0;<br />
-$tempObj -&gt; functionX();<br />
-$tempObj -&gt; functionY();<br />
-<br />
-//end<br />
-<br />
-note, if you want to use a shortcut variable to modify the original object you must include the ampersand (&amp;) to reference the variable, otherwise if you used this line of code<br />
-<br />
-//start<br />
-<br />
-$tempObj = $obj1 -&gt; obj2 -&gt; obj3;<br />
-<br />
-//end<br />
-<br />
-any changes you make to $tempObj will not change the original object and may compromise the object structure, not to mention that it takes up extra memory.&nbsp; however, if you are just using the shortcut variable for read-only purposes, not using a reference wont cause any problems.<br />
-<br />
-another alternative in programming languages is the 'with' structure as seen below<br />
-<br />
-//start<br />
-<br />
-with($obj1 -&gt; obj2 -&gt; obj3) {<br />
-&nbsp;&nbsp;&nbsp; varX = 0;<br />
-&nbsp;&nbsp;&nbsp; varY = 0;<br />
-&nbsp;&nbsp;&nbsp; functionX();<br />
-&nbsp;&nbsp;&nbsp; functionY();<br />
-}<br />
-<br />
-//end<br />
-<br />
-however, i don't expect this will work because as far as i've seen the 'with' structure is not supported in php.</span>
 </code>
     </div>
    </div>

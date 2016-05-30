@@ -111,7 +111,79 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="112390""></a>
+<div id="allnotes">  <a name="118791""></a>
+  <div class="note">
+   <strong class="user">260 at ciemnosc</strong>
+   <a href="#118791" class="date">06-Feb-2016 11:11</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+sorry for replying to such an old comment, but there's something i wanted to point out.<br />
+<br />
+@&nbsp; tom at r dot je:<br />
+While I agree with what you said in general, there *are* cases where it's not true, and since PHP doesn't allow for multiple constructors there's no other good way around it.<br />
+<br />
+&gt; The problem? It breaks encapsulation. <br />
+&gt; An object can exist in the application but may not be able to fulfill its <br />
+&gt; responsibility because it's missing dependencies. <br />
+&gt; The use of this method makes it possible for an incomplete object <br />
+&gt; to exist in the system; <br />
+&gt; the object can exist in a state that its author never intended.<br />
+<br />
+If you're using this method from some factory method, to manually init the object in other way that the constructor that, this point is no longer valid.<br />
+<br />
+Consider the example, where you use constructor to set-up the object after getting it from database (e.g. you need to pull some array from other table, basing on some id parameter). But you want to also be able to create object manually (for inserting to the database, for example).<br />
+The best thing to do would be to have two different constructors, but since it is not possible in php you need some other way to create the object.<br />
+<br />
+example:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">// this usually would be a static cache in some class, or array returned by method getMeta($id), etc.<br />
+</span><span class="default">$meta </span><span class="keyword">= array(</span><span class="default">1337 </span><span class="keyword">=&gt; array(</span><span class="string">'key1' </span><span class="keyword">=&gt; </span><span class="string">'value1'</span><span class="keyword">, </span><span class="string">'key2' </span><span class="keyword">=&gt; </span><span class="string">'value2'</span><span class="keyword">));<br />
+<br />
+class </span><span class="default">Test </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public </span><span class="default">$id</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; public </span><span class="default">$data</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; public </span><span class="default">$meta</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__construct</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; global </span><span class="default">$meta</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">is_int</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">id</span><span class="keyword">)) </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">meta </span><span class="keyword">= </span><span class="default">$meta</span><span class="keyword">[</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">id</span><span class="keyword">];<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; public static function </span><span class="default">create_empty</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$r </span><span class="keyword">= new </span><span class="default">ReflectionClass</span><span class="keyword">(</span><span class="default">__CLASS__</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$r</span><span class="keyword">-&gt;</span><span class="default">newInstanceWithoutConstructor</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+echo </span><span class="string">"emulating PDO::FETCH_CLASS behavior: "</span><span class="keyword">;<br />
+</span><span class="default">$t </span><span class="keyword">= </span><span class="default">Test</span><span class="keyword">::</span><span class="default">create_empty</span><span class="keyword">();<br />
+</span><span class="default">$t</span><span class="keyword">-&gt;</span><span class="default">meta </span><span class="keyword">= </span><span class="default">1337</span><span class="keyword">;<br />
+</span><span class="default">$t</span><span class="keyword">-&gt;</span><span class="default">__construct</span><span class="keyword">();<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$t</span><span class="keyword">);<br />
+<br />
+echo </span><span class="string">"empty class: "</span><span class="keyword">;<br />
+</span><span class="default">$testItem </span><span class="keyword">= </span><span class="default">Test</span><span class="keyword">::</span><span class="default">create_empty</span><span class="keyword">();<br />
+</span><span class="comment">// ... here you can start setting up the item, e.g. from XML<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$testItem</span><span class="keyword">);<br />
+<br />
+</span><span class="default">$testItem</span><span class="keyword">-&gt;</span><span class="default">id </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
+</span><span class="default">$testItem</span><span class="keyword">-&gt;</span><span class="default">data </span><span class="keyword">= </span><span class="string">"some data"</span><span class="keyword">;<br />
+</span><span class="default">$testItem</span><span class="keyword">-&gt;</span><span class="default">meta </span><span class="keyword">= array(</span><span class="string">"somekey" </span><span class="keyword">=&gt; </span><span class="string">"somevalue"</span><span class="keyword">);<br />
+<br />
+echo </span><span class="string">"after setup:"</span><span class="keyword">;<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$testItem</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Of course, you can instead make empty constructor, and create some init() method, but then you have to remember to call init() everywhere.<br />
+You can also create some other way of adding the item to database, but then you'd have to classes to handle the same data - one for retrieving and other for storing.<br />
+<br />
+If you instead use some factory class (or just a factory method, like in the simplified example above) having a way to create totally empty object is useful. With full factory approach you would first use some TestFactory-&gt;prepare() method, then you'd call methods to set what you need, and the factory would set all uninitialized variables to some default values upon calling TestFactory-&gt;get() to retrieve prepared object.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="112390""></a>
   <div class="note">
    <strong class="user">tom at r dot je</strong>
    <a href="#112390" class="date">11-Jun-2013 06:53</a>

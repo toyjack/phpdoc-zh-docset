@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.stream-get-contents" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">stream_get_contents</h1> 
-  <p class="verinfo">(PHP 5)</p><p class="refpurpose"><span class="refname">stream_get_contents</span> &mdash; <span class="dc-title">读取资源流到一个字符串</span></p>
+  <p class="verinfo">(PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">stream_get_contents</span> &mdash; <span class="dc-title">读取资源流到一个字符串</span></p>
 
  </div>
  <div class="refsect1 description" id="refsect1-function.stream-get-contents-description">
@@ -133,7 +133,7 @@
  <div class="refsect1 examples" id="refsect1-function.stream-get-contents-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-4042">
+   <div class="example" id="example-4433">
     <p><strong>Example #1 <span class="function"><strong>stream_get_contents()</strong></span> 例子</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -168,7 +168,48 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="108013""></a>
+<div id="allnotes">  <a name="118556""></a>
+  <div class="note">
+   <strong class="user">divinity76+nospam at gmail dot com</strong>
+   <a href="#118556" class="date">28-Dec-2015 08:24</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+/*<br />
+&nbsp;* problem: stream_get_contents blocks / is very slow.<br />
+&nbsp;* I have tried<br />
+&nbsp;* 1: stream_set_blocking, doesn't make a difference.<br />
+&nbsp;* 2: stream_get_meta_data['unread_bytes'] = ITS BUGGED, ALWAYS SAYS 0.<br />
+&nbsp;* 3: feof(): ALSO EFFING BLOCKING<br />
+&nbsp;* 4: my_stream_get_contents hack... kinda working! :D<br />
+&nbsp;*/<br />
+function my_stream_get_contents ($handle, $timeout_seconds = 0.5)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; $ret = "";<br />
+&nbsp;&nbsp;&nbsp; // feof ALSO BLOCKS:<br />
+&nbsp;&nbsp;&nbsp; // while(!feof($handle)){$ret.=stream_get_contents($handle,1);}<br />
+&nbsp;&nbsp;&nbsp; while (true) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $starttime = microtime(true);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $new = stream_get_contents($handle, 1);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $endtime = microtime(true);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (is_string($new) &amp;&amp; strlen($new) &gt;= 1) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $ret .= $new;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $time_used = $endtime - $starttime;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; // var_dump('time_used:',$time_used);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (($time_used &gt;= $timeout_seconds) || ! is_string($new) ||<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (is_string($new) &amp;&amp; strlen($new) &lt; 1)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; return $ret;<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="108013""></a>
   <div class="note">
    <strong class="user">vasiliy at hotger dot com</strong>
    <a href="#108013" class="date">22-Mar-2012 05:38</a>

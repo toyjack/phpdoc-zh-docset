@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.debug-backtrace" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">debug_backtrace</h1>
-  <p class="verinfo">(PHP 4 &gt;= 4.3.0, PHP 5)</p><p class="refpurpose"><span class="refname">debug_backtrace</span> &mdash; <span class="dc-title">产生一条回溯跟踪(backtrace)</span></p>
+  <p class="verinfo">(PHP 4 &gt;= 4.3.0, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">debug_backtrace</span> &mdash; <span class="dc-title">产生一条回溯跟踪(backtrace)</span></p>
 
  </div>
  
@@ -247,7 +247,7 @@
  <div class="refsect1 examples" id="refsect1-function.debug-backtrace-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-443">
+   <div class="example" id="example-471">
     <p><strong>Example #1 <span class="function"><strong>debug_backtrace()</strong></span> 范例</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -305,7 +305,49 @@ array(4) {
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="115942""></a>
+<div id="allnotes">  <a name="118678""></a>
+  <div class="note">
+   <strong class="user">eggmatters at gmail dot com</strong>
+   <a href="#118678" class="date">19-Jan-2016 04:40</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Here is a simple trace to incorporate into your Logging class. This is if you've written an MVC or any OOP type of application including a Logging class. <br />
+The problem is, calling the first occurence of debug_backtrace()[]['class'] will echo the logger class not the caller.<br />
+Below, I've employed some semantics which dovetail with my architecture:<br />
+Everything is either a class, or a script.<br />
+The caller, if a class, should be the last trace before the Logger class traces:<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">Logger </span><span class="keyword">{<br />
+&nbsp;&nbsp; . . .<br />
+&nbsp; private static function </span><span class="default">formatMesssage</span><span class="keyword">(</span><span class="default">$level</span><span class="keyword">, </span><span class="default">$message</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$millis </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">(</span><span class="string">"."</span><span class="keyword">, </span><span class="default">microtime</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">));<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$date </span><span class="keyword">= new </span><span class="default">DateTime</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$date</span><span class="keyword">-&gt;</span><span class="default">format</span><span class="keyword">(</span><span class="string">'Y-m-d h:i:s:'</span><span class="keyword">) . </span><span class="default">$millis</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">] . </span><span class="string">" [</span><span class="default">$level</span><span class="string">][" </span><span class="keyword">.&nbsp; </span><span class="default">self</span><span class="keyword">::</span><span class="default">caller</span><span class="keyword">() . </span><span class="string">"] </span><span class="default">$message</span><span class="string">\n"</span><span class="keyword">;<br />
+&nbsp; }<br />
+&nbsp; </span><span class="comment">//Debug backtrace called. Find next occurence of class after Logger, or return calling script:<br />
+&nbsp; </span><span class="keyword">private static function </span><span class="default">caller</span><span class="keyword">() {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$dbg </span><span class="keyword">= </span><span class="default">debug_backtrace</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$i </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$class </span><span class="keyword">= </span><span class="default">filter_input</span><span class="keyword">(</span><span class="default">INPUT_SERVER</span><span class="keyword">, </span><span class="string">'SCRIPT_NAME'</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; while (</span><span class="default">$i </span><span class="keyword">&lt; </span><span class="default">count</span><span class="keyword">(</span><span class="default">$dbg</span><span class="keyword">) - </span><span class="default">1 </span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; if (!empty(</span><span class="default">$dbg</span><span class="keyword">[</span><span class="default">$i</span><span class="keyword">][</span><span class="string">'class'</span><span class="keyword">]) &amp;&amp; </span><span class="default">$dbg</span><span class="keyword">[</span><span class="default">$i</span><span class="keyword">][</span><span class="string">'class'</span><span class="keyword">] != </span><span class="string">'Logger' </span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$class </span><span class="keyword">= </span><span class="default">$dbg</span><span class="keyword">[</span><span class="default">$i</span><span class="keyword">][</span><span class="string">'class'</span><span class="keyword">] . </span><span class="string">"-&gt;" </span><span class="keyword">. </span><span class="default">$dbg</span><span class="keyword">[</span><span class="default">$i</span><span class="keyword">][</span><span class="string">'function'</span><span class="keyword">] .</span><span class="string">"()"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+&nbsp;&nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$i</span><span class="keyword">++;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$class</span><span class="keyword">;<br />
+&nbsp; }<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115942""></a>
   <div class="note">
    <strong class="user">anoam at yandex dot ru</strong>
    <a href="#115942" class="date">17-Oct-2014 05:12</a>

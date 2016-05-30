@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.get-headers" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">get_headers</h1>
-  <p class="verinfo">(PHP 5)</p><p class="refpurpose"><span class="refname">get_headers</span> &mdash; <span class="dc-title">取得服务器响应一个 HTTP 请求所发送的所有标头</span></p>
+  <p class="verinfo">(PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">get_headers</span> &mdash; <span class="dc-title">取得服务器响应一个 HTTP 请求所发送的所有标头</span></p>
 
  </div>
  <div class="refsect1 description" id="refsect1-function.get-headers-description">
@@ -122,7 +122,7 @@
  <div class="refsect1 examples" id="refsect1-function.get-headers-examples">
  <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-4102">
+   <div class="example" id="example-4493">
     <p><strong>Example #1 <span class="function"><strong>get_headers()</strong></span> 例子</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -162,7 +162,7 @@ Array
 </pre></div>
     </div>
    </div>
-   <div class="example" id="example-4103">
+   <div class="example" id="example-4494">
     <p><strong>Example #2 <span class="function"><strong>get_headers()</strong></span> using HEAD example</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -189,7 +189,83 @@ Array
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116753""></a>
+<div id="allnotes">  <a name="117256""></a>
+  <div class="note">
+   <strong class="user">bobray at softville dot com</strong>
+   <a href="#117256" class="date">11-May-2015 02:29</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Testing the validity of a URL that is preceded by one or more server redirects is tricky. There will be more than one status code returned and all but the first will be redirect codes.
+<br />
+
+<br />
+This function will return an integer containing the three digit status code of the last code returned, which is what you want.
+<br />
+
+<br />
+&nbsp;&nbsp;&nbsp; function getStatus($url) {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $headers = @get_headers($url, true);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $value = NULL;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ($headers === false) {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return $headers;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach ($headers as $k =&gt; $v) {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (!is_int($k)) {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; continue;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $value = $v;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }
+<br />
+
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return (int) substr($value, strpos($value, ' ', 8) + 1, 3);
+<br />
+&nbsp;&nbsp; &nbsp; }
+<br />
+
+<br />
+If getHeaders() fails, PHP will throw an error. Test the return value for === false.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117189""></a>
+  <div class="note">
+   <strong class="user">pegasus at vaultwiki dot org</strong>
+   <a href="#117189" class="date">29-Apr-2015 11:41</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Note that get_headers should not be used against a URL that was gathered via user input. The timeout option in the stream context only affects the idle time between data in the stream. It does not affect connection time or the overall time of the request. <br />
+<br />
+(Unfortunately, this is not mentioned in the docs for the timeout option, but has been discussed in a number of code discussions elsewhere, and I have done my own tests to confirm the conclusions of those discussions.)<br />
+<br />
+Thus it is very easy for a user to give you a URL that acts like a Slowloris attack - feeding your get_headers function 1 header only often enough to avoid the stream timeout.<br />
+<br />
+If you are publishing your code, even default_socket_timeout cannot be relied on to remedy this, because it is broken for the HTTPS protocol on many but the more recent versions of PHP: https://bugs.php.net/bug.php?id=41631<br />
+<br />
+With get_headers accepting user input, it can be very easy for an attacker to make all of your PHP child processes become busy.<br />
+<br />
+Instead, use cURL functions to get headers for a URL provided by the user and parse those headers manually, as CURLOPT_TIMEOUT applies to the entire request.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116753""></a>
   <div class="note">
    <strong class="user">cees at cornelisdigitaal dot nl</strong>
    <a href="#116753" class="date">23-Feb-2015 06:20</a>

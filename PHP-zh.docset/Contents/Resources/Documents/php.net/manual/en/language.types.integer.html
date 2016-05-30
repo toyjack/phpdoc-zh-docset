@@ -261,7 +261,60 @@ integer     : [+-]?decimal
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116479""></a>
+<div id="allnotes">  <a name="118903""></a>
+  <div class="note">
+   <strong class="user">litbai</strong>
+   <a href="#118903" class="date">25-Feb-2016 05:26</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+<span class="default">&lt;?php<br />
+$ipArr </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">(</span><span class="string">'.'</span><span class="keyword">, </span><span class="default">$ipString</span><span class="keyword">);<br />
+</span><span class="default">$ipVal </span><span class="keyword">= (</span><span class="default">$ipArr</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">] &lt;&lt; </span><span class="default">24</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; + (</span><span class="default">$ipArr</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">] &lt;&lt; </span><span class="default">16</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; + (</span><span class="default">$ipArr</span><span class="keyword">[</span><span class="default">2</span><span class="keyword">] &lt;&lt; </span><span class="default">8</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; + </span><span class="default">$ipArr</span><span class="keyword">[</span><span class="default">3</span><span class="keyword">]<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; ;<br />
+</span><span class="default">?&gt;<br />
+</span>1. the priority of bit op is lower than '+',so there should be brackets.<br />
+2. there is no unsighed int in PHP, if you use 32 bit version£¬the code above will get negative result when the first position of IP string greater than 127.<br />
+3. what the code actually do is calculate the integer value of transformed 32 binary bit from IP string.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117249""></a>
+  <div class="note">
+   <strong class="user">dewi at dewimorgan dot com</strong>
+   <a href="#117249" class="date">10-May-2015 04:41</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Note that the soft-typing of numbers in PHP means that some things become very difficult. For example, efficiently emulating the more common linear congruential generators (LCGs) for fast, deterministic, pseudo-randomness. The naive code to create the next value in a sequence (for power-of-2 values of $m) is:<br />
+<br />
+$seed = ($seed * $a + $c) % $m;<br />
+<br />
+...where $m, $a, and $c are values and data types carefully chosen such that repeating this operation will eventually generate every value in the range $0 to $m, with no repetition.<br />
+<br />
+I can find no good commonly used LCGs which use PHP-compatible values. The LCG values used in by rand() in systems like Borland Delphi, Virtual Pascal, MS Visual/Quick C/C++, VMS's MTH$RANDOM, old versions of glibc, Numerical Recipes, glibc, GCC, ANSI C, Watcom, Digital Mars, CodeWarrior, IBM VisualAge C/C++, java.util.Random, Newlib, MMX... *all* fail when ported, for one of two reasons, and sometimes both:<br />
+<br />
+&nbsp;- In PHP on 32 bit machines and all Windows machines, $m = 2^32 or larger requires UInt or even UInt64, or the result becomes negative.<br />
+<br />
+- Large $a multiplied by an integer seed gets converted to a float64, but the number can be too long for the 53-bit mantissa, and it drops the least significant digits... but the LCG code above requires that the most significant digits should be lost.<br />
+<br />
+These are two classes of problem to beware of when porting integer math to PHP,&nbsp; and I see no clean and efficient way to avoid either one.<br />
+<br />
+So if designing a cross-platform system that must work in PHP, you must select LCG values that fit the following criteria:<br />
+$m = 2^31 or less (PHP limitation). Recommend: 2^31.<br />
+$a = Less than 2^22 (PHP limitation); $a-1 divisible by all prime factors of $m; $a-1 divisible by 4 if $m is. Recommend: 1+(4*(any prime &lt;= 1048573)).<br />
+$c = smaller than (2^53-($m*$a)) (PHP limitation); relatively prime with $m. Recommend: any prime &lt;= 23622320123.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116479""></a>
   <div class="note">
    <strong class="user">Anonymous</strong>
    <a href="#116479" class="date">09-Jan-2015 06:31</a>
@@ -273,25 +326,6 @@ Converting to an integer works only if the input begins with a number<br />
 (int) "before5txt" // will output the integer 0<br />
 (int) "53txt" // will output the integer 53<br />
 (int) "53txt534text" // will output the integer 53</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="115691""></a>
-  <div class="note">
-   <strong class="user">Kalimuthu Aruchamy</strong>
-   <a href="#115691" class="date">09-Sep-2014 11:58</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-<span class="default">&lt;?php<br />
-</span><span class="keyword">echo </span><span class="string">"&lt;br&gt;"</span><span class="keyword">.(int) ( (</span><span class="default">0.1</span><span class="keyword">+</span><span class="default">0.7</span><span class="keyword">) * </span><span class="default">10 </span><span class="keyword">); </span><span class="comment">// echoes 7. Wrong. I think this is bug in PHP. It works fine for below expressions<br />
-</span><span class="keyword">echo </span><span class="string">"&lt;br&gt;"</span><span class="keyword">.(int) ( (</span><span class="default">0.2</span><span class="keyword">+</span><span class="default">0.7</span><span class="keyword">) * </span><span class="default">10 </span><span class="keyword">); </span><span class="comment">// echoes 9. Right<br />
-</span><span class="keyword">echo </span><span class="string">"&lt;br&gt;"</span><span class="keyword">.(int) ( (</span><span class="default">0.3</span><span class="keyword">+</span><span class="default">0.7</span><span class="keyword">) * </span><span class="default">10 </span><span class="keyword">); </span><span class="comment">// echoes 10. Right<br />
-</span><span class="keyword">echo </span><span class="string">"&lt;br&gt;"</span><span class="keyword">.(int) ( (</span><span class="default">0.4</span><span class="keyword">+</span><span class="default">0.7</span><span class="keyword">) * </span><span class="default">10 </span><span class="keyword">); </span><span class="comment">// echoes 11. Right<br />
-</span><span class="default">?&gt;</span>
-</span>
 </code>
     </div>
    </div>

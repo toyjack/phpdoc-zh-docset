@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.mcrypt-create-iv" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">mcrypt_create_iv</h1>
-  <p class="verinfo">(PHP 4, PHP 5)</p><p class="refpurpose"><span class="refname">mcrypt_create_iv</span> &mdash; <span class="dc-title">从随机源创建初始向量</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">mcrypt_create_iv</span> &mdash; <span class="dc-title">从随机源创建初始向量</span></p>
 
  </div>
  
@@ -85,6 +85,12 @@
        请注意，在 PHP 5.6.0 之前的版本中，
        此参数的默认值为 <strong><code>MCRYPT_DEV_RANDOM</code></strong>。
       </p>
+      <blockquote class="note"><p><strong class="note">Note</strong>: 
+       <span class="simpara">
+        需要注意的是，如果没有更多可用的用来产生随机数据的信息，那么 
+        <strong><code>MCRYPT_DEV_RANDOM</code></strong> 可能进入阻塞状态。
+       </span>
+      </p></blockquote>
      </dd>
 
     
@@ -151,7 +157,7 @@
  <div class="refsect1 examples" id="refsect1-function.mcrypt-create-iv-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-851">
+   <div class="example" id="example-890">
     <p><strong>Example #1 <span class="function"><strong>mcrypt_create_iv()</strong></span> 例程</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -172,6 +178,7 @@
     <li class="member"><a href="http://www.ciphersbyritter.com/GLOSSARY.HTM#IV" class="link external" title="Link : http://www.ciphersbyritter.com/GLOSSARY.HTM#IV">&raquo;&nbsp;http://www.ciphersbyritter.com/GLOSSARY.HTM#IV</a></li>
     <li class="member"><a href="http://www.quadibloc.com/crypto/co0409.htm" class="link external" title="Link : http://www.quadibloc.com/crypto/co0409.htm">&raquo;&nbsp;http://www.quadibloc.com/crypto/co0409.htm</a></li>
     <li class="member">Applied Cryptography by Schneier (ISBN 0-471-11709-9) 9.3 节。</li>
+    <li class="member"><span class="function"><a href="function.random-bytes.html" class="function" rel="rdfs-seeAlso">random_bytes()</a> - Generates cryptographically secure pseudo-random bytes</span></li>
    </ul>
   </p>
  </div>
@@ -180,7 +187,28 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116309""></a>
+<div id="allnotes">  <a name="117204""></a>
+  <div class="note">
+   <strong class="user">wschalle at gmail dot com</strong>
+   <a href="#117204" class="date">01-May-2015 11:21</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+hans at illis dot nl's demonstration code is incorrect. In the loop, he uses:<br />
+<br />
+$iv = mcrypt_create_iv (mcrypt_enc_get_iv_size ($td), MCRYPT_RAND);<br />
+<br />
+When it should actually be:<br />
+<br />
+$iv = mcrypt_create_iv (mcrypt_enc_get_iv_size ($td), MCRYPT_DEV_URANDOM);<br />
+<br />
+This produces consistent results on Windows.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116309""></a>
   <div class="note">
    <strong class="user">joseph dot t dot fallon at gmail dot com</strong>
    <a href="#116309" class="date">11-Dec-2014 04:32</a>
@@ -325,19 +353,6 @@ Nope. You need to seed the feedback mechanism during decryption to the SAME stat
    </div>
   </div>
  <div class="foot"></div>
-  <a name="68078""></a>
-  <div class="note">
-   <strong class="user">kkaiser at dataresolutions dot com</strong>
-   <a href="#68078" class="date">12-Jul-2006 03:04</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Clarification: I meant to type MCRYPT_DEV_RANDOM, MCRYPT_DEV_URANDOM and MCRYPT_RAND in the previous note, instead of DEV_RANDOM, DEV_URANDOM and DEV_RAND. :)</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
   <a name="68054""></a>
   <div class="note">
    <strong class="user">kkaiser at dataresolutions dot com</strong>
@@ -345,9 +360,13 @@ Clarification: I meant to type MCRYPT_DEV_RANDOM, MCRYPT_DEV_URANDOM and MCRYPT_
    <div class="text">
     <div class="phpcode">
 <code><span class="html">
-After profiling a rather large, dynamic website I maintain to determine the cause of intermittent freezing in execution, I found that calls to mcrypt_create_iv() using DEV_RANDOM as the source consistently halted execution for anywhere from 0.2 to ~12 seconds per call, ironically at random. I'm making the assumption that the halts were caused by insufficient random input being currently available in /dev/random due to its intended function to block until enough random input is provided back to the device. I've found it to be sufficient for my needs to use a modified version of the alt_mcrypt_create_iv() function found below.<br />
+After profiling a rather large, dynamic website I maintain to determine the cause of intermittent freezing in execution, I found that calls to mcrypt_create_iv() using MCRYPT_DEV_RANDOM as the source consistently halted execution for anywhere from 0.2 to ~12 seconds per call, ironically at random. I'm making the assumption that the halts were caused by insufficient random input being currently available in /dev/random due to its intended function to block until enough random input is provided back to the device. I've found it to be sufficient for my needs to use a modified version of the alt_mcrypt_create_iv() function found below.
 <br />
-Although untested, I assume using DEV_URANDOM or a combination of DEV_RAND with srand() would've solved the problem as well; I found out after the fact that /dev/urandom's intended function is to seamlessly provide cryptographically secure output from the random number generator when the /dev/urandom buffer was empty, and DEV_RAND would simply use the same rand() function as alt_mcrypt_create_iv().<br />
+
+<br />
+Although untested, I assume using MCRYPT_DEV_URANDOM or a combination of MCRYPT_DEV_RAND with srand() would've solved the problem as well; I found out after the fact that /dev/urandom's intended function is to seamlessly provide cryptographically secure output from the random number generator when the /dev/urandom buffer was empty, and MCRYPT_DEV_RAND would simply use the same rand() function as alt_mcrypt_create_iv().
+<br />
+
 <br />
 -Kevin Kaiser</span>
 </code>
@@ -367,25 +386,6 @@ edwardzyang at thewritingpot dot com<br />
 19-Jul-2005 10:06<br />
 <br />
 This is because of the fact, that (like described in the manual above) this function does NOT reseed the random number generator, in contrary to rand(). Use srand() like suggested above to get correct IVs.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="56484""></a>
-  <div class="note">
-   
-   <a href="#56484" class="date">04-Sep-2005 08:12</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Correction to the last comment, the second parameter of rtrim() uses double quotes, not single quotes.<br />
-<br />
-So the corrected code is as follows:<br />
-<br />
-&nbsp;&nbsp;&nbsp; $retval = rtrim($retval, "\0");&nbsp; &nbsp; // trim ONLY the nulls at the END<br />
-<br />
-;)</span>
 </code>
     </div>
    </div>

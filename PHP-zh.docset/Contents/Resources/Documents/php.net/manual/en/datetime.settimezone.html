@@ -27,7 +27,7 @@
  <div class="refnamediv">
   <h1 class="refname">DateTime::setTimezone</h1>
   <h1 class="refname">date_timezone_set</h1>
-  <p class="verinfo">(PHP 5 &gt;= 5.2.0)</p><p class="refpurpose"><span class="refname">DateTime::setTimezone</span> -- <span class="refname">date_timezone_set</span> &mdash; <span class="dc-title">Sets the time zone for the DateTime object</span></p>
+  <p class="verinfo">(PHP 5 &gt;= 5.2.0, PHP 7)</p><p class="refpurpose"><span class="refname">DateTime::setTimezone</span> -- <span class="refname">date_timezone_set</span> &mdash; <span class="dc-title">Sets the time zone for the DateTime object</span></p>
 
  </div>
 
@@ -112,7 +112,7 @@
 
  <div class="refsect1 examples" id="refsect1-datetime.settimezone-examples">
   <h3 class="title">范例</h3>
-  <div class="example" id="example-2280">
+  <div class="example" id="example-2402">
    <p><strong>Example #1 <span class="function"><strong>DateTime::setTimeZone()</strong></span> example</strong></p>
    <div class="example-contents"><p>面向对象风格</p></div>
    <div class="example-contents">
@@ -145,7 +145,7 @@
   <h3 class="title">参见</h3>
   <ul class="simplelist">
    <li class="member"><span class="function"><a href="datetime.gettimezone.html" class="function" rel="rdfs-seeAlso">DateTime::getTimezone()</a> - Return time zone relative to given DateTime</span></li>
-   <li class="member"><span class="function"><a href="datetimezone.construct.html" class="function" rel="rdfs-seeAlso">DateTimeZone::__construct()</a> - Creates new DateTimeZone object</span></li>
+   <li class="member"><span class="function"><a href="datetimezone.construct.html" class="function" rel="rdfs-seeAlso">DateTimeZone::__construct()</a> - 创建新的DateTimeZone对象</span></li>
   </ul>
  </div>
 
@@ -154,7 +154,78 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="115825""></a>
+<div id="allnotes">  <a name="118797""></a>
+  <div class="note">
+   <strong class="user">balbuf</strong>
+   <a href="#118797" class="date">08-Feb-2016 04:44</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+It appears that what forzi at mail333 dot com said is correct.
+<br />
+
+<br />
+When you reset the timezone on a DateTime object using a timezone that was instantiated with a GMT offset (e.g. <span class="default">&lt;?php </span><span class="keyword">new </span><span class="default">DateTimeZone</span><span class="keyword">(</span><span class="string">'-0500'</span><span class="keyword">); </span><span class="default">?&gt;</span>) the timestamp as reported by <span class="default">&lt;?php $dt</span><span class="keyword">-&gt;</span><span class="default">format</span><span class="keyword">(</span><span class="string">'U'</span><span class="keyword">); </span><span class="default">?&gt;</span> changes. 
+<br />
+
+<br />
+However, the value reported by <span class="default">&lt;?php $dt</span><span class="keyword">-&gt;</span><span class="default">getTimestamp</span><span class="keyword">(); </span><span class="default">?&gt;</span> does _not_ change. Interestingly, once <span class="default">&lt;?php $dt</span><span class="keyword">-&gt;</span><span class="default">getTimestamp</span><span class="keyword">(); </span><span class="default">is called</span><span class="keyword">, </span><span class="default">the value from </span><span class="keyword">&lt;?</span><span class="default">php $dt</span><span class="keyword">-&gt;</span><span class="default">format</span><span class="keyword">(</span><span class="string">'U'</span><span class="keyword">); </span><span class="default">?&gt;</span> starts returning the correct timestamp. This appears to be a bug.
+<br />
+
+<br />
+In any case, other output values from format() seem to be accurate, and the true timestamp is always accessible via getTimestamp().</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117514""></a>
+  <div class="note">
+   <strong class="user">jamsilver at gmail dot com</strong>
+   <a href="#117514" class="date">22-Jun-2015 08:15</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+In response to the other comments expressing surprise that changing the timezone does not affect the timestamp:<br />
+<br />
+A UNIX timestamp is defined as the number of seconds that have elapsed since 00:00:00 (UTC), Thursday, 1 January 1970.<br />
+<br />
+So: with respect to UTC. Always.<br />
+<br />
+Calling setTimezone() never changes the actual "absolute", underlying, moment-in-time itself. It only changes the timezone you wish to "view" that moment "from". Consider the following:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">// A time in London.<br />
+</span><span class="default">$datetime </span><span class="keyword">= new </span><span class="default">DateTime</span><span class="keyword">(</span><span class="string">'2015-06-22T10:40:25'</span><span class="keyword">, new </span><span class="default">DateTimeZone</span><span class="keyword">(</span><span class="string">'Europe/London'</span><span class="keyword">));<br />
+<br />
+</span><span class="comment">// I wonder how that SAME moment-in-time would <br />
+// be described in other places around the world.<br />
+</span><span class="default">$datetime</span><span class="keyword">-&gt;</span><span class="default">setTimezone</span><span class="keyword">(new </span><span class="default">DateTimeZone</span><span class="keyword">(</span><span class="string">'Australia/Sydney'</span><span class="keyword">));<br />
+print </span><span class="default">$datetime</span><span class="keyword">-&gt;</span><span class="default">format</span><span class="keyword">(</span><span class="string">'Y-m-d H:i:s (e)'</span><span class="keyword">);<br />
+&nbsp; </span><span class="comment">// 2015-06-22 19:40:25 (Australia/Sydney)<br />
+<br />
+</span><span class="default">$datetime</span><span class="keyword">-&gt;</span><span class="default">setTimezone</span><span class="keyword">(new </span><span class="default">DateTimeZone</span><span class="keyword">(</span><span class="string">'America/New_York'</span><span class="keyword">));<br />
+print </span><span class="default">$datetime</span><span class="keyword">-&gt;</span><span class="default">format</span><span class="keyword">(</span><span class="string">'Y-m-d H:i:s (e)'</span><span class="keyword">);<br />
+&nbsp; </span><span class="comment">// 2015-06-22 05:40:25 (America/New_York)<br />
+<br />
+</span><span class="default">$datetime</span><span class="keyword">-&gt;</span><span class="default">setTimezone</span><span class="keyword">(new </span><span class="default">DateTimeZone</span><span class="keyword">(</span><span class="string">'Asia/Calcutta'</span><span class="keyword">));<br />
+print </span><span class="default">$datetime</span><span class="keyword">-&gt;</span><span class="default">format</span><span class="keyword">(</span><span class="string">'Y-m-d H:i:s (e)'</span><span class="keyword">);<br />
+&nbsp; </span><span class="comment">// 2015-06-22 15:10:25 (Asia/Calcutta)<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Please note that ALL of these date strings unambiguously represent the exact same moment-in-time. Therefore, calling getTimestamp() at any stage will return the same result:<br />
+<br />
+<span class="default">&lt;?php<br />
+$datetime</span><span class="keyword">-&gt;</span><span class="default">getTimestamp</span><span class="keyword">();<br />
+&nbsp; </span><span class="comment">// 1434966025<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115825""></a>
   <div class="note">
    <strong class="user">forzi at mail333 dot com</strong>
    <a href="#115825" class="date">01-Oct-2014 12:02</a>

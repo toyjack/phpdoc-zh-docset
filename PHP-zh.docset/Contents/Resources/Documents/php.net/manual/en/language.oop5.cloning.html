@@ -65,7 +65,7 @@ $copy_of_object = clone $object;
   </p>
    
 
-  <div class="example" id="example-240">
+  <div class="example" id="example-251">
    <p><strong>Example #1 复制一个对象</strong></p>
    <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -115,7 +115,139 @@ MyCloneable Object
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116329""></a>
+<div id="allnotes">  <a name="118877""></a>
+  <div class="note">
+   <strong class="user">fabio at naoimporta dot com</strong>
+   <a href="#118877" class="date">22-Feb-2016 06:53</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+It's possible to know how many clones have been created of a&nbsp; object. I'm think that is correct:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">class </span><span class="default">Classe </span><span class="keyword">{<br />
+<br />
+&nbsp;&nbsp;&nbsp; public static </span><span class="default">$howManyClones </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__clone</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; ++static::</span><span class="default">$howManyClones</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public static function </span><span class="default">howManyClones</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return static::</span><span class="default">$howManyClones</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__destruct</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; --static::</span><span class="default">$howManyClones</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">$a </span><span class="keyword">= new </span><span class="default">Classe</span><span class="keyword">;<br />
+<br />
+</span><span class="default">$b </span><span class="keyword">= clone </span><span class="default">$a</span><span class="keyword">;<br />
+</span><span class="default">$c </span><span class="keyword">= clone </span><span class="default">$b</span><span class="keyword">;<br />
+</span><span class="default">$d </span><span class="keyword">= clone </span><span class="default">$c</span><span class="keyword">;<br />
+<br />
+echo </span><span class="string">'Clones:' </span><span class="keyword">. </span><span class="default">Classe</span><span class="keyword">::</span><span class="default">howManyClones</span><span class="keyword">() . </span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+<br />
+unset(</span><span class="default">$d</span><span class="keyword">);<br />
+<br />
+echo </span><span class="string">'Clones:' </span><span class="keyword">. </span><span class="default">Classe</span><span class="keyword">::</span><span class="default">howManyClones</span><span class="keyword">() . </span><span class="default">PHP_EOL</span><span class="keyword">;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118049""></a>
+  <div class="note">
+   <strong class="user">jason at jewelrysupply dot com</strong>
+   <a href="#118049" class="date">25-Sep-2015 06:44</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+@DPB<br />
+<br />
+I believe the two functions are not quite the same. The serialize followed by deserialize method is the way I've done deep cloning in other languages (bypasses any weird clone function behavior and ensures you have a no-strings-attached copy of the object).</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117616""></a>
+  <div class="note">
+   <strong class="user">dennis</strong>
+   <a href="#117616" class="date">09-Jul-2015 07:45</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I had some trouble with cloning an array with objects in another object.<br />
+But I found a function on the internet&nbsp; that was very helpful:<br />
+<br />
+&nbsp;function array_clone( array $array ) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $result = array();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach( $array as $key =&gt; $val ) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if( is_array( $val ) ) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $result[$key] = arrayCopy( $val );<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } elseif ( is_object( $val ) ) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $result[$key] = clone $val;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $result[$key] = $val;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return $result;<br />
+} <br />
+<br />
+//== my test case:<br />
+class Employee<br />
+{<br />
+&nbsp;&nbsp;&nbsp; public $sName = '';<br />
+}<br />
+<br />
+class EmployeesContainer<br />
+{<br />
+&nbsp;&nbsp;&nbsp; private $arrObjects = array();<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public function __clone()<br />
+&nbsp;&nbsp;&nbsp; {&nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; //try to comment out the line below, you will see the out differs<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;arrObjects = array_clone($this-&gt;arrObjects);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public function add(Employee $objEmployee)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;arrObjects[] = $objEmployee;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public function getInternalArray()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return $this-&gt;arrObjects;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+$objContainerOriginal = new EmployeesContainer();<br />
+<br />
+$objEmpl1 = new Employee();<br />
+$objEmpl1-&gt;sName = 'erny';<br />
+$objContainerOriginal-&gt;add($objEmpl1);<br />
+<br />
+$objEmpl2 = new Employee();<br />
+$objEmpl2-&gt;sName = 'bert';<br />
+$objContainerOriginal-&gt;add($objEmpl2);<br />
+<br />
+$objContainerClone = clone $objContainerOriginal;<br />
+<br />
+if ($objContainerClone-&gt;getInternalArray()[1] === $objEmpl2)<br />
+&nbsp;&nbsp;&nbsp; echo 'SAME object: '.$objContainerClone-&gt;getInternalArray()[0]-&gt;sName.' &lt;-&gt; '.$objEmpl1-&gt;sName;<br />
+else <br />
+&nbsp;&nbsp;&nbsp; echo 'OTHER object: '.$objContainerClone-&gt;getInternalArray()[0]-&gt;sName.' &lt;-&gt; '.$objEmpl1-&gt;sName;</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116329""></a>
   <div class="note">
    <strong class="user">stanislav dot eckert at vizson dot de</strong>
    <a href="#116329" class="date">13-Dec-2014 09:53</a>

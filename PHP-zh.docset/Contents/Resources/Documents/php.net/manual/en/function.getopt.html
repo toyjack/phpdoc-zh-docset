@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.getopt" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">getopt</h1>
-  <p class="verinfo">(PHP 4 &gt;= 4.3.0, PHP 5)</p><p class="refpurpose"><span class="refname">getopt</span> &mdash; <span class="dc-title">从命令行参数列表中获取选项</span></p>
+  <p class="verinfo">(PHP 4 &gt;= 4.3.0, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">getopt</span> &mdash; <span class="dc-title">从命令行参数列表中获取选项</span></p>
 
  </div>
 
@@ -281,7 +281,112 @@ array(2) {
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="114587""></a>
+<div id="allnotes">  <a name="119154""></a>
+  <div class="note">
+   <strong class="user">micropresident at gmail dot com</strong>
+   <a href="#119154" class="date">12-Apr-2016 10:21</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+when using -f option to indicate script name, php does not allow to use double dash -- to define options after the script name; <br />
+<br />
+For example, the following command&nbsp; cannot be execute:<br />
+php -f myscript.php --config "myconfig.ini"</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117483""></a>
+  <div class="note">
+   <strong class="user">housni dot yakoob at NOSPAM dot gmail dot com</strong>
+   <a href="#117483" class="date">17-Jun-2015 08:14</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+To elaborate on what 'ch1902' said, there certainly are instances where you may need to execute a script via CLI and the HTTP protocol. In such an instance, you can normalize how your script parses via CLI (using getopt()) as well as via HTTP (using $_GET) with the following simplified code:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">// PHP 5.4+ only due to the new array brace style.<br />
+</span><span class="keyword">function </span><span class="default">request</span><span class="keyword">(array </span><span class="default">$options </span><span class="keyword">= []) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// Set the default values.<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$defaults </span><span class="keyword">= [<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'params' </span><span class="keyword">=&gt; </span><span class="string">''</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'os' </span><span class="keyword">=&gt; </span><span class="string">''</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'username' </span><span class="keyword">=&gt; </span><span class="default">posix_getpwuid</span><span class="keyword">(</span><span class="default">posix_geteuid</span><span class="keyword">())[</span><span class="string">'name'</span><span class="keyword">],<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'env' </span><span class="keyword">=&gt; </span><span class="string">''<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">];<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$options </span><span class="keyword">+= </span><span class="default">$defaults</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// Sufficient enough check for CLI.<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">if (</span><span class="string">'cli' </span><span class="keyword">=== </span><span class="default">PHP_SAPI</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">getopt</span><span class="keyword">(</span><span class="string">''</span><span class="keyword">, [</span><span class="string">'params:'</span><span class="keyword">, </span><span class="string">'os::'</span><span class="keyword">, </span><span class="string">'username::'</span><span class="keyword">, </span><span class="string">'env::'</span><span class="keyword">]) + </span><span class="default">$options</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$_GET </span><span class="keyword">+ </span><span class="default">$options</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="default">print_r</span><span class="keyword">(</span><span class="default">request</span><span class="keyword">());<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+The above code would yield the results below when access via CLI and HTTP.<br />
+<br />
+/**<br />
+&nbsp;* params = foo/bar<br />
+&nbsp;* username = housni.yakoob<br />
+&nbsp;*/<br />
+// CLI<br />
+$ php script.php --params=foo/bar --username=housni.yakoob<br />
+Array<br />
+(<br />
+&nbsp;&nbsp;&nbsp; [params] =&gt; foo/bar<br />
+&nbsp;&nbsp;&nbsp; [username] =&gt; housni.yakoob<br />
+&nbsp;&nbsp;&nbsp; [os] =&gt; <br />
+&nbsp;&nbsp;&nbsp; [env] =&gt; <br />
+)<br />
+<br />
+// HTTP<br />
+script.php?params=foo/bar&amp;username=housni.yakoob<br />
+Array<br />
+(<br />
+&nbsp;&nbsp;&nbsp; [params] =&gt; foo/bar<br />
+&nbsp;&nbsp;&nbsp; [username] =&gt; housni.yakoob<br />
+&nbsp;&nbsp;&nbsp; [os] =&gt; <br />
+&nbsp;&nbsp;&nbsp; [env] =&gt; <br />
+)<br />
+<br />
+/**<br />
+&nbsp;* params = foo/bar<br />
+&nbsp;* username = Not provided, therefore, the default value will be used.<br />
+&nbsp;*/<br />
+// CLI<br />
+$ whoami &amp;&amp; php script.php --params=foo/bar<br />
+housni // &lt;-- Current users usersname (output of `whoami`).<br />
+Array<br />
+(<br />
+&nbsp;&nbsp;&nbsp; [params] =&gt; foo/bar<br />
+&nbsp;&nbsp;&nbsp; [os] =&gt; <br />
+&nbsp;&nbsp;&nbsp; [username] =&gt; housni<br />
+&nbsp;&nbsp;&nbsp; [env] =&gt; <br />
+)<br />
+<br />
+// HTTP<br />
+script.php?params=foo/bar<br />
+Array<br />
+(<br />
+&nbsp;&nbsp;&nbsp; [params] =&gt; foo/bar<br />
+&nbsp;&nbsp;&nbsp; [os] =&gt; <br />
+&nbsp;&nbsp;&nbsp; // The username of my Apache user, the result of posix_getpwuid(posix_geteuid())['name']<br />
+&nbsp;&nbsp;&nbsp; [username] =&gt; www-data<br />
+&nbsp;&nbsp;&nbsp; [env] =&gt; <br />
+)<br />
+<br />
+As you can see, the output is consistent when the script is executed via the CLI or the web.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="114587""></a>
   <div class="note">
    <strong class="user">takingsides at gmail dot com</strong>
    <a href="#114587" class="date">10-Mar-2014 12:16</a>

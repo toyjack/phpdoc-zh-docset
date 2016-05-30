@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.exec" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">exec</h1>
-  <p class="verinfo">(PHP 4, PHP 5)</p><p class="refpurpose"><span class="refname">exec</span> &mdash; <span class="dc-title">执行一个外部程序</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">exec</span> &mdash; <span class="dc-title">执行一个外部程序</span></p>
 
  </div>
 
@@ -120,7 +120,7 @@
  <div class="refsect1 examples" id="refsect1-function.exec-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-3668">
+   <div class="example" id="example-4057">
     <p><strong>Example #1 <span class="function"><strong>exec()</strong></span> 例程</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -166,7 +166,128 @@ PHP 挂起，直至程序执行结束。</p></p></blockquote>
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116222""></a>
+<div id="allnotes">  <a name="119331""></a>
+  <div class="note">
+   <strong class="user">Paul Sommer</strong>
+   <a href="#119331" class="date">14-May-2016 10:33</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I tried to execute a command in background under Windows.<br />
+After struggling for hours with all these half ready examples I would like to share the syntax I found working (for windows at least). This is not tested under Linux as there are more elegant ways to spawn a process.<br />
+<br />
+Based on&nbsp; the function from Arno van den Brink.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">execInBackground</span><span class="keyword">(</span><span class="default">$cmd</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">substr</span><span class="keyword">(</span><span class="default">php_uname</span><span class="keyword">(), </span><span class="default">0</span><span class="keyword">, </span><span class="default">7</span><span class="keyword">) == </span><span class="string">"Windows"</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">pclose</span><span class="keyword">(</span><span class="default">popen</span><span class="keyword">(</span><span class="string">"start /B "</span><span class="keyword">. </span><span class="default">$cmd</span><span class="keyword">, </span><span class="string">"r"</span><span class="keyword">)); <br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">exec</span><span class="keyword">(</span><span class="default">$cmd </span><span class="keyword">. </span><span class="string">" &gt; /dev/null &amp;"</span><span class="keyword">);&nbsp; <br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+This works perfectly with e.g.<br />
+<span class="default">&lt;?php<br />
+execInBackground</span><span class="keyword">(</span><span class="string">'del c:\tmp\*.*'</span><span class="keyword">) <br />
+</span><span class="default">?&gt;<br />
+</span><br />
+but the following does NOT work:<br />
+<span class="default">&lt;?php<br />
+execInBackground</span><span class="keyword">(</span><span class="string">'\"c:\path with spaces\my program.exe\"'</span><span class="keyword">) <br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Why?<br />
+When windows sees quotation marks (\") it thinks this is the window title, not the command.<br />
+So, when your command needs quotation marks you HAVE TO provide a window name first, like<br />
+execInBackground("\"title\"" "\"c:\path with spaces\my program.exe\") <br />
+<br />
+Quotation marks are mandatiory for window title. Otherwise windows thinks this is the program name.<br />
+<br />
+Weired, but "Hey! it's Windows!" :)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119258""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#119258" class="date">28-Apr-2016 06:09</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Something you guys might find helpful:<br />
+<br />
+If you guys start a process or e.g. a script which starts processes sub processes, look that you uncouple them from your php script. Otherwise you get the same problem as I, your php script will wait to get the feedback from the server. So it will wait until the sub processes are dead.<br />
+<br />
+I know two ways to counter that, one way is to make sure the sub processes dont get linked to the parent process. <br />
+<br />
+The other way is to fire and forget with php (on Unix/Linux just add "/dev/null 2&gt;&amp;1 &amp;" to end of your command, but you should remember you wont get any output from the process.)<br />
+<br />
+Hope that will help some of you, I had a while until I came on this idea.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117134""></a>
+  <div class="note">
+   <strong class="user">Andrzej Kmicic</strong>
+   <a href="#117134" class="date">20-Apr-2015 02:28</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+For windows get specjal folders data:<br />
+<span class="default">&lt;?php<br />
+$cmd</span><span class="keyword">=</span><span class="string">"cmd /B /C echo %APPDATA%"</span><span class="keyword">;<br />
+</span><span class="default">exec</span><span class="keyword">(</span><span class="default">$cmd</span><span class="keyword">,</span><span class="default">$result</span><span class="keyword">);<br />
+</span><span class="default">print_r</span><span class="keyword">(</span><span class="default">$result</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+result :<br />
+Array<br />
+(<br />
+&nbsp;&nbsp;&nbsp; [0] =&gt; C:\Users\WJ\AppData\Roaming<br />
+)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117131""></a>
+  <div class="note">
+   <strong class="user">davideramondetti at yahoo dot it</strong>
+   <a href="#117131" class="date">20-Apr-2015 01:36</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Execute an a software, for an example my WordPress Plugin ExecMe, with an a error message and success message: <br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">Execute</span><span class="keyword">(</span><span class="default">$code</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="default">$executing </span><span class="keyword">= </span><span class="default">exec</span><span class="keyword">(</span><span class="default">$code</span><span class="keyword">); <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; if (</span><span class="default">$executing</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"Operation completed"</span><span class="keyword">; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; else<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// to have the code of the anti-fatalerror contact me! <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">echo </span><span class="string">"Operation failed"</span><span class="keyword">; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; }<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116222""></a>
   <div class="note">
    <strong class="user">Simon</strong>
    <a href="#116222" class="date">25-Nov-2014 02:07</a>
@@ -209,19 +330,6 @@ And see its log with<br />
 $lastline </span><span class="keyword">= </span><span class="default">exec</span><span class="keyword">(</span><span class="string">'journalctl -u my_unit_name'</span><span class="keyword">, </span><span class="default">$output</span><span class="keyword">, </span><span class="default">$exitval</span><span class="keyword">);<br />
 </span><span class="default">?&gt;</span>
 </span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="114561""></a>
-  <div class="note">
-   <strong class="user">Anonymous</strong>
-   <a href="#114561" class="date">06-Mar-2014 07:22</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-You can add &gt;2&amp;1 to display the data directly (tested on Windows 7 system).</span>
 </code>
     </div>
    </div>
@@ -507,26 +615,6 @@ A simple function to see if exec() is enabled on the server:<br />
 &nbsp; </span><span class="default">$disabled </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">(</span><span class="string">', '</span><span class="keyword">, </span><span class="default">ini_get</span><span class="keyword">(</span><span class="string">'disable_functions'</span><span class="keyword">));<br />
 &nbsp; return !</span><span class="default">in_array</span><span class="keyword">(</span><span class="string">'exec'</span><span class="keyword">, </span><span class="default">$disabled</span><span class="keyword">);<br />
 }<br />
-</span><span class="default">?&gt;</span>
-</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="94798""></a>
-  <div class="note">
-   <strong class="user">florin from syneto net</strong>
-   <a href="#94798" class="date">25-Nov-2009 04:06</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-A simple way to initialize $output before calling exec() on the same line:
-<br />
-<span class="default">&lt;?php
-<br />
-&nbsp;&nbsp;&nbsp; exec</span><span class="keyword">(</span><span class="default">$command</span><span class="keyword">, </span><span class="default">$output </span><span class="keyword">= array());
-<br />
 </span><span class="default">?&gt;</span>
 </span>
 </code>
@@ -1035,20 +1123,6 @@ capture output using ob_start() if you like. Extra code looks for spaces and add
    </div>
   </div>
  <div class="foot"></div>
-  <a name="85460""></a>
-  <div class="note">
-   <strong class="user">sandaimespaceman at gmail dot com</strong>
-   <a href="#85460" class="date">01-Sep-2008 09:13</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-You can't just let it execute a macro/bot such as AutoIt and let it start video encoder, because the www-data user doesn't have a display manager<br />
-I tried to use exec('firefox') but Firefox doesn't show up.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
   <a name="85225""></a>
   <div class="note">
    <strong class="user">aurora-glacialis at gmx dot de</strong>
@@ -1231,26 +1305,6 @@ Create a shell script (ex. runscript.sh) which contains the execution line for t
 The runscript.sh is run by an exec() call without the redirect string, which is now placed in the runscript.sh. <br />
 <br />
 runscript.sh will return almost immediately because output of the original script is redirected, and so will not hang your browser and the script runs fine in the background.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="80359""></a>
-  <div class="note">
-   <strong class="user">bzz at mail dot com</strong>
-   <a href="#80359" class="date">11-Jan-2008 09:02</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-//if you just exec wshost.exe with the .vbs file as an argument, it will run fine.<br />
-<br />
-<span class="default">&lt;?php<br />
-</span><span class="comment">//Execute a .vbs file<br />
-</span><span class="default">$f </span><span class="keyword">= </span><span class="string">"test.vbs"</span><span class="keyword">;<br />
-</span><span class="default">execu</span><span class="keyword">(</span><span class="string">"whost </span><span class="default">$f</span><span class="string">"</span><span class="keyword">);<br />
-</span><span class="default">?&gt;</span>
-</span>
 </code>
     </div>
    </div>

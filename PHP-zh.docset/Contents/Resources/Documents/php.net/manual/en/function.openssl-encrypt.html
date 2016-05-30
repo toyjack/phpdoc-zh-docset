@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.openssl-encrypt" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">openssl_encrypt</h1>
-  <p class="verinfo">(PHP 5 &gt;= 5.3.0)</p><p class="refpurpose"><span class="refname">openssl_encrypt</span> &mdash; <span class="dc-title">Encrypts data</span></p>
+  <p class="verinfo">(PHP 5 &gt;= 5.3.0, PHP 7)</p><p class="refpurpose"><span class="refname">openssl_encrypt</span> &mdash; <span class="dc-title">Encrypts data</span></p>
 
  </div>
 
@@ -75,7 +75,7 @@
      <dd>
 
       <p class="para">
-       The cipher method.
+       The cipher method. For a list of available cipher methods, use <span class="function"><a href="function.openssl-get-cipher-methods.html" class="function">openssl_get_cipher_methods()</a></span>.
       </p>
      </dd>
 
@@ -193,7 +193,142 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116788""></a>
+<div id="allnotes">  <a name="119346""></a>
+  <div class="note">
+   <strong class="user">Nick</strong>
+   <a href="#119346" class="date">18-May-2016 06:09</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+There's a lot of confusion plus some false guidance here on the openssl library. <br />
+<br />
+The basic tips are:<br />
+<br />
+aes-256-ctr is arguably the best choice for cipher algorithm as of 2016. This avoids potential security issues (so-called padding oracle attacks) and bloat from algorithms that pad data to a certain block size. aes-256-gcm is preferable, but not usable until the openssl library is enhanced, which is due in PHP 7.1<br />
+<br />
+Use different random data for the initialisation vector each time encryption is made with the same key. mcrypt_create_iv() is one choice for random data. AES uses 16 byte blocks, so you need 16 bytes for the iv.<br />
+<br />
+Join the iv data to the encrypted result and extract the iv data again when decrypting.<br />
+<br />
+Pass OPENSSL_RAW_DATA for the flags and encode the result if necessary after adding in the iv data.<br />
+<br />
+Hash the chosen encryption key (the password parameter) using openssl_digest() with a hash function such as sha256, and use the hashed value for the password parameter.<br />
+<br />
+There's a simple Cryptor class on GitHub called php-openssl-cryptor that demonstrates encryption/decryption and hashing with openssl, along with how to produce and consume the data in base64 and hex as well as binary. It should lay the foundations for better understanding and making effective use of openssl with PHP.<br />
+<br />
+Hopefully it will help anyone looking to get started with this powerful library.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118832""></a>
+  <div class="note">
+   <strong class="user">Geoff</strong>
+   <a href="#118832" class="date">13-Feb-2016 07:21</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Contrary to some of the other comments here, I'm not certain that Password is indeed being improperly treated as the direct key.&nbsp; I say this because I've been passing random text values into this parameter which would be invalid as hex input.&nbsp; It seems to be hashing the password I provide, using what algorithm I do not know, because otherwise I'd expect it to throw an exception instead of working as expected.<br />
+<br />
+That said, I'm using openssl_decrypt() to decrypt data that was only encrypted with openssl_encrypt().&nbsp; I've not had to try to decrypt data where I do know for certain what the direct key is to know if I have an issue with bad pad blocks or any other exceptions which would indicate a key mismatch.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118325""></a>
+  <div class="note">
+   <strong class="user">David</strong>
+   <a href="#118325" class="date">18-Nov-2015 06:07</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Note, that if you don't specify the ...RAW_DATA&nbsp; option, then you get a base64 encoded result.&nbsp; I lost a few hours because my PHP didn't have the OPENSSL_RAW_DATA constant, and after I'd carefully base64 encoded the result, it just wasn't decoding...</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117499""></a>
+  <div class="note">
+   <strong class="user">Raphael</strong>
+   <a href="#117499" class="date">19-Jun-2015 04:55</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Beware of the padding this method adds !<br />
+<br />
+<span class="default">&lt;?php<br />
+$encryption_key </span><span class="keyword">= </span><span class="default">openssl_random_pseudo_bytes</span><span class="keyword">(</span><span class="default">32</span><span class="keyword">);<br />
+</span><span class="default">$iv </span><span class="keyword">= </span><span class="default">openssl_random_pseudo_bytes</span><span class="keyword">(</span><span class="default">16</span><span class="keyword">);<br />
+</span><span class="default">$data </span><span class="keyword">= </span><span class="default">openssl_random_pseudo_bytes</span><span class="keyword">(</span><span class="default">32</span><span class="keyword">);<br />
+<br />
+for (</span><span class="default">$i </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">; </span><span class="default">$i </span><span class="keyword">&lt; </span><span class="default">5</span><span class="keyword">; </span><span class="default">$i</span><span class="keyword">++) {<br />
+&nbsp;</span><span class="default">$data </span><span class="keyword">= </span><span class="default">openssl_encrypt</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">, </span><span class="string">'aes-256-cbc'</span><span class="keyword">, </span><span class="default">$encryption_key</span><span class="keyword">, </span><span class="default">OPENSSL_RAW_DATA</span><span class="keyword">, </span><span class="default">$iv</span><span class="keyword">);<br />
+&nbsp;echo </span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">) . </span><span class="string">"\n"</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+With this sample the output will be:<br />
+48<br />
+64<br />
+80<br />
+96<br />
+112<br />
+<br />
+This is because our $data is already taking all the block size, so the method is adding a new block which will contain only padded bytes.<br />
+<br />
+The only solution that come to my mind to avoid this situation is to add the option OPENSSL_ZERO_PADDING along with the first one:<br />
+<span class="default">&lt;?php<br />
+$data </span><span class="keyword">= </span><span class="default">openssl_encrypt</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">, </span><span class="string">'aes-256-cbc'</span><span class="keyword">, </span><span class="default">$encryption_key</span><span class="keyword">, </span><span class="default">OPENSSL_RAW_DATA</span><span class="keyword">|</span><span class="default">OPENSSL_ZERO_PADDING</span><span class="keyword">, </span><span class="default">$iv</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+/!\ Be careful when using this option, be sure that you provide data that have already been padded or that takes already all the block size.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117208""></a>
+  <div class="note">
+   <strong class="user">openssl at mailismagic dot com</strong>
+   <a href="#117208" class="date">02-May-2015 11:11</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Since the $options are not documented, I'm going to clarify what they mean here in the comments.&nbsp; Behind the scenes, in the source code for /ext/openssl/openssl.c:<br />
+<br />
+&nbsp;&nbsp;&nbsp; EVP_EncryptInit_ex(&amp;cipher_ctx, NULL, NULL, key, (unsigned char *)iv);<br />
+&nbsp;&nbsp;&nbsp; if (options &amp; OPENSSL_ZERO_PADDING) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; EVP_CIPHER_CTX_set_padding(&amp;cipher_ctx, 0);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+And later:<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (options &amp; OPENSSL_RAW_DATA) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; outbuf[outlen] = '\0';<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; RETVAL_STRINGL((char *)outbuf, outlen, 0);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; int base64_str_len;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; char *base64_str;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; base64_str = (char*)php_base64_encode(outbuf, outlen, &amp;base64_str_len);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; efree(outbuf);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; RETVAL_STRINGL(base64_str, base64_str_len, 0);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+So as we can see here, OPENSSL_ZERO_PADDING has a direct impact on the OpenSSL context.&nbsp; EVP_CIPHER_CTX_set_padding() enables or disables padding (enabled by default).&nbsp; So, OPENSSL_ZERO_PADDING disables padding for the context, which means that you will have to manually apply your own padding out to the block size.&nbsp; Without using OPENSSL_ZERO_PADDING, you will automatically get PKCS#7 padding.<br />
+<br />
+OPENSSL_RAW_DATA does not affect the OpenSSL context but has an impact on the format of the data returned to the caller.&nbsp; When OPENSSL_RAW_DATA is specified, the returned data is returned as-is.&nbsp; When it is not specified, Base64 encoded data is returned to the caller.<br />
+<br />
+Hope this saves someone a trip to the PHP source code to figure out what the $options do.&nbsp; Pro developer tip:&nbsp; Download and have a copy of the PHP source code locally so that, when the PHP documentation fails to live up to quality expectations, you can see what is actually happening behind the scenes.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116788""></a>
   <div class="note">
    <strong class="user">Anonymous</strong>
    <a href="#116788" class="date">28-Feb-2015 11:14</a>

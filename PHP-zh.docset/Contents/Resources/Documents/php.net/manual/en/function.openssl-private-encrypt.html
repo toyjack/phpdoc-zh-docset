@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.openssl-private-encrypt" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">openssl_private_encrypt</h1>
-  <p class="verinfo">(PHP 4 &gt;= 4.0.6, PHP 5)</p><p class="refpurpose"><span class="refname">openssl_private_encrypt</span> &mdash; <span class="dc-title">Encrypts data with private key </span></p>
+  <p class="verinfo">(PHP 4 &gt;= 4.0.6, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">openssl_private_encrypt</span> &mdash; <span class="dc-title">Encrypts data with private key </span></p>
 
  </div>
  
@@ -134,7 +134,50 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="108151""></a>
+<div id="allnotes">  <a name="119004""></a>
+  <div class="note">
+   <strong class="user">P.Peyremorte</strong>
+   <a href="#119004" class="date">16-Mar-2016 03:17</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+A trick not mentioned in manual to know :<br />
+<br />
+- openssl_private_encrypt can encrypt a maximum of 117 chars at one time.<br />
+- the encrypted output string is always 129 char length. If you use base64_encode on the encrypted output, it will give always 172 chars, with the last always "=" (filler).<br />
+<br />
+So, to encode a longer stream input you have to use something like :<br />
+<span class="default">&lt;?php<br />
+$RawData </span><span class="keyword">= ... ; </span><span class="comment">//Your input data to encode<br />
+<br />
+</span><span class="default">$PartialData </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">;<br />
+</span><span class="default">$EncodedData </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">;<br />
+</span><span class="default">$Split </span><span class="keyword">= </span><span class="default">str_split</span><span class="keyword">(</span><span class="default">$RawData </span><span class="keyword">, </span><span class="default">117</span><span class="keyword">);<br />
+ForEach(</span><span class="default">$Split </span><span class="keyword">as </span><span class="default">$Part</span><span class="keyword">)<br />
+{<br />
+&nbsp; </span><span class="default">openssl_private_encrypt</span><span class="keyword">(</span><span class="default">$Part</span><span class="keyword">, </span><span class="default">$PartialData</span><span class="keyword">, </span><span class="default">$PrivateKey</span><span class="keyword">);<br />
+&nbsp; </span><span class="default">$EncodedData </span><span class="keyword">.= </span><span class="default">base64_encode</span><span class="keyword">(</span><span class="default">$PartialData</span><span class="keyword">);<br />
+}<br />
+</span><span class="default">?&gt;</span> <br />
+<br />
+and then, to decode :<br />
+<br />
+<span class="default">&lt;?php<br />
+$OriginalData </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">;<br />
+</span><span class="default">$Split </span><span class="keyword">= </span><span class="default">str_split</span><span class="keyword">(</span><span class="default">$EncodedData </span><span class="keyword">, </span><span class="default">172</span><span class="keyword">);<br />
+ForEach(</span><span class="default">$Split </span><span class="keyword">as </span><span class="default">$Part</span><span class="keyword">)<br />
+{<br />
+&nbsp; </span><span class="default">openssl_private_decrypt</span><span class="keyword">(</span><span class="default">base64_decode</span><span class="keyword">(</span><span class="default">$Part</span><span class="keyword">), </span><span class="default">$PartialData</span><span class="keyword">, </span><span class="default">$PublicKey</span><span class="keyword">);<br />
+&nbsp; </span><span class="default">$OriginalData </span><span class="keyword">.= </span><span class="default">$PartialData</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="108151""></a>
   <div class="note">
    <strong class="user">adityasingh at techknowtrends dot com</strong>
    <a href="#108151" class="date">03-Apr-2012 06:18</a>

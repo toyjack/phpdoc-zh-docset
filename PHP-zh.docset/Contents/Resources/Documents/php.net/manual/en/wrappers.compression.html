@@ -147,7 +147,85 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="113272""></a>
+<div id="allnotes">  <a name="118461""></a>
+  <div class="note">
+   <strong class="user">feodor at ctm dot ru</strong>
+   <a href="#118461" class="date">10-Dec-2015 10:13</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Prior to PHP 5.6 i used code like <br />
+<span class="default">&lt;?php<br />
+file_get_contents</span><span class="keyword">(</span><span class="string">"compress.zlib://php://input"</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span>to read gz-compressed or plain input file. Not it doesn't work.<br />
+Simple workaround :<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">//file_get_contents("compress.zlib://php://input");<br />
+<br />
+</span><span class="keyword">class </span><span class="default">gzip_header_filter8 </span><span class="keyword">extends </span><span class="default">php_user_filter </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; private </span><span class="default">$filtered </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">filter</span><span class="keyword">(</span><span class="default">$in</span><span class="keyword">, </span><span class="default">$out</span><span class="keyword">, &amp;</span><span class="default">$consumed</span><span class="keyword">, </span><span class="default">$closing</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; while (</span><span class="default">$bucket </span><span class="keyword">= </span><span class="default">stream_bucket_make_writeable</span><span class="keyword">(</span><span class="default">$in</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filtered </span><span class="keyword">== </span><span class="default">0</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$header_len </span><span class="keyword">= </span><span class="default">8</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$header </span><span class="keyword">= </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$bucket</span><span class="keyword">-&gt;</span><span class="default">data</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">, </span><span class="default">8</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$flags </span><span class="keyword">= </span><span class="default">ord</span><span class="keyword">(</span><span class="default">$header</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">$flags </span><span class="keyword">&amp; </span><span class="default">0x08</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// a filename is present<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$header_len </span><span class="keyword">= </span><span class="default">strpos</span><span class="keyword">(</span><span class="default">$bucket</span><span class="keyword">-&gt;</span><span class="default">data</span><span class="keyword">, </span><span class="string">"\0"</span><span class="keyword">, </span><span class="default">8</span><span class="keyword">) + </span><span class="default">1</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$bucket</span><span class="keyword">-&gt;</span><span class="default">data </span><span class="keyword">= </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$bucket</span><span class="keyword">-&gt;</span><span class="default">data</span><span class="keyword">, </span><span class="default">$header_len</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filtered </span><span class="keyword">= </span><span class="default">$header_len</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$consumed </span><span class="keyword">+= </span><span class="default">$bucket</span><span class="keyword">-&gt;</span><span class="default">datalen</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">stream_bucket_append</span><span class="keyword">(</span><span class="default">$out</span><span class="keyword">, </span><span class="default">$bucket</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">PSFS_PASS_ON</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">stream_filter_register</span><span class="keyword">(</span><span class="string">'gzip_header_filter8'</span><span class="keyword">, </span><span class="string">'gzip_header_filter8'</span><span class="keyword">);<br />
+<br />
+</span><span class="default">$READ_LEN </span><span class="keyword">= </span><span class="default">64</span><span class="keyword">*</span><span class="default">1024</span><span class="keyword">;<br />
+</span><span class="default">$MAX_BUF_LEN </span><span class="keyword">= </span><span class="default">$READ_LEN</span><span class="keyword">*</span><span class="default">1024</span><span class="keyword">;<br />
+<br />
+</span><span class="default">$mode_plain</span><span class="keyword">=</span><span class="default">true</span><span class="keyword">;<br />
+</span><span class="default">$src</span><span class="keyword">=</span><span class="default">fopen</span><span class="keyword">(</span><span class="string">"php://input"</span><span class="keyword">,</span><span class="string">"rb"</span><span class="keyword">); </span><span class="comment">//test if OK!!!!<br />
+</span><span class="default">$magic_number</span><span class="keyword">=</span><span class="default">fread</span><span class="keyword">(</span><span class="default">$src</span><span class="keyword">,</span><span class="default">2</span><span class="keyword">);<br />
+</span><span class="default">$input</span><span class="keyword">=</span><span class="string">""</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; if(</span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$magic_number</span><span class="keyword">)==</span><span class="default">2</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; (</span><span class="default">ord</span><span class="keyword">(</span><span class="default">$magic_number</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">])==</span><span class="default">31</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; &amp;&amp;&nbsp; (</span><span class="default">ord</span><span class="keyword">(</span><span class="default">$magic_number</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">])==</span><span class="default">139</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; )<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$mode_plain</span><span class="keyword">=</span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">stream_filter_append</span><span class="keyword">(</span><span class="default">$src</span><span class="keyword">, </span><span class="string">"gzip_header_filter8"</span><span class="keyword">, </span><span class="default">STREAM_FILTER_READ</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">stream_filter_append</span><span class="keyword">(</span><span class="default">$src</span><span class="keyword">, </span><span class="string">"zlib.inflate"</span><span class="keyword">, </span><span class="default">STREAM_FILTER_READ</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+else<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$input</span><span class="keyword">=</span><span class="default">$magic_number</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+</span><span class="comment">/* read starts here*/<br />
+&nbsp;</span><span class="default">$k </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
+&nbsp;while (!</span><span class="default">feof</span><span class="keyword">(</span><span class="default">$src</span><span class="keyword">) &amp;&amp; </span><span class="default">$k </span><span class="keyword">&lt;= </span><span class="default">$MAX_BUF_LEN</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$inp </span><span class="keyword">= </span><span class="default">fread</span><span class="keyword">(</span><span class="default">$src</span><span class="keyword">,</span><span class="default">$READ_LEN</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$k </span><span class="keyword">+= </span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$inp</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$input</span><span class="keyword">.=</span><span class="default">$inp</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+echo </span><span class="default">$input</span><span class="keyword">;<br />
+</span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$src</span><span class="keyword">);<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="113272""></a>
   <div class="note">
    <strong class="user">eragonjml at googlemail dot com</strong>
    <a href="#113272" class="date">20-Sep-2013 02:00</a>

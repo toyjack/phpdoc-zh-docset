@@ -113,7 +113,7 @@
   <div class="section" id="splenum.examples">
    <h2 class="title">·¶Àý</h2>
    <p class="para">
-    <div class="example" id="example-4022">
+    <div class="example" id="example-4413">
      <p><strong>Example #1 <strong class="classname">SplEnum</strong> usage example</strong></p>
      <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -151,7 +151,123 @@ Value not a const in enum Month
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116325""></a>
+<div id="allnotes">  <a name="118386""></a>
+  <div class="note">
+   <strong class="user">dc at dcitservices dot com dot au</strong>
+   <a href="#118386" class="date">27-Nov-2015 01:19</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I use the following function getValue() to have a dynamically way to check and retrieve value without errors. <br />
+<br />
+class MyEnum extends SplEnum<br />
+{<br />
+&nbsp;&nbsp;&nbsp; const __default = 0;<br />
+<br />
+&nbsp;&nbsp;&nbsp; const C1 = 1;<br />
+&nbsp;&nbsp;&nbsp; const C2 = 2;<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function getValue($key)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $declaredElems = $this-&gt;getConstList();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(array_key_exists($key, $declaredElems)){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $r = new \ReflectionClass($this);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return $r-&gt;getConstant($key);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }else{<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return self::__default;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117247""></a>
+  <div class="note">
+   <strong class="user">mohanrajnr at gmail dot com</strong>
+   <a href="#117247" class="date">09-May-2015 08:16</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+if class SplEnum is not present, I would normally use something simple like the following:<br />
+<br />
+abstract class DaysOfWeek<br />
+{<br />
+&nbsp;&nbsp;&nbsp; const Sunday = 0;<br />
+&nbsp;&nbsp;&nbsp; const Monday = 1;<br />
+&nbsp;&nbsp;&nbsp; // etc.<br />
+}<br />
+<br />
+$today = DaysOfWeek::Sunday;<br />
+However, other use cases may require more validation of constants and values. <br />
+<br />
+abstract class BasicEnum {<br />
+&nbsp;&nbsp;&nbsp; private static $constCacheArray = NULL;<br />
+<br />
+private function __construct(){<br />
+&nbsp;&nbsp; &nbsp;&nbsp; /*<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; Preventing instance :)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; */<br />
+&nbsp;&nbsp; &nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; private static function getConstants() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (self::$constCacheArray == NULL) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; self::$constCacheArray = [];<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $calledClass = get_called_class();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (!array_key_exists($calledClass, self::$constCacheArray)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $reflect = new ReflectionClass($calledClass);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; self::$constCacheArray[$calledClass] = $reflect-&gt;getConstants();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return self::$constCacheArray[$calledClass];<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public static function isValidName($name, $strict = false) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $constants = self::getConstants();<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ($strict) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return array_key_exists($name, $constants);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $keys = array_map('strtolower', array_keys($constants));<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return in_array(strtolower($name), $keys);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public static function isValidValue($value) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $values = array_values(self::getConstants());<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return in_array($value, $values, $strict = true);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+By creating a simple enum class that extends BasicEnum, you now have the ability to use methods thusly for simple input validation:<br />
+<br />
+abstract class DaysOfWeek extends BasicEnum {<br />
+&nbsp;&nbsp;&nbsp; const Sunday = 0;<br />
+&nbsp;&nbsp;&nbsp; const Monday = 1;<br />
+&nbsp;&nbsp;&nbsp; const Tuesday = 2;<br />
+&nbsp;&nbsp;&nbsp; const Wednesday = 3;<br />
+&nbsp;&nbsp;&nbsp; const Thursday = 4;<br />
+&nbsp;&nbsp;&nbsp; const Friday = 5;<br />
+&nbsp;&nbsp;&nbsp; const Saturday = 6;<br />
+}<br />
+<br />
+DaysOfWeek::isValidName('Humpday');&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; // false<br />
+DaysOfWeek::isValidName('Monday');&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; // true<br />
+DaysOfWeek::isValidName('monday');&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; // true<br />
+DaysOfWeek::isValidName('monday', $strict = true);&nbsp;&nbsp; // false<br />
+DaysOfWeek::isValidName(0);&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; // false<br />
+<br />
+DaysOfWeek::isValidValue(0);&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; // true<br />
+DaysOfWeek::isValidValue(5);&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; // true<br />
+DaysOfWeek::isValidValue(7);&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; // false<br />
+DaysOfWeek::isValidValue('Friday');&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; // false<br />
+As a side note, any time I use reflection at least once on a static/const class where the data won't change (such as in an enum), I cache the results of those reflection calls, since using fresh reflection objects each time will eventually have a noticeable performance impact (Stored in an assocciative array for multiple enums).</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116325""></a>
   <div class="note">
    <strong class="user">lsloan-php dot net at umich dot edu</strong>
    <a href="#116325" class="date">13-Dec-2014 05:11</a>

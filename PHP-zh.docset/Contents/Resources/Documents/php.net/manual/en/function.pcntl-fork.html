@@ -30,7 +30,7 @@
   <div id="layout-content"><div id="function.pcntl-fork" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">pcntl_fork</h1>
-  <p class="verinfo">(PHP 4 &gt;= 4.1.0, PHP 5)</p><p class="refpurpose"><span class="refname">pcntl_fork</span> &mdash; <span class="dc-title">
+  <p class="verinfo">(PHP 4 &gt;= 4.1.0, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">pcntl_fork</span> &mdash; <span class="dc-title">
   在当前进程当前位置产生分支（子进程）。译注：fork是创建了一个子进程，父进程和子进程
   都从fork的位置开始向下继续执行，不同的是父进程执行过程中，得到的fork返回值为子进程
   号，而子进程得到的是0。
@@ -65,7 +65,7 @@
  <div class="refsect1 examples" id="refsect1-function.pcntl-fork-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-3635">
+   <div class="example" id="example-4024">
     <p><strong>Example #1 <span class="function"><strong>pcntl_fork()</strong></span> 示例</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -94,7 +94,157 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116674""></a>
+<div id="allnotes">  <a name="118023""></a>
+  <div class="note">
+   <strong class="user">laurent dot salomon at ymail dot com</strong>
+   <a href="#118023" class="date">20-Sep-2015 08:46</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The following exemple works with php5.6 and apcu. This was tested on debian 7 and Ubuntu 14.04.2 LTS.<br />
+<br />
+Here is a proposition of a simple Job class which execute a task list upon a item queue with shared memory capability :<br />
+<br />
+class Job<br />
+{<br />
+&nbsp;&nbsp;&nbsp; const<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; CACHE_PREFIX = 'SHM/',<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; WORKER_NUMBER = 10;<br />
+<br />
+&nbsp;&nbsp;&nbsp; private<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $_queues = [],<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $_tasks = [],<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $_pids = [],<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $_workerNumber,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $_cacheHandler,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $_prefix,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $_id;<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function __construct(array $queue, $workerNumber = self::WORKER_NUMBER)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $count = count($queue);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $length = ceil($count / $workerNumber);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;_queues = array_chunk($queue, $length);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;setWorkerNumber($workerNumber);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;_prefix = self::CACHE_PREFIX . microtime(true) . '/';<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function setWorkerNumber($workerNumber)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;_workerNumber = $workerNumber;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function __get($key)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return apc_fetch($this-&gt;_prefix . $key);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function __set($key, $value)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; apc_store($this-&gt;_prefix . $key, $value);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function add(Closure $task)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;_tasks[] = $task-&gt;bindTo($this, $this);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return $this;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function run(Closure $task = null)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (isset($task))<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;add($task);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $i = 0;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; do<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $queue = $this-&gt;_queues[$i++];<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $pid = pcntl_fork();<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;_id = $i;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if ($pid === -1)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; die("can't fork !");<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; elseif ($pid !== 0) // main<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;_pids[$pid] = $pid;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; else // child<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; foreach($this-&gt;_tasks as $task)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $task($queue);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; exit(0);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; while($i &lt; $this-&gt;_workerNumber);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; do // main<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $pid = pcntl_wait($status);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; unset($this-&gt;_pids[$pid]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; while(count($this-&gt;_pids));<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+$driver = new mysqli(':host', ':user', ':pwd', ':db');<br />
+<br />
+$query = 'SELECT * FROM :table LIMIT :n';<br />
+<br />
+if (false !== ($res = $driver-&gt;query($query)))<br />
+{<br />
+&nbsp;&nbsp;&nbsp; $resultSet = [];<br />
+<br />
+&nbsp;&nbsp;&nbsp; while($row = mysqli_fetch_assoc($res))<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $resultSet[] = $row;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; $job = new Job($resultSet);<br />
+<br />
+&nbsp;&nbsp;&nbsp; $job-&gt;test = [];<br />
+<br />
+&nbsp;&nbsp;&nbsp; $job-&gt;run(function($queue = [])<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; // task<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach($queue as $value)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $test = $this-&gt;test;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $value['workedId'] = $this-&gt;_id;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; // ...<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $test[] = $value;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;test = $test;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; });<br />
+<br />
+&nbsp;&nbsp;&nbsp; print_r($job-&gt;test);<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116674""></a>
   <div class="note">
    <strong class="user">jrm456 at speed dot 1s dot fr</strong>
    <a href="#116674" class="date">09-Feb-2015 12:39</a>

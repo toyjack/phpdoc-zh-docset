@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.ftp-nlist" class="refentry">
    <div class="refnamediv">
     <h1 class="refname">ftp_nlist</h1>
-    <p class="verinfo">(PHP 4, PHP 5)</p><p class="refpurpose"><span class="refname">ftp_nlist</span> &mdash; <span class="dc-title">返回给定目录的文件列表</span></p>
+    <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">ftp_nlist</span> &mdash; <span class="dc-title">返回给定目录的文件列表</span></p>
 
    </div>
    <div class="refsect1 description" id="refsect1-function.ftp-nlist-description">
@@ -85,7 +85,7 @@
   <div class="refsect1 examples" id="refsect1-function.ftp-nlist-examples">
    <h3 class="title">范例</h3>
    <p class="para">
-    <div class="example" id="example-4305">
+    <div class="example" id="example-4696">
      <p><strong>Example #1 <span class="function"><strong>ftp_nlist()</strong></span> 例子</strong></p>
      <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -123,7 +123,59 @@ array(3) {
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="108501""></a>
+<div id="allnotes">  <a name="119023""></a>
+  <div class="note">
+   <strong class="user">fsa at dwarf dot dk</strong>
+   <a href="#119023" class="date">18-Mar-2016 06:19</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+So I wrote a simple function using ftp_nlist() to recursively list only files in a specified directory.<br />
+<br />
+/**<br />
+&nbsp;* Returns a list of files in the given directory, excluding directories.<br />
+&nbsp;*<br />
+&nbsp;* @param resource $ftp_stream<br />
+&nbsp;*&nbsp;&nbsp; The link identifier of the FTP connection.<br />
+&nbsp;* @param string&nbsp;&nbsp; $directory<br />
+&nbsp;*&nbsp;&nbsp; The directory to be listed.<br />
+&nbsp;*&nbsp;&nbsp; Note that this parameter isn't escaped so there may be some issues with filenames containing spaces and other characters.<br />
+&nbsp;* @param bool&nbsp; &nbsp;&nbsp; $recursive<br />
+&nbsp;*&nbsp;&nbsp; (optional) If set to TRUE, the issued command will be done recursively.<br />
+&nbsp;*<br />
+&nbsp;* @return array<br />
+&nbsp;*&nbsp;&nbsp; Returns an array of filenames from the specified directory.<br />
+&nbsp;*/<br />
+function ftp_files_list($ftp_stream, $directory, $recursive = false) {<br />
+&nbsp; $files = array();<br />
+<br />
+&nbsp; $list = ftp_nlist($ftp_stream, $directory);<br />
+&nbsp; if (is_array($list)) {<br />
+&nbsp;&nbsp;&nbsp; // Strip away dot directories.<br />
+&nbsp;&nbsp;&nbsp; $list = array_slice($list, 2);<br />
+<br />
+&nbsp;&nbsp;&nbsp; foreach ($list as $filename) {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; $path = $directory . '/' . $filename;<br />
+&nbsp;&nbsp; &nbsp;&nbsp; // If size equals -1 it's a directory.<br />
+&nbsp;&nbsp; &nbsp;&nbsp; if (ftp_size($ftp_stream, $path) === -1) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ($recursive) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $files = array_merge($files, ftp_files_list($ftp_stream, $path, $recursive));<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; // Strip away root directory path to ensure all file paths are relative.<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $files[] = substr($path, strpos($path, '/') + 1);<br />
+&nbsp;&nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp; }<br />
+<br />
+&nbsp; return $files;<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="108501""></a>
   <div class="note">
    <strong class="user">Jacob Slomp</strong>
    <a href="#108501" class="date">02-May-2012 12:58</a>

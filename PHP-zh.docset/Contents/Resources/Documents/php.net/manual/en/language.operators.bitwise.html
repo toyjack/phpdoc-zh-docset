@@ -91,8 +91,22 @@
     <em>($a &amp; $b) == true</em> 则先进行按位与再进行比较。
    </p>
    <p class="para">
-    要注意数据类型的转换。如果左右参数都是字符串，则位运算符将对字符的
-    ASCII 值进行操作。
+    If both operands for the <em>&amp;</em>, <em>|</em> and
+    <em>^</em> operators are strings, then the operation will be
+    performed on the ASCII values of the characters that make up the strings and
+    the result will be a string. In all other cases, both operands will be
+    <a href="language.types.integer.html#language.types.integer.casting" class="link">converted to integers</a>
+    and the result will be an integer.
+   </p>
+   <p class="para">
+    If the operand for the <em>~</em> operator is a string, the
+    operation will be performed on the ASCII values of the characters that make
+    up the string and the result will be a string, otherwise the operand and the
+    result will be treated as integers.
+   </p>
+   <p class="para">
+    Both operands and the result for the <em>&lt;&lt;</em> and
+    <em>&gt;&gt;</em> operators are always treated as integers.
    </p>
    <p class="para">
     <div class="informalexample">
@@ -147,7 +161,7 @@ error_reporting 也可用来演示怎样置位。只显示错误和可恢复
     </div>
    </p>
    <p class="para">
-    <div class="example" id="example-129">
+    <div class="example" id="example-130">
      <p><strong>Example #1 整数的 AND，OR 和 XOR 位运算符</strong></p>
      <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -187,7 +201,7 @@ error_reporting 也可用来演示怎样置位。只显示错误和可恢复
     </div>
    </p>
    <p class="para">
-    <div class="example" id="example-130">
+    <div class="example" id="example-131">
      <p><strong>Example #2 字符串的 XOR 运算符</strong></p>
      <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -199,7 +213,7 @@ error_reporting 也可用来演示怎样置位。只显示错误和可恢复
     </div>
    </p>
    <p class="para">
-    <div class="example" id="example-131">
+    <div class="example" id="example-132">
      <p><strong>Example #3 整数的位移</strong></p>
      <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -482,20 +496,97 @@ Expression: 0 = -4 &lt;&lt; 62
    </p>
    <div class="warning"><strong class="warning">Warning</strong>
     <p class="para">
-     不要在 32 位系统下向右移超过 32 位。不要在结果可能超过 32
-     的情况下左移。使用 gmp 扩展对超出 PHP_INT_MAX 的数值来进行位操作。
+     Shifting integers by values greater than or equal to the system long
+     integer width results in undefined behavior. In other words, don&#039;t shift
+     more than 31 bits on a 32-bit system, and don&#039;t shift more than 63 bits on
+     a 64-bit system.
+</p>
+    <p class="para">
+     使用 <a href="book.gmp.html" class="link">gmp</a> 扩展对超出 <em>PHP_INT_MAX</em> 的数值来进行位操作。
     </p>
    </div>
    <p class="para">
     参见
-    <span class="function"><a href="function.pack.html" class="function">pack()</a></span>，<span class="function"><a href="function.unpack.html" class="function">unpack()</a></span>，<span class="function"><a href="function.gmp-and.html" class="function">gmp_and()</a></span>，<span class="function"><a href="function.gmp-or.html" class="function">gmp_or()</a></span>，<span class="function"><a href="function.gmp-xor.html" class="function">gmp_xor()</a></span>，<span class="function"><a href="function.gmp-testbit.html" class="function">gmp_testbit()</a></span>
-    和 <span class="function"><a href="function.gmp-clrbit.html" class="function">gmp_clrbit()</a></span>。
+    <span class="function"><a href="function.pack.html" class="function">pack()</a></span>,
+    <span class="function"><a href="function.unpack.html" class="function">unpack()</a></span>,
+    <span class="function"><a href="function.gmp-and.html" class="function">gmp_and()</a></span>,
+    <span class="function"><a href="function.gmp-or.html" class="function">gmp_or()</a></span>,
+    <span class="function"><a href="function.gmp-xor.html" class="function">gmp_xor()</a></span>,
+    <span class="function"><a href="function.gmp-testbit.html" class="function">gmp_testbit()</a></span>,
+    <span class="function"><a href="function.gmp-clrbit.html" class="function">gmp_clrbit()</a></span>
    </p>
   </div><div id="usernotes">
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="115785""></a>
+<div id="allnotes">  <a name="118674""></a>
+  <div class="note">
+   <strong class="user">joey</strong>
+   <a href="#118674" class="date">18-Jan-2016 06:05</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you want a quick one liner for reversing binary and performance/sanity isn't an issue:<br />
+<br />
+&nbsp;&nbsp;&nbsp; function reverse_bits($n) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return (int)base_convert(strrev(str_pad(base_convert($n, 10, 2), PHP_INT_SIZE * 8, 0, STR_PAD_LEFT)), 2, 10);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+Expect it to behave strangely for the signed bit. Best to use for &lt; PHP_INT_SIZE * 8 to avoid peculiarity. You can also skip the cast if you don't mind keeping your number as a string. base convert appears to work for large precision or perhaps arbitrary but be prepared for strangeness (double, mixed types, precision loss, etc) if you need to work on the revolting number.<br />
+<br />
+Use at your own peril.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118164""></a>
+  <div class="note">
+   <strong class="user">luis at rosety dot com</strong>
+   <a href="#118164" class="date">18-Oct-2015 11:05</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Example of function using bitwise operations for converting hexadecimal color (usually given as 6 hexadecimal digit string, into separated RGB integers)<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">function </span><span class="default">hex2rgb</span><span class="keyword">(</span><span class="default">$hex</span><span class="keyword">){<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$dec </span><span class="keyword">= </span><span class="default">hexdec</span><span class="keyword">(</span><span class="default">$hexcolor</span><span class="keyword">);&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// $hex string to decimal value<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$r </span><span class="keyword">= </span><span class="default">$dec </span><span class="keyword">&amp; </span><span class="default">hexdec</span><span class="keyword">(</span><span class="string">'FF0000'</span><span class="keyword">);&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="comment">//Mask for red<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$g </span><span class="keyword">= </span><span class="default">$dec </span><span class="keyword">&amp; </span><span class="default">hexdec</span><span class="keyword">(</span><span class="string">'00FF00'</span><span class="keyword">);&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">//Mask for green<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$b </span><span class="keyword">= </span><span class="default">$dec </span><span class="keyword">&amp; </span><span class="default">hexdec</span><span class="keyword">(</span><span class="string">'0000FF'</span><span class="keyword">);&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">//Mask for blue<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">return array(</span><span class="default">$r</span><span class="keyword">&gt;&gt;</span><span class="default">16</span><span class="keyword">, </span><span class="default">$g</span><span class="keyword">&gt;&gt;</span><span class="default">8</span><span class="keyword">, </span><span class="default">$b</span><span class="keyword">);&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Shift full right each color from its original position <br />
+</span><span class="keyword">}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Example of use<br />
+<br />
+<span class="default">&lt;?php<br />
+$rgb </span><span class="keyword">= </span><span class="default">hex2rgb</span><span class="keyword">(</span><span class="string">'112233'</span><span class="keyword">);<br />
+echo </span><span class="string">"red: "</span><span class="keyword">.</span><span class="default">$rgb</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">].</span><span class="string">"\n"</span><span class="keyword">;<br />
+echo </span><span class="string">"green: "</span><span class="keyword">.</span><span class="default">$rgb</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">].</span><span class="string">"\n"</span><span class="keyword">;<br />
+echo </span><span class="string">"blue: "</span><span class="keyword">.</span><span class="default">$rgb</span><span class="keyword">[</span><span class="default">2</span><span class="keyword">].</span><span class="string">"\n"</span><span class="keyword">;<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Would produce:<br />
+<br />
+red: 17&nbsp; &nbsp; &nbsp; &nbsp; <br />
+green: 34<br />
+blue: 51<br />
+<br />
+Since:<br />
+dechex(17) = '#11'<br />
+dechex(34) = '#22'<br />
+dechex(51) = '#33'</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115785""></a>
   <div class="note">
    <strong class="user">yesman at mail dot com</strong>
    <a href="#115785" class="date">23-Sep-2014 12:33</a>

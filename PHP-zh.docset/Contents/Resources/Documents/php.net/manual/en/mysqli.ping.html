@@ -27,7 +27,7 @@
  <div class="refnamediv">
   <h1 class="refname">mysqli::ping</h1>
   <h1 class="refname">mysqli_ping</h1>
-  <p class="verinfo">(PHP 5)</p><p class="refpurpose"><span class="refname">mysqli::ping</span> -- <span class="refname">mysqli_ping</span> &mdash; <span class="dc-title">Pings a server connection, or tries to reconnect if the connection has gone down</span></p>
+  <p class="verinfo">(PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">mysqli::ping</span> -- <span class="refname">mysqli_ping</span> &mdash; <span class="dc-title">Pings a server connection, or tries to reconnect if the connection has gone down</span></p>
 
  </div>
 
@@ -86,7 +86,7 @@ link</code></dt>
 
  <div class="refsect1 examples" id="refsect1-mysqli.ping-examples">
   <h3 class="title">范例</h3>
-  <div class="example" id="example-1714">
+  <div class="example" id="example-1780">
    <p><strong>Example #1 <span class="methodname"><strong>mysqli::ping()</strong></span> example</strong></p>
    <div class="example-contents"><p>面向对象风格</p></div>
    <div class="example-contents">
@@ -118,7 +118,67 @@ Our connection is ok!
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116703""></a>
+<div id="allnotes">  <a name="118034""></a>
+  <div class="note">
+   <strong class="user">root at jusme dot org</strong>
+   <a href="#118034" class="date">22-Sep-2015 07:00</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+As jay at grooveshark dot com very helpfully pointed out, the mysqlnd driver which is becoming pretty standard does not obey reconnect commands. If you have a DB wrapper class (which hopefully you do) you can implement your own version of ping() such as:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">class </span><span class="default">db </span><span class="keyword">extends </span><span class="default">mysqli<br />
+</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; private </span><span class="default">$db_host</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; private </span><span class="default">$db_user</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; private </span><span class="default">$db_pass</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; private </span><span class="default">$db_name</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; private </span><span class="default">$persistent</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__construct</span><span class="keyword">(</span><span class="default">$db_host</span><span class="keyword">, </span><span class="default">$db_user</span><span class="keyword">, </span><span class="default">$db_pass</span><span class="keyword">, </span><span class="default">$db_name</span><span class="keyword">, </span><span class="default">$persistent </span><span class="keyword">= </span><span class="default">true</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">db_host </span><span class="keyword">= </span><span class="default">$db_host</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">db_user </span><span class="keyword">= </span><span class="default">$db_user</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">db_pass </span><span class="keyword">= </span><span class="default">$db_pass</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">db_name </span><span class="keyword">= </span><span class="default">$db_name</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">persistent </span><span class="keyword">= </span><span class="default">$persistent</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">parent</span><span class="keyword">::</span><span class="default">init</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">parent</span><span class="keyword">::</span><span class="default">options</span><span class="keyword">(</span><span class="default">MYSQLI_OPT_CONNECT_TIMEOUT</span><span class="keyword">, </span><span class="default">1</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; @</span><span class="default">parent</span><span class="keyword">::</span><span class="default">real_connect</span><span class="keyword">((</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">persistent </span><span class="keyword">? </span><span class="string">'p:' </span><span class="keyword">: </span><span class="string">''</span><span class="keyword">) . </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">db_host</span><span class="keyword">, </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">db_user</span><span class="keyword">, </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">db_pass</span><span class="keyword">, </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">db_name</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">connect_errno</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; die(</span><span class="string">"All DB servers down!\n"</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">ping</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; @</span><span class="default">parent</span><span class="keyword">::</span><span class="default">query</span><span class="keyword">(</span><span class="string">'SELECT LAST_INSERT_ID()'</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">errno </span><span class="keyword">== </span><span class="default">2006</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">__construct</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">db_host</span><span class="keyword">, </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">db_user</span><span class="keyword">, </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">db_pass</span><span class="keyword">, </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">db_name</span><span class="keyword">, </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">persistent</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+...<br />
+}<br />
+<br />
+</span><span class="default">$db </span><span class="keyword">= new </span><span class="default">db</span><span class="keyword">(</span><span class="default">DB_HOST</span><span class="keyword">, </span><span class="default">DB_USER</span><span class="keyword">, </span><span class="default">DB_PASS</span><span class="keyword">, </span><span class="default">DB_NAME</span><span class="keyword">);<br />
+</span><span class="comment">// Some code that potentially takes a really long time to execute goes here<br />
+// Ping for safety to try to gracefully reconnect<br />
+</span><span class="default">$db</span><span class="keyword">-&gt;</span><span class="default">ping</span><span class="keyword">();<br />
+</span><span class="comment">// Now we should be able to run queries again<br />
+</span><span class="default">$db</span><span class="keyword">-&gt;</span><span class="default">query</span><span class="keyword">(</span><span class="string">'SELECT LAST_INSERT_ID()'</span><span class="keyword">);<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+If you wanted you could even put "$this-&gt;ping();" at the top of db::query() to avoid any explicit reconnection calls but I wouldn't recommend it due to the (slight) overhead of running the cheap "SELECT LAST_INSERT_ID()" query every time prior to running your real intended query. There are probably even cheaper queries to run in favor of "SELECT LAST_INSERT_ID()" but it was the first that came to mind and is cheap enough for most purposes since you shouldn't be calling ping() a whole bunch anyway.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116703""></a>
   <div class="note">
    <strong class="user">snooops84 at googlemail dot com</strong>
    <a href="#116703" class="date">13-Feb-2015 05:56</a>

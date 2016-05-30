@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.phpinfo" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">phpinfo</h1>
-  <p class="verinfo">(PHP 4, PHP 5)</p><p class="refpurpose"><span class="refname">phpinfo</span> &mdash; <span class="dc-title">输出关于 PHP 配置的信息</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">phpinfo</span> &mdash; <span class="dc-title">输出关于 PHP 配置的信息</span></p>
 
  </div>
 
@@ -209,7 +209,7 @@
  <div class="refsect1 examples" id="refsect1-function.phpinfo-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-507">
+   <div class="example" id="example-540">
     <p><strong>Example #1 <span class="function"><strong>phpinfo()</strong></span> 范例</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -259,7 +259,182 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116715""></a>
+<div id="allnotes">  <a name="117961""></a>
+  <div class="note">
+   <strong class="user">Calin S.</strong>
+   <a href="#117961" class="date">09-Sep-2015 09:38</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+After reading and trying various functions, I couldn't find one that correctly parses all the configurations, strips any left-over html tag and converts special characters into UTF8 (e.g. &amp;#039; into '), so I created my own by improving on the existing ones:<br />
+<br />
+function phpinfo2array() {<br />
+&nbsp;&nbsp;&nbsp; $entitiesToUtf8 = function($input) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; // <a href="http://php.net/manual/en/function.html-entity-decode.php#104617" rel="nofollow" target="_blank">http://php.net/manual/en/function.html-entity-decode.php#104617</a><br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return preg_replace_callback("/(&amp;#[0-9]+;)/", function($m) { return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES"); }, $input);<br />
+&nbsp;&nbsp;&nbsp; };<br />
+&nbsp;&nbsp;&nbsp; $plainText = function($input) use ($entitiesToUtf8) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return trim(html_entity_decode($entitiesToUtf8(strip_tags($input))));<br />
+&nbsp;&nbsp;&nbsp; };<br />
+&nbsp;&nbsp;&nbsp; $titlePlainText = function($input) use ($plainText) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return '# '.$plainText($input);<br />
+&nbsp;&nbsp;&nbsp; };<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; ob_start();<br />
+&nbsp;&nbsp;&nbsp; phpinfo(-1);<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; $phpinfo = array('phpinfo' =&gt; array());<br />
+<br />
+&nbsp;&nbsp;&nbsp; // Strip everything after the &lt;h1&gt;Configuration&lt;/h1&gt; tag (other h1's)<br />
+&nbsp;&nbsp;&nbsp; if (!preg_match('#(.*&lt;h1[^&gt;]*&gt;\s*Configuration.*)&lt;h1#s', ob_get_clean(), $matches)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return array();<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; $input = $matches[1];<br />
+&nbsp;&nbsp;&nbsp; $matches = array();<br />
+<br />
+&nbsp;&nbsp;&nbsp; if(preg_match_all(<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; '#(?:&lt;h2.*?&gt;(?:&lt;a.*?&gt;)?(.*?)(?:&lt;\/a&gt;)?&lt;\/h2&gt;)|'.<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; '(?:&lt;tr.*?&gt;&lt;t[hd].*?&gt;(.*?)\s*&lt;/t[hd]&gt;(?:&lt;t[hd].*?&gt;(.*?)\s*&lt;/t[hd]&gt;(?:&lt;t[hd].*?&gt;(.*?)\s*&lt;/t[hd]&gt;)?)?&lt;/tr&gt;)#s',<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $input, <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $matches, <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; PREG_SET_ORDER<br />
+&nbsp;&nbsp;&nbsp; )) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach ($matches as $match) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $fn = strpos($match[0], '&lt;th') === false ? $plainText : $titlePlainText;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (strlen($match[1])) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $phpinfo[$match[1]] = array();<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } elseif (isset($match[3])) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $keys1 = array_keys($phpinfo);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $phpinfo[end($keys1)][$fn($match[2])] = isset($match[4]) ? array($fn($match[3]), $fn($match[4])) : $fn($match[3]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $keys1 = array_keys($phpinfo);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $phpinfo[end($keys1)][] = $fn($match[2]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; return $phpinfo;<br />
+}<br />
+<br />
+The output looks something like this (note the headers are also included but are prefixed with '# ', e.g. '# Directive'):<br />
+<br />
+Array<br />
+(<br />
+&nbsp;&nbsp;&nbsp; [phpinfo] =&gt; Array<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; (<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [0] =&gt; PHP Version 5.6.5<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [System] =&gt; Darwin Calins-MBP 15.0.0 Darwin Kernel Version 15.0.0: Wed Aug 26 19:41:34 PDT 2015; root:xnu-3247.1.106~5/RELEASE_X86_64 x86_64<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [Build Date] =&gt; Feb 19 2015 18:34:18<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [Registered Stream Socket Transports] =&gt; tcp, udp, unix, udg, ssl, sslv3, sslv2, tls, tlsv1.0<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [Registered Stream Filters] =&gt; zlib.*, bzip2.*, convert.iconv.*, string.rot13, string.toupper, string.tolower, string.strip_tags, convert.*, consumed, dechunk<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [1] =&gt; This program makes use of the Zend Scripting Language Engine:Zend&nbsp;Engine...<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; )<br />
+<br />
+&nbsp;&nbsp;&nbsp; [apache2handler] =&gt; Array<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; (<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [Apache Version] =&gt; Apache/2.4.16 (Unix) PHP/5.6.5 OpenSSL/0.9.8zg<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [Apache API Version] =&gt; 20120211<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [Server Administrator] =&gt; webmaster@dummy-host2.example.com<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [Hostname:Port] =&gt; sitestacker.local:0<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [# Directive] =&gt; Array<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; (<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [0] =&gt; # Local Value<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [1] =&gt; # Master Value<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; )<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [engine] =&gt; Array<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; (<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [0] =&gt; 1<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [1] =&gt; 1<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; )<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [last_modified] =&gt; Array<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; (<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [0] =&gt; 0<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [1] =&gt; 0<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; )</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116869""></a>
+  <div class="note">
+   <strong class="user">Joseph Reilly</strong>
+   <a href="#116869" class="date">13-Mar-2015 07:44</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+One note on the very useful example by "jon at sitewizard dot ca".&nbsp; <br />
+The following statements:<br />
+Statement 1:<br />
+$phpinfo[end(array_keys($phpinfo))][$match[2]] = isset($match[4]) ? array($match[3], $match[4]) : $match[3];<br />
+Statement 2:<br />
+$phpinfo[end(array_keys($phpinfo))][] = $match[2];<br />
+<br />
+These two lines will produce the error "Strict Standards:&nbsp; Only variables should be passed by reference in...".&nbsp; The root of the error is in the incorrect use of the end() function. The code works but thows the said error.<br />
+To address this try using the following statements:<br />
+<br />
+Statement 1 revision:<br />
+$keys = array_keys($phpinfo);<br />
+$phpinfo[end($keys)][$match[2]] = isset($match[4]) ? array($match[3], $match[4]) : $match[3];<br />
+<br />
+Statement 2 revision:<br />
+$keys = array_keys($phpinfo);<br />
+$phpinfo[end($keys)][] = $match[2];<br />
+<br />
+This fixes the error. <br />
+To wrap it all in an example:<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">quick_dev_insights_phpinfo</span><span class="keyword">() {<br />
+</span><span class="default">ob_start</span><span class="keyword">();<br />
+</span><span class="default">phpinfo</span><span class="keyword">(</span><span class="default">11</span><span class="keyword">);<br />
+</span><span class="default">$phpinfo </span><span class="keyword">= array(</span><span class="string">'phpinfo' </span><span class="keyword">=&gt; array());<br />
+<br />
+&nbsp;&nbsp;&nbsp; if(</span><span class="default">preg_match_all</span><span class="keyword">(</span><span class="string">'#(?:&lt;h2&gt;(?:&lt;a name=".*?"&gt;)?(.*?)(?:&lt;/a&gt;)?&lt;/h2&gt;)|(?:&lt;tr(?: class=".*?")?&gt;&lt;t[hd](?: class=".*?")?&gt;(.*?)\s*&lt;/t[hd]&gt;(?:&lt;t[hd](?: class=".*?")?&gt;(.*?)\s*&lt;/t[hd]&gt;(?:&lt;t[hd](?: class=".*?")?&gt;(.*?)\s*&lt;/t[hd]&gt;)?)?&lt;/tr&gt;)#s'</span><span class="keyword">, </span><span class="default">ob_get_clean</span><span class="keyword">(), </span><span class="default">$matches</span><span class="keyword">, </span><span class="default">PREG_SET_ORDER</span><span class="keyword">)){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach(</span><span class="default">$matches </span><span class="keyword">as </span><span class="default">$match</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$match</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">])){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$phpinfo</span><span class="keyword">[</span><span class="default">$match</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">]] = array();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }elseif(isset(</span><span class="default">$match</span><span class="keyword">[</span><span class="default">3</span><span class="keyword">])){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$keys1 </span><span class="keyword">= </span><span class="default">array_keys</span><span class="keyword">(</span><span class="default">$phpinfo</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$phpinfo</span><span class="keyword">[</span><span class="default">end</span><span class="keyword">(</span><span class="default">$keys1</span><span class="keyword">)][</span><span class="default">$match</span><span class="keyword">[</span><span class="default">2</span><span class="keyword">]] = isset(</span><span class="default">$match</span><span class="keyword">[</span><span class="default">4</span><span class="keyword">]) ? array(</span><span class="default">$match</span><span class="keyword">[</span><span class="default">3</span><span class="keyword">], </span><span class="default">$match</span><span class="keyword">[</span><span class="default">4</span><span class="keyword">]) : </span><span class="default">$match</span><span class="keyword">[</span><span class="default">3</span><span class="keyword">];<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }else{<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$keys1 </span><span class="keyword">= </span><span class="default">array_keys</span><span class="keyword">(</span><span class="default">$phpinfo</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$phpinfo</span><span class="keyword">[</span><span class="default">end</span><span class="keyword">(</span><span class="default">$keys1</span><span class="keyword">)][] = </span><span class="default">$match</span><span class="keyword">[</span><span class="default">2</span><span class="keyword">];&nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+}<br />
+<br />
+&nbsp;&nbsp;&nbsp; if(! empty(</span><span class="default">$phpinfo</span><span class="keyword">)){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach(</span><span class="default">$phpinfo </span><span class="keyword">as </span><span class="default">$name </span><span class="keyword">=&gt; </span><span class="default">$section</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"&lt;h3&gt;</span><span class="default">$name</span><span class="string">&lt;/h3&gt;\n&lt;table class='wp-list-table widefat fixed pages'&gt;\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; foreach(</span><span class="default">$section </span><span class="keyword">as </span><span class="default">$key </span><span class="keyword">=&gt; </span><span class="default">$val</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">is_array</span><span class="keyword">(</span><span class="default">$val</span><span class="keyword">)){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"&lt;tr&gt;&lt;td&gt;</span><span class="default">$key</span><span class="string">&lt;/td&gt;&lt;td&gt;</span><span class="default">$val</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">]</span><span class="string">&lt;/td&gt;&lt;td&gt;</span><span class="default">$val</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">]</span><span class="string">&lt;/td&gt;&lt;/tr&gt;\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }elseif(</span><span class="default">is_string</span><span class="keyword">(</span><span class="default">$key</span><span class="keyword">)){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"&lt;tr&gt;&lt;td&gt;</span><span class="default">$key</span><span class="string">&lt;/td&gt;&lt;td&gt;</span><span class="default">$val</span><span class="string">&lt;/td&gt;&lt;/tr&gt;\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }else{<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"&lt;tr&gt;&lt;td&gt;</span><span class="default">$val</span><span class="string">&lt;/td&gt;&lt;/tr&gt;\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"&lt;/table&gt;\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }else{<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"&lt;h3&gt;Sorry, the phpinfo() function is not accessable. Perhaps, it is disabled&lt;a href='<a href="http://php.net/manual/en/function.phpinfo.php" rel="nofollow" target="_blank">http://php.net/manual/en/function.phpinfo.php</a>'&gt;See the documentation.&lt;/a&gt;&lt;/h3&gt;"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span>Frankly, I went thought the trouble of adding this note because the example by "jon at sitewizard dot ca"&nbsp; is probably the best on the web, and thought it unfortunate that it throws errors. Hope this is useful to someone.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116715""></a>
   <div class="note">
    <strong class="user">LewisR</strong>
    <a href="#116715" class="date">16-Feb-2015 05:09</a>

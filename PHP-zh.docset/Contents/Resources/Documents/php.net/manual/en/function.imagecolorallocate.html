@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.imagecolorallocate" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">imagecolorallocate</h1>
-  <p class="verinfo">(PHP 4, PHP 5)</p><p class="refpurpose"><span class="refname">imagecolorallocate</span> &mdash; <span class="dc-title">为一幅图像分配颜色</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">imagecolorallocate</span> &mdash; <span class="dc-title">为一幅图像分配颜色</span></p>
 
  </div>
  <div class="refsect1 unknown-unknown-unknown-unknown-seealss" id="refsect1-function.imagecolorallocate-unknown-unknown-unknown-unknown-seealss">
@@ -53,7 +53,7 @@
    </p>
   </p></blockquote>
   <p class="para">
-   <div class="example" id="example-3201">
+   <div class="example" id="example-3387">
     <p><strong>Example #1 <span class="function"><strong>imagecolorallocate()</strong></span> 例子</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -77,7 +77,36 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="101302""></a>
+<div id="allnotes">  <a name="118993""></a>
+  <div class="note">
+   <strong class="user">divinity76 at gmail dot com</strong>
+   <a href="#118993" class="date">14-Mar-2016 06:30</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+you have VERY limited space for color indexes (255 indexes on my system, with over 10 GB ram available, cli, no memory limit), when there is no more indexes available, imagecolorallocate will return false. when you create 2x indexes with the same r/g/b, you waste this very limited space. the function below should never fail, AND never waste any color index space. if there's already an index with the rgb, it will return the existing index, else it will try allocate 1, in the event that allocation fail (presumably because all index space is used up already), it will return the closest match to what you requested, and warn you via $couldFindExact.<br />
+<br />
+function myimagecolorallocate($gd,int $red,int $green,int $blue,bool &amp;$couldFindExact=null):int{<br />
+&nbsp;&nbsp;&nbsp; $ret=imagecolorexact($gd, $red, $green, $blue);<br />
+&nbsp;&nbsp;&nbsp; if($ret===-1){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $ret=imagecolorallocate($gd, $red, $green, $blue);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if($ret===false){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $couldFindExact=false;//out of color indexes (255 index by default..wish i knew why)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $ret=imagecolorclosest($gd, $red, $green, $blue);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $couldFindExact=true;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $couldFindExact=true;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; return $ret;<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="101302""></a>
   <div class="note">
    <strong class="user">phillip dot gooch at gmail dot com</strong>
    <a href="#101302" class="date">09-Dec-2010 04:52</a>

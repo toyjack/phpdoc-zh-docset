@@ -27,7 +27,7 @@
  <div class="refnamediv">
   <h1 class="refname">mysqli_stmt::get_result</h1>
   <h1 class="refname">mysqli_stmt_get_result</h1>
-  <p class="verinfo">(PHP 5 &gt;= 5.3.0)</p><p class="refpurpose"><span class="refname">mysqli_stmt::get_result</span> -- <span class="refname">mysqli_stmt_get_result</span> &mdash; <span class="dc-title">Gets a result set from a prepared statement</span></p>
+  <p class="verinfo">(PHP 5 &gt;= 5.3.0, PHP 7)</p><p class="refpurpose"><span class="refname">mysqli_stmt::get_result</span> -- <span class="refname">mysqli_stmt_get_result</span> &mdash; <span class="dc-title">Gets a result set from a prepared statement</span></p>
 
  </div>
 
@@ -72,11 +72,13 @@ stmt</code></dt>
  <div class="refsect1 returnvalues" id="refsect1-mysqli-stmt.get-result-returnvalues">
   <h3 class="title">返回值</h3>
   <p class="para">
-   Returns a resultset  或者在失败时返回 <strong><code>FALSE</code></strong>.
+   Returns a resultset for successful SELECT queries, or <strong><code>FALSE</code></strong> for other DML
+   queries or on failure. The <span class="function"><a href="mysqli.errno.html" class="function">mysqli_errno()</a></span> function can be
+   used to distinguish between the two types of failure.
   </p>
  </div>
 
- 
+
  <div class="refsect1 mysqlnd" id="refsect1-mysqli-stmt.get-result-mysqlnd">
    <h3 class="title">仅 MySQL 原生驱动</h3>
 
@@ -88,7 +90,7 @@ stmt</code></dt>
 
  <div class="refsect1 examples" id="refsect1-mysqli-stmt.get-result-examples">
   <h3 class="title">范例</h3>
-  <div class="example" id="example-1747">
+  <div class="example" id="example-1813">
    <p><strong>Example #1 面向对象风格</strong></p>
    <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -98,7 +100,7 @@ stmt</code></dt>
    </div>
 
   </div>
-  <div class="example" id="example-1748">
+  <div class="example" id="example-1814">
    <p><strong>Example #2 过程化风格</strong></p>
    <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -129,6 +131,7 @@ Anguilla 8000 North America
     <li class="member"><span class="function"><a href="mysqli-stmt.fetch.html" class="function" rel="rdfs-seeAlso">mysqli_stmt_fetch()</a> - Fetch results from a prepared statement into the bound variables</span></li>
     <li class="member"><span class="function"><a href="mysqli-result.fetch-array.html" class="function" rel="rdfs-seeAlso">mysqli_fetch_array()</a> - Fetch a result row as an associative, a numeric array, or both</span></li>
     <li class="member"><span class="function"><a href="mysqli-stmt.store-result.html" class="function" rel="rdfs-seeAlso">mysqli_stmt_store_result()</a> - Transfers a result set from a prepared statement</span></li>
+    <li class="member"><span class="function"><a href="mysqli.errno.html" class="function" rel="rdfs-seeAlso">mysqli_errno()</a> - 返回最近函数调用的错误代码</span></li>
    </ul>
   </p>
  </div>
@@ -138,7 +141,93 @@ Anguilla 8000 North America
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="113398""></a>
+<div id="allnotes">  <a name="118300""></a>
+  <div class="note">
+   <strong class="user">tonywoodecode at gmail dot com</strong>
+   <a href="#118300" class="date">11-Nov-2015 09:09</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+well I for one found anonymous' above eval-trick code very useful, seeing as no one has posted a working alternative! However, because I wanted to cater for a generic database object, I found it a problem that the code assumed numeric array was fine for all callsites, and I needed to cater for all callers using assoc arrays exlusively. I came up with this:<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">IImysqli_result </span><span class="keyword">{<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; public </span><span class="default">$stmt</span><span class="keyword">, </span><span class="default">$ncols</span><span class="keyword">;<br />
+}&nbsp;&nbsp; <br />
+<br />
+class </span><span class="default">DBObject </span><span class="keyword">{<br />
+<br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">iimysqli_get_result</span><span class="keyword">(</span><span class="default">$stmt</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$metadata </span><span class="keyword">= </span><span class="default">$stmt</span><span class="keyword">-&gt;</span><span class="default">result_metadata</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$ret </span><span class="keyword">= new </span><span class="default">IImysqli_result</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp;&nbsp; if (!</span><span class="default">$ret </span><span class="keyword">|| !</span><span class="default">$metadata</span><span class="keyword">) return </span><span class="default">NULL</span><span class="keyword">; </span><span class="comment">//the latter because this gets called whether we are adding/updating as well as returning<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$ret</span><span class="keyword">-&gt;</span><span class="default">ncols </span><span class="keyword">= </span><span class="default">$metadata</span><span class="keyword">-&gt;</span><span class="default">field_count</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$ret</span><span class="keyword">-&gt;</span><span class="default">stmt </span><span class="keyword">= </span><span class="default">$stmt</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$metadata</span><span class="keyword">-&gt;</span><span class="default">free_result</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp;&nbsp; return </span><span class="default">$ret</span><span class="keyword">;<br />
+&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; </span><span class="comment">//this mimics mysqli_fetch_array by returning a new row each time until exhausted<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">function </span><span class="default">iimysqli_result_fetch_array</span><span class="keyword">(&amp;</span><span class="default">$result</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$stmt </span><span class="keyword">= </span><span class="default">$result</span><span class="keyword">-&gt;</span><span class="default">stmt</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$stmt</span><span class="keyword">-&gt;</span><span class="default">store_result</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$resultkeys </span><span class="keyword">= array();<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$thisName </span><span class="keyword">= </span><span class="string">""</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp;&nbsp; for ( </span><span class="default">$i </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">; </span><span class="default">$i </span><span class="keyword">&lt; </span><span class="default">$stmt</span><span class="keyword">-&gt;</span><span class="default">num_rows</span><span class="keyword">; </span><span class="default">$i</span><span class="keyword">++ ) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$metadata </span><span class="keyword">= </span><span class="default">$stmt</span><span class="keyword">-&gt;</span><span class="default">result_metadata</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; while ( </span><span class="default">$field </span><span class="keyword">= </span><span class="default">$metadata</span><span class="keyword">-&gt;</span><span class="default">fetch_field</span><span class="keyword">() ) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$thisName </span><span class="keyword">= </span><span class="default">$field</span><span class="keyword">-&gt;</span><span class="default">name</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$resultkeys</span><span class="keyword">[] = </span><span class="default">$thisName</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$ret </span><span class="keyword">= array();<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$code </span><span class="keyword">= </span><span class="string">"return mysqli_stmt_bind_result(\$result-&gt;stmt "</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp;&nbsp; for (</span><span class="default">$i</span><span class="keyword">=</span><span class="default">0</span><span class="keyword">; </span><span class="default">$i</span><span class="keyword">&lt;</span><span class="default">$result</span><span class="keyword">-&gt;</span><span class="default">ncols</span><span class="keyword">; </span><span class="default">$i</span><span class="keyword">++) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$ret</span><span class="keyword">[</span><span class="default">$i</span><span class="keyword">] = </span><span class="default">NULL</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$theValue </span><span class="keyword">= </span><span class="default">$resultkeys</span><span class="keyword">[</span><span class="default">$i</span><span class="keyword">];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$code </span><span class="keyword">.= </span><span class="string">", \$ret['</span><span class="default">$theValue</span><span class="string">']"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$code </span><span class="keyword">.= </span><span class="string">");"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp;&nbsp; if (!eval(</span><span class="default">$code</span><span class="keyword">)) { <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">NULL</span><span class="keyword">; <br />
+&nbsp;&nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="comment">// This should advance the "$stmt" cursor.<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="keyword">if (!</span><span class="default">mysqli_stmt_fetch</span><span class="keyword">(</span><span class="default">$result</span><span class="keyword">-&gt;</span><span class="default">stmt</span><span class="keyword">)) { <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">NULL</span><span class="keyword">; <br />
+&nbsp;&nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="comment">// Return the array we built.<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="keyword">return </span><span class="default">$ret</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117718""></a>
+  <div class="note">
+   <strong class="user">chris at hexus dot io</strong>
+   <a href="#117718" class="date">28-Jul-2015 06:43</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+This method drove me mad for an hour or two because it returns &lt;b&gt;false&lt;/b&gt; after performing a successful query that isn't a SELECT, even though the documentation says "return &lt;b&gt;FALSE&lt;/b&gt; on failure". Nothing failed!<br />
+<br />
+If you're preparing a SELECT statement, expect a result object. Anything else, just use the properties of the statement object.<br />
+<br />
+I find this library painfully inconsistent.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="113398""></a>
   <div class="note">
    <strong class="user">Anonymous</strong>
    <a href="#113398" class="date">06-Oct-2013 05:39</a>

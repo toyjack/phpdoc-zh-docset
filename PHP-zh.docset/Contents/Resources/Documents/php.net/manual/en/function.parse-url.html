@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.parse-url" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">parse_url</h1>
-  <p class="verinfo">(PHP 4, PHP 5)</p><p class="refpurpose"><span class="refname">parse_url</span> &mdash; <span class="dc-title">解析 URL，返回其组成部分</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">parse_url</span> &mdash; <span class="dc-title">解析 URL，返回其组成部分</span></p>
 
  </div>
  
@@ -196,7 +196,7 @@
  <div class="refsect1 examples" id="refsect1-function.parse-url-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-  <div class="example" id="example-4110">
+  <div class="example" id="example-4501">
    <p><strong>Example #1 <span class="function"><strong>parse_url()</strong></span> 例子</strong></p>
    <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -224,7 +224,7 @@ Array
   </div>
  </p>
    <p class="para">
-   <div class="example" id="example-4111">
+   <div class="example" id="example-4502">
     <p><strong>Example #2 <span class="function"><strong>parse_url()</strong></span> 解析丢失协议的例子</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -274,7 +274,7 @@ array(3) {
     <li class="member"><span class="function"><a href="function.pathinfo.html" class="function" rel="rdfs-seeAlso">pathinfo()</a> - 返回文件路径的信息</span></li>
     <li class="member"><span class="function"><a href="function.parse-str.html" class="function" rel="rdfs-seeAlso">parse_str()</a> - 将字符串解析成多个变量</span></li>
     <li class="member"><span class="function"><a href="function.http-build-query.html" class="function" rel="rdfs-seeAlso">http_build_query()</a> - 生成 URL-encode 之后的请求字符串</span></li>
-    <li class="member"><span class="function"><a href="function.http-build-url.html" class="function" rel="rdfs-seeAlso">http_build_url()</a> - 产生一个 URL</span></li>
+    <li class="member"><span class="function"><strong>http_build_url()</strong></span></li>
     <li class="member"><span class="function"><a href="function.dirname.html" class="function" rel="rdfs-seeAlso">dirname()</a> - 返回路径中的目录部分</span></li>
     <li class="member"><span class="function"><a href="function.basename.html" class="function" rel="rdfs-seeAlso">basename()</a> - 返回路径中的文件名部分</span></li>
     <li class="member"><a href="http://www.faqs.org/rfcs/rfc3986" class="link external" title="Link : http://www.faqs.org/rfcs/rfc3986">&raquo;&nbsp;RFC 3986</a></li>
@@ -286,7 +286,255 @@ array(3) {
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116520""></a>
+<div id="allnotes">  <a name="119033""></a>
+  <div class="note">
+   <strong class="user">mys5droid at gmail dot com</strong>
+   <a href="#119033" class="date">20-Mar-2016 09:30</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I have coded a function which converts relative URL to absolute URL for a project of mine. Considering I could not find it elsewhere, I figured I would post it here.<br />
+<br />
+The following function takes in 2 parameters, the first parameter is the URL you want to convert from relative to absolute, and the second parameter is a sample of the absolute URL.<br />
+<br />
+Currently it does not resolve '../' in the URL, only because I do not need it. Most webservers will resolve this for you. If you want it to resolve the '../' in the path, it just takes minor modifications.<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">function </span><span class="default">relativeToAbsolute</span><span class="keyword">(</span><span class="default">$inurl</span><span class="keyword">, </span><span class="default">$absolute</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// Get all parts so not getting them multiple times :)<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$absolute_parts </span><span class="keyword">= </span><span class="default">parse_url</span><span class="keyword">(</span><span class="default">$absolute</span><span class="keyword">);&nbsp; &nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// Test if URL is already absolute (contains host, or begins with '/')<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">if ( (</span><span class="default">strpos</span><span class="keyword">(</span><span class="default">$inurl</span><span class="keyword">, </span><span class="default">$absolute_parts</span><span class="keyword">[</span><span class="string">'host'</span><span class="keyword">]) == </span><span class="default">false</span><span class="keyword">) ) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Define $tmpurlprefix to prevent errors below<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$tmpurlprefix </span><span class="keyword">= </span><span class="string">""</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Formulate URL prefix&nbsp; &nbsp; (SCHEME)&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if (!(empty(</span><span class="default">$absolute_parts</span><span class="keyword">[</span><span class="string">'scheme'</span><span class="keyword">]))) { <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Add scheme to tmpurlprefix<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$tmpurlprefix </span><span class="keyword">.= </span><span class="default">$absolute_parts</span><span class="keyword">[</span><span class="string">'scheme'</span><span class="keyword">] . </span><span class="string">"://"</span><span class="keyword">; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Formulate URL prefix (USER, PASS)&nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if ((!(empty(</span><span class="default">$absolute_parts</span><span class="keyword">[</span><span class="string">'user'</span><span class="keyword">]))) and (!(empty(</span><span class="default">$absolute_parts</span><span class="keyword">[</span><span class="string">'pass'</span><span class="keyword">])))) { <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Add user:port to tmpurlprefix<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$tmpurlprefix </span><span class="keyword">.= </span><span class="default">$absolute_parts</span><span class="keyword">[</span><span class="string">'user'</span><span class="keyword">] . </span><span class="string">":" </span><span class="keyword">. </span><span class="default">$absolute_parts</span><span class="keyword">[</span><span class="string">'pass'</span><span class="keyword">] . </span><span class="string">"@"</span><span class="keyword">;&nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Formulate URL prefix&nbsp; &nbsp; (HOST, PORT)&nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if (!(empty(</span><span class="default">$absolute_parts</span><span class="keyword">[</span><span class="string">'host'</span><span class="keyword">]))) { <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Add host to tmpurlprefix<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$tmpurlprefix </span><span class="keyword">.= </span><span class="default">$absolute_parts</span><span class="keyword">[</span><span class="string">'host'</span><span class="keyword">];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Check for a port, add if exists<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if (!(empty(</span><span class="default">$absolute_parts</span><span class="keyword">[</span><span class="string">'port'</span><span class="keyword">]))) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Add port to tmpurlprefix<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$tmpurlprefix </span><span class="keyword">.= </span><span class="string">":" </span><span class="keyword">. </span><span class="default">$absolute_parts</span><span class="keyword">[</span><span class="string">'port'</span><span class="keyword">];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Formulate URL prefix&nbsp; &nbsp; (PATH) and only add it if the path to image does not include ./&nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if ( (!(empty(</span><span class="default">$absolute_parts</span><span class="keyword">[</span><span class="string">'path'</span><span class="keyword">]))) and (</span><span class="default">substr</span><span class="keyword">(</span><span class="default">$inurl</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">, </span><span class="default">1</span><span class="keyword">) != </span><span class="string">'/'</span><span class="keyword">) ) { <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Get path parts<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$path_parts </span><span class="keyword">= </span><span class="default">pathinfo</span><span class="keyword">(</span><span class="default">$absolute_parts</span><span class="keyword">[</span><span class="string">'path'</span><span class="keyword">]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Add path to tmpurlprefix<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$tmpurlprefix </span><span class="keyword">.= </span><span class="default">$path_parts</span><span class="keyword">[</span><span class="string">'dirname'</span><span class="keyword">];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$tmpurlprefix </span><span class="keyword">.= </span><span class="string">"/"</span><span class="keyword">; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; else {&nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$tmpurlprefix </span><span class="keyword">.= </span><span class="string">"/"</span><span class="keyword">;&nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }&nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Lets remove the '/'<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if (</span><span class="default">substr</span><span class="keyword">(</span><span class="default">$inurl</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">, </span><span class="default">1</span><span class="keyword">) == </span><span class="string">'/'</span><span class="keyword">) { </span><span class="default">$inurl </span><span class="keyword">= </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$inurl</span><span class="keyword">, </span><span class="default">1</span><span class="keyword">); }&nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Lets remove the './'<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if (</span><span class="default">substr</span><span class="keyword">(</span><span class="default">$inurl</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">, </span><span class="default">2</span><span class="keyword">) == </span><span class="string">'./'</span><span class="keyword">) { </span><span class="default">$inurl </span><span class="keyword">= </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$inurl</span><span class="keyword">, </span><span class="default">2</span><span class="keyword">); }&nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$tmpurlprefix </span><span class="keyword">. </span><span class="default">$inurl</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }&nbsp; &nbsp; <br />
+&nbsp;&nbsp;&nbsp; else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Path is already absolute. Return it :)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">return </span><span class="default">$inurl</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="comment">// Define a sample absolute&nbsp; URL<br />
+</span><span class="default">$absolute </span><span class="keyword">= </span><span class="string">"<a href="http://" rel="nofollow" target="_blank">http://</a>" </span><span class="keyword">. </span><span class="string">"user:pass@example.com:8080/path/to/index.html"</span><span class="keyword">; </span><span class="comment">// Just evading php.net spam filter, not sure how example.com is spam...<br />
+<br />
+/* EXAMPLE 1 */<br />
+</span><span class="keyword">echo </span><span class="default">relativeToAbsolute</span><span class="keyword">(</span><span class="default">$absolute</span><span class="keyword">, </span><span class="default">$absolute</span><span class="keyword">) . </span><span class="string">"\n"</span><span class="keyword">;<br />
+</span><span class="comment">/* EXAMPLE 2 */<br />
+</span><span class="keyword">echo </span><span class="default">relativeToAbsolute</span><span class="keyword">(</span><span class="string">"img.gif"</span><span class="keyword">, </span><span class="default">$absolute</span><span class="keyword">) . </span><span class="string">"\n"</span><span class="keyword">;<br />
+</span><span class="comment">/* EXAMPLE 3 */<br />
+</span><span class="keyword">echo </span><span class="default">relativeToAbsolute</span><span class="keyword">(</span><span class="string">"/img.gif"</span><span class="keyword">, </span><span class="default">$absolute</span><span class="keyword">) . </span><span class="string">"\n"</span><span class="keyword">; <br />
+</span><span class="comment">/* EXAMPLE 4 */<br />
+</span><span class="keyword">echo </span><span class="default">relativeToAbsolute</span><span class="keyword">(</span><span class="string">"./img.gif"</span><span class="keyword">, </span><span class="default">$absolute</span><span class="keyword">) . </span><span class="string">"\n"</span><span class="keyword">;<br />
+</span><span class="comment">/* EXAMPLE 5 */<br />
+</span><span class="keyword">echo </span><span class="default">relativeToAbsolute</span><span class="keyword">(</span><span class="string">"../img.gif"</span><span class="keyword">, </span><span class="default">$absolute</span><span class="keyword">) . </span><span class="string">"\n"</span><span class="keyword">;<br />
+</span><span class="comment">/* EXAMPLE 6 */<br />
+</span><span class="keyword">echo </span><span class="default">relativeToAbsolute</span><span class="keyword">(</span><span class="string">"images/img.gif"</span><span class="keyword">, </span><span class="default">$absolute</span><span class="keyword">) . </span><span class="string">"\n"</span><span class="keyword">;<br />
+</span><span class="comment">/* EXAMPLE 7 */<br />
+</span><span class="keyword">echo </span><span class="default">relativeToAbsolute</span><span class="keyword">(</span><span class="string">"/images/img.gif"</span><span class="keyword">, </span><span class="default">$absolute</span><span class="keyword">) . </span><span class="string">"\n"</span><span class="keyword">;<br />
+</span><span class="comment">/* EXAMPLE 8 */<br />
+</span><span class="keyword">echo </span><span class="default">relativeToAbsolute</span><span class="keyword">(</span><span class="string">"./images/img.gif"</span><span class="keyword">, </span><span class="default">$absolute</span><span class="keyword">) . </span><span class="string">"\n"</span><span class="keyword">;<br />
+</span><span class="comment">/* EXAMPLE 9 */<br />
+</span><span class="keyword">echo </span><span class="default">relativeToAbsolute</span><span class="keyword">(</span><span class="string">"../images/img.gif"</span><span class="keyword">, </span><span class="default">$absolute</span><span class="keyword">) . </span><span class="string">"\n"</span><span class="keyword">;<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+OUTPUTS:<br />
+http :// user:pass@example.com:8080/path/to/index.html<br />
+http :// user:pass@example.com:8080/path/to/img.gif<br />
+http :// user:pass@example.com:8080/img.gif<br />
+http :// user:pass@example.com:8080/path/to/img.gif<br />
+http :// user:pass@example.com:8080/path/to/../img.gif<br />
+http :// user:pass@example.com:8080/path/to/images/img.gif<br />
+http :// user:pass@example.com:8080/images/img.gif<br />
+http :// user:pass@example.com:8080/path/to/images/img.gif<br />
+http :// user:pass@example.com:8080/path/to/../images/img.gif<br />
+<br />
+Sorry if the above code is not your style, or if you see it as "messy" or you think there is a better way to do it. I removed as much of the white space as possible.<br />
+<br />
+Improvements are welcome :)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119017""></a>
+  <div class="note">
+   <strong class="user">mprz1024 at gmail dot com</strong>
+   <a href="#119017" class="date">17-Mar-2016 07:41</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+So why on Earth does parse_url('file:1') work while parse_url('file:0') returns false?</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118938""></a>
+  <div class="note">
+   <strong class="user">ivijan dot stefan at gmail dot com</strong>
+   <a href="#118938" class="date">02-Mar-2016 10:23</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you need check if URL exists or not, here is one my good function for that.<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="comment">// Return false or URL<br />
+</span><span class="keyword">function </span><span class="default">url_exists</span><span class="keyword">(</span><span class="default">$url</span><span class="keyword">=</span><span class="string">''</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; if(empty(</span><span class="default">$url</span><span class="keyword">)) return </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$curl </span><span class="keyword">= </span><span class="default">curl_init</span><span class="keyword">(</span><span class="default">$url</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">//don't fetch the actual page, you only want to check the connection is ok<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">curl_setopt</span><span class="keyword">(</span><span class="default">$curl</span><span class="keyword">, </span><span class="default">CURLOPT_NOBODY</span><span class="keyword">, </span><span class="default">true</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">curl_setopt</span><span class="keyword">(</span><span class="default">$curl</span><span class="keyword">, </span><span class="default">CURLOPT_CONNECTTIMEOUT </span><span class="keyword">,</span><span class="default">5</span><span class="keyword">); <br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">curl_setopt</span><span class="keyword">(</span><span class="default">$curl</span><span class="keyword">, </span><span class="default">CURLOPT_TIMEOUT </span><span class="keyword">, </span><span class="default">2</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">//do request<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">= </span><span class="default">curl_exec</span><span class="keyword">(</span><span class="default">$curl</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">//if request did not fail<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">if (</span><span class="default">$result </span><span class="keyword">!== </span><span class="default">false</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">//if request was ok, check response code<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$statusCode </span><span class="keyword">= </span><span class="default">curl_getinfo</span><span class="keyword">(</span><span class="default">$curl</span><span class="keyword">, </span><span class="default">CURLINFO_HTTP_CODE</span><span class="keyword">);&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ((int)</span><span class="default">$statusCode </span><span class="keyword">=== </span><span class="default">200</span><span class="keyword">) return </span><span class="default">$url</span><span class="keyword">;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">; <br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">curl_close</span><span class="keyword">(</span><span class="default">$curl</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;<br />
+}<br />
+<br />
+if(</span><span class="default">url_exists</span><span class="keyword">(</span><span class="string">"<a href="http://www.google.com" rel="nofollow" target="_blank">http://www.google.com</a>"</span><span class="keyword">)!==</span><span class="default">false</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp; </span><span class="comment">// URL Exists<br />
+</span><span class="keyword">}<br />
+</span><span class="default">?&gt;<br />
+</span>This can help if you decide to do some dynamic URL parser or something where need validations.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118134""></a>
+  <div class="note">
+   <strong class="user">mostafa at alfehrest dot org</strong>
+   <a href="#118134" class="date">13-Oct-2015 01:40</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+This function will attempt to parse relative URLs but relaying on it can produce unexpected behavior that can cause some hard to track bugs. (The following results are obtained from PHP 5.5.19)<br />
+<br />
+Attempting to parse a url like this<br />
+<a href="http://example.com/entities/GOA:98/?search=8989157d1f22" rel="nofollow" target="_blank">http://example.com/entities/GOA:98/?search=8989157d1f22</a><br />
+Correctly produces<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">array (<br />
+&nbsp; </span><span class="string">'scheme' </span><span class="keyword">=&gt; </span><span class="string">'http'</span><span class="keyword">,<br />
+&nbsp; </span><span class="string">'host' </span><span class="keyword">=&gt; </span><span class="string">'example.com'</span><span class="keyword">,<br />
+&nbsp; </span><span class="string">'path' </span><span class="keyword">=&gt; </span><span class="string">'/entities/GOA:98/'</span><span class="keyword">,<br />
+&nbsp; </span><span class="string">'query' </span><span class="keyword">=&gt; </span><span class="string">'search=8989157d1f22'</span><span class="keyword">,<br />
+);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+However, Attempting to parse the relative URL <br />
+entities/GOA:98/?search=8989157d1f22<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">array (<br />
+&nbsp; </span><span class="string">'host' </span><span class="keyword">=&gt; </span><span class="string">'entities'</span><span class="keyword">,<br />
+&nbsp; </span><span class="string">'port' </span><span class="keyword">=&gt; </span><span class="default">98</span><span class="keyword">,<br />
+&nbsp; </span><span class="string">'path' </span><span class="keyword">=&gt; </span><span class="string">'/GOA:98/'</span><span class="keyword">,<br />
+&nbsp; </span><span class="string">'query' </span><span class="keyword">=&gt; </span><span class="string">'search=8989157d1f22'</span><span class="keyword">,<br />
+)<br />
+</span><span class="default">?&gt;<br />
+</span>If I change :98 to :A98 parse_url parses the URL correctly as <br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">array (<br />
+&nbsp; </span><span class="string">'path' </span><span class="keyword">=&gt; </span><span class="string">'entities/GOA:A98/'</span><span class="keyword">,<br />
+&nbsp; </span><span class="string">'query' </span><span class="keyword">=&gt; </span><span class="string">'search=8989157d1f22'</span><span class="keyword">,<br />
+)<br />
+</span><span class="default">?&gt;<br />
+</span>Bottom line, Avoid using parse_url for relative urls unless you have tested the expected input and you know parse_url will handle them well.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117143""></a>
+  <div class="note">
+   <strong class="user">Rob</strong>
+   <a href="#117143" class="date">21-Apr-2015 09:27</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I've been working on a generic class that would make URI parsing / building a little easier.<br />
+<br />
+The composer package is here: https://packagist.org/packages/enrise/urihelper<br />
+<br />
+And the repository is here: https://github.com/Enrise/UriHelper<br />
+<br />
+An example of the usage:<br />
+<br />
+<span class="default">&lt;?php<br />
+$uri </span><span class="keyword">= new \</span><span class="default">Enrise</span><span class="keyword">\</span><span class="default">Uri</span><span class="keyword">(</span><span class="string">'<a href="http://usr:pss@example.com:81/mypath/myfile.html?a=b&amp;b[]=2&amp;b[]=3#myfragment" rel="nofollow" target="_blank">http://usr:pss@example.com:81/mypath/myfile.html?a=b&amp;b[]=2&amp;b[]=3#myfragment</a>'</span><span class="keyword">);<br />
+echo </span><span class="default">$uri</span><span class="keyword">-&gt;</span><span class="default">getScheme</span><span class="keyword">(); </span><span class="comment">// http<br />
+</span><span class="keyword">echo </span><span class="default">$uri</span><span class="keyword">-&gt;</span><span class="default">getUser</span><span class="keyword">(); </span><span class="comment">// usr<br />
+</span><span class="keyword">echo </span><span class="default">$uri</span><span class="keyword">-&gt;</span><span class="default">getPass</span><span class="keyword">(); </span><span class="comment">// pss<br />
+</span><span class="keyword">echo </span><span class="default">$uri</span><span class="keyword">-&gt;</span><span class="default">getHost</span><span class="keyword">(); </span><span class="comment">// example.com<br />
+</span><span class="keyword">echo </span><span class="default">$uri</span><span class="keyword">-&gt;</span><span class="default">getPort</span><span class="keyword">(); </span><span class="comment">// 81<br />
+</span><span class="keyword">echo </span><span class="default">$uri</span><span class="keyword">-&gt;</span><span class="default">getPath</span><span class="keyword">(); </span><span class="comment">// /mypath/myfile.html<br />
+</span><span class="keyword">echo </span><span class="default">$uri</span><span class="keyword">-&gt;</span><span class="default">getQuery</span><span class="keyword">(); </span><span class="comment">// a=b&amp;b[]=2&amp;b[]=3<br />
+</span><span class="keyword">echo </span><span class="default">$uri</span><span class="keyword">-&gt;</span><span class="default">getFragment</span><span class="keyword">(); </span><span class="comment">// myfragment<br />
+</span><span class="keyword">echo </span><span class="default">$uri</span><span class="keyword">-&gt;</span><span class="default">isSchemeless</span><span class="keyword">(); </span><span class="comment">// false<br />
+</span><span class="keyword">echo </span><span class="default">$uri</span><span class="keyword">-&gt;</span><span class="default">isRelative</span><span class="keyword">(); </span><span class="comment">// false<br />
+<br />
+</span><span class="default">$uri</span><span class="keyword">-&gt;</span><span class="default">setScheme</span><span class="keyword">(</span><span class="string">'scheme:child:scheme.VALIDscheme123:'</span><span class="keyword">);<br />
+</span><span class="default">$uri</span><span class="keyword">-&gt;</span><span class="default">setPort</span><span class="keyword">(</span><span class="default">null</span><span class="keyword">);<br />
+<br />
+echo </span><span class="default">$uri</span><span class="keyword">-&gt;</span><span class="default">getUri</span><span class="keyword">(); </span><span class="comment">//scheme:child:scheme.VALIDscheme123:usr:pss@example.com/mypath/myfile.html?a=b&amp;b[]=2&amp;b[]=3#myfragment<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116520""></a>
   <div class="note">
    <strong class="user">jerome at chaman dot ca</strong>
    <a href="#116520" class="date">17-Jan-2015 07:53</a>

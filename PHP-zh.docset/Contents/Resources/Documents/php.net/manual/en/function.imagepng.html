@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.imagepng" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">imagepng</h1>
-  <p class="verinfo">(PHP 4, PHP 5)</p><p class="refpurpose"><span class="refname">imagepng</span> &mdash; <span class="dc-title">以 PNG 格式将图像输出到浏览器或文件</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">imagepng</span> &mdash; <span class="dc-title">以 PNG 格式将图像输出到浏览器或文件</span></p>
 
  </div>
  <div class="refsect1 unknown-seealsp" id="refsect1-function.imagepng-unknown-seealsp">
@@ -61,7 +61,95 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="113515""></a>
+<div id="allnotes">  <a name="117819""></a>
+  <div class="note">
+   <strong class="user">Chris F</strong>
+   <a href="#117819" class="date">14-Aug-2015 01:33</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I was curious about the relationship between quality, processing time and resulting image size, so I created this little benchmark to test it (The image used was originally RGB_24bits_palette_R85.png, found on wikipedia). Results are at the bottom.<br />
+<span class="default">&lt;?php<br />
+$sizes </span><span class="keyword">= [</span><span class="string">'32'</span><span class="keyword">, </span><span class="string">'64'</span><span class="keyword">, </span><span class="string">'128'</span><span class="keyword">, </span><span class="string">'256'</span><span class="keyword">, </span><span class="string">'512'</span><span class="keyword">, </span><span class="string">'1024'</span><span class="keyword">, </span><span class="string">'2048'</span><span class="keyword">];<br />
+<br />
+foreach (</span><span class="default">$sizes </span><span class="keyword">as </span><span class="default">$size</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"\nSize: </span><span class="keyword">{</span><span class="default">$size</span><span class="keyword">}</span><span class="string">x</span><span class="keyword">{</span><span class="default">$size</span><span class="keyword">}</span><span class="string">px:\n"</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$image </span><span class="keyword">= </span><span class="default">imagecreatefrompng</span><span class="keyword">(</span><span class="string">"images/test</span><span class="keyword">{</span><span class="default">$size</span><span class="keyword">}</span><span class="string">.png"</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; for (</span><span class="default">$quality </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">; </span><span class="default">$quality </span><span class="keyword">&lt; </span><span class="default">10</span><span class="keyword">; </span><span class="default">$quality</span><span class="keyword">++) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">ob_start</span><span class="keyword">();<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$start </span><span class="keyword">= </span><span class="default">microtime</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">imagepng</span><span class="keyword">(</span><span class="default">$image</span><span class="keyword">, </span><span class="default">null</span><span class="keyword">, </span><span class="default">$quality</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$elapsed </span><span class="keyword">= </span><span class="default">microtime</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">) - </span><span class="default">$start</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$blob </span><span class="keyword">= </span><span class="default">ob_get_contents</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">ob_end_clean</span><span class="keyword">();<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$blobSize </span><span class="keyword">= </span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$blob</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"quality: </span><span class="default">$quality</span><span class="string">, size: </span><span class="default">$blobSize</span><span class="string">, elapsed: </span><span class="default">$elapsed</span><span class="string">\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">imagedestroy</span><span class="keyword">(</span><span class="default">$image</span><span class="keyword">);<br />
+}<br />
+<br />
+</span><span class="comment">// Results (some omitted for brevity):<br />
+<br />
+// Size: 32x32px:<br />
+// quality: 0, size: 3172, elapsed: 0.00013399124145508<br />
+// quality: 1, size: 266, elapsed: 9.4890594482422E-5<br />
+// quality: 2, size: 264, elapsed: 7.7009201049805E-5<br />
+// quality: 3, size: 223, elapsed: 7.4863433837891E-5<br />
+// quality: 4, size: 225, elapsed: 8.5830688476562E-5<br />
+// quality: 5, size: 209, elapsed: 8.5115432739258E-5<br />
+// quality: 6, size: 208, elapsed: 9.608268737793E-5<br />
+// quality: 7, size: 205, elapsed: 0.0001060962677002<br />
+// quality: 8, size: 186, elapsed: 0.00015091896057129<br />
+// quality: 9, size: 181, elapsed: 0.00022006034851074<br />
+<br />
+// Size: 128x128px:<br />
+// quality: 0, size: 49425, elapsed: 0.0010969638824463<br />
+// quality: 1, size: 976, elapsed: 0.00091886520385742<br />
+// quality: 2, size: 938, elapsed: 0.00088310241699219<br />
+// quality: 3, size: 925, elapsed: 0.00087594985961914<br />
+// quality: 4, size: 608, elapsed: 0.0009760856628418<br />
+// quality: 5, size: 607, elapsed: 0.00098395347595215<br />
+// quality: 6, size: 601, elapsed: 0.0010099411010742<br />
+// quality: 7, size: 602, elapsed: 0.001086950302124<br />
+// quality: 8, size: 521, elapsed: 0.001910924911499<br />
+// quality: 9, size: 491, elapsed: 0.0029060840606689<br />
+<br />
+// Size: 512x512px:<br />
+// quality: 0, size: 788279, elapsed: 0.012928009033203<br />
+// quality: 1, size: 12467, elapsed: 0.013065099716187<br />
+// quality: 2, size: 11885, elapsed: 0.013008117675781<br />
+// quality: 3, size: 11190, elapsed: 0.013030052185059<br />
+// quality: 4, size: 7311, elapsed: 0.016619920730591<br />
+// quality: 5, size: 6994, elapsed: 0.016351222991943<br />
+// quality: 6, size: 6475, elapsed: 0.016234159469604<br />
+// quality: 7, size: 6432, elapsed: 0.016525983810425<br />
+// quality: 8, size: 6094, elapsed: 0.022937774658203<br />
+// quality: 9, size: 5649, elapsed: 0.065664052963257<br />
+<br />
+// Size: 2048x2048px:<br />
+// quality: 0, size: 12605375, elapsed: 0.20983290672302<br />
+// quality: 1, size: 451735, elapsed: 0.19678711891174<br />
+// quality: 2, size: 409375, elapsed: 0.19415307044983<br />
+// quality: 3, size: 366404, elapsed: 0.20460414886475<br />
+// quality: 4, size: 312538, elapsed: 0.22785305976868<br />
+// quality: 5, size: 281671, elapsed: 0.23320484161377<br />
+// quality: 6, size: 244248, elapsed: 0.28935289382935<br />
+// quality: 7, size: 238310, elapsed: 0.33481192588806<br />
+// quality: 8, size: 217038, elapsed: 0.71698379516602<br />
+// quality: 9, size: 208881, elapsed: 1.858146905899<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="113515""></a>
   <div class="note">
    <strong class="user">php dot net at phor dot net</strong>
    <a href="#113515" class="date">23-Oct-2013 10:46</a>

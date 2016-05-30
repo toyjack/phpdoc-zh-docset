@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.pg-get-result" class="refentry">
    <div class="refnamediv">
     <h1 class="refname">pg_get_result</h1>
-    <p class="verinfo">(PHP 4 &gt;= 4.2.0, PHP 5)</p><p class="refpurpose"><span class="refname">pg_get_result</span> &mdash; <span class="dc-title">
+    <p class="verinfo">(PHP 4 &gt;= 4.2.0, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">pg_get_result</span> &mdash; <span class="dc-title">
      取得异步查询结果
     </span></p>
 
@@ -47,7 +47,47 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="113437""></a>
+<div id="allnotes">  <a name="117984""></a>
+  <div class="note">
+   <strong class="user">Ondej Bouda</strong>
+   <a href="#117984" class="date">15-Sep-2015 07:04</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+It might seem that after calling pg_get_result() upon sending just a single query, the connection will not be busy. The correct way is, though, to call extra pg_get_result() in a loop until it returns false [1].<br />
+<br />
+<span class="default">&lt;?php<br />
+$conn </span><span class="keyword">= </span><span class="default">pg_connect</span><span class="keyword">(</span><span class="string">'...'</span><span class="keyword">, </span><span class="default">PGSQL_CONNECT_FORCE_NEW</span><span class="keyword">);<br />
+for (</span><span class="default">$i </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">; </span><span class="default">$i </span><span class="keyword">&lt; </span><span class="default">10000</span><span class="keyword">; </span><span class="default">$i</span><span class="keyword">++) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$query </span><span class="keyword">= </span><span class="string">'erroneous query'</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">pg_connection_busy</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fprintf</span><span class="keyword">(</span><span class="default">STDERR</span><span class="keyword">, </span><span class="string">"Connection is busy\n"</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; exit(</span><span class="default">1</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">pg_send_query</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">, </span><span class="default">$query</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$res </span><span class="keyword">= </span><span class="default">pg_get_result</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">$res </span><span class="keyword">=== </span><span class="default">false</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fprintf</span><span class="keyword">(</span><span class="default">STDERR</span><span class="keyword">, </span><span class="string">"A result was expected\n"</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; exit(</span><span class="default">1</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">/* The following does not seem necessary for good queries, but is vital for erroneous queries.<br />
+&nbsp;&nbsp; &nbsp; &nbsp; Commenting the loop out leads to this script fail with the "Connection is busy" error. */<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">while (</span><span class="default">pg_get_result</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">));<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// result processing...<br />
+</span><span class="keyword">}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+See <a href="http://www.postgresql.org/message-id/flat/gtitqq$26l3$1@news.hub.org#gtitqq$26l3$1@news.hub.org and https://bugs.php.net/bug.php?id=52750 for detailed information." rel="nofollow" target="_blank">http://www.postgresql.org/message-id/flat/gtitqq$26l3$1@news.hub.org#gtitqq$26l3$1@news.hub.org and https://bugs.php.net/bug.php?id=52750 for detailed information.</a><br />
+<br />
+[1] Or, even better, use an asynchronous connection since PHP 5.6.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="113437""></a>
   <div class="note">
    <strong class="user">gullevek at gullevek dot org</strong>
    <a href="#113437" class="date">10-Oct-2013 03:28</a>

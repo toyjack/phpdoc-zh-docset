@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.wordwrap" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">wordwrap</h1>
-  <p class="verinfo">(PHP 4 &gt;= 4.0.2, PHP 5)</p><p class="refpurpose"><span class="refname">wordwrap</span> &mdash; <span class="dc-title">打断字符串为指定数量的字串</span></p>
+  <p class="verinfo">(PHP 4 &gt;= 4.0.2, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">wordwrap</span> &mdash; <span class="dc-title">打断字符串为指定数量的字串</span></p>
 
  </div>
  
@@ -116,7 +116,7 @@
  <div class="refsect1 examples" id="refsect1-function.wordwrap-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-4963">
+   <div class="example" id="example-5339">
     <p><strong>Example #1 <span class="function"><strong>wordwrap()</strong></span> 范例</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -134,7 +134,7 @@ dog.
 </pre></div>
     </div>
    </div>
-   <div class="example" id="example-4964">
+   <div class="example" id="example-5340">
     <p><strong>Example #2 <span class="function"><strong>wordwrap()</strong></span> 范例</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -172,7 +172,67 @@ ooooord.
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116467""></a>
+<div id="allnotes">  <a name="117207""></a>
+  <div class="note">
+   <strong class="user">kozimbek at mail dot ru</strong>
+   <a href="#117207" class="date">02-May-2015 10:17</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+After searching and being tired of many non-working mb_wordwrap functions at many places, I finally created a really simple and working solution<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">mb_wordwrap</span><span class="keyword">(</span><span class="default">$string</span><span class="keyword">, </span><span class="default">$limit</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$string </span><span class="keyword">= </span><span class="default">strip_tags</span><span class="keyword">(</span><span class="default">$string</span><span class="keyword">); </span><span class="comment">//Strip HTML tags off the text<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$string </span><span class="keyword">= </span><span class="default">html_entity_decode</span><span class="keyword">(</span><span class="default">$string</span><span class="keyword">); </span><span class="comment">//Convert HTML special chars into normal text<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$string </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(array(</span><span class="string">"\r"</span><span class="keyword">, </span><span class="string">"\n"</span><span class="keyword">), </span><span class="string">""</span><span class="keyword">, </span><span class="default">$string</span><span class="keyword">); </span><span class="comment">//Also cut line breaks<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">if(</span><span class="default">mb_strlen</span><span class="keyword">(</span><span class="default">$string</span><span class="keyword">, </span><span class="string">"UTF-8"</span><span class="keyword">) &lt;= </span><span class="default">$limit</span><span class="keyword">) return </span><span class="default">$string</span><span class="keyword">; </span><span class="comment">//If input string's length is no more than cut length, return untouched<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$last_space </span><span class="keyword">= </span><span class="default">mb_strrpos</span><span class="keyword">(</span><span class="default">mb_substr</span><span class="keyword">(</span><span class="default">$string</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">, </span><span class="default">$limit</span><span class="keyword">, </span><span class="string">"UTF-8"</span><span class="keyword">), </span><span class="string">" "</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">, </span><span class="string">"UTF-8"</span><span class="keyword">); </span><span class="comment">//Find the last space symbol position<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">return </span><span class="default">mb_substr</span><span class="keyword">(</span><span class="default">$string</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">, </span><span class="default">$last_space</span><span class="keyword">, </span><span class="string">"UTF-8"</span><span class="keyword">).</span><span class="string">' ...'</span><span class="keyword">; </span><span class="comment">//Return the string's length substracted till the last space and add three points<br />
+</span><span class="keyword">}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+The function simply searches the last space symbol in the range and returns the string cut till that position. No iterations, no regular expressions and no buffer overload. Tested with large Russian texts and works perfectly.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116865""></a>
+  <div class="note">
+   <strong class="user">zac dot hester at gmail dot com</strong>
+   <a href="#116865" class="date">12-Mar-2015 11:28</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I recently ran into the issue discussed by another contributor to this function (frans-jan at van-steenbeek dot R-E-M-O-V-E dot net).&nbsp; The problem appeared to be how wordwrap() was treating white space.&nbsp; Instead of writing my own version of wordwrap(), I discovered that the "break" parameter is not only used as the inserted string, but also used to detect the existing wrap delimiters (e.g. line endings).&nbsp; If you can manage to "normalize" the wrap delimiters in your original string, you don't need to try to work-around the function wrapping at seemingly odd places (like immediately after one short word).&nbsp; As one quick-and-dirty way to get wordwrap() to play nicely with most use-cases, I did this:<br />
+<br />
+<span class="default">&lt;?php<br />
+$break </span><span class="keyword">= </span><span class="default">strpos</span><span class="keyword">( </span><span class="default">$content</span><span class="keyword">, </span><span class="string">"\r" </span><span class="keyword">) === </span><span class="default">false </span><span class="keyword">? </span><span class="string">"\n" </span><span class="keyword">: </span><span class="string">"\r\n"</span><span class="keyword">;<br />
+</span><span class="default">$content </span><span class="keyword">= </span><span class="default">wordwrap</span><span class="keyword">( </span><span class="default">$content</span><span class="keyword">, </span><span class="default">78</span><span class="keyword">, </span><span class="default">$break </span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+I also tend to normalize multi-line strings (if my OCD is acting up).&nbsp; You would typically perform this conversion _before_ sending it off to wordwrap().<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">//quick and simple, but clobbers old-style Mac line-endings<br />
+</span><span class="default">$content </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">( </span><span class="string">"\r"</span><span class="keyword">, </span><span class="string">''</span><span class="keyword">, </span><span class="default">$content </span><span class="keyword">);<br />
+<br />
+</span><span class="comment">//slower, but works with everything<br />
+</span><span class="default">$content </span><span class="keyword">= </span><span class="default">preg_replace</span><span class="keyword">( </span><span class="string">"/(\r\n|\r)/"</span><span class="keyword">, </span><span class="string">"\n"</span><span class="keyword">, </span><span class="default">$content </span><span class="keyword">);<br />
+<br />
+</span><span class="comment">//now, wordwrap() will behave exactly as expected<br />
+</span><span class="default">$content </span><span class="keyword">= </span><span class="default">wordwrap</span><span class="keyword">( </span><span class="default">$content</span><span class="keyword">, </span><span class="default">78</span><span class="keyword">, </span><span class="string">"\n" </span><span class="keyword">);<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116467""></a>
   <div class="note">
    <strong class="user">Alhadis</strong>
    <a href="#116467" class="date">08-Jan-2015 09:30</a>

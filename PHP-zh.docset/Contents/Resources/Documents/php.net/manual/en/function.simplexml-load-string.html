@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.simplexml-load-string" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">simplexml_load_string</h1>
-  <p class="verinfo">(PHP 5)</p><p class="refpurpose"><span class="refname">simplexml_load_string</span> &mdash; <span class="dc-title">
+  <p class="verinfo">(PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">simplexml_load_string</span> &mdash; <span class="dc-title">
    Interprets a string of XML into an object
   </span></p>
 
@@ -130,6 +130,10 @@
    Returns an <span class="type"><a href="language.types.object.html" class="type object">object</a></span> of class <span class="type"><a href="class.simplexmlelement.html" class="type SimpleXMLElement">SimpleXMLElement</a></span> with
    properties containing the data held within the xml document, 或者在失败时返回 <strong><code>FALSE</code></strong>.
   </p>
+  <div class="warning"><strong class="warning">Warning</strong><p class="simpara">此函数可能返回布尔值
+<strong><code>FALSE</code></strong>，但也可能返回等同于 <strong><code>FALSE</code></strong> 的非布尔值。请阅读 <a href="language.types.boolean.html" class="link">布尔类型</a>章节以获取更多信息。应使用
+<a href="language.operators.comparison.html" class="link">===
+运算符</a>来测试此函数的返回值。</p></div>
  </div>
 
 
@@ -152,7 +156,7 @@
  <div class="refsect1 examples" id="refsect1-function.simplexml-load-string-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-5508">
+   <div class="example" id="example-5893">
     <p><strong>Example #1 Interpret an XML string</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -200,7 +204,101 @@ SimpleXMLElement Object
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="113349""></a>
+<div id="allnotes">  <a name="117453""></a>
+  <div class="note">
+   <strong class="user">artistan at gmail dot com</strong>
+   <a href="#117453" class="date">11-Jun-2015 09:32</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Here is my update to Bob's simple SimpleXML wrapper function.<br />
+I noticed his version would turn an empty SimpleXMLElement into an empty array.<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">/**<br />
+&nbsp;&nbsp; &nbsp; * <a href="http://php.net/manual/en/function.simplexml-load-string.php#91564" rel="nofollow" target="_blank">http://php.net/manual/en/function.simplexml-load-string.php#91564</a><br />
+&nbsp;&nbsp; &nbsp; *<br />
+&nbsp;&nbsp; &nbsp; * bool/array unserialize_xml ( string $input [ , callback $callback ] )<br />
+&nbsp;&nbsp; &nbsp; * Unserializes an XML string, returning a multi-dimensional associative array, optionally runs a callback on all non-array data<br />
+&nbsp;&nbsp; &nbsp; * Returns false on all failure<br />
+&nbsp;&nbsp; &nbsp; * Notes:<br />
+&nbsp;&nbsp; &nbsp; * Root XML tags are stripped<br />
+&nbsp;&nbsp; &nbsp; * Due to its recursive nature, unserialize_xml() will also support SimpleXMLElement objects and arrays as input<br />
+&nbsp;&nbsp; &nbsp; * Uses simplexml_load_string() for XML parsing, see SimpleXML documentation for more info<br />
+&nbsp;&nbsp; &nbsp; *<br />
+&nbsp;&nbsp; &nbsp; * @param $input<br />
+&nbsp;&nbsp; &nbsp; * @param null $callback<br />
+&nbsp;&nbsp; &nbsp; * @param bool $recurse<br />
+&nbsp;&nbsp; &nbsp; * @return array|mixed<br />
+&nbsp;&nbsp; &nbsp; *<br />
+&nbsp;&nbsp; &nbsp; */<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">function </span><span class="default">unserialize_xml</span><span class="keyword">(</span><span class="default">$input</span><span class="keyword">, </span><span class="default">$callback </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">, </span><span class="default">$recurse </span><span class="keyword">= </span><span class="default">false</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Get input, loading an xml string with simplexml if its the top level of recursion<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$data </span><span class="keyword">= ((!</span><span class="default">$recurse</span><span class="keyword">) &amp;&amp; </span><span class="default">is_string</span><span class="keyword">(</span><span class="default">$input</span><span class="keyword">))? </span><span class="default">simplexml_load_string</span><span class="keyword">(</span><span class="default">$input</span><span class="keyword">): </span><span class="default">$input</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Convert SimpleXMLElements to array<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if (</span><span class="default">$data </span><span class="keyword">instanceof </span><span class="default">SimpleXMLElement</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(!empty(</span><span class="default">$data</span><span class="keyword">)){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$data </span><span class="keyword">= (array) </span><span class="default">$data</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$data </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Recurse into arrays<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if (</span><span class="default">is_array</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">)) foreach (</span><span class="default">$data </span><span class="keyword">as &amp;</span><span class="default">$item</span><span class="keyword">) </span><span class="default">$item </span><span class="keyword">= </span><span class="default">unserialize_xml</span><span class="keyword">(</span><span class="default">$item</span><span class="keyword">, </span><span class="default">$callback</span><span class="keyword">, </span><span class="default">true</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Run callback and return<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">return (!</span><span class="default">is_array</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">) &amp;&amp; </span><span class="default">is_callable</span><span class="keyword">(</span><span class="default">$callback</span><span class="keyword">))? </span><span class="default">call_user_func</span><span class="keyword">(</span><span class="default">$callback</span><span class="keyword">, </span><span class="default">$data</span><span class="keyword">): </span><span class="default">$data</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117237""></a>
+  <div class="note">
+   <strong class="user">meustrus</strong>
+   <a href="#117237" class="date">08-May-2015 12:38</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Be careful checking for parse errors. An empty SimpleXMLElement may resolve to FALSE, and if your XML contains no text or only contains namespaced elements your error check may be wrong. Always use `=== FALSE` when checking for parse errors.<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+$xml </span><span class="keyword">= &lt;&lt;&lt;XML<br />
+</span><span class="string">&lt;?xml version="1.0" encoding="UTF-8"?&gt;<br />
+&lt;ns1:Root xmlns:ns1="<a href="http://example.com/custom" rel="nofollow" target="_blank">http://example.com/custom</a>"&gt;<br />
+&lt;ns1:Node&gt;There's stuff here&lt;/ns1:Node&gt;<br />
+&lt;/ns1:Root&gt;<br />
+</span><span class="keyword">XML;<br />
+<br />
+</span><span class="default">$simplexml </span><span class="keyword">= </span><span class="default">simplexml_load_string</span><span class="keyword">(</span><span class="default">$xml</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// This prints "Parse Error".<br />
+</span><span class="keyword">echo (</span><span class="default">$simplexml </span><span class="keyword">? </span><span class="string">'Valid XML' </span><span class="keyword">: </span><span class="string">'Parse Error'</span><span class="keyword">), </span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+<br />
+</span><span class="comment">// But this prints "There's stuff here", proving that<br />
+// the SimpleXML object was created successfully.<br />
+</span><span class="keyword">echo </span><span class="default">$simplexml</span><span class="keyword">-&gt;</span><span class="default">children</span><span class="keyword">(</span><span class="string">'<a href="http://example.com/custom" rel="nofollow" target="_blank">http://example.com/custom</a>'</span><span class="keyword">)-&gt;</span><span class="default">Node</span><span class="keyword">, </span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+<br />
+</span><span class="comment">// Use this instead:<br />
+</span><span class="keyword">echo (</span><span class="default">$simplexml </span><span class="keyword">!== </span><span class="default">FALSE </span><span class="keyword">? </span><span class="string">'Valid XML' </span><span class="keyword">: </span><span class="string">'Parse Error'</span><span class="keyword">), </span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+See:<br />
+<br />
+https://bugs.php.net/bug.php?id=31045<br />
+https://bugs.php.net/bug.php?id=30972<br />
+https://bugs.php.net/bug.php?id=69596</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="113349""></a>
   <div class="note">
    <strong class="user">dkrnl at yandex dot ru</strong>
    <a href="#113349" class="date">30-Sep-2013 11:58</a>

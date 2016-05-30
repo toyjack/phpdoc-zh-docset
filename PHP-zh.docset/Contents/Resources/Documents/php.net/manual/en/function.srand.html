@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.srand" class="refentry">
    <div class="refnamediv">
     <h1 class="refname">srand</h1>
-    <p class="verinfo">(PHP 4, PHP 5)</p><p class="refpurpose"><span class="refname">srand</span> &mdash; <span class="dc-title">播下随机数发生器种子</span></p>
+    <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">srand</span> &mdash; <span class="dc-title">播下随机数发生器种子</span></p>
 
    </div>
  <div class="refsect1 description" id="refsect1-function.srand-description">
@@ -108,7 +108,7 @@
  <div class="refsect1 examples" id="refsect1-function.srand-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-3476">
+   <div class="example" id="example-3864">
     <p><strong>Example #1 <span class="function"><strong>srand()</strong></span> 例子</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -136,7 +136,37 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="113981""></a>
+<div id="allnotes">  <a name="117966""></a>
+  <div class="note">
+   <strong class="user">Glauco Lins</strong>
+   <a href="#117966" class="date">10-Sep-2015 08:09</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+srand and mt_srand are both initialized only once per process ID.<br />
+<br />
+You cannot re-seed your rand algorithms after the first "srand", "mt_srand", "rand", "mt_rand", "shuffle", or any other rand-like function.<br />
+<br />
+I have been facing an issue where after forking my process, all childs were generating exactly the same rand values.<br />
+This was due a first "shuffle" call on the parent process, so I could not re-seed the childs.<br />
+<br />
+To solve my issue, I simple called "rand" N times, to offset the child rand generators.<br />
+<br />
+# Offset the child rand generator by its PID<br />
+$n = (getmypid() % 100) * (10 * abs(microtime(true) - time()));<br />
+for ($n; $n &gt; 0; $n--) {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; rand(0, $n);<br />
+}<br />
+<br />
+Since each pcntl_fork takes a while to be completed, the microtime offers an extra offset, other than one PID increment.<br />
+<br />
+This small code will make at the WORST hypothesis 1000 iterations.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="113981""></a>
   <div class="note">
    <strong class="user">simon at labs dot coop</strong>
    <a href="#113981" class="date">25-Dec-2013 06:19</a>

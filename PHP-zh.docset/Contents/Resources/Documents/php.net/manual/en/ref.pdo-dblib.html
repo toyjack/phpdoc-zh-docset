@@ -34,7 +34,7 @@
     <p class="para">
      PDO_DBLIB is a driver that implements the <a href="intro.pdo.html" class="link">PHP
      Data Objects (PDO) interface</a> to enable access from PHP to
-     Microsoft SQL Server and Sybase databases through the FreeTDS libary.
+     Microsoft SQL Server and Sybase databases through the FreeTDS library.
     </p>
     <p class="para">
      This extension is not available anymore on Windows with PHP 5.3 or later.
@@ -61,7 +61,116 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="109439""></a>
+<div id="allnotes">  <a name="118093""></a>
+  <div class="note">
+   <strong class="user">Johankasselman at live dot com</strong>
+   <a href="#118093" class="date">02-Oct-2015 10:32</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Hi All, I'wrote a class to connect to MSSQL/Azure databases with Transaction support.<br />
+<br />
+Hope this can help anyone!<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">/**<br />
+*&nbsp; &nbsp; @author&nbsp; &nbsp;&nbsp; Johan Kasselman &lt;johankasselman@live.com&gt;<br />
+*&nbsp; &nbsp; @since&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 2015-09-28&nbsp; &nbsp; V1<br />
+*<br />
+*/<br />
+<br />
+</span><span class="keyword">class </span><span class="default">pdo_dblib_mssql</span><span class="keyword">{<br />
+<br />
+&nbsp;&nbsp;&nbsp; private </span><span class="default">$db</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; private </span><span class="default">$cTransID</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; private </span><span class="default">$childTrans </span><span class="keyword">= array();<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__construct</span><span class="keyword">(</span><span class="default">$hostname</span><span class="keyword">, </span><span class="default">$port</span><span class="keyword">, </span><span class="default">$dbname</span><span class="keyword">, </span><span class="default">$username</span><span class="keyword">, </span><span class="default">$pwd</span><span class="keyword">){<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">hostname </span><span class="keyword">= </span><span class="default">$hostname</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">port </span><span class="keyword">= </span><span class="default">$port</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">dbname </span><span class="keyword">= </span><span class="default">$dbname</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">username </span><span class="keyword">= </span><span class="default">$username</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">pwd </span><span class="keyword">= </span><span class="default">$pwd</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">connect</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">beginTransaction</span><span class="keyword">(){<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$cAlphanum </span><span class="keyword">= </span><span class="string">"AaBbCc0Dd1EeF2fG3gH4hI5iJ6jK7kLlM8mN9nOoPpQqRrSsTtUuVvWwXxYyZz"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">cTransID </span><span class="keyword">= </span><span class="string">"T"</span><span class="keyword">.</span><span class="default">substr</span><span class="keyword">(</span><span class="default">str_shuffle</span><span class="keyword">(</span><span class="default">$cAlphanum</span><span class="keyword">), </span><span class="default">0</span><span class="keyword">, </span><span class="default">7</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">array_unshift</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">childTrans</span><span class="keyword">, </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">cTransID</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$stmt </span><span class="keyword">= </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">db</span><span class="keyword">-&gt;</span><span class="default">prepare</span><span class="keyword">(</span><span class="string">"BEGIN TRAN [</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">cTransID</span><span class="string">];"</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$stmt</span><span class="keyword">-&gt;</span><span class="default">execute</span><span class="keyword">();<br />
+<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">rollBack</span><span class="keyword">(){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; while(</span><span class="default">count</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">childTrans</span><span class="keyword">) &gt; </span><span class="default">0</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$cTmp </span><span class="keyword">= </span><span class="default">array_shift</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">childTrans</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$stmt </span><span class="keyword">= </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">db</span><span class="keyword">-&gt;</span><span class="default">prepare</span><span class="keyword">(</span><span class="string">"ROLLBACK TRAN [</span><span class="default">$cTmp</span><span class="string">];"</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$stmt</span><span class="keyword">-&gt;</span><span class="default">execute</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$stmt</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">commit</span><span class="keyword">(){<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; while(</span><span class="default">count</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">childTrans</span><span class="keyword">) &gt; </span><span class="default">0</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$cTmp </span><span class="keyword">= </span><span class="default">array_shift</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">childTrans</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$stmt </span><span class="keyword">= </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">db</span><span class="keyword">-&gt;</span><span class="default">prepare</span><span class="keyword">(</span><span class="string">"COMMIT TRAN [</span><span class="default">$cTmp</span><span class="string">];"</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$stmt</span><span class="keyword">-&gt;</span><span class="default">execute</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return&nbsp; </span><span class="default">$stmt</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">close</span><span class="keyword">(){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">db </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">connect</span><span class="keyword">(){<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; try {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">db </span><span class="keyword">= new </span><span class="default">PDO </span><span class="keyword">(</span><span class="string">"dblib:host=</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">hostname</span><span class="string">:</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">port</span><span class="string">;dbname=</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">dbname</span><span class="string">"</span><span class="keyword">, </span><span class="string">"</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">username</span><span class="string">"</span><span class="keyword">, </span><span class="string">"</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">pwd</span><span class="string">"</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; } catch (</span><span class="default">PDOException $e</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">logsys </span><span class="keyword">.= </span><span class="string">"Failed to get DB handle: " </span><span class="keyword">. </span><span class="default">$e</span><span class="keyword">-&gt;</span><span class="default">getMessage</span><span class="keyword">() . </span><span class="string">"\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+}<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118018""></a>
+  <div class="note">
+   <strong class="user">Gavin H</strong>
+   <a href="#118018" class="date">19-Sep-2015 08:28</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+When using dblib to connect to azure sql in linux, the connecting user must have at least access rights to the master database (no read/write necessary), as you cannot change the default database on a user in azure like you can with sql server. It would appear that even though you specify a database in the DSN, freetds is making a connection to the default database (master), then changing to the specified database. jTDS (used by tools like DBeaver) build a connection string that specifies the connection database, and thus doesn't need access to master. I also had to specify the server name in the user (e.g. - "username@servername" in PHP, though not in tsql (which also uses the freetds library).</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="109439""></a>
   <div class="note">
    <strong class="user">ian at helastel dot com</strong>
    <a href="#109439" class="date">18-Jul-2012 12:27</a>
@@ -289,20 +398,6 @@ To enable the mssql PDO driver under windows you need to:<br />
 <br />
 1) uncomment the "extension=php_pdo_mssql.dll" line from php.ini<br />
 2) copy ntwdblib.dll into the directory where you have installed php</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="79775""></a>
-  <div class="note">
-   <strong class="user">arnolem at free dot fr</strong>
-   <a href="#79775" class="date">12-Dec-2007 02:45</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-I think that PDO_DBLIB is now stable :<br />
-You can download the last source at <a href="http://pecl.php.net/package/PDO_DBLIB" rel="nofollow" target="_blank">http://pecl.php.net/package/PDO_DBLIB</a></span>
 </code>
     </div>
    </div>

@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.glob" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">glob</h1>
-  <p class="verinfo">(PHP 4 &gt;= 4.3.0, PHP 5)</p><p class="refpurpose"><span class="refname">glob</span> &mdash; <span class="dc-title">寻找与模式匹配的文件路径</span></p>
+  <p class="verinfo">(PHP 4 &gt;= 4.3.0, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">glob</span> &mdash; <span class="dc-title">寻找与模式匹配的文件路径</span></p>
 
  </div>
  <div class="refsect1 description" id="refsect1-function.glob-description">
@@ -170,7 +170,7 @@
  <div class="refsect1 examples" id="refsect1-function.glob-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-2412">
+   <div class="example" id="example-2539">
     <p><strong>Example #1 怎样用 <span class="function"><strong>glob()</strong></span> 方便地替代
     <span class="function"><a href="function.opendir.html" class="function">opendir()</a></span> 和相关函数</strong></p>
     <div class="example-contents">
@@ -225,7 +225,127 @@ quickref.txt size 137820
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116253""></a>
+<div id="allnotes">  <a name="119231""></a>
+  <div class="note">
+   <strong class="user">sebastian dot wasser at gmail dot com</strong>
+   <a href="#119231" class="date">23-Apr-2016 08:50</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I created a rglob function to support a '/**/' wildcard. You can even set the order to post-order or pre-order traversal.<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">function </span><span class="default">rglob </span><span class="keyword">(</span><span class="default">$pattern</span><span class="keyword">, </span><span class="default">$flags </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">, </span><span class="default">$traversePostOrder </span><span class="keyword">= </span><span class="default">false</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// Keep away the hassles of the rest if we don't use the wildcard anyway<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">if (</span><span class="default">strpos</span><span class="keyword">(</span><span class="default">$pattern</span><span class="keyword">, </span><span class="string">'/**/'</span><span class="keyword">) === </span><span class="default">false</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">glob</span><span class="keyword">(</span><span class="default">$pattern</span><span class="keyword">, </span><span class="default">$flags</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$patternParts </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">(</span><span class="string">'/**/'</span><span class="keyword">, </span><span class="default">$pattern</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// Get sub dirs<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$dirs </span><span class="keyword">= </span><span class="default">glob</span><span class="keyword">(</span><span class="default">array_shift</span><span class="keyword">(</span><span class="default">$patternParts</span><span class="keyword">) . </span><span class="string">'/*'</span><span class="keyword">, </span><span class="default">GLOB_ONLYDIR </span><span class="keyword">| </span><span class="default">GLOB_NOSORT</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// Get files for current dir<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$files </span><span class="keyword">= </span><span class="default">glob</span><span class="keyword">(</span><span class="default">$pattern</span><span class="keyword">, </span><span class="default">$flags</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp;&nbsp; foreach (</span><span class="default">$dirs </span><span class="keyword">as </span><span class="default">$dir</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$subDirContent </span><span class="keyword">= </span><span class="default">rglob</span><span class="keyword">(</span><span class="default">$dir </span><span class="keyword">. </span><span class="string">'/**/' </span><span class="keyword">. </span><span class="default">implode</span><span class="keyword">(</span><span class="string">'/**/'</span><span class="keyword">, </span><span class="default">$patternParts</span><span class="keyword">), </span><span class="default">$flags</span><span class="keyword">, </span><span class="default">$traversePostOrder</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (!</span><span class="default">$traversePostOrder</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$files </span><span class="keyword">= </span><span class="default">array_merge</span><span class="keyword">(</span><span class="default">$files</span><span class="keyword">, </span><span class="default">$subDirContent</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$files </span><span class="keyword">= </span><span class="default">array_merge</span><span class="keyword">(</span><span class="default">$subDirContent</span><span class="keyword">, </span><span class="default">$files</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$files</span><span class="keyword">;<br />
+};<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118782""></a>
+  <div class="note">
+   <strong class="user">roland at rd-creation dot fr</strong>
+   <a href="#118782" class="date">05-Feb-2016 09:37</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+FIX to use GLOB_BRACE pattern in glob_recursive function submitted by Mike<br />
+<br />
+if (! function_exists('glob_recursive')){<br />
+&nbsp;&nbsp;&nbsp; function glob_recursive($pattern, $flags = 0, $startdir = ''){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $files = glob($startdir.$pattern, $flags);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach (glob($startdir.'*', GLOB_ONLYDIR|GLOB_NOSORT|GLOB_MARK) as $dir){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $files = array_merge($files, glob_recursive($pattern, $flags, $dir));<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return $files;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118256""></a>
+  <div class="note">
+   <strong class="user">sharshun dot aliaksandr at gmail dot com</strong>
+   <a href="#118256" class="date">04-Nov-2015 11:26</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">function </span><span class="default">glob_recursive</span><span class="keyword">(</span><span class="default">$pattern</span><span class="keyword">, </span><span class="default">$flags </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">){<br />
+</span><span class="comment">// forked from https://github.com/rodurma/PHP-Functions/<br />
+&nbsp;&nbsp;&nbsp; // blob/master/glob_recursive.php<br />
+&nbsp; </span><span class="default">$files </span><span class="keyword">= </span><span class="default">glob</span><span class="keyword">(</span><span class="default">$pattern</span><span class="keyword">, </span><span class="default">$flags</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; <br />
+&nbsp; foreach (</span><span class="default">glob</span><span class="keyword">(</span><span class="default">dirname</span><span class="keyword">(</span><span class="default">$pattern</span><span class="keyword">).</span><span class="string">'/*'</span><span class="keyword">, <br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">GLOB_ONLYDIR</span><span class="keyword">|</span><span class="default">GLOB_NOSORT</span><span class="keyword">) as </span><span class="default">$dir</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$files </span><span class="keyword">= </span><span class="default">array_merge</span><span class="keyword">(</span><span class="default">$files</span><span class="keyword">, </span><span class="default">glob_recursive<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">(</span><span class="default">$dir</span><span class="keyword">.</span><span class="string">'/'</span><span class="keyword">.</span><span class="default">basename</span><span class="keyword">(</span><span class="default">$pattern</span><span class="keyword">), </span><span class="default">$flags</span><span class="keyword">));<br />
+&nbsp; }<br />
+&nbsp; return </span><span class="default">$files</span><span class="keyword">;<br />
+}<br />
+</span><span class="comment">// $a=glob_recursive('c:/test_directory/'."*.*");<br />
+// print_r($a);<br />
+<br />
+</span><span class="keyword">function </span><span class="default">dirInfoReGet</span><span class="keyword">(</span><span class="default">$s</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$a</span><span class="keyword">=</span><span class="default">glob_recursive</span><span class="keyword">(</span><span class="default">$s</span><span class="keyword">.</span><span class="string">"*.*"</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$ar</span><span class="keyword">=</span><span class="default">glob_recursive</span><span class="keyword">(</span><span class="default">$s</span><span class="keyword">.</span><span class="string">"**/**"</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$arr</span><span class="keyword">=</span><span class="default">array_unique</span><span class="keyword">(</span><span class="default">array_merge</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">, </span><span class="default">$ar</span><span class="keyword">));<br />
+<br />
+&nbsp;&nbsp;&nbsp; foreach (</span><span class="default">$arr </span><span class="keyword">as </span><span class="default">$v</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">is_dir</span><span class="keyword">(</span><span class="default">$v</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$arra</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">][]=</span><span class="default">$v</span><span class="keyword">.</span><span class="string">'/'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$arra</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">][]=</span><span class="default">$v</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">sort</span><span class="keyword">(</span><span class="default">$arra</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$arra</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">$a</span><span class="keyword">=</span><span class="default">dirInfoReGet</span><span class="keyword">(</span><span class="string">'c:/test_directory/'</span><span class="keyword">);<br />
+</span><span class="default">print_r</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">);<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+<a href="http://i.stack.imgur.com/H7UF3.jpg" rel="nofollow" target="_blank">http://i.stack.imgur.com/H7UF3.jpg</a><br />
+<br />
+Best regards.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116253""></a>
   <div class="note">
    <strong class="user">Anxiety35 at gmail dot com</strong>
    <a href="#116253" class="date">02-Dec-2014 06:20</a>

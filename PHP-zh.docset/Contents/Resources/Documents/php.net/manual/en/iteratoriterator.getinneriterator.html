@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="iteratoriterator.getinneriterator" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">IteratorIterator::getInnerIterator</h1>
-  <p class="verinfo">(PHP 5 &gt;= 5.1.0)</p><p class="refpurpose"><span class="refname">IteratorIterator::getInnerIterator</span> &mdash; <span class="dc-title">Get the inner iterator</span></p>
+  <p class="verinfo">(PHP 5 &gt;= 5.1.0, PHP 7)</p><p class="refpurpose"><span class="refname">IteratorIterator::getInnerIterator</span> &mdash; <span class="dc-title">Get the inner iterator</span></p>
 
  </div>
 
@@ -72,6 +72,40 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
- <div class="note">There are no user contributed notes for this page.</div>
+<div id="allnotes">  <a name="119286""></a>
+  <div class="note">
+   <strong class="user">c dot 1 at smithies dot org</strong>
+   <a href="#119286" class="date">05-May-2016 05:06</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The returned value from getInnerIterator() really is the inner iterator, not a clone. It should be used with respect: calling next() or rewind() on it, for example, will advance or reset the inner iterator - although the effect won't be noticed until you call next() on the IteratorIterator object - it seems as if it caches its current() and key() values (as of PHP v5.5.9). Even if the inner iterator itself is valid (i.e. valid() returns TRUE) the IteratorIterator won't report itself as valid until you either rewind it or call its next() method - these two methods cause the IteratorIterator to re-sync its current, key and valid states with the inner iterator.<br />
+<br />
+<span class="default">&lt;?php<br />
+$ii </span><span class="keyword">= new </span><span class="default">IteratorIterator</span><span class="keyword">(new </span><span class="default">ArrayIterator</span><span class="keyword">(</span><span class="default">range</span><span class="keyword">(</span><span class="default">1</span><span class="keyword">,</span><span class="default">6</span><span class="keyword">)));<br />
+</span><span class="default">$i1 </span><span class="keyword">= </span><span class="default">$ii</span><span class="keyword">-&gt;</span><span class="default">getInnerIterator</span><span class="keyword">(); </span><span class="comment">// gets the real thing<br />
+</span><span class="default">$i2 </span><span class="keyword">= </span><span class="default">$ii</span><span class="keyword">-&gt;</span><span class="default">getInnerIterator</span><span class="keyword">(); </span><span class="comment">// ditto: $i2 === $i1 and the two are therefore in sync.<br />
+</span><span class="keyword">echo </span><span class="default">$i1</span><span class="keyword">-&gt;</span><span class="default">current</span><span class="keyword">(); </span><span class="comment">// 1<br />
+</span><span class="keyword">echo </span><span class="default">$i1</span><span class="keyword">-&gt;</span><span class="default">key</span><span class="keyword">(); </span><span class="comment">// 0<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$ii</span><span class="keyword">-&gt;</span><span class="default">valid</span><span class="keyword">()); </span><span class="comment">// FALSE<br />
+</span><span class="default">$i1</span><span class="keyword">-&gt;</span><span class="default">next</span><span class="keyword">(); </span><span class="comment">// affects $i2, which is identical<br />
+</span><span class="keyword">echo </span><span class="default">$i1</span><span class="keyword">-&gt;</span><span class="default">key</span><span class="keyword">(); </span><span class="comment">// 1<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$ii</span><span class="keyword">-&gt;</span><span class="default">valid</span><span class="keyword">()); </span><span class="comment">// still FALSE<br />
+</span><span class="default">$ii</span><span class="keyword">-&gt;</span><span class="default">rewind</span><span class="keyword">(); </span><span class="comment">// rewinds $i1 and synchronizes<br />
+</span><span class="keyword">echo </span><span class="default">$ii</span><span class="keyword">-&gt;</span><span class="default">key</span><span class="keyword">(); </span><span class="comment">// 0, as is $i1-&gt;key()<br />
+</span><span class="default">$i1</span><span class="keyword">-&gt;</span><span class="default">next</span><span class="keyword">(); </span><span class="comment">// advances the inner iterator, which is now out of sync<br />
+</span><span class="keyword">echo </span><span class="default">$ii</span><span class="keyword">-&gt;</span><span class="default">key</span><span class="keyword">(); </span><span class="comment">// still 0<br />
+</span><span class="keyword">echo </span><span class="default">$i1</span><span class="keyword">-&gt;</span><span class="default">key</span><span class="keyword">(); </span><span class="comment">// 1<br />
+</span><span class="default">$ii</span><span class="keyword">-&gt;</span><span class="default">next</span><span class="keyword">(); </span><span class="comment">// advances the inner iterator and syncs with it<br />
+</span><span class="keyword">echo </span><span class="default">$ii</span><span class="keyword">-&gt;</span><span class="default">key</span><span class="keyword">(); </span><span class="comment">// 2<br />
+</span><span class="keyword">echo </span><span class="default">$i1</span><span class="keyword">-&gt;</span><span class="default">key</span><span class="keyword">(); </span><span class="comment">// 2<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
 </div>
 </div></div></body></html>

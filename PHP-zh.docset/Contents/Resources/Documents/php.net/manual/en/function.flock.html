@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.flock" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">flock</h1>
-  <p class="verinfo">(PHP 4, PHP 5)</p><p class="refpurpose"><span class="refname">flock</span> &mdash; <span class="dc-title">轻便的咨询文件锁定</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">flock</span> &mdash; <span class="dc-title">轻便的咨询文件锁定</span></p>
 
  </div>
  <div class="refsect1 description" id="refsect1-function.flock-description">
@@ -172,7 +172,7 @@
  <div class="refsect1 examples" id="refsect1-function.flock-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-2396">
+   <div class="example" id="example-2523">
     <p><strong>Example #1 <span class="function"><strong>flock()</strong></span> 例子</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -184,7 +184,7 @@
    </div>
   </p>
   <p class="para">
-   <div class="example" id="example-2397">
+   <div class="example" id="example-2524">
     <p><strong>Example #2 <span class="function"><strong>flock()</strong></span> 使用 <strong><code>LOCK_NB</code></strong> 选项</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -248,7 +248,92 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116782""></a>
+<div id="allnotes">  <a name="118933""></a>
+  <div class="note">
+   <strong class="user">emilchemical at gmail dot com</strong>
+   <a href="#118933" class="date">01-Mar-2016 11:49</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you are interested in using file locking as indicator that your console app is running and you don't want to start it again:<br />
+<br />
+&nbsp;if (!flock($fp, LOCK_EX | LOCK_NB, $wouldblock)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if ($wouldblock) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; //Another process holds the lock!<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; //Couldn't lock for another reason, e.g. no such file<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; //Lock obtained<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; startJob();<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+Please note that this is platform independent solution, but you have restrictions in PHP version (5.5.22 on Windows).<br />
+Also, some old file systems are not supported.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117162""></a>
+  <div class="note">
+   <strong class="user">forzi at mail333 dot com</strong>
+   <a href="#117162" class="date">24-Apr-2015 03:34</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Simple Helper for lock files creation<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">class </span><span class="default">FileLocker </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; protected static </span><span class="default">$loc_files </span><span class="keyword">= array();<br />
+<br />
+&nbsp;&nbsp;&nbsp; public static function </span><span class="default">lockFile</span><span class="keyword">(</span><span class="default">$file_name</span><span class="keyword">, </span><span class="default">$wait </span><span class="keyword">= </span><span class="default">false</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$loc_file </span><span class="keyword">= </span><span class="default">fopen</span><span class="keyword">(</span><span class="default">$file_name</span><span class="keyword">, </span><span class="string">'c'</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ( !</span><span class="default">$loc_file </span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; throw new \</span><span class="default">Exception</span><span class="keyword">(</span><span class="string">'Can\'t create lock file!'</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ( </span><span class="default">$wait </span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$lock </span><span class="keyword">= </span><span class="default">flock</span><span class="keyword">(</span><span class="default">$loc_file</span><span class="keyword">, </span><span class="default">LOCK_EX</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$lock </span><span class="keyword">= </span><span class="default">flock</span><span class="keyword">(</span><span class="default">$loc_file</span><span class="keyword">, </span><span class="default">LOCK_EX </span><span class="keyword">| </span><span class="default">LOCK_NB</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ( </span><span class="default">$lock </span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">self</span><span class="keyword">::</span><span class="default">$loc_files</span><span class="keyword">[</span><span class="default">$file_name</span><span class="keyword">] = </span><span class="default">$loc_file</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fprintf</span><span class="keyword">(</span><span class="default">$loc_file</span><span class="keyword">, </span><span class="string">"%s\n"</span><span class="keyword">, </span><span class="default">getmypid</span><span class="keyword">());<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$loc_file</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; } else if ( </span><span class="default">$wait </span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; throw new \</span><span class="default">Exception</span><span class="keyword">(</span><span class="string">'Can\'t lock file!'</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public static function </span><span class="default">unlockFile</span><span class="keyword">(</span><span class="default">$file_name</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fclose</span><span class="keyword">(</span><span class="default">self</span><span class="keyword">::</span><span class="default">$loc_files</span><span class="keyword">[</span><span class="default">$file_name</span><span class="keyword">]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; @</span><span class="default">unlink</span><span class="keyword">(</span><span class="default">$file_name</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; unset(</span><span class="default">self</span><span class="keyword">::</span><span class="default">$loc_files</span><span class="keyword">[</span><span class="default">$file_name</span><span class="keyword">]);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+} <br />
+<br />
+if ( !</span><span class="default">FileLocker</span><span class="keyword">::</span><span class="default">lockFile</span><span class="keyword">(</span><span class="string">'/tmp/1.lock'</span><span class="keyword">) ) {<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"Can't lock file\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; die();<br />
+}<br />
+</span><span class="default">sleep</span><span class="keyword">(</span><span class="default">10</span><span class="keyword">);<br />
+</span><span class="default">FileLocker</span><span class="keyword">::</span><span class="default">unlockFile</span><span class="keyword">(</span><span class="string">'/tmp/1.lock'</span><span class="keyword">);<br />
+echo </span><span class="string">"All Ok\n"</span><span class="keyword">;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116782""></a>
   <div class="note">
    <strong class="user">ravenswd at gmail dot com</strong>
    <a href="#116782" class="date">27-Feb-2015 02:32</a>

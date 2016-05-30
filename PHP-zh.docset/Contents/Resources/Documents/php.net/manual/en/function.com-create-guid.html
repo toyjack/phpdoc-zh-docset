@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.com-create-guid" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">com_create_guid</h1>
-  <p class="verinfo">(PHP 5)</p><p class="refpurpose"><span class="refname">com_create_guid</span> &mdash; <span class="dc-title">Generate a globally unique identifier (GUID)</span></p>
+  <p class="verinfo">(PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">com_create_guid</span> &mdash; <span class="dc-title">Generate a globally unique identifier (GUID)</span></p>
 
  </div>
  <div class="refsect1 description" id="refsect1-function.com-create-guid-description">
@@ -65,7 +65,162 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="99425""></a>
+<div id="allnotes">  <a name="119168""></a>
+  <div class="note">
+   <strong class="user">Dave Pearson (dave at pds-uk dot com)</strong>
+   <a href="#119168" class="date">14-Apr-2016 07:07</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Here's my final version of a GUIDv4 function (based on others work here) that should work on all platforms and gracefully fallback to less cryptographically secure version if others are not supported...<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">/**<br />
+&nbsp;* Returns a GUIDv4 string<br />
+&nbsp;*<br />
+&nbsp;* Uses the best cryptographically secure method <br />
+&nbsp;* for all supported pltforms with fallback to an older, <br />
+&nbsp;* less secure version.<br />
+&nbsp;*<br />
+&nbsp;* @param bool $trim<br />
+&nbsp;* @return string<br />
+&nbsp;*/<br />
+</span><span class="keyword">function </span><span class="default">GUIDv4 </span><span class="keyword">(</span><span class="default">$trim </span><span class="keyword">= </span><span class="default">true</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// Windows<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">if (</span><span class="default">function_exists</span><span class="keyword">(</span><span class="string">'com_create_guid'</span><span class="keyword">) === </span><span class="default">true</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$trim </span><span class="keyword">=== </span><span class="default">true</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">trim</span><span class="keyword">(</span><span class="default">com_create_guid</span><span class="keyword">(), </span><span class="string">'{}'</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; else<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">com_create_guid</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// OSX/Linux<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">if (</span><span class="default">function_exists</span><span class="keyword">(</span><span class="string">'openssl_random_pseudo_bytes'</span><span class="keyword">) === </span><span class="default">true</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$data </span><span class="keyword">= </span><span class="default">openssl_random_pseudo_bytes</span><span class="keyword">(</span><span class="default">16</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$data</span><span class="keyword">[</span><span class="default">6</span><span class="keyword">] = </span><span class="default">chr</span><span class="keyword">(</span><span class="default">ord</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">[</span><span class="default">6</span><span class="keyword">]) &amp; </span><span class="default">0x0f </span><span class="keyword">| </span><span class="default">0x40</span><span class="keyword">);&nbsp; &nbsp; </span><span class="comment">// set version to 0100<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$data</span><span class="keyword">[</span><span class="default">8</span><span class="keyword">] = </span><span class="default">chr</span><span class="keyword">(</span><span class="default">ord</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">[</span><span class="default">8</span><span class="keyword">]) &amp; </span><span class="default">0x3f </span><span class="keyword">| </span><span class="default">0x80</span><span class="keyword">);&nbsp; &nbsp; </span><span class="comment">// set bits 6-7 to 10<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">return </span><span class="default">vsprintf</span><span class="keyword">(</span><span class="string">'%s%s-%s-%s-%s-%s%s%s'</span><span class="keyword">, </span><span class="default">str_split</span><span class="keyword">(</span><span class="default">bin2hex</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">), </span><span class="default">4</span><span class="keyword">));<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// Fallback (PHP 4.2+)<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">mt_srand</span><span class="keyword">((double)</span><span class="default">microtime</span><span class="keyword">() * </span><span class="default">10000</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$charid </span><span class="keyword">= </span><span class="default">strtolower</span><span class="keyword">(</span><span class="default">md5</span><span class="keyword">(</span><span class="default">uniqid</span><span class="keyword">(</span><span class="default">rand</span><span class="keyword">(), </span><span class="default">true</span><span class="keyword">)));<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$hyphen </span><span class="keyword">= </span><span class="default">chr</span><span class="keyword">(</span><span class="default">45</span><span class="keyword">);&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="comment">// "-"<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$lbrace </span><span class="keyword">= </span><span class="default">$trim </span><span class="keyword">? </span><span class="string">"" </span><span class="keyword">: </span><span class="default">chr</span><span class="keyword">(</span><span class="default">123</span><span class="keyword">);&nbsp; &nbsp; </span><span class="comment">// "{"<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$rbrace </span><span class="keyword">= </span><span class="default">$trim </span><span class="keyword">? </span><span class="string">"" </span><span class="keyword">: </span><span class="default">chr</span><span class="keyword">(</span><span class="default">125</span><span class="keyword">);&nbsp; &nbsp; </span><span class="comment">// "}"<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$guidv4 </span><span class="keyword">= </span><span class="default">$lbrace</span><span class="keyword">.<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$charid</span><span class="keyword">,&nbsp; </span><span class="default">0</span><span class="keyword">,&nbsp; </span><span class="default">8</span><span class="keyword">).</span><span class="default">$hyphen</span><span class="keyword">.<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$charid</span><span class="keyword">,&nbsp; </span><span class="default">8</span><span class="keyword">,&nbsp; </span><span class="default">4</span><span class="keyword">).</span><span class="default">$hyphen</span><span class="keyword">.<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$charid</span><span class="keyword">, </span><span class="default">12</span><span class="keyword">,&nbsp; </span><span class="default">4</span><span class="keyword">).</span><span class="default">$hyphen</span><span class="keyword">.<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$charid</span><span class="keyword">, </span><span class="default">16</span><span class="keyword">,&nbsp; </span><span class="default">4</span><span class="keyword">).</span><span class="default">$hyphen</span><span class="keyword">.<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$charid</span><span class="keyword">, </span><span class="default">20</span><span class="keyword">, </span><span class="default">12</span><span class="keyword">).<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$rbrace</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$guidv4</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118282""></a>
+  <div class="note">
+   <strong class="user">indrora</strong>
+   <a href="#118282" class="date">08-Nov-2015 04:09</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you're going to generate random UUIDs, at least make them conform:<br />
+<br />
+* The uppermost byte of the third stanza must be 4<br />
+* the uppermost byte of the fourth stanza may be any of (8 9 a b)<br />
+<br />
+see also: The wikipedia page for UUIDs: https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_4_.28random.29</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117893""></a>
+  <div class="note">
+   <strong class="user">pavel.volyntsev(at)gmail</strong>
+   <a href="#117893" class="date">27-Aug-2015 09:37</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Use more cryptographically strong algorithm to generate pseudo-random bytes and format it as GUID v4 string<br />
+<br />
+function guidv4()<br />
+{<br />
+&nbsp;&nbsp;&nbsp; if (function_exists('com_create_guid') === true)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return trim(com_create_guid(), '{}');<br />
+<br />
+&nbsp;&nbsp;&nbsp; $data = openssl_random_pseudo_bytes(16);<br />
+&nbsp;&nbsp;&nbsp; $data[6] = chr(ord($data[6]) &amp; 0x0f | 0x40); // set version to 0100<br />
+&nbsp;&nbsp;&nbsp; $data[8] = chr(ord($data[8]) &amp; 0x3f | 0x80); // set bits 6-7 to 10<br />
+&nbsp;&nbsp;&nbsp; return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116983""></a>
+  <div class="note">
+   <strong class="user">mark at briley dot com</strong>
+   <a href="#116983" class="date">31-Mar-2015 12:34</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I made a mistake on my previous note.&nbsp; I used rtrim instead of just trim to take off the curly brackets.&nbsp; Here is my note again - or please change the RTRIM to just TRIM in my previous note.&nbsp; Thanks!&nbsp; :-)<br />
+<br />
+Kristof_Polleunis at yahoo dot com has an excellent function for obtaining a GUID but I believe it can be improved by checking for whether or not to remove the curly braces so the programmer who uses it doesn't have to do this.&nbsp; Here is the improved function:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">#<br />
+#&nbsp;&nbsp; Taken from the PHP documentation website.<br />
+#<br />
+#&nbsp;&nbsp; Kristof_Polleunis at yahoo dot com<br />
+#<br />
+#&nbsp;&nbsp; A guid function that works in all php versions:<br />
+#&nbsp;&nbsp; MEM 3/30/2015 : Modified the function to allow someone<br />
+#&nbsp; &nbsp; &nbsp;&nbsp; to specify whether or not they want the curly<br />
+#&nbsp; &nbsp; &nbsp;&nbsp; braces on the GUID.<br />
+#<br />
+</span><span class="keyword">function </span><span class="default">guid</span><span class="keyword">( </span><span class="default">$opt </span><span class="keyword">= </span><span class="default">true </span><span class="keyword">){&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">//&nbsp; Set to true/false as your default way to do this.<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">if( </span><span class="default">function_exists</span><span class="keyword">(</span><span class="string">'com_create_guid'</span><span class="keyword">) ){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if( </span><span class="default">$opt </span><span class="keyword">){ return </span><span class="default">com_create_guid</span><span class="keyword">(); }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; else { return </span><span class="default">trim</span><span class="keyword">( </span><span class="default">com_create_guid</span><span class="keyword">(), </span><span class="string">'{}' </span><span class="keyword">); }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">mt_srand</span><span class="keyword">( (double)</span><span class="default">microtime</span><span class="keyword">() * </span><span class="default">10000 </span><span class="keyword">);&nbsp; &nbsp; </span><span class="comment">// optional for php 4.2.0 and up.<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$charid </span><span class="keyword">= </span><span class="default">strtoupper</span><span class="keyword">( </span><span class="default">md5</span><span class="keyword">(</span><span class="default">uniqid</span><span class="keyword">(</span><span class="default">rand</span><span class="keyword">(), </span><span class="default">true</span><span class="keyword">)) );<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$hyphen </span><span class="keyword">= </span><span class="default">chr</span><span class="keyword">( </span><span class="default">45 </span><span class="keyword">);&nbsp; &nbsp; </span><span class="comment">// "-"<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$left_curly </span><span class="keyword">= </span><span class="default">$opt </span><span class="keyword">? </span><span class="default">chr</span><span class="keyword">(</span><span class="default">123</span><span class="keyword">) : </span><span class="string">""</span><span class="keyword">;&nbsp; &nbsp;&nbsp; </span><span class="comment">//&nbsp; "{"<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$right_curly </span><span class="keyword">= </span><span class="default">$opt </span><span class="keyword">? </span><span class="default">chr</span><span class="keyword">(</span><span class="default">125</span><span class="keyword">) : </span><span class="string">""</span><span class="keyword">;&nbsp; &nbsp; </span><span class="comment">//&nbsp; "}"<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$uuid </span><span class="keyword">= </span><span class="default">$left_curly<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">. </span><span class="default">substr</span><span class="keyword">( </span><span class="default">$charid</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">, </span><span class="default">8 </span><span class="keyword">) . </span><span class="default">$hyphen<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">. </span><span class="default">substr</span><span class="keyword">( </span><span class="default">$charid</span><span class="keyword">, </span><span class="default">8</span><span class="keyword">, </span><span class="default">4 </span><span class="keyword">) . </span><span class="default">$hyphen<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">. </span><span class="default">substr</span><span class="keyword">( </span><span class="default">$charid</span><span class="keyword">, </span><span class="default">12</span><span class="keyword">, </span><span class="default">4 </span><span class="keyword">) . </span><span class="default">$hyphen<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">. </span><span class="default">substr</span><span class="keyword">( </span><span class="default">$charid</span><span class="keyword">, </span><span class="default">16</span><span class="keyword">, </span><span class="default">4 </span><span class="keyword">) . </span><span class="default">$hyphen<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">. </span><span class="default">substr</span><span class="keyword">( </span><span class="default">$charid</span><span class="keyword">, </span><span class="default">20</span><span class="keyword">, </span><span class="default">12 </span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; . </span><span class="default">$right_curly</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$uuid</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+As the comments say - set the incoming option ($opt) to either TRUE or FALSE depending upon whether you want the curly braces to always show up or not.&nbsp; If you need to obtain a GUID in the other way - all you have to do is to send the opposite value to the function.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="99425""></a>
   <div class="note">
    <strong class="user">Alix Axel</strong>
    <a href="#99425" class="date">17-Aug-2010 12:59</a>

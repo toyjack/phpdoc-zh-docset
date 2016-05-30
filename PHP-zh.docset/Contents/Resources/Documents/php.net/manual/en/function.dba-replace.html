@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.dba-replace" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">dba_replace</h1>
-  <p class="verinfo">(PHP 4, PHP 5)</p><p class="refpurpose"><span class="refname">dba_replace</span> &mdash; <span class="dc-title">Replace or insert entry</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">dba_replace</span> &mdash; <span class="dc-title">Replace or insert entry</span></p>
 
  </div>
  <div class="refsect1 description" id="refsect1-function.dba-replace-description">
@@ -115,7 +115,92 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="101221""></a>
+<div id="allnotes">  <a name="118331""></a>
+  <div class="note">
+   <strong class="user">domokosendrejanos [at] gmail [dot] com</strong>
+   <a href="#118331" class="date">19-Nov-2015 05:23</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Sorry for my very bad english. The dba_replace function not working (example: <a href="http://prog.hu/tudastar/189455/dba-replace-problema &amp; http://dev.developer-works.com/article/9019279/%5BPHP5%5D+DBA+function+error+when+writing+ini+file+with+groups" rel="nofollow" target="_blank">http://prog.hu/tudastar/189455/dba-replace-problema &amp; http://dev.developer-works.com/article/9019279/%5BPHP5%5D+DBA+function+error+when+writing+ini+file+with+groups</a>). This code works (but only on inifiles):<br />
+<br />
+function dba_update($key, $value, $dbfileurl) {<br />
+<br />
+&nbsp;&nbsp;&nbsp; if(file_exists($dbfileurl)) {<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $key = trim($key);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $value = trim($value);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $index = explode("]", $key);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $index[0] = str_replace("[", "", $index[0]);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $dbarray = parse_ini_file($dbfileurl, true);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(count($index) &gt; 1) {<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(in_array($value, $dbarray)) { return FALSE; } elseif(isset($dbarray[$index[0]][$index[1]])) {<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $dbarray[$index[0]][$index[1]] = $value;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $result = "";<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; foreach ($dbarray as $row_name =&gt; $row_value) {<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $result .= "\n[$row_name]\n\n";<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; foreach ($row_value as $column_name =&gt; $column_value) {<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(is_numeric($column_value)) { $result .= "$column_name = $column_value\n\n"; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; else { $result .= "$column_name = '".$column_value."'\n\n"; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(in_array($value, $dbarray)) { return FALSE; } elseif(isset($key)) {<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $dbarray[$key] = $value;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $result = "";<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; foreach ($dbarray as $key_name =&gt; $key_value) {<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(is_numeric($key_value)) { $result .= "$key_name = $key_value\n\n"; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; else { $result .= "$key_name = '".$key_value."'\n\n"; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; file_put_contents($dbfileurl, $result);<br />
+<br />
+&nbsp;&nbsp;&nbsp; } else { return FALSE; }<br />
+<br />
+return TRUE;<br />
+<br />
+}<br />
+<br />
+Calling the function:<br />
+<br />
+dba_update("[$section]$key", $value, "example/dir/content.ini");<br />
+<br />
+or (one dimension array):<br />
+<br />
+dba_update($key, $value, "example/dir/content.ini");</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="101221""></a>
   <div class="note">
    <strong class="user">khan666 at lycos dot co dot kr</strong>
    <a href="#101221" class="date">03-Dec-2010 11:24</a>

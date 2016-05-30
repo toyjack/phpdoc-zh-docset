@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.get-meta-tags" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">get_meta_tags</h1>
-  <p class="verinfo">(PHP 4, PHP 5)</p><p class="refpurpose"><span class="refname">get_meta_tags</span> &mdash; <span class="dc-title">
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">get_meta_tags</span> &mdash; <span class="dc-title">
    从一个文件中提取所有的 meta 标签 content 属性，返回一个数组
   </span></p>
 
@@ -66,7 +66,7 @@
    <acronym title="Uniform Resource Locator">URL</acronym>。
       </p>
       <p class="para">
-       <div class="example" id="example-4104">
+       <div class="example" id="example-4495">
         <p><strong>Example #1 <span class="function"><strong>get_meta_tags()</strong></span> 解析了什么</strong></p>
         <div class="example-contents">
 <div class="htmlcode"><pre class="htmlcode">&lt;meta name=&quot;author&quot; content=&quot;name&quot;&gt;
@@ -151,7 +151,7 @@
  <div class="refsect1 examples" id="refsect1-function.get-meta-tags-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-4105">
+   <div class="example" id="example-4496">
     <p><strong>Example #2 <span class="function"><strong>get_meta_tags()</strong></span> 返回什么些</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -189,7 +189,203 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="113370""></a>
+<div id="allnotes">  <a name="117766""></a>
+  <div class="note">
+   <strong class="user">bobble bubble</strong>
+   <a href="#117766" class="date">06-Aug-2015 05:07</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+This regex gets meta tags independent of sequence by capturing inside a lookahead.<br />
+Further uses the branch reset feature for different quote styles of values.<br />
+The pattern can be tested here: https://regex101.com/r/oE4oU9/1<br />
+<br />
+<span class="default">&lt;?PHP<br />
+<br />
+</span><span class="keyword">function </span><span class="default">getMetaTags</span><span class="keyword">(</span><span class="default">$str</span><span class="keyword">)<br />
+{<br />
+&nbsp; </span><span class="default">$pattern </span><span class="keyword">= </span><span class="string">'<br />
+&nbsp; ~&lt;\s*meta\s<br />
+<br />
+&nbsp; # using lookahead to capture type to $1<br />
+&nbsp;&nbsp;&nbsp; (?=[^&gt;]*?<br />
+&nbsp;&nbsp;&nbsp; \b(?:name|property|http-equiv)\s*=\s*<br />
+&nbsp;&nbsp;&nbsp; (?|"\s*([^"]*?)\s*"|\'\s*([^\']*?)\s*\'|<br />
+&nbsp;&nbsp;&nbsp; ([^"\'&gt;]*?)(?=\s*/?\s*&gt;|\s\w+\s*=))<br />
+&nbsp; )<br />
+<br />
+&nbsp; # capture content to $2<br />
+&nbsp; [^&gt;]*?\bcontent\s*=\s*<br />
+&nbsp;&nbsp;&nbsp; (?|"\s*([^"]*?)\s*"|\'\s*([^\']*?)\s*\'|<br />
+&nbsp;&nbsp;&nbsp; ([^"\'&gt;]*?)(?=\s*/?\s*&gt;|\s\w+\s*=))<br />
+&nbsp; [^&gt;]*&gt;<br />
+<br />
+&nbsp; ~ix'</span><span class="keyword">;<br />
+&nbsp; <br />
+&nbsp; if(</span><span class="default">preg_match_all</span><span class="keyword">(</span><span class="default">$pattern</span><span class="keyword">, </span><span class="default">$str</span><span class="keyword">, </span><span class="default">$out</span><span class="keyword">))<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">array_combine</span><span class="keyword">(</span><span class="default">$out</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="default">$out</span><span class="keyword">[</span><span class="default">2</span><span class="keyword">]);<br />
+&nbsp; return array();<br />
+}<br />
+<br />
+</span><span class="comment">// usage<br />
+</span><span class="default">$meta_tags </span><span class="keyword">= </span><span class="default">getMetaTags</span><span class="keyword">(</span><span class="default">$str</span><span class="keyword">);<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117176""></a>
+  <div class="note">
+   <strong class="user">LWC</strong>
+   <a href="#117176" class="date">26-Apr-2015 05:38</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+New version based on mariano at cricava dot com's work with:<br />
+1) Support for Meta properties (like Facebook's og tags).<br />
+2) Support for Unicode (UTF-8) encoded Meta lines.<br />
+3) An option not to convert htmlentities - if you plan to actually use the results and not just display them.<br />
+<br />
+function getUrlData($url, $raw=false) // $raw - enable for raw display<br />
+{<br />
+&nbsp;&nbsp;&nbsp; $result = false;<br />
+&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; $contents = getUrlContents($url);<br />
+<br />
+&nbsp;&nbsp;&nbsp; if (isset($contents) &amp;&amp; is_string($contents))<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $title = null;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $metaTags = null;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $metaProperties = null;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; preg_match('/&lt;title&gt;([^&gt;]*)&lt;\/title&gt;/si', $contents, $match );<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (isset($match) &amp;&amp; is_array($match) &amp;&amp; count($match) &gt; 0)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $title = strip_tags($match[1]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; preg_match_all('/&lt;[\s]*meta[\s]*(name|property)="?' . '([^&gt;"]*)"?[\s]*' . 'content="?([^&gt;"]*)"?[\s]*[\/]?[\s]*&gt;/si', $contents, $match);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (isset($match) &amp;&amp; is_array($match) &amp;&amp; count($match) == 4)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $originals = $match[0];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $names = $match[2];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $values = $match[3];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (count($originals) == count($names) &amp;&amp; count($names) == count($values))<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $metaTags = array();<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $metaProperties = $metaTags;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if ($raw) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (version_compare(PHP_VERSION, '5.4.0') == -1)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; $flags = ENT_COMPAT;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; else<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; $flags = ENT_COMPAT | ENT_HTML401;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; for ($i=0, $limiti=count($names); $i &lt; $limiti; $i++)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if ($match[1][$i] == 'name')<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; $meta_type = 'metaTags';<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; else<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; $meta_type = 'metaProperties';<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if ($raw)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; ${$meta_type}[$names[$i]] = array (<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 'html' =&gt; htmlentities($originals[$i], $flags, 'UTF-8'),<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 'value' =&gt; $values[$i]<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; );<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; else<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; ${$meta_type}[$names[$i]] = array (<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 'html' =&gt; $originals[$i],<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 'value' =&gt; $values[$i]<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; );<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $result = array (<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 'title' =&gt; $title,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 'metaTags' =&gt; $metaTags,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 'metaProperties' =&gt; $metaProperties,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; );<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; return $result;<br />
+}<br />
+<br />
+function getUrlContents($url, $maximumRedirections = null, $currentRedirection = 0)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; $result = false;<br />
+&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; $contents = @file_get_contents($url);<br />
+&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; // Check if we need to go somewhere else<br />
+&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; if (isset($contents) &amp;&amp; is_string($contents))<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; preg_match_all('/&lt;[\s]*meta[\s]*http-equiv="?REFRESH"?' . '[\s]*content="?[0-9]*;[\s]*URL[\s]*=[\s]*([^&gt;"]*)"?' . '[\s]*[\/]?[\s]*&gt;/si', $contents, $match);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (isset($match) &amp;&amp; is_array($match) &amp;&amp; count($match) == 2 &amp;&amp; count($match[1]) == 1)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (!isset($maximumRedirections) || $currentRedirection &lt; $maximumRedirections)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return getUrlContents($match[1][0], $maximumRedirections, ++$currentRedirection);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $result = false;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; else<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $result = $contents;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; return $contents;<br />
+}<br />
+?&gt;<br />
+<br />
+<span class="default">&lt;?php<br />
+$result </span><span class="keyword">= </span><span class="default">getUrlData</span><span class="keyword">(</span><span class="string">'<a href="http://whatever..." rel="nofollow" target="_blank">http://whatever...</a>'</span><span class="keyword">, </span><span class="default">true</span><span class="keyword">);<br />
+<br />
+echo </span><span class="string">'&lt;pre&gt;'</span><span class="keyword">; </span><span class="default">print_r</span><span class="keyword">(</span><span class="default">$result</span><span class="keyword">, </span><span class="default">true</span><span class="keyword">); echo </span><span class="string">'&lt;/pre&gt;'</span><span class="keyword">;<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Output example:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">Array<br />
+(<br />
+&nbsp;&nbsp;&nbsp; [</span><span class="default">title</span><span class="keyword">] =&gt; </span><span class="default">The requested page</span><span class="string">'s title<br />
+&nbsp;&nbsp;&nbsp; [metaTags] =&gt; Array<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; (<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [description] =&gt; Array<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; (<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [html] =&gt; &lt;meta name="description" content="Something..." /&gt;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [value] =&gt; Something...<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; )<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; )<br />
+&nbsp;&nbsp;&nbsp; [metaProperties] =&gt; Array<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; (<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [og:type] =&gt; Array<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; (<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [html] =&gt; &lt;meta property="og:type" content="article"/&gt;/&gt;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [value] =&gt; article<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; )<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; )<br />
+)<br />
+?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="113370""></a>
   <div class="note">
    <strong class="user">richard dot dern at athaliasoft dot fr</strong>
    <a href="#113370" class="date">03-Oct-2013 05:50</a>

@@ -80,7 +80,7 @@
  <div class="refsect1 examples" id="refsect1-function.ssh2-sftp-examples">
   <h3 class="title">·¶Àý</h3>
   <p class="para">
-   <div class="example" id="example-4630">
+   <div class="example" id="example-4994">
     <p><strong>Example #1 Opening a file via SFTP</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -109,7 +109,89 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="114773""></a>
+<div id="allnotes">  <a name="118815""></a>
+  <div class="note">
+   <strong class="user">webakiro at gmail dot com</strong>
+   <a href="#118815" class="date">11-Feb-2016 12:15</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you wish to store once the protocol + ressource used ("ssh2.s<a href="ftp://$sftp" rel="nofollow" target="_blank">ftp://$sftp</a>";)<br />
+There's a little trick to know... <br />
+This won't work :<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">connect</span><span class="keyword">(){<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$connection </span><span class="keyword">= </span><span class="default">ssh2_connect</span><span class="keyword">(</span><span class="string">'shell.example.com'</span><span class="keyword">, </span><span class="default">22</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">ssh2_auth_password</span><span class="keyword">(</span><span class="default">$connection</span><span class="keyword">, </span><span class="string">'username'</span><span class="keyword">, </span><span class="string">'password'</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$sftp </span><span class="keyword">= </span><span class="default">ssh2_sftp</span><span class="keyword">(</span><span class="default">$connection</span><span class="keyword">); <br />
+&nbsp;&nbsp;&nbsp; return </span><span class="string">"ssh2.s<a href="ftp://" rel="nofollow" target="_blank">ftp://</a></span><span class="default">$sftp</span><span class="string">"</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">$remote </span><span class="keyword">= </span><span class="default">connect</span><span class="keyword">();<br />
+</span><span class="default">is_file</span><span class="keyword">( </span><span class="default">$remote</span><span class="keyword">.</span><span class="string">"/path/to/file"</span><span class="keyword">); <br />
+</span><span class="comment">// Warning<br />
+// Message: is_file(): ## is not a valid SSH2 SFTP resource<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+You need to have $sftp still avaible at moment the function (is_file, filesize, fopen, ...) uses it<br />
+Otherwise, I guess the GC cleans it up and closes the ssh2_stfp connection<br />
+That's why this work :<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">connect</span><span class="keyword">(){<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">//...<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">global </span><span class="default">$sftp</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$sftp </span><span class="keyword">= </span><span class="default">ssh2_sftp</span><span class="keyword">(</span><span class="default">$connection</span><span class="keyword">); <br />
+&nbsp;&nbsp;&nbsp; return </span><span class="string">"ssh2.s<a href="ftp://" rel="nofollow" target="_blank">ftp://</a></span><span class="default">$sftp</span><span class="string">"</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">$remote </span><span class="keyword">= </span><span class="default">connect</span><span class="keyword">();<br />
+</span><span class="default">is_file</span><span class="keyword">( </span><span class="default">$remote</span><span class="keyword">.</span><span class="string">"/path/to/file"</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// Or way better :<br />
+<br />
+</span><span class="keyword">class </span><span class="default">myClass </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">connect</span><span class="keyword">(){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">//...<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">sftp&nbsp; &nbsp;&nbsp; </span><span class="keyword">= </span><span class="default">ssh2_sftp</span><span class="keyword">(</span><span class="default">$connection</span><span class="keyword">); <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">remote&nbsp;&nbsp; </span><span class="keyword">= </span><span class="string">"ssh2.s<a href="ftp://" rel="nofollow" target="_blank">ftp://</a>"</span><span class="keyword">.</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">sftp</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">test</span><span class="keyword">(){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">is_file</span><span class="keyword">( </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">remote</span><span class="keyword">.</span><span class="string">"/path/to/file"</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+</span><span class="default">$obj </span><span class="keyword">= new </span><span class="default">myClass</span><span class="keyword">();<br />
+</span><span class="default">$obj</span><span class="keyword">-&gt;</span><span class="default">connect</span><span class="keyword">();<br />
+</span><span class="default">$obj</span><span class="keyword">-&gt;</span><span class="default">test</span><span class="keyword">();<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117349""></a>
+  <div class="note">
+   <strong class="user">Josh</strong>
+   <a href="#117349" class="date">26-May-2015 05:47</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Note that you must enter the full wrapper URI order for functions that accept those parameters to work properly. For example, this (which is referenced more than once in other comments) does not work:<br />
+<br />
+while (false !== ($file = readdir($handle))) if (is_dir($file)) { /* ... */ }<br />
+<br />
+This does work:<br />
+<br />
+$sc = ssh2_sftp(...);<br />
+while (false !== ($file = readdir($handle))) if (is_dir("ssh2.s<a href="ftp://$sc/$file" rel="nofollow" target="_blank">ftp://$sc/$file</a>")) { /* ... */ }<br />
+<br />
+You need to pass the "path" into these functions as an fopen() wrapper URI.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="114773""></a>
   <div class="note">
    <strong class="user">Jaybee</strong>
    <a href="#114773" class="date">04-Apr-2014 07:02</a>

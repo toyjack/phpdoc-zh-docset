@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.set-error-handler" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">set_error_handler</h1>
-  <p class="verinfo">(PHP 4 &gt;= 4.0.1, PHP 5)</p><p class="refpurpose"><span class="refname">set_error_handler</span> &mdash; <span class="dc-title">设置一个用户定义的错误处理函数</span></p>
+  <p class="verinfo">(PHP 4 &gt;= 4.0.1, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">set_error_handler</span> &mdash; <span class="dc-title">设置一个用户定义的错误处理函数</span></p>
 
  </div>
 
@@ -266,7 +266,7 @@
  <div class="refsect1 examples" id="refsect1-function.set-error-handler-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-450">
+   <div class="example" id="example-479">
     <p><strong>Example #1 用 <span class="function"><strong>set_error_handler()</strong></span> 和 <span class="function"><a href="function.trigger-error.html" class="function">trigger_error()</a></span> 进行错误处理</strong></p>
     <div class="example-contents"><p>
      以下示例展示了通过触发错误并以用户自定义的程序来进行内部异常的处理。
@@ -337,7 +337,159 @@ Aborting...&lt;br /&gt;
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116507""></a>
+<div id="allnotes">  <a name="118630""></a>
+  <div class="note">
+   <strong class="user">aditycse at gmail dot com</strong>
+   <a href="#118630" class="date">12-Jan-2016 04:36</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+<span class="default">&lt;?php<br />
+</span><span class="comment">/**<br />
+&nbsp;* Used for logging all php notices,warings and etc in a file when error reporting<br />
+&nbsp;* is set and display_errors is off<br />
+&nbsp;* @uses used in prod env for logging all type of error of php code in a file for further debugging<br />
+&nbsp;* and code performance<br />
+&nbsp;* @author Aditya Mehrotra&lt;aditycse@gmail.com&gt;<br />
+&nbsp;*/<br />
+</span><span class="default">error_reporting</span><span class="keyword">(</span><span class="default">E_ALL</span><span class="keyword">);<br />
+</span><span class="default">ini_set</span><span class="keyword">(</span><span class="string">"display_errors"</span><span class="keyword">, </span><span class="string">"off"</span><span class="keyword">);<br />
+</span><span class="default">define</span><span class="keyword">(</span><span class="string">'ERROR_LOG_FILE'</span><span class="keyword">, </span><span class="string">'/var/www/error.log'</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">/**<br />
+&nbsp;* Custom error handler<br />
+&nbsp;* @param integer $code<br />
+&nbsp;* @param string $description<br />
+&nbsp;* @param string $file<br />
+&nbsp;* @param interger $line<br />
+&nbsp;* @param mixed $context<br />
+&nbsp;* @return boolean<br />
+&nbsp;*/<br />
+</span><span class="keyword">function </span><span class="default">handleError</span><span class="keyword">(</span><span class="default">$code</span><span class="keyword">, </span><span class="default">$description</span><span class="keyword">, </span><span class="default">$file </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">, </span><span class="default">$line </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">, </span><span class="default">$context </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$displayErrors </span><span class="keyword">= </span><span class="default">ini_get</span><span class="keyword">(</span><span class="string">"display_errors"</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$displayErrors </span><span class="keyword">= </span><span class="default">strtolower</span><span class="keyword">(</span><span class="default">$displayErrors</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">error_reporting</span><span class="keyword">() === </span><span class="default">0 </span><span class="keyword">|| </span><span class="default">$displayErrors </span><span class="keyword">=== </span><span class="string">"on"</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; list(</span><span class="default">$error</span><span class="keyword">, </span><span class="default">$log</span><span class="keyword">) = </span><span class="default">mapErrorCode</span><span class="keyword">(</span><span class="default">$code</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$data </span><span class="keyword">= array(<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'level' </span><span class="keyword">=&gt; </span><span class="default">$log</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'code' </span><span class="keyword">=&gt; </span><span class="default">$code</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'error' </span><span class="keyword">=&gt; </span><span class="default">$error</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'description' </span><span class="keyword">=&gt; </span><span class="default">$description</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'file' </span><span class="keyword">=&gt; </span><span class="default">$file</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'line' </span><span class="keyword">=&gt; </span><span class="default">$line</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'context' </span><span class="keyword">=&gt; </span><span class="default">$context</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'path' </span><span class="keyword">=&gt; </span><span class="default">$file</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'message' </span><span class="keyword">=&gt; </span><span class="default">$error </span><span class="keyword">. </span><span class="string">' (' </span><span class="keyword">. </span><span class="default">$code </span><span class="keyword">. </span><span class="string">'): ' </span><span class="keyword">. </span><span class="default">$description </span><span class="keyword">. </span><span class="string">' in [' </span><span class="keyword">. </span><span class="default">$file </span><span class="keyword">. </span><span class="string">', line ' </span><span class="keyword">. </span><span class="default">$line </span><span class="keyword">. </span><span class="string">']'<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">fileLog</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">);<br />
+}<br />
+<br />
+</span><span class="comment">/**<br />
+&nbsp;* This method is used to write data in file<br />
+&nbsp;* @param mixed $logData<br />
+&nbsp;* @param string $fileName<br />
+&nbsp;* @return boolean<br />
+&nbsp;*/<br />
+</span><span class="keyword">function </span><span class="default">fileLog</span><span class="keyword">(</span><span class="default">$logData</span><span class="keyword">, </span><span class="default">$fileName </span><span class="keyword">= </span><span class="default">ERROR_LOG_FILE</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$fh </span><span class="keyword">= </span><span class="default">fopen</span><span class="keyword">(</span><span class="default">$fileName</span><span class="keyword">, </span><span class="string">'a+'</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">is_array</span><span class="keyword">(</span><span class="default">$logData</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$logData </span><span class="keyword">= </span><span class="default">print_r</span><span class="keyword">(</span><span class="default">$logData</span><span class="keyword">, </span><span class="default">1</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$status </span><span class="keyword">= </span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$fh</span><span class="keyword">, </span><span class="default">$logData</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$fh</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; return (</span><span class="default">$status</span><span class="keyword">) ? </span><span class="default">true </span><span class="keyword">: </span><span class="default">false</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="comment">/**<br />
+&nbsp;* Map an error code into an Error word, and log location.<br />
+&nbsp;*<br />
+&nbsp;* @param int $code Error code to map<br />
+&nbsp;* @return array Array of error word, and log location.<br />
+&nbsp;*/<br />
+</span><span class="keyword">function </span><span class="default">mapErrorCode</span><span class="keyword">(</span><span class="default">$code</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$error </span><span class="keyword">= </span><span class="default">$log </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; switch (</span><span class="default">$code</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="default">E_PARSE</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="default">E_ERROR</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="default">E_CORE_ERROR</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="default">E_COMPILE_ERROR</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="default">E_USER_ERROR</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$error </span><span class="keyword">= </span><span class="string">'Fatal Error'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$log </span><span class="keyword">= </span><span class="default">LOG_ERR</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="default">E_WARNING</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="default">E_USER_WARNING</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="default">E_COMPILE_WARNING</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="default">E_RECOVERABLE_ERROR</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$error </span><span class="keyword">= </span><span class="string">'Warning'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$log </span><span class="keyword">= </span><span class="default">LOG_WARNING</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="default">E_NOTICE</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="default">E_USER_NOTICE</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$error </span><span class="keyword">= </span><span class="string">'Notice'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$log </span><span class="keyword">= </span><span class="default">LOG_NOTICE</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="default">E_STRICT</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$error </span><span class="keyword">= </span><span class="string">'Strict'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$log </span><span class="keyword">= </span><span class="default">LOG_NOTICE</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="default">E_DEPRECATED</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="default">E_USER_DEPRECATED</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$error </span><span class="keyword">= </span><span class="string">'Deprecated'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$log </span><span class="keyword">= </span><span class="default">LOG_NOTICE</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; default :<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; return array(</span><span class="default">$error</span><span class="keyword">, </span><span class="default">$log</span><span class="keyword">);<br />
+}<br />
+<br />
+</span><span class="comment">//calling custom error handler<br />
+</span><span class="default">set_error_handler</span><span class="keyword">(</span><span class="string">"handleError"</span><span class="keyword">);<br />
+<br />
+</span><span class="default">print_r</span><span class="keyword">(</span><span class="default">$arra</span><span class="keyword">); </span><span class="comment">//undefined variable<br />
+</span><span class="default">print_r</span><span class="keyword">(</span><span class="default">$dssdfdfgg</span><span class="keyword">); </span><span class="comment">//undefined variable<br />
+</span><span class="keyword">include_once </span><span class="string">'file.php'</span><span class="keyword">; </span><span class="comment">//No such file or directory<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117309""></a>
+  <div class="note">
+   <strong class="user">Fi Ras</strong>
+   <a href="#117309" class="date">20-May-2015 07:38</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+This is my customized error handler : (excuse my english)<br />
+<br />
+https://gist.github.com/anonymous/556c6c75daf83039b6f8/9c36020422a4be148a1f4df88a478526b985496e</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117235""></a>
+  <div class="note">
+   <strong class="user">felix dot b at outlook dot com</strong>
+   <a href="#117235" class="date">07-May-2015 10:26</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I saw many checking for all the error constants manually in a switch statement. If you just want to add the type of the error (E_WARNING, E_NOTICE, etc) to your ErrorException, use array_search() with get_defined_constants():<br />
+<br />
+new ErrorException("[" . array_search($errno, get_defined_constants(), true)&nbsp; . "] " . $errstr, 0, $errno, $errfile, $errline);</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116507""></a>
   <div class="note">
    <strong class="user">419472477 at qq dot com</strong>
    <a href="#116507" class="date">15-Jan-2015 07:37</a>

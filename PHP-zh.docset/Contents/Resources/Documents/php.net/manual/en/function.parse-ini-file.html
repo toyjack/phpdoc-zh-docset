@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.parse-ini-file" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">parse_ini_file</h1>
-  <p class="verinfo">(PHP 4, PHP 5)</p><p class="refpurpose"><span class="refname">parse_ini_file</span> &mdash; <span class="dc-title">解析一个配置文件</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">parse_ini_file</span> &mdash; <span class="dc-title">解析一个配置文件</span></p>
 
  </div>
  <div class="refsect1 description" id="refsect1-function.parse-ini-file-description">
@@ -176,7 +176,7 @@
  <div class="refsect1 examples" id="refsect1-function.parse-ini-file-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-2428">
+   <div class="example" id="example-2555">
     <p><strong>Example #1 <var class="filename">sample.ini</var> 的内容</strong></p>
     <div class="example-contents">
 <div class="cdata"><pre>
@@ -201,7 +201,7 @@ phpversion[] = &quot;5.3&quot;
     </div>
 
    </div>
-   <div class="example" id="example-2429">
+   <div class="example" id="example-2556">
     <p><strong>Example #2 <span class="function"><strong>parse_ini_file()</strong></span> 例子</strong></p>
     <div class="example-contents"><p>
       <a href="language.constants.html" class="link">常量</a>也可以在 ini
@@ -268,7 +268,7 @@ Array
    </div>
   </p>
   <p class="para">
-   <div class="example" id="example-2430">
+   <div class="example" id="example-2557">
     <p><strong>Example #3 <span class="function"><strong>parse_ini_file()</strong></span> parsing a php.ini file</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -325,7 +325,212 @@ Array
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="114842""></a>
+<div id="allnotes">  <a name="118969""></a>
+  <div class="note">
+   <strong class="user">dschnepper at box dot com</strong>
+   <a href="#118969" class="date">10-Mar-2016 06:21</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The documentation states:<br />
+Characters ?{}|&amp;~!()^" must not be used anywhere in the key and have a special meaning in the value.<br />
+<br />
+Here's the results of my experiments on what they mean:<br />
+<br />
+; | is used for bitwise OR<br />
+three = 2|3<br />
+<br />
+; &amp; is used for bitwise AND<br />
+four = 6&amp;5<br />
+<br />
+; ^ is used for bitwise XOR<br />
+five = 3^6<br />
+<br />
+; ~ is used for bitwise negate<br />
+negative_two = ~1<br />
+<br />
+; () is used for grouping<br />
+seven = (8|7)&amp;(6|5)<br />
+<br />
+; ${...} is used for grabbing values from the environment, or previously defined values.<br />
+path = ${PATH}<br />
+also = ${five}<br />
+<br />
+; ? I have no guess for<br />
+; ! I have no guess for</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118151""></a>
+  <div class="note">
+   <strong class="user">jbricci at ya-right dot com</strong>
+   <a href="#118151" class="date">15-Oct-2015 03:39</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+This core function won't handle ini key[][] = value(s), (multidimensional arrays), so if you need to support that kind of setup you will need to write your own function. one way to do it is to convert all the key = value(s) to array string [key][][]=value(s), then use parse_str() to convert all those [key][][]=value(s) that way you just read the ini file line by line, instead of doing crazy foreach() loops to handle those (multidimensional arrays) in each section, example...<br />
+<br />
+ini file...... config.php<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">; </span><span class="default">This is a sample configuration file<br />
+</span><span class="keyword">; </span><span class="default">Comments start with </span><span class="string">';'</span><span class="keyword">, as </span><span class="default">in php</span><span class="keyword">.</span><span class="default">ini<br />
+<br />
+</span><span class="keyword">[</span><span class="default">first_section</span><span class="keyword">]<br />
+</span><span class="default">one </span><span class="keyword">= </span><span class="default">1<br />
+five </span><span class="keyword">= </span><span class="default">5<br />
+animal </span><span class="keyword">= </span><span class="default">BIRD<br />
+<br />
+</span><span class="keyword">[</span><span class="default">second_section</span><span class="keyword">]<br />
+</span><span class="default">path </span><span class="keyword">= </span><span class="string">"/usr/local/bin"<br />
+</span><span class="default">URL </span><span class="keyword">= </span><span class="string">"<a href="http://www.example.com/~username" rel="nofollow" target="_blank">http://www.example.com/~username</a>"<br />
+<br />
+</span><span class="keyword">[</span><span class="default">third_section</span><span class="keyword">]<br />
+</span><span class="default">phpversion</span><span class="keyword">[] = </span><span class="string">"5.0"<br />
+</span><span class="default">phpversion</span><span class="keyword">[] = </span><span class="string">"5.1"<br />
+</span><span class="default">phpversion</span><span class="keyword">[] = </span><span class="string">"5.2"<br />
+</span><span class="default">phpversion</span><span class="keyword">[] = </span><span class="string">"5.3"<br />
+<br />
+</span><span class="default">urls</span><span class="keyword">[</span><span class="default">svn</span><span class="keyword">] = </span><span class="string">"<a href="http://svn.php.net" rel="nofollow" target="_blank">http://svn.php.net</a>"<br />
+</span><span class="default">urls</span><span class="keyword">[</span><span class="default">git</span><span class="keyword">] = </span><span class="string">"<a href="http://git.php.net" rel="nofollow" target="_blank">http://git.php.net</a>"<br />
+<br />
+</span><span class="keyword">[</span><span class="default">fourth_section</span><span class="keyword">]<br />
+<br />
+</span><span class="default">a</span><span class="keyword">[][][] = </span><span class="default">b<br />
+a</span><span class="keyword">[][][][] = </span><span class="default">c<br />
+a</span><span class="keyword">[</span><span class="default">test_test</span><span class="keyword">][][] = </span><span class="default">d<br />
+test</span><span class="keyword">[</span><span class="default">one</span><span class="keyword">][</span><span class="default">two</span><span class="keyword">][</span><span class="default">three</span><span class="keyword">] = </span><span class="default">true<br />
+<br />
+?&gt;<br />
+</span><br />
+echo parse_ini_file ( "C:\\services\\www\\docs\\config.php" );<br />
+<br />
+results in...<br />
+<br />
+// PHP Warning:&nbsp; syntax error, unexpected TC_SECTION, expecting '=' line 27 -&gt; a[][][] = b<br />
+<br />
+Here it simple function that handles (multidimensional arrays) without looping each key[][]= value(s)<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">function </span><span class="default">getIni </span><span class="keyword">( </span><span class="default">$file</span><span class="keyword">, </span><span class="default">$sections </span><span class="keyword">= </span><span class="default">FALSE </span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$return </span><span class="keyword">= array ();<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$keeper </span><span class="keyword">= array ();<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$config </span><span class="keyword">= </span><span class="default">fopen </span><span class="keyword">( </span><span class="default">$file</span><span class="keyword">, </span><span class="string">'r' </span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp;&nbsp; while ( ! </span><span class="default">feof </span><span class="keyword">( </span><span class="default">$config </span><span class="keyword">) )<br />
+&nbsp;&nbsp;&nbsp; { <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$line </span><span class="keyword">= </span><span class="default">trim </span><span class="keyword">( </span><span class="default">fgets </span><span class="keyword">( </span><span class="default">$config</span><span class="keyword">, </span><span class="default">1024 </span><span class="keyword">) );<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$line </span><span class="keyword">= ( </span><span class="default">$line </span><span class="keyword">== </span><span class="string">'' </span><span class="keyword">) ? </span><span class="string">' ' </span><span class="keyword">: </span><span class="default">$line</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; switch ( </span><span class="default">$line</span><span class="keyword">{</span><span class="default">0</span><span class="keyword">} )<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">' '</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">'#'</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">'/'</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">';'</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">'&lt;'</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">'?'</span><span class="keyword">:<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">'['</span><span class="keyword">:<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if ( </span><span class="default">$sections </span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$header </span><span class="keyword">= </span><span class="string">'config[' </span><span class="keyword">. </span><span class="default">trim </span><span class="keyword">( </span><span class="default">substr </span><span class="keyword">( </span><span class="default">$line</span><span class="keyword">, </span><span class="default">1</span><span class="keyword">, -</span><span class="default">1 </span><span class="keyword">) ) . </span><span class="string">']'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; else<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$header </span><span class="keyword">= </span><span class="string">'config'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; default:<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$kv </span><span class="keyword">= </span><span class="default">array_map </span><span class="keyword">( </span><span class="string">'trim'</span><span class="keyword">, </span><span class="default">explode </span><span class="keyword">( </span><span class="string">'='</span><span class="keyword">, </span><span class="default">$line </span><span class="keyword">) );<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$kv</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">] = </span><span class="default">str_replace </span><span class="keyword">( </span><span class="string">' '</span><span class="keyword">, </span><span class="string">'+'</span><span class="keyword">, </span><span class="default">$kv</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">] );<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$kv</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">] = </span><span class="default">str_replace </span><span class="keyword">( </span><span class="string">' '</span><span class="keyword">, </span><span class="string">'+'</span><span class="keyword">, </span><span class="default">$kv</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">] );<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if ( ( </span><span class="default">$pos </span><span class="keyword">= </span><span class="default">strpos </span><span class="keyword">( </span><span class="default">$kv</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">], </span><span class="string">'[' </span><span class="keyword">) ) !== </span><span class="default">FALSE </span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$kv</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">] = </span><span class="string">'[' </span><span class="keyword">. </span><span class="default">substr </span><span class="keyword">( </span><span class="default">$kv</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">], </span><span class="default">0</span><span class="keyword">, </span><span class="default">$pos </span><span class="keyword">) . </span><span class="string">']' </span><span class="keyword">. </span><span class="default">substr </span><span class="keyword">( </span><span class="default">$kv</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">], </span><span class="default">$pos </span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; else<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$kv</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">] = </span><span class="string">'[' </span><span class="keyword">. </span><span class="default">$kv</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">] . </span><span class="string">']'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$bt </span><span class="keyword">= </span><span class="default">strtolower </span><span class="keyword">( </span><span class="default">$kv</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">] );<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if ( </span><span class="default">in_array </span><span class="keyword">( </span><span class="default">$bt</span><span class="keyword">, array ( </span><span class="string">'true'</span><span class="keyword">, </span><span class="string">'false'</span><span class="keyword">, </span><span class="string">'on'</span><span class="keyword">, </span><span class="string">'off' </span><span class="keyword">) ) )<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$kv</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">] = ( </span><span class="default">$bt </span><span class="keyword">== </span><span class="string">'true' </span><span class="keyword">|| </span><span class="default">$bt </span><span class="keyword">== </span><span class="string">'on' </span><span class="keyword">) ? </span><span class="default">TRUE </span><span class="keyword">: </span><span class="default">FALSE</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$keeper</span><span class="keyword">[] = </span><span class="default">$header </span><span class="keyword">. </span><span class="default">$kv</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">] . </span><span class="string">'=' </span><span class="keyword">. </span><span class="default">$kv</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">];<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">fclose </span><span class="keyword">( </span><span class="default">$config </span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">parse_str </span><span class="keyword">( </span><span class="default">implode </span><span class="keyword">( </span><span class="string">'&amp;'</span><span class="keyword">, </span><span class="default">$keeper </span><span class="keyword">), </span><span class="default">$return </span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$return</span><span class="keyword">[</span><span class="string">'config'</span><span class="keyword">];<br />
+}<br />
+<br />
+</span><span class="comment">// usage...<br />
+<br />
+</span><span class="default">$sections </span><span class="keyword">= </span><span class="default">TRUE</span><span class="keyword">;<br />
+<br />
+</span><span class="default">print_r </span><span class="keyword">( </span><span class="default">$config</span><span class="keyword">-&gt;</span><span class="default">getIni </span><span class="keyword">( </span><span class="string">"C:\\services\\www\\docs\\config.php" </span><span class="keyword">),&nbsp; </span><span class="default">$sections </span><span class="keyword">);<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118014""></a>
+  <div class="note">
+   <strong class="user">davidm3n at gmail dot com</strong>
+   <a href="#118014" class="date">18-Sep-2015 07:35</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+hope I'm not doing anything wrong, but it seems that the array notation doesn't work in PHP 4:<br />
+processing<br />
+&nbsp;&nbsp;&nbsp; phpversion[] = "5.0"<br />
+&nbsp;&nbsp;&nbsp; phpversion[] = "5.1"<br />
+&nbsp;&nbsp;&nbsp; phpversion[] = "5.2"<br />
+&nbsp;&nbsp;&nbsp; phpversion[] = "5.3"<br />
+gives<br />
+&nbsp;&nbsp;&nbsp; [phpversion[]] =&gt; 5.3<br />
+instead of<br />
+&nbsp;&nbsp;&nbsp; [phpversion] =&gt; Array<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; (<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [0] =&gt; 5.0<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [1] =&gt; 5.1<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [2] =&gt; 5.2<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [3] =&gt; 5.3<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; )</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="114842""></a>
   <div class="note">
    <strong class="user">Rekam</strong>
    <a href="#114842" class="date">13-Apr-2014 06:59</a>

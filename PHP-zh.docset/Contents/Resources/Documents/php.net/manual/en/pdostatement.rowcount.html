@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="pdostatement.rowcount" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">PDOStatement::rowCount</h1>
-  <p class="verinfo">(PHP 5 &gt;= 5.1.0, PECL pdo &gt;= 0.1.0)</p><p class="refpurpose"><span class="refname">PDOStatement::rowCount</span> &mdash; <span class="dc-title">
+  <p class="verinfo">(PHP 5 &gt;= 5.1.0, PHP 7, PECL pdo &gt;= 0.1.0)</p><p class="refpurpose"><span class="refname">PDOStatement::rowCount</span> &mdash; <span class="dc-title">
    返回受上一个 SQL 语句影响的行数
   </span></p>
 
@@ -59,7 +59,7 @@
  <div class="refsect1 examples" id="refsect1-pdostatement.rowcount-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-983">
+   <div class="example" id="example-1023">
     <p><strong>Example #1 返回删除的行数</strong></p>
     <div class="example-contents"><p>
      <span class="function"><strong>PDOStatement::rowCount()</strong></span> 返回受 DELETE、INSERT、 或 UPDATE 语句影响的行数。
@@ -79,7 +79,7 @@ Deleted 9 rows.
 </pre></div>
     </div>
    </div>
-   <div class="example" id="example-984">
+   <div class="example" id="example-1024">
     <p><strong>Example #2 计算由一个 SELECT 语句返回的行数</strong></p>
     <div class="example-contents"><p>
      对于大多数数据库，<span class="function"><strong>PDOStatement::rowCount()</strong></span> 不能返回受一条 SELECT 语句影响的行数。替代的方法是，使用 <span class="function"><a href="pdo.query.html" class="function">PDO::query()</a></span> 来发出一条和原打算中的SELECT语句有相同条件表达式的 SELECT COUNT(*) 语句，然后用 <span class="function"><a href="pdostatement.fetchcolumn.html" class="function">PDOStatement::fetchColumn()</a></span> 来取得返回的行数。这样应用程序才能正确执行。
@@ -121,7 +121,71 @@ pear
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="114824""></a>
+<div id="allnotes">  <a name="118456""></a>
+  <div class="note">
+   <strong class="user">lsrzj at facebook</strong>
+   <a href="#118456" class="date">09-Dec-2015 11:03</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Well, I woundn't do as suggested querying twice the database to get the count and then get the data I want. It would be simpler and would give better performance to query once and retrieve both, record count and the data itself<br />
+<br />
+<span class="default">&lt;?php<br />
+$sql </span><span class="keyword">= </span><span class="string">"SELECT * FROM fruit WHERE calories &gt; :calories"</span><span class="keyword">;<br />
+</span><span class="default">$sth </span><span class="keyword">= </span><span class="default">$conn</span><span class="keyword">-&gt;</span><span class="default">prepare</span><span class="keyword">(</span><span class="default">$sql</span><span class="keyword">);<br />
+</span><span class="default">$sth</span><span class="keyword">-&gt;</span><span class="default">bindParam</span><span class="keyword">(</span><span class="string">':calories'</span><span class="keyword">, </span><span class="default">100</span><span class="keyword">, </span><span class="default">PDO</span><span class="keyword">::</span><span class="default">PARAM_INT</span><span class="keyword">);<br />
+</span><span class="default">$res </span><span class="keyword">= </span><span class="default">$sth</span><span class="keyword">-&gt;</span><span class="default">execute</span><span class="keyword">();<br />
+if (</span><span class="default">$res</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$record </span><span class="keyword">= </span><span class="default">$sth</span><span class="keyword">-&gt;</span><span class="default">fetchAll</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">/* Check the number of rows that match the SELECT statement */<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">if (</span><span class="default">count</span><span class="keyword">(</span><span class="default">$record</span><span class="keyword">) &gt; </span><span class="default">0</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach (</span><span class="default">$record </span><span class="keyword">as </span><span class="default">$row</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; print </span><span class="string">"Name: " </span><span class="keyword">.&nbsp; </span><span class="default">$row</span><span class="keyword">[</span><span class="string">'NAME'</span><span class="keyword">] . </span><span class="string">"\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">/* No rows matched -- do something else */<br />
+&nbsp; </span><span class="keyword">else {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; print </span><span class="string">"No rows matched the query."</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+</span><span class="default">$conn </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">;<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118362""></a>
+  <div class="note">
+   <strong class="user">@rhavendc (twitter)</strong>
+   <a href="#118362" class="date">23-Nov-2015 05:10</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+We're having problem with these PDOStatement::fetchColumn() and PDOStatement::rowCount(). I don't know if we have alike case to others or this is just a problem in our coding. In local, the rowCount() is not giving the correct number of rows but it is working fine when uploaded to our hosting site.. while the fetchColumn() is the reverse. The fetchColumn() is working fine in local but not anymore when uploaded. I don't know what is really going on with that but I think rowCount() is the best and the others are optional to use.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116920""></a>
+  <div class="note">
+   <strong class="user">info at buylikesandviews dot com</strong>
+   <a href="#116920" class="date">21-Mar-2015 06:04</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+every good work<br />
+If you use "INSERT INTO ... ON DUPLICATE KEY UPDATE" syntax, mysql_affected_rows() will return you 2 if the UPDATE was made (just as it does with the "REPLACE INTO" syntax) and 1 if the INSERT was.<br />
+<br />
+So if you use one SQL request to insert several rows at a time, and some are inserted, some are just updated, you won't get the real count.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="114824""></a>
   <div class="note">
    <strong class="user">phpnet at maya-control dot ro</strong>
    <a href="#114824" class="date">10-Apr-2014 08:09</a>
@@ -309,35 +373,6 @@ To display information only when the query is not empty, I do something like thi
 &nbsp;&nbsp;&nbsp; } else {<br />
 &nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">'Empty Query'</span><span class="keyword">;<br />
 &nbsp;&nbsp;&nbsp; }<br />
-</span><span class="default">?&gt;</span>
-</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="105459""></a>
-  <div class="note">
-   <strong class="user">dcahh at gmx dot de</strong>
-   <a href="#105459" class="date">19-Aug-2011 03:53</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-It's pretty obvious, but might save one or the other from bug tracking...<br />
-<br />
-Alltough rowCount ist returned by the statement, one has to execute the statement before rowCount returns any results...<br />
-<br />
-Does not work<br />
-<span class="default">&lt;?php<br />
-&nbsp;&nbsp;&nbsp; $statement </span><span class="keyword">= </span><span class="default">$dbh</span><span class="keyword">-&gt;</span><span class="default">prepare</span><span class="keyword">(</span><span class="string">'SELECT FROM fruit'</span><span class="keyword">);<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">$count </span><span class="keyword">= </span><span class="default">$statement</span><span class="keyword">-&gt;</span><span class="default">rowCount</span><span class="keyword">();<br />
-</span><span class="default">?&gt;<br />
-</span><br />
-Works<br />
-<span class="default">&lt;?php<br />
-&nbsp;&nbsp;&nbsp; $statement </span><span class="keyword">= </span><span class="default">$dbh</span><span class="keyword">-&gt;</span><span class="default">prepare</span><span class="keyword">(</span><span class="string">'SELECT FROM fruit'</span><span class="keyword">);<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">$statement</span><span class="keyword">-&gt;</span><span class="default">execute</span><span class="keyword">();<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">$count </span><span class="keyword">= </span><span class="default">$statement</span><span class="keyword">-&gt;</span><span class="default">rowCount</span><span class="keyword">();<br />
 </span><span class="default">?&gt;</span>
 </span>
 </code>

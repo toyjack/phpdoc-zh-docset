@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.hash-pbkdf2" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">hash_pbkdf2</h1>
-  <p class="verinfo">(PHP 5 &gt;= 5.5.0)</p><p class="refpurpose"><span class="refname">hash_pbkdf2</span> &mdash; <span class="dc-title">生成所提供密码的 PBKDF2 密钥导出</span></p>
+  <p class="verinfo">(PHP 5 &gt;= 5.5.0, PHP 7)</p><p class="refpurpose"><span class="refname">hash_pbkdf2</span> &mdash; <span class="dc-title">生成所提供密码的 PBKDF2 密钥导出</span></p>
 
  </div>
 
@@ -161,7 +161,7 @@
  <div class="refsect1 examples" id="refsect1-function.hash-pbkdf2-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-847">
+   <div class="example" id="example-885">
     <p><strong>Example #1 <span class="function"><strong>hash_pbkdf2()</strong></span> 例程，基础用法</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -199,7 +199,7 @@
   <p class="para">
    <ul class="simplelist">
     <li class="member"><span class="function"><a href="function.crypt.html" class="function" rel="rdfs-seeAlso">crypt()</a> - 单向字符串散列</span></li>
-    <li class="member"><span class="function"><a href="function.password-hash.html" class="function" rel="rdfs-seeAlso">password_hash()</a> - Creates a password hash</span></li>
+    <li class="member"><span class="function"><a href="function.password-hash.html" class="function" rel="rdfs-seeAlso">password_hash()</a> - 创建密码的哈希（hash）</span></li>
     <li class="member"><span class="function"><a href="function.hash.html" class="function" rel="rdfs-seeAlso">hash()</a> - 生成哈希值 （消息摘要）</span></li>
     <li class="member"><span class="function"><a href="function.hash-algos.html" class="function" rel="rdfs-seeAlso">hash_algos()</a> - 返回已注册的哈希算法列表</span></li>
     <li class="member"><span class="function"><a href="function.hash-init.html" class="function" rel="rdfs-seeAlso">hash_init()</a> - 初始化增量哈希运算上下文</span></li>
@@ -214,7 +214,78 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="113728""></a>
+<div id="allnotes">  <a name="118589""></a>
+  <div class="note">
+   <strong class="user">nimasdj [AT] yahoo [DOT] com</strong>
+   <a href="#118589" class="date">05-Jan-2016 09:08</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+There is a mistake in the class provided by Binod Kumar Luitel (<a href="http://php.net/manual/en/function.hash-pbkdf2.php#113488" rel="nofollow" target="_blank">http://php.net/manual/en/function.hash-pbkdf2.php#113488</a>):<br />
+this line:<br />
+return bin2hex(substr($this-&gt;output, 0, $this-&gt;key_length));<br />
+must be changed to:<br />
+return substr(bin2hex($this-&gt;output), 0, $this-&gt;key_length);</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118301""></a>
+  <div class="note">
+   <strong class="user">Trevor Herselman</strong>
+   <a href="#118301" class="date">11-Nov-2015 10:45</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+This is a light-weight drop-in replacement for PHP's hash_pbkdf2(); written for compatibility with older versions of PHP.<br />
+Written, formatted and tested by myself, but using code and ideas based on the following:<br />
+https://defuse.ca/php-pbkdf2.htm<br />
+https://github.com/rchouinard/hash_pbkdf2-compat/blob/master/src/hash_pbkdf2.php<br />
+https://gist.github.com/rsky/5104756<br />
+<br />
+My main goals:<br />
+1) Maximum compatibility with PHP hash_pbkdf2(), ie. a drop-in replacement function<br />
+2) Minimum code size/bloat<br />
+3) Easy to copy/paste<br />
+4) No classes, and not encapsulated in a class! Why write a class when a simple function will do?<br />
+5) Eliminate calls to sprintf(). (used by other examples for the error reporting)<br />
+6) No other dependencies, ie. extra required functions<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">if (!</span><span class="default">function_exists</span><span class="keyword">(</span><span class="string">'hash_pbkdf2'</span><span class="keyword">))<br />
+{<br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">hash_pbkdf2</span><span class="keyword">(</span><span class="default">$algo</span><span class="keyword">, </span><span class="default">$password</span><span class="keyword">, </span><span class="default">$salt</span><span class="keyword">, </span><span class="default">$count</span><span class="keyword">, </span><span class="default">$length </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">, </span><span class="default">$raw_output </span><span class="keyword">= </span><span class="default">false</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (!</span><span class="default">in_array</span><span class="keyword">(</span><span class="default">strtolower</span><span class="keyword">(</span><span class="default">$algo</span><span class="keyword">), </span><span class="default">hash_algos</span><span class="keyword">())) </span><span class="default">trigger_error</span><span class="keyword">(</span><span class="default">__FUNCTION__ </span><span class="keyword">. </span><span class="string">'(): Unknown hashing algorithm: ' </span><span class="keyword">. </span><span class="default">$algo</span><span class="keyword">, </span><span class="default">E_USER_WARNING</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (!</span><span class="default">is_numeric</span><span class="keyword">(</span><span class="default">$count</span><span class="keyword">)) </span><span class="default">trigger_error</span><span class="keyword">(</span><span class="default">__FUNCTION__ </span><span class="keyword">. </span><span class="string">'(): expects parameter 4 to be long, ' </span><span class="keyword">. </span><span class="default">gettype</span><span class="keyword">(</span><span class="default">$count</span><span class="keyword">) . </span><span class="string">' given'</span><span class="keyword">, </span><span class="default">E_USER_WARNING</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (!</span><span class="default">is_numeric</span><span class="keyword">(</span><span class="default">$length</span><span class="keyword">)) </span><span class="default">trigger_error</span><span class="keyword">(</span><span class="default">__FUNCTION__ </span><span class="keyword">. </span><span class="string">'(): expects parameter 5 to be long, ' </span><span class="keyword">. </span><span class="default">gettype</span><span class="keyword">(</span><span class="default">$length</span><span class="keyword">) . </span><span class="string">' given'</span><span class="keyword">, </span><span class="default">E_USER_WARNING</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$count </span><span class="keyword">&lt;= </span><span class="default">0</span><span class="keyword">) </span><span class="default">trigger_error</span><span class="keyword">(</span><span class="default">__FUNCTION__ </span><span class="keyword">. </span><span class="string">'(): Iterations must be a positive integer: ' </span><span class="keyword">. </span><span class="default">$count</span><span class="keyword">, </span><span class="default">E_USER_WARNING</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$length </span><span class="keyword">&lt; </span><span class="default">0</span><span class="keyword">) </span><span class="default">trigger_error</span><span class="keyword">(</span><span class="default">__FUNCTION__ </span><span class="keyword">. </span><span class="string">'(): Length must be greater than or equal to 0: ' </span><span class="keyword">. </span><span class="default">$length</span><span class="keyword">, </span><span class="default">E_USER_WARNING</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$output </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$block_count </span><span class="keyword">= </span><span class="default">$length </span><span class="keyword">? </span><span class="default">ceil</span><span class="keyword">(</span><span class="default">$length </span><span class="keyword">/ </span><span class="default">strlen</span><span class="keyword">(</span><span class="default">hash</span><span class="keyword">(</span><span class="default">$algo</span><span class="keyword">, </span><span class="string">''</span><span class="keyword">, </span><span class="default">$raw_output</span><span class="keyword">))) : </span><span class="default">1</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; for (</span><span class="default">$i </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">; </span><span class="default">$i </span><span class="keyword">&lt;= </span><span class="default">$block_count</span><span class="keyword">; </span><span class="default">$i</span><span class="keyword">++)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$last </span><span class="keyword">= </span><span class="default">$xorsum </span><span class="keyword">= </span><span class="default">hash_hmac</span><span class="keyword">(</span><span class="default">$algo</span><span class="keyword">, </span><span class="default">$salt </span><span class="keyword">. </span><span class="default">pack</span><span class="keyword">(</span><span class="string">'N'</span><span class="keyword">, </span><span class="default">$i</span><span class="keyword">), </span><span class="default">$password</span><span class="keyword">, </span><span class="default">true</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; for (</span><span class="default">$j </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">; </span><span class="default">$j </span><span class="keyword">&lt; </span><span class="default">$count</span><span class="keyword">; </span><span class="default">$j</span><span class="keyword">++)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$xorsum </span><span class="keyword">^= (</span><span class="default">$last </span><span class="keyword">= </span><span class="default">hash_hmac</span><span class="keyword">(</span><span class="default">$algo</span><span class="keyword">, </span><span class="default">$last</span><span class="keyword">, </span><span class="default">$password</span><span class="keyword">, </span><span class="default">true</span><span class="keyword">));<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$output </span><span class="keyword">.= </span><span class="default">$xorsum</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (!</span><span class="default">$raw_output</span><span class="keyword">) </span><span class="default">$output </span><span class="keyword">= </span><span class="default">bin2hex</span><span class="keyword">(</span><span class="default">$output</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$length </span><span class="keyword">? </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$output</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">, </span><span class="default">$length</span><span class="keyword">) : </span><span class="default">$output</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="113728""></a>
   <div class="note">
    <strong class="user">Peter</strong>
    <a href="#113728" class="date">22-Nov-2013 12:03</a>

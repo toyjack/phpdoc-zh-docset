@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.mcrypt-encrypt" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">mcrypt_encrypt</h1>
-  <p class="verinfo">(PHP 4 &gt;= 4.0.2, PHP 5)</p><p class="refpurpose"><span class="refname">mcrypt_encrypt</span> &mdash; <span class="dc-title">使用给定参数加密明文</span></p>
+  <p class="verinfo">(PHP 4 &gt;= 4.0.2, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">mcrypt_encrypt</span> &mdash; <span class="dc-title">使用给定参数加密明文</span></p>
 
  </div>
  
@@ -160,7 +160,7 @@
  <div class="refsect1 examples" id="refsect1-function.mcrypt-encrypt-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-855">
+   <div class="example" id="example-894">
     <p><strong>Example #1 <span class="function"><strong>mcrypt_encrypt()</strong></span> 例程</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -195,7 +195,32 @@ This string was AES-256 / CBC / ZeroBytePadding encrypted.
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116612""></a>
+<div id="allnotes">  <a name="117667""></a>
+  <div class="note">
+   <strong class="user">scott at paragonie dot com</strong>
+   <a href="#117667" class="date">19-Jul-2015 07:35</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you're writing code to encrypt/encrypt data in 2015, you should use openssl_encrypt() and openssl_decrypt(). The underlying library (libmcrypt) has been abandoned since 2007, and performs far worse than OpenSSL (which leverages AES-NI on modern processors and is cache-timing safe).<br />
+<br />
+Also, MCRYPT_RIJNDAEL_256 is not AES-256, it's a different variant of the Rijndael block cipher. If you want AES-256 in mcrypt, you have to use MCRYPT_RIJNDAEL_128 with a 32-byte key. OpenSSL makes it more obvious which mode you are using (i.e. 'aes-128-cbc' vs 'aes-256-ctr').<br />
+<br />
+OpenSSL also uses PKCS7 padding with CBC mode rather than mcrypt's NULL byte padding. Thus, mcrypt is more likely to make your code vulnerable to padding oracle attacks than OpenSSL.<br />
+<br />
+Finally, if you are not authenticating your ciphertexts (Encrypt Then MAC), you're doing it wrong.<br />
+<br />
+Further reading:<br />
+<br />
+https://paragonie.com/blog/2015/05/using-encryption-and-authentication-correctly<br />
+<br />
+https://paragonie.com/blog/2015/05/if-you-re-typing-word-mcrypt-into-your-code-you-re-doing-it-wrong</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116612""></a>
   <div class="note">
    <strong class="user">your dot brother dot t at hotmail dot com</strong>
    <a href="#116612" class="date">29-Jan-2015 08:52</a>
@@ -534,46 +559,6 @@ A simple example verifies that the decrypted output is binary identical once cut
 I should mention that ECB mode ignores the IV, so it is misleading to show an example using both MCRYPT_MODE_ECB and an IV (the example in the manual shows the same thing).&nbsp; Also, it's important to know that ECB is useful for random data, but structured data should use a stronger mode like MCRYPT_MODE_CBC<br />
 <br />
 Also, rtrim($decryptedtext, "\0") would be a better option to remove NULL padding than my lazy trim()...</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="78531""></a>
-  <div class="note">
-   <strong class="user">dylan at wedefy dot com</strong>
-   <a href="#78531" class="date">16-Oct-2007 05:27</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-I wasn't too impressed with the suggested functions/classes for using mcrypt, so I wrote my own class.&nbsp; The encypted output is base64 encoded so it can be used in URLs, emails, etc.&nbsp; MCRYPT_RIJNDAEL_256 is probably too secure for most uses, using a less secure algorithm should mean that the encryption will be faster and the encrypted output shorter (make sure to update iv_size in mcrypt_create_iv() and key length to match the new algorithm).&nbsp; If you are going to use only 1 passphrase, you should define it inside __construct($this-&gt;securekey) instead of when creating the object. Keep the class in a separate include file which is only readable by your webserver (or whatever needs it) for added security.<br />
-<br />
-<span class="default">&lt;?php<br />
-</span><span class="keyword">class </span><span class="default">Cipher </span><span class="keyword">{<br />
-&nbsp;&nbsp;&nbsp; private </span><span class="default">$securekey</span><span class="keyword">, </span><span class="default">$iv</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; function </span><span class="default">__construct</span><span class="keyword">(</span><span class="default">$textkey</span><span class="keyword">) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">securekey </span><span class="keyword">= </span><span class="default">hash</span><span class="keyword">(</span><span class="string">'sha256'</span><span class="keyword">,</span><span class="default">$textkey</span><span class="keyword">,</span><span class="default">TRUE</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">iv </span><span class="keyword">= </span><span class="default">mcrypt_create_iv</span><span class="keyword">(</span><span class="default">32</span><span class="keyword">);<br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; function </span><span class="default">encrypt</span><span class="keyword">(</span><span class="default">$input</span><span class="keyword">) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">base64_encode</span><span class="keyword">(</span><span class="default">mcrypt_encrypt</span><span class="keyword">(</span><span class="default">MCRYPT_RIJNDAEL_256</span><span class="keyword">, </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">securekey</span><span class="keyword">, </span><span class="default">$input</span><span class="keyword">, </span><span class="default">MCRYPT_MODE_ECB</span><span class="keyword">, </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">iv</span><span class="keyword">));<br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; function </span><span class="default">decrypt</span><span class="keyword">(</span><span class="default">$input</span><span class="keyword">) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">trim</span><span class="keyword">(</span><span class="default">mcrypt_decrypt</span><span class="keyword">(</span><span class="default">MCRYPT_RIJNDAEL_256</span><span class="keyword">, </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">securekey</span><span class="keyword">, </span><span class="default">base64_decode</span><span class="keyword">(</span><span class="default">$input</span><span class="keyword">), </span><span class="default">MCRYPT_MODE_ECB</span><span class="keyword">, </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">iv</span><span class="keyword">));<br />
-&nbsp;&nbsp;&nbsp; }<br />
-}<br />
-<br />
-</span><span class="default">$cipher </span><span class="keyword">= new </span><span class="default">Cipher</span><span class="keyword">(</span><span class="string">'secret passphrase'</span><span class="keyword">);<br />
-<br />
-</span><span class="default">$encryptedtext </span><span class="keyword">= </span><span class="default">$cipher</span><span class="keyword">-&gt;</span><span class="default">encrypt</span><span class="keyword">(</span><span class="string">"hide me"</span><span class="keyword">);<br />
-echo </span><span class="string">"-&gt;encrypt = </span><span class="default">$encryptedtext</span><span class="string">&lt;br /&gt;"</span><span class="keyword">;<br />
-<br />
-</span><span class="default">$decryptedtext </span><span class="keyword">= </span><span class="default">$cipher</span><span class="keyword">-&gt;</span><span class="default">decrypt</span><span class="keyword">(</span><span class="default">$encryptedtext</span><span class="keyword">);<br />
-echo </span><span class="string">"-&gt;decrypt = </span><span class="default">$decryptedtext</span><span class="string">&lt;br /&gt;"</span><span class="keyword">;<br />
-<br />
-</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$cipher</span><span class="keyword">);<br />
-</span><span class="default">?&gt;</span>
-</span>
 </code>
     </div>
    </div>

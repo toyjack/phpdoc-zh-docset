@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.session-set-save-handler" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">session_set_save_handler</h1>
-  <p class="verinfo">(PHP 4, PHP 5)</p><p class="refpurpose"><span class="refname">session_set_save_handler</span> &mdash; <span class="dc-title">设置用户自定义会话存储函数</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">session_set_save_handler</span> &mdash; <span class="dc-title">设置用户自定义会话存储函数</span></p>
 
  </div>
 
@@ -252,7 +252,7 @@
  <div class="refsect1 examples" id="refsect1-function.session-set-save-handler-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-4802">
+   <div class="example" id="example-5175">
     <p><strong>Example #1 
      自定义会话管理器： 完整代码请参见 <a href="class.sessionhandlerinterface.html" class="classname">SessionHandlerInterface</a>。
     </strong></p>
@@ -273,7 +273,7 @@
     </div>
 
    </div>
-   <div class="example" id="example-4803">
+   <div class="example" id="example-5176">
     <p><strong>Example #2 使用对象自定义会话保存管理器</strong></p>
     <div class="example-contents"><p>
      下列代码适用于 PHP 5.4.0 之前的版本。
@@ -403,7 +403,143 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="114408""></a>
+<div id="allnotes">  <a name="118592""></a>
+  <div class="note">
+   <strong class="user">carlos dot vini at gmail dot com</strong>
+   <a href="#118592" class="date">05-Jan-2016 10:25</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you have a custom handler registered ini_get('session.save_handler') will return 'user' instead of 'file'</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118225""></a>
+  <div class="note">
+   <strong class="user">andreipa at gmail dot com</strong>
+   <a href="#118225" class="date">30-Oct-2015 12:05</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+After spend so many time to understand how PHP session works with database and unsuccessful attempts to get it right, I decided to rewrite the version from our friend stalker.<br />
+<br />
+//Database<br />
+CREATE TABLE `Session` (<br />
+&nbsp; `Session_Id` varchar(255) COLLATE utf8_unicode_ci NOT NULL,<br />
+&nbsp; `Session_Expires` datetime NOT NULL,<br />
+&nbsp; `Session_Data` text COLLATE utf8_unicode_ci,<br />
+&nbsp; PRIMARY KEY (`Session_Id`)<br />
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;<br />
+SELECT * FROM mydatabase.Session;<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">//inc.session.php<br />
+<br />
+</span><span class="keyword">class </span><span class="default">SysSession </span><span class="keyword">implements </span><span class="default">SessionHandlerInterface<br />
+</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; private </span><span class="default">$link</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">open</span><span class="keyword">(</span><span class="default">$savePath</span><span class="keyword">, </span><span class="default">$sessionName</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$link </span><span class="keyword">= </span><span class="default">mysqli_connect</span><span class="keyword">(</span><span class="string">"server"</span><span class="keyword">,</span><span class="string">"user"</span><span class="keyword">,</span><span class="string">"pwd"</span><span class="keyword">,</span><span class="string">"mydatabase"</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">$link</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">link </span><span class="keyword">= </span><span class="default">$link</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">true</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }else{<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">close</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">mysqli_close</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">link</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">true</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">read</span><span class="keyword">(</span><span class="default">$id</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">= </span><span class="default">mysqli_query</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">link</span><span class="keyword">,</span><span class="string">"SELECT Session_Data FROM Session WHERE Session_Id = '"</span><span class="keyword">.</span><span class="default">$id</span><span class="keyword">.</span><span class="string">"' AND Session_Expires &gt; '"</span><span class="keyword">.</span><span class="default">date</span><span class="keyword">(</span><span class="string">'Y-m-d H:i:s'</span><span class="keyword">).</span><span class="string">"'"</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">$row </span><span class="keyword">= </span><span class="default">mysqli_fetch_assoc</span><span class="keyword">(</span><span class="default">$result</span><span class="keyword">)){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$row</span><span class="keyword">[</span><span class="string">'Session_Data'</span><span class="keyword">];<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }else{<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="string">""</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">write</span><span class="keyword">(</span><span class="default">$id</span><span class="keyword">, </span><span class="default">$data</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$DateTime </span><span class="keyword">= </span><span class="default">date</span><span class="keyword">(</span><span class="string">'Y-m-d H:i:s'</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$NewDateTime </span><span class="keyword">= </span><span class="default">date</span><span class="keyword">(</span><span class="string">'Y-m-d H:i:s'</span><span class="keyword">,</span><span class="default">strtotime</span><span class="keyword">(</span><span class="default">$DateTime</span><span class="keyword">.</span><span class="string">' + 1 hour'</span><span class="keyword">));<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">= </span><span class="default">mysqli_query</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">link</span><span class="keyword">,</span><span class="string">"REPLACE INTO Session SET Session_Id = '"</span><span class="keyword">.</span><span class="default">$id</span><span class="keyword">.</span><span class="string">"', Session_Expires = '"</span><span class="keyword">.</span><span class="default">$NewDateTime</span><span class="keyword">.</span><span class="string">"', Session_Data = '"</span><span class="keyword">.</span><span class="default">$data</span><span class="keyword">.</span><span class="string">"'"</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">$result</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">true</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }else{<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">destroy</span><span class="keyword">(</span><span class="default">$id</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">= </span><span class="default">mysqli_query</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">link</span><span class="keyword">,</span><span class="string">"DELETE FROM Session WHERE Session_Id ='"</span><span class="keyword">.</span><span class="default">$id</span><span class="keyword">.</span><span class="string">"'"</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">$result</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">true</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }else{<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">gc</span><span class="keyword">(</span><span class="default">$maxlifetime</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">= </span><span class="default">mysqli_query</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">link</span><span class="keyword">,</span><span class="string">"DELETE FROM Session WHERE ((UNIX_TIMESTAMP(Session_Expires) + "</span><span class="keyword">.</span><span class="default">$maxlifetime</span><span class="keyword">.</span><span class="string">") &lt; "</span><span class="keyword">.</span><span class="default">$maxlifetime</span><span class="keyword">.</span><span class="string">")"</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">$result</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">true</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }else{<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+</span><span class="default">$handler </span><span class="keyword">= new </span><span class="default">SysSession</span><span class="keyword">();<br />
+</span><span class="default">session_set_save_handler</span><span class="keyword">(</span><span class="default">$handler</span><span class="keyword">, </span><span class="default">true</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">//page 1<br />
+</span><span class="keyword">require_once(</span><span class="string">'inc.session.php'</span><span class="keyword">);<br />
+<br />
+</span><span class="default">session_start</span><span class="keyword">();<br />
+<br />
+</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'var1'</span><span class="keyword">] = </span><span class="string">"My Portuguese text: SOU Gaucho!"</span><span class="keyword">;<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">//page 2<br />
+</span><span class="keyword">require_once(</span><span class="string">'inc.session.php'</span><span class="keyword">);<br />
+<br />
+</span><span class="default">session_start</span><span class="keyword">();<br />
+<br />
+if(isset(</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'var1'</span><span class="keyword">]){<br />
+echo </span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'var1'</span><span class="keyword">]; <br />
+}<br />
+</span><span class="comment">//OUTPUT: My Portuguese text: SOU Gaucho!<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117952""></a>
+  <div class="note">
+   <strong class="user">dimzon541 at gmail dot com</strong>
+   <a href="#117952" class="date">07-Sep-2015 08:23</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Persisting PHP sessions into mongodb (allows NLB without affinity)<br />
+https://gist.github.com/dimzon/62eeb9b8561bcb9f0c6d</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="114408""></a>
   <div class="note">
    <strong class="user">Steven George</strong>
    <a href="#114408" class="date">17-Feb-2014 11:05</a>

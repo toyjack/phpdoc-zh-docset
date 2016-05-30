@@ -83,7 +83,7 @@
  <div class="refsect1 examples" id="refsect1-memcached.addservers-examples">
   <h3 class="title">·¶Àý</h3>
   <p class="para">
-   <div class="example" id="example-4435">
+   <div class="example" id="example-4798">
     <p><strong>Example #1 <span class="function"><strong>Memcached::addServers()</strong></span>Ê¾Àý</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -111,7 +111,40 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="102486""></a>
+<div id="allnotes">  <a name="118940""></a>
+  <div class="note">
+   <strong class="user">Aliaser</strong>
+   <a href="#118940" class="date">03-Mar-2016 04:44</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+For a proper FailOver mechanism:<br />
+<br />
+$memcached = new Memcached();<br />
+$memcached-&gt;setOption(Memcached::OPT_CONNECT_TIMEOUT, 10);<br />
+$memcached-&gt;setOption(Memcached::OPT_DISTRIBUTION, Memcached::DISTRIBUTION_CONSISTENT);<br />
+$memcached-&gt;setOption(Memcached::OPT_SERVER_FAILURE_LIMIT, 2);<br />
+$memcached-&gt;setOption(Memcached::OPT_REMOVE_FAILED_SERVERS, true);<br />
+$memcached-&gt;setOption(Memcached::OPT_RETRY_TIMEOUT, 1);<br />
+$memcached-&gt;addServers($servers);<br />
+<br />
+Memcached::OPT_DISTRIBUTION: set it to consistent hashing. If one memcached node is dead, its keys (and only its keys) will be evenly distributed to other nodes. This is where the magic is done. This is really different from removing one server in your -&gt;addServers() call.<br />
+<br />
+Memcached::OPT_SERVER_FAILURE_LIMIT: number of connection issues before a server is marked as DEAD, and removed from the list of servers (default: 5).<br />
+<br />
+Memcached::OPT_REMOVE_FAILED_SERVERS: set it to ?true?, to enable the removal of dead servers.<br />
+<br />
+Memcached::OPT_RETRY_TIMEOUT: after a node is declared DEAD, libmemcached will try it again after that many seconds. Here I've set it to 1 second, but I'm working on PHP scripts that run for less than 100ms most of the time. That would only be useful for cron/daemonize scripts.<br />
+<br />
+Memcached::OPT_CONNECT_TIMEOUT: the timeout after which a server is considered DEAD. As my servers are on the same LAN, ping is ~0.5ms, so 10ms is large enough to consider the server is DEAD. Note that you have to wait twice that time before a node is marked DEAD, so if it's 1000ms, your script will lock for 2 seconds before ignoring the DEAD server. That may affect your response times a lot, and that's why I've set it very low<br />
+<br />
+Author of this is Yvan from Dugwood</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="102486""></a>
   <div class="note">
    <strong class="user">Michael Brenden</strong>
    <a href="#102486" class="date">17-Feb-2011 12:27</a>

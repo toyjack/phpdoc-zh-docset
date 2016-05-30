@@ -27,7 +27,7 @@
  <h1 class="title"> PDOException “Ï≥£¿‡ </h1>
  
  
- <div class="partintro"><p class="verinfo">(PHP 5 &gt;= 5.1.0)</p>
+ <div class="partintro"><p class="verinfo">(PHP 5 &gt;= 5.1.0, PHP 7)</p>
  
 
   <div class="section" id="pdoexception.intro">
@@ -173,7 +173,54 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116537""></a>
+<div id="allnotes">  <a name="117632""></a>
+  <div class="note">
+   <strong class="user">jesse dot chisholm at gmail dot com</strong>
+   <a href="#117632" class="date">12-Jul-2015 11:27</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+In response to the 15-May-2010 07:45 note from: samuelelliot+php dot net at gmail dot com<br />
+<br />
+Since the most base class Exception takes three arguments, and the previous exception is not the first, ...<br />
+Since inherited classes to not implicitly call the parent constructor, ...<br />
+<br />
+I recommend changing his constructor to this:<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function __construct(string $message = "", int $code = 0, PDOException $e = null)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; // in case they call: new MyException($somePDOException);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; // instead of following the interface.<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; //<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (is_subclass_of($message, PDOException))<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $e = $message;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $code = $e-&gt;getCode();<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $message = $e-&gt;getMessage();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; // Let PDOException do its normal thing<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; //<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; parent::__construct($message, $code, $e);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; // Now to correct the code number.<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; //<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $state = $this-&gt;getMessage();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(!strstr($state, 'SQLSTATE['))<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $state = $this-&gt;getCode();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(strstr($state, 'SQLSTATE['))<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; preg_match('/SQLSTATE\[(\w+)\] \[(\w+)\] (.*)/', $state, $matches);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;code = ($matches[1] == 'HT000' ? $matches[2] : $matches[1]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;message = $matches[3];<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116537""></a>
   <div class="note">
    <strong class="user">wes at nospampls dot org</strong>
    <a href="#116537" class="date">20-Jan-2015 01:28</a>

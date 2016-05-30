@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.stream-socket-recvfrom" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">stream_socket_recvfrom</h1>
-  <p class="verinfo">(PHP 5)</p><p class="refpurpose"><span class="refname">stream_socket_recvfrom</span> &mdash; <span class="dc-title">Receives data from a socket, connected or not </span></p>
+  <p class="verinfo">(PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">stream_socket_recvfrom</span> &mdash; <span class="dc-title">Receives data from a socket, connected or not </span></p>
 
  </div>
  <div class="refsect1 description" id="refsect1-function.stream-socket-recvfrom-description">
@@ -143,7 +143,7 @@
  <div class="refsect1 examples" id="refsect1-function.stream-socket-recvfrom-examples">
   <h3 class="title">·¶Àý</h3>
   <p class="para">
-   <div class="example" id="example-4058">
+   <div class="example" id="example-4449">
     <p><strong>Example #1 <span class="function"><strong>stream_socket_recvfrom()</strong></span> example</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -191,7 +191,103 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="102457""></a>
+<div id="allnotes">  <a name="117607""></a>
+  <div class="note">
+   <strong class="user">raat1979 at gmail dot com</strong>
+   <a href="#117607" class="date">07-Jul-2015 05:30</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Basically there is currently no real way to determine what the position of the Out of band data is in the tcp/ip stream.<br />
+<br />
+However, it seems that In my current environment (winsock: Windows / PHP 5.3.0) you do not peek beyond the OOB byte unless the buffer is empty<br />
+reads do read beyond the OOB data. (I'll check my linux box later)<br />
+<br />
+You should be able to figure out the position of the OOB data by peeking and reading from the regular stream<br />
+although it would not be 100% reliable as we do read beyond the OOB data when nothing is in front of it.<br />
+depending on the high level protocol it might be possible<br />
+to handle the specific "no data in front of out-of-band data" case<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">echo </span><span class="string">"&lt;pre&gt;"</span><span class="keyword">;<br />
+</span><span class="default">$sockets </span><span class="keyword">= </span><span class="default">stream_socket_pair</span><span class="keyword">(</span><span class="default">STREAM_PF_INET</span><span class="keyword">, </span><span class="default">STREAM_SOCK_STREAM</span><span class="keyword">, </span><span class="default">STREAM_IPPROTO_IP</span><span class="keyword">);<br />
+</span><span class="default">$reader</span><span class="keyword">=</span><span class="default">$sockets</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">];<br />
+</span><span class="default">$writer</span><span class="keyword">=</span><span class="default">$sockets</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">];<br />
+<br />
+</span><span class="default">stream_socket_sendto</span><span class="keyword">(</span><span class="default">$writer</span><span class="keyword">,</span><span class="string">"abc"</span><span class="keyword">);<br />
+</span><span class="default">stream_socket_sendto</span><span class="keyword">(</span><span class="default">$writer</span><span class="keyword">,</span><span class="string">"xyZ"</span><span class="keyword">,</span><span class="default">STREAM_OOB</span><span class="keyword">); </span><span class="comment">// ONLY THE LAST BYTE IS MARKED AS OOB DATA<br />
+</span><span class="default">stream_socket_sendto</span><span class="keyword">(</span><span class="default">$writer</span><span class="keyword">,</span><span class="string">"def"</span><span class="keyword">);<br />
+<br />
+echo </span><span class="string">"\r\n"</span><span class="keyword">;<br />
+echo </span><span class="string">"Test 1, Peeking beyond oob when the read buffer becomes empty\r\n"</span><span class="keyword">;<br />
+echo </span><span class="string">"The data order is 'abcxyZdef'\r\n"</span><span class="keyword">;<br />
+</span><span class="default">stream_select</span><span class="keyword">(</span><span class="default">$r</span><span class="keyword">=array(</span><span class="default">$reader</span><span class="keyword">), </span><span class="default">$w</span><span class="keyword">=array(), </span><span class="default">$x</span><span class="keyword">=array(</span><span class="default">$reader</span><span class="keyword">),</span><span class="default">5</span><span class="keyword">);<br />
+echo </span><span class="string">"has regular:"</span><span class="keyword">;</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">count</span><span class="keyword">(</span><span class="default">$r</span><span class="keyword">)!==</span><span class="default">0</span><span class="keyword">);<br />
+echo </span><span class="string">"has oobData:"</span><span class="keyword">;</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">count</span><span class="keyword">(</span><span class="default">$x</span><span class="keyword">)!==</span><span class="default">0</span><span class="keyword">);<br />
+echo </span><span class="string">"&lt;span style='color:blue' &gt;Peek (9) regular:"</span><span class="keyword">.</span><span class="default">stream_socket_recvfrom</span><span class="keyword">(</span><span class="default">$reader</span><span class="keyword">,</span><span class="default">9</span><span class="keyword">,</span><span class="default">STREAM_PEEK</span><span class="keyword">).</span><span class="string">"&lt;/span&gt;\r\n"</span><span class="keyword">; <br />
+echo </span><span class="string">"&lt;span style='color:green'&gt;Peek (1) OobData:"</span><span class="keyword">.</span><span class="default">stream_socket_recvfrom</span><span class="keyword">(</span><span class="default">$reader</span><span class="keyword">,</span><span class="default">9</span><span class="keyword">,</span><span class="default">STREAM_OOB</span><span class="keyword">|</span><span class="default">STREAM_PEEK</span><span class="keyword">).</span><span class="string">"&lt;/span&gt;\r\n"</span><span class="keyword">; <br />
+echo </span><span class="string">"&lt;span style='color:black'&gt;READ (4) regular:"</span><span class="keyword">.</span><span class="default">stream_socket_recvfrom</span><span class="keyword">(</span><span class="default">$reader</span><span class="keyword">,</span><span class="default">4</span><span class="keyword">).</span><span class="string">"&lt;/span&gt;\r\n"</span><span class="keyword">; <br />
+echo </span><span class="string">"&lt;span style='color:blue' &gt;Peek (9) regular:"</span><span class="keyword">.</span><span class="default">stream_socket_recvfrom</span><span class="keyword">(</span><span class="default">$reader</span><span class="keyword">,</span><span class="default">9</span><span class="keyword">,</span><span class="default">STREAM_PEEK</span><span class="keyword">).</span><span class="string">"&lt;/span&gt;\r\n"</span><span class="keyword">; <br />
+echo </span><span class="string">"&lt;span style='color:black'&gt;READ (1) regular:"</span><span class="keyword">.</span><span class="default">stream_socket_recvfrom</span><span class="keyword">(</span><span class="default">$reader</span><span class="keyword">,</span><span class="default">1</span><span class="keyword">).</span><span class="string">"&lt;/span&gt;\r\n"</span><span class="keyword">; <br />
+echo </span><span class="string">"&lt;span style='color:blue' &gt;Peek (9) regular:"</span><span class="keyword">.</span><span class="default">stream_socket_recvfrom</span><span class="keyword">(</span><span class="default">$reader</span><span class="keyword">,</span><span class="default">9</span><span class="keyword">,</span><span class="default">STREAM_PEEK</span><span class="keyword">).</span><span class="string">"&lt;/span&gt;\r\n"</span><span class="keyword">; <br />
+</span><span class="comment">// read the OOB data<br />
+</span><span class="keyword">echo </span><span class="string">"&lt;span style='color:red'&nbsp; &gt;READ (9) OobData:"</span><span class="keyword">.</span><span class="default">stream_socket_recvfrom</span><span class="keyword">(</span><span class="default">$reader</span><span class="keyword">,</span><span class="default">9</span><span class="keyword">,</span><span class="default">STREAM_OOB</span><span class="keyword">).</span><span class="string">"&lt;/span&gt;\r\n"</span><span class="keyword">; <br />
+<br />
+echo </span><span class="string">"&lt;span style='color:blue' &gt;Peek (9) regular:"</span><span class="keyword">.</span><span class="default">stream_socket_recvfrom</span><span class="keyword">(</span><span class="default">$reader</span><span class="keyword">,</span><span class="default">9</span><span class="keyword">,</span><span class="default">STREAM_PEEK</span><span class="keyword">).</span><span class="string">"&lt;/span&gt;\r\n"</span><span class="keyword">; <br />
+<br />
+</span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$sockets</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">]);<br />
+</span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$sockets</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">]);<br />
+echo </span><span class="string">"&lt;/pre&gt;"</span><span class="keyword">;<br />
+</span><span class="default">?&gt;<br />
+</span>outputs:<br />
+Test 1, Peeking beyond oob when the read buffer becomes empty<br />
+The data order is 'abcxyZdef'<br />
+has regular:bool(true)<br />
+has oobData:bool(true)<br />
+Peek (9) regular:abcxy<br />
+Peek (1) OobData:Z<br />
+READ (4) regular:abcx<br />
+Peek (9) regular:y<br />
+READ (1) regular:y<br />
+Peek (9) regular:def<br />
+READ (9) OobData:Z<br />
+Peek (9) regular:def<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">echo </span><span class="string">"&lt;pre&gt;"</span><span class="keyword">;<br />
+</span><span class="default">$sockets </span><span class="keyword">= </span><span class="default">stream_socket_pair</span><span class="keyword">(</span><span class="default">STREAM_PF_INET</span><span class="keyword">, </span><span class="default">STREAM_SOCK_STREAM</span><span class="keyword">, </span><span class="default">STREAM_IPPROTO_IP</span><span class="keyword">);<br />
+</span><span class="default">$reader</span><span class="keyword">=</span><span class="default">$sockets</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">];<br />
+</span><span class="default">$writer</span><span class="keyword">=</span><span class="default">$sockets</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">];<br />
+<br />
+</span><span class="default">stream_socket_sendto</span><span class="keyword">(</span><span class="default">$writer</span><span class="keyword">,</span><span class="string">"Z"</span><span class="keyword">,</span><span class="default">STREAM_OOB</span><span class="keyword">); </span><span class="comment">// ONLY THE LAST BYTE IS MARKED AS OOB DATA<br />
+</span><span class="default">stream_socket_sendto</span><span class="keyword">(</span><span class="default">$writer</span><span class="keyword">,</span><span class="string">"abcxydef"</span><span class="keyword">);<br />
+<br />
+echo </span><span class="string">"&lt;hr/&gt;"</span><span class="keyword">;<br />
+echo </span><span class="string">"\r\n"</span><span class="keyword">;<br />
+echo </span><span class="string">"Test 2, peek if there is nothing in front of the OOB data\r\n"</span><span class="keyword">;<br />
+echo </span><span class="string">"The data order is 'Zabcxydef'\r\n"</span><span class="keyword">;<br />
+</span><span class="default">stream_select</span><span class="keyword">(</span><span class="default">$r</span><span class="keyword">=array(</span><span class="default">$reader</span><span class="keyword">), </span><span class="default">$w</span><span class="keyword">=array(), </span><span class="default">$x</span><span class="keyword">=array(</span><span class="default">$reader</span><span class="keyword">),</span><span class="default">5</span><span class="keyword">);<br />
+echo </span><span class="string">"has regular:"</span><span class="keyword">;</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">count</span><span class="keyword">(</span><span class="default">$r</span><span class="keyword">)!==</span><span class="default">0</span><span class="keyword">);<br />
+echo </span><span class="string">"has oobData:"</span><span class="keyword">;</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">count</span><span class="keyword">(</span><span class="default">$x</span><span class="keyword">)!==</span><span class="default">0</span><span class="keyword">);<br />
+echo </span><span class="string">"&lt;span style='color:blue'&gt;peek (9) regular:"</span><span class="keyword">.</span><span class="default">stream_socket_recvfrom</span><span class="keyword">(</span><span class="default">$reader</span><span class="keyword">,</span><span class="default">9</span><span class="keyword">,</span><span class="default">STREAM_PEEK</span><span class="keyword">).</span><span class="string">"&lt;/span&gt;\r\n"</span><span class="keyword">; <br />
+echo </span><span class="string">"&lt;span style='color:red' &gt;Peek (9) OobData:"</span><span class="keyword">.</span><span class="default">stream_socket_recvfrom</span><span class="keyword">(</span><span class="default">$reader</span><span class="keyword">,</span><span class="default">9</span><span class="keyword">,</span><span class="default">STREAM_OOB</span><span class="keyword">).</span><span class="string">"&lt;/span&gt;\r\n"</span><span class="keyword">; <br />
+echo </span><span class="string">"&lt;span style='color:blue'&gt;peek (9) regular:"</span><span class="keyword">.</span><span class="default">stream_socket_recvfrom</span><span class="keyword">(</span><span class="default">$reader</span><span class="keyword">,</span><span class="default">9</span><span class="keyword">,</span><span class="default">STREAM_PEEK</span><span class="keyword">).</span><span class="string">"&lt;/span&gt;\r\n"</span><span class="keyword">; <br />
+echo </span><span class="string">"&lt;/pre&gt;"</span><span class="keyword">;<br />
+</span><span class="default">?&gt;<br />
+</span>Outputs: <br />
+Test 2, peek if there is nothing in front of the OOB data<br />
+The data order is 'Zabcxydef'<br />
+has regular:bool(true)<br />
+has oobData:bool(true)<br />
+peek (9) regular:abcxydef<br />
+Peek (9) OobData:Z<br />
+peek (9) regular:abcxydef</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="102457""></a>
   <div class="note">
    <strong class="user">MagicalTux at php dot net</strong>
    <a href="#102457" class="date">16-Feb-2011 08:13</a>

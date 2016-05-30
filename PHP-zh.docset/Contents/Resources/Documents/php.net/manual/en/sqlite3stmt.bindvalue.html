@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="sqlite3stmt.bindvalue" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">SQLite3Stmt::bindValue</h1>
-  <p class="verinfo">(PHP 5 &gt;= 5.3.0)</p><p class="refpurpose"><span class="refname">SQLite3Stmt::bindValue</span> &mdash; <span class="dc-title">Binds the value of a parameter to a statement variable</span></p>
+  <p class="verinfo">(PHP 5 &gt;= 5.3.0, PHP 7)</p><p class="refpurpose"><span class="refname">SQLite3Stmt::bindValue</span> &mdash; <span class="dc-title">Binds the value of a parameter to a statement variable</span></p>
 
  </div>
 
@@ -138,7 +138,7 @@
  <div class="refsect1 examples" id="refsect1-sqlite3stmt.bindvalue-examples">
   <h3 class="title">·¶Àý</h3>
   <p class="para">
-   <div class="example" id="example-2177">
+   <div class="example" id="example-2299">
     <p><strong>Example #1 <span class="function"><strong>SQLite3Stmt::bindValue()</strong></span> example</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -156,7 +156,65 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116523""></a>
+<div id="allnotes">  <a name="119162""></a>
+  <div class="note">
+   <strong class="user">vaibhavatul47 at gmail dot com</strong>
+   <a href="#119162" class="date">13-Apr-2016 09:42</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I used following logic to prepare statements, It handles both Values and Arrays ( taking help from bohwaz note) :<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">function </span><span class="default">getArgType</span><span class="keyword">(</span><span class="default">$arg</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; switch (</span><span class="default">gettype</span><span class="keyword">(</span><span class="default">$arg</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">'double'</span><span class="keyword">:&nbsp; return </span><span class="default">SQLITE3_FLOAT</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">'integer'</span><span class="keyword">: return </span><span class="default">SQLITE3_INTEGER</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">'boolean'</span><span class="keyword">: return </span><span class="default">SQLITE3_INTEGER</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">'NULL'</span><span class="keyword">:&nbsp; &nbsp; return </span><span class="default">SQLITE3_NULL</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">'string'</span><span class="keyword">:&nbsp; return </span><span class="default">SQLITE3_TEXT</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; default:<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; throw new \</span><span class="default">InvalidArgumentException</span><span class="keyword">(</span><span class="string">'Argument is of invalid type '</span><span class="keyword">.</span><span class="default">gettype</span><span class="keyword">(</span><span class="default">$arg</span><span class="keyword">));<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+foreach (</span><span class="default">$params </span><span class="keyword">as </span><span class="default">$index </span><span class="keyword">=&gt; </span><span class="default">$val</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// indexing start from 1 in Sqlite statement<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if (</span><span class="default">is_array</span><span class="keyword">(</span><span class="default">$val</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$ok </span><span class="keyword">= </span><span class="default">$stmt</span><span class="keyword">-&gt;</span><span class="default">bindParam</span><span class="keyword">(</span><span class="default">$index </span><span class="keyword">+ </span><span class="default">1</span><span class="keyword">, </span><span class="default">$val</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$ok </span><span class="keyword">= </span><span class="default">$stmt</span><span class="keyword">-&gt;</span><span class="default">bindValue</span><span class="keyword">(</span><span class="default">$index </span><span class="keyword">+ </span><span class="default">1</span><span class="keyword">, </span><span class="default">$val</span><span class="keyword">, </span><span class="default">getArgType</span><span class="keyword">(</span><span class="default">$val</span><span class="keyword">));<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (!</span><span class="default">$ok</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; throw new </span><span class="default">Exception</span><span class="keyword">(</span><span class="string">"Unable to bind param: </span><span class="default">$val</span><span class="string">"</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117604""></a>
+  <div class="note">
+   <strong class="user">andrevanzuydam at gmail dot com</strong>
+   <a href="#117604" class="date">06-Jul-2015 10:41</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I just want to say again, <br />
+<br />
+Numbering for parameters starts at ONE!<br />
+<br />
+This has caught me out quite a few times!</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116523""></a>
   <div class="note">
    <strong class="user">bohwaz</strong>
    <a href="#116523" class="date">18-Jan-2015 01:49</a>

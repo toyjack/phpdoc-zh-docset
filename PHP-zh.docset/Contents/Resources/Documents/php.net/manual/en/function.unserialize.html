@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.unserialize" class="refentry">
    <div class="refnamediv">
     <h1 class="refname">unserialize</h1>
-    <p class="verinfo">(PHP 4, PHP 5)</p><p class="refpurpose"><span class="refname">unserialize</span> &mdash; <span class="dc-title">
+    <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">unserialize</span> &mdash; <span class="dc-title">
      从已存储的表示中创建 PHP 的值
     </span></p>
 
@@ -130,7 +130,7 @@
  <div class="refsect1 examples" id="refsect1-function.unserialize-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-5289">
+   <div class="example" id="example-5674">
     <p><strong>Example #1 <span class="function"><strong>unserialize()</strong></span> 例子</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -142,7 +142,7 @@
    </div>
   </p>
   <p class="para">
-   <div class="example" id="example-5290">
+   <div class="example" id="example-5675">
     <p><strong>Example #2 unserialize_callback_func 例子</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -183,7 +183,66 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="112894""></a>
+<div id="allnotes">  <a name="117887""></a>
+  <div class="note">
+   <strong class="user">smilesrg at gmail dot com</strong>
+   <a href="#117887" class="date">27-Aug-2015 02:28</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I faced with error when serializing/deserializing an object. The error looks like <br />
+Notice: unserialize(): Error at offset 2 of 52 bytes in file.php on line 130<br />
+<br />
+and found solution here: <a href="http://davidwalsh.name/php-serialize-unserialize-issues" rel="nofollow" target="_blank">http://davidwalsh.name/php-serialize-unserialize-issues</a><br />
+<br />
+The safe way to serialize and unserialize:<br />
+<br />
+//to safely serialize<br />
+$serialized = base64_encode(serialize($var));<br />
+<br />
+//to unserialize...<br />
+$unserialized = unserialize(base64_decode($var));</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117589""></a>
+  <div class="note">
+   <strong class="user">chris at pollett dot org</strong>
+   <a href="#117589" class="date">03-Jul-2015 12:28</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+When you serialize an object of a class from a particular namespace, the namespace is recorded as part of the serialization. If you decide to change this namespace's name, it can be hard to read in old serialized objects. I.e., suppose you had serialized an object of type foo\A, you change the namespace of your project to goo but otherwise leave the class definition of A unchanged. You would like to be able to unserialize the object as goo\A, instead unserialization will only create a partial object. To fix this in the case where you don't have nested objects in your class definition, you can use the following simple rename function:<br />
+/**<br />
+&nbsp;* Used to change the namespace of a serialized php object (assumes doesn't<br />
+&nbsp;* have nested subobjects)<br />
+&nbsp;*<br />
+&nbsp;* @param string $class_name new fully qualified name with namespace<br />
+&nbsp;* @param string $object_string serialized object<br />
+&nbsp;*<br />
+&nbsp;* @return string serialized object with new name<br />
+&nbsp;*/<br />
+function renameSerializedObject($class_name, $object_string)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; /*&nbsp; number of digits in the length of name of the object needs to be <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; less than 12 digits (probably more like 4) for this to work.<br />
+&nbsp;&nbsp;&nbsp; */<br />
+&nbsp;&nbsp;&nbsp; $name_length = intval(substr($object_string, 2, 14));<br />
+&nbsp;&nbsp;&nbsp; $name_space_info_length = strlen("O:".$name_length.":") +<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $name_length + 2; // 2 for quotes;<br />
+&nbsp;&nbsp;&nbsp; $object_string = 'O:' .<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; strlen($class_name) . ':"'. $class_name.'"' .<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; substr($object_string, $name_space_info_length);<br />
+&nbsp;&nbsp;&nbsp; return $object_string;<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="112894""></a>
   <div class="note">
    <strong class="user">ErnestV</strong>
    <a href="#112894" class="date">03-Aug-2013 10:05</a>

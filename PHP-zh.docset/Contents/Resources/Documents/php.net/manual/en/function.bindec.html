@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.bindec" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">bindec</h1>
-  <p class="verinfo">(PHP 4, PHP 5)</p><p class="refpurpose"><span class="refname">bindec</span> &mdash; <span class="dc-title">二进制转换为十进制</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">bindec</span> &mdash; <span class="dc-title">二进制转换为十进制</span></p>
 
  </div>
  <div class="refsect1 description" id="refsect1-function.bindec-description">
@@ -118,7 +118,7 @@
  <div class="refsect1 examples" id="refsect1-function.bindec-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-3448">
+   <div class="example" id="example-3835">
     <p><strong>Example #1 <span class="function"><strong>bindec()</strong></span> 例子</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -138,7 +138,7 @@
    </div>
   </p>
   <p class="para">
-   <div class="example" id="example-3449">
+   <div class="example" id="example-3836">
     <p><strong>Example #2 <span class="function"><strong>bindec()</strong></span> 将输入解读为无符号整数</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -224,7 +224,56 @@ NOTE:         interpreted to be the largest unsigned integer
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="109414""></a>
+<div id="allnotes">  <a name="118458""></a>
+  <div class="note">
+   <strong class="user">jpfstange at gmail dot com</strong>
+   <a href="#118458" class="date">10-Dec-2015 05:54</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+<span class="default">&lt;?php<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; </span><span class="comment">//binfloat (For single precision floating point numbers)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; //IEE754 <br />
+&nbsp;&nbsp; &nbsp; &nbsp; //https://en.wikipedia.org/wiki/Single-precision_floating-point_format<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">function </span><span class="default">binfloat</span><span class="keyword">(Array </span><span class="default">$num</span><span class="keyword">){<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$sign&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">=&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$num</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">] ? </span><span class="default">1 </span><span class="keyword">: -</span><span class="default">1</span><span class="keyword">;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">//1 bit<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$exponent&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">=&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">pow</span><span class="keyword">(</span><span class="default">2</span><span class="keyword">,</span><span class="default">bindec</span><span class="keyword">(</span><span class="default">implode</span><span class="keyword">(</span><span class="string">''</span><span class="keyword">,</span><span class="default">array_slice</span><span class="keyword">(</span><span class="default">$num</span><span class="keyword">,</span><span class="default">1</span><span class="keyword">,</span><span class="default">8</span><span class="keyword">)))-</span><span class="default">127</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$fraction&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">=&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">array_slice</span><span class="keyword">(</span><span class="default">$num</span><span class="keyword">,</span><span class="default">9</span><span class="keyword">,</span><span class="default">count</span><span class="keyword">(</span><span class="default">$num</span><span class="keyword">));&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="comment">//23 bits<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$fracSum&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="keyword">=&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">1</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; for(</span><span class="default">$i</span><span class="keyword">=</span><span class="default">0</span><span class="keyword">;</span><span class="default">$i</span><span class="keyword">&lt;</span><span class="default">23</span><span class="keyword">;</span><span class="default">$i</span><span class="keyword">++){<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$fracSum </span><span class="keyword">+= </span><span class="default">$fraction</span><span class="keyword">[</span><span class="default">$i</span><span class="keyword">] * </span><span class="default">pow</span><span class="keyword">(</span><span class="default">2</span><span class="keyword">,-</span><span class="default">1</span><span class="keyword">-</span><span class="default">$i</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$fracSum</span><span class="keyword">*</span><span class="default">$exponent</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$num&nbsp; &nbsp; </span><span class="keyword">=&nbsp; &nbsp; &nbsp;&nbsp; isset(</span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">'num'</span><span class="keyword">]) ? </span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">'num'</span><span class="keyword">] : </span><span class="string">'00111110001000000000000000000000'</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$num</span><span class="keyword">)&lt;</span><span class="default">32</span><span class="keyword">){<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"Invalid binary number </span><span class="default">$num</span><span class="string">\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; exit(</span><span class="default">1</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$num&nbsp; &nbsp; </span><span class="keyword">=&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">str_split</span><span class="keyword">(</span><span class="default">$num</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="default">sprintf</span><span class="keyword">(</span><span class="string">'Num is: [%s]%s'</span><span class="keyword">,</span><span class="default">implode</span><span class="keyword">(</span><span class="string">''</span><span class="keyword">,</span><span class="default">$num</span><span class="keyword">),</span><span class="string">"\n"</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="default">sprintf</span><span class="keyword">(</span><span class="string">'Result is: %s%s'</span><span class="keyword">,</span><span class="default">binfloat</span><span class="keyword">(</span><span class="default">$num</span><span class="keyword">),</span><span class="string">"\n"</span><span class="keyword">);</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="109414""></a>
   <div class="note">
    <strong class="user">patrick dot boens at latosensu dot be</strong>
    <a href="#109414" class="date">15-Jul-2012 10:14</a>

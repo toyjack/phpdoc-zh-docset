@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.htmlspecialchars" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">htmlspecialchars</h1>
-  <p class="verinfo">(PHP 4, PHP 5)</p><p class="refpurpose"><span class="refname">htmlspecialchars</span> &mdash; <span class="dc-title">Convert special characters to HTML entities</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">htmlspecialchars</span> &mdash; <span class="dc-title">Convert special characters to HTML entities</span></p>
 
  </div>
 
@@ -505,7 +505,7 @@
  <div class="refsect1 examples" id="refsect1-function.htmlspecialchars-examples">
   <h3 class="title">·¶Àý</h3>
   <p class="para">
-   <div class="example" id="example-4871">
+   <div class="example" id="example-5247">
     <p><strong>Example #1 <span class="function"><strong>htmlspecialchars()</strong></span> example</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -549,7 +549,111 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="115831""></a>
+<div id="allnotes">  <a name="117290""></a>
+  <div class="note">
+   <strong class="user">PoV</strong>
+   <a href="#117290" class="date">18-May-2015 08:59</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Be aware of the encoding of your source files!!! <br />
+<br />
+Some of the suggestions here make reference to workarounds where you hard-code an encoding.<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp; </span><span class="keyword">echo </span><span class="default">htmlspecialchars</span><span class="keyword">(</span><span class="string">'&lt;b&gt;W?rmann&lt;/b&gt;'</span><span class="keyword">);&nbsp; </span><span class="comment">// Why isn't this working?<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+As it turns out, it may actually be your text editor that is to blame.<br />
+<br />
+As of PHP 5.4, htmlspecialchars now defaults to the UTF-8 encoding. That said, many text editors default to non-UTF encodings like ISO-8859-1 (i.e. Latin-1) or WIN-1252. If you change the encoding of the file to UTF-8, the code above will now work (i.e. the ? is encoded differently in UTF-8 and ISO-8859-1, and you need the UTF-8 version).<br />
+<br />
+Make sure you are editing in UTF-8 Unicode mode! Check your UI or manual for how to convert files to Unicode. It's also a good idea to figure out where to look in your UI to see what the current file encoding is.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117116""></a>
+  <div class="note">
+   <strong class="user">Albert</strong>
+   <a href="#117116" class="date">16-Apr-2015 11:30</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The code I posted this morning (for giving back to htmlspecialchars etc. the old default ISO encoding) had some strange problem, didn't work if a page was reloaded! Here the code I came up with, without this problem:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">if (</span><span class="default">version_compare</span><span class="keyword">(</span><span class="default">phpversion</span><span class="keyword">(), </span><span class="string">"5.3.3"</span><span class="keyword">, </span><span class="string">"&gt;"</span><span class="keyword">)) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">runkit_function_copy</span><span class="keyword">(</span><span class="string">'htmlspecialchars'</span><span class="keyword">, </span><span class="string">'htmlspecialchars_new'</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">runkit_function_redefine</span><span class="keyword">(<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'htmlspecialchars'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'$string, $flags, $encoding'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'return $encoding == "" ? htmlspecialchars_new($string, ENT_COMPAT | ENT_HTML401, "ISO-8859-1") : htmlspecialchars_new($string, $flags, $encoding);'<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">runkit_function_copy</span><span class="keyword">(</span><span class="string">'htmlentities'</span><span class="keyword">, </span><span class="string">'htmlentities_new'</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">runkit_function_redefine</span><span class="keyword">(<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'htmlentities'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'$string, $flags, $encoding'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'return $encoding == "" ? htmlentities_new($string, ENT_COMPAT | ENT_HTML401, "ISO-8859-1") : htmlentities_new($string, $flags, $encoding);'<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">runkit_function_copy</span><span class="keyword">(</span><span class="string">'html_entity_decode'</span><span class="keyword">, </span><span class="string">'html_entity_decode_new'</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">runkit_function_redefine</span><span class="keyword">(<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'html_entity_decode'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'$string, $flags, $encoding'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'return $encoding == "" ? html_entity_decode_new($string, ENT_COMPAT | ENT_HTML401, "ISO-8859-1") : html_entity_decode_new($string, $flags, $encoding);'<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">);<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+So first I copy the original function, then I redefine the same.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117113""></a>
+  <div class="note">
+   <strong class="user">Albert</strong>
+   <a href="#117113" class="date">16-Apr-2015 07:21</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I found a simple solution for the changed default character encoding in htmlspecialchars, htmlentities and html_entity_decode, so my (very) old code kept running:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">if (</span><span class="default">version_compare</span><span class="keyword">(</span><span class="default">phpversion</span><span class="keyword">(), </span><span class="string">"5.3.3"</span><span class="keyword">, </span><span class="string">"&gt;"</span><span class="keyword">)) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">runkit_function_rename</span><span class="keyword">(</span><span class="string">'htmlspecialchars'</span><span class="keyword">, </span><span class="string">'htmlspecialchars_new'</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">runkit_function_add</span><span class="keyword">(<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'htmlspecialchars'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'$string, $flags, $encoding'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'return $encoding == "" ? htmlspecialchars_new($string, ENT_COMPAT | ENT_HTML401, "ISO-8859-1") : htmlspecialchars_new($string, $flags, $encoding);'<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">runkit_function_rename</span><span class="keyword">(</span><span class="string">'htmlentities'</span><span class="keyword">, </span><span class="string">'htmlentities_new'</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">runkit_function_add</span><span class="keyword">(<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'htmlentities'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'$string, $flags, $encoding'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'return $encoding == "" ? htmlentities_new($string, ENT_COMPAT | ENT_HTML401, "ISO-8859-1") : htmlentities_new($string, $flags, $encoding);'<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">runkit_function_rename</span><span class="keyword">(</span><span class="string">'html_entity_decode'</span><span class="keyword">, </span><span class="string">'html_entity_decode_new'</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">runkit_function_add</span><span class="keyword">(<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'html_entity_decode'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'$string, $flags, $encoding'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'return $encoding == "" ? html_entity_decode_new($string, ENT_COMPAT | ENT_HTML401, "ISO-8859-1") : html_entity_decode_new($string, $flags, $encoding);'<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">);<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115831""></a>
   <div class="note">
    <strong class="user">sascham78 at php dot net</strong>
    <a href="#115831" class="date">01-Oct-2014 05:57</a>

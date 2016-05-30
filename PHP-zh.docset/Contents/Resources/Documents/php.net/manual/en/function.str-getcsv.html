@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.str-getcsv" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">str_getcsv</h1>
-  <p class="verinfo">(PHP 5 &gt;= 5.3.0)</p><p class="refpurpose"><span class="refname">str_getcsv</span> &mdash; <span class="dc-title">
+  <p class="verinfo">(PHP 5 &gt;= 5.3.0, PHP 7)</p><p class="refpurpose"><span class="refname">str_getcsv</span> &mdash; <span class="dc-title">
    解析 CSV 字符串为一个数组
   </span></p>
 
@@ -128,7 +128,157 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116763""></a>
+<div id="allnotes">  <a name="117776""></a>
+  <div class="note">
+   <strong class="user">nobody</strong>
+   <a href="#117776" class="date">07-Aug-2015 06:44</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+You can parse a full standard csv string (i.e. a form posted textarea with csv lines) in one easy step:<br />
+<br />
+<span class="default">&lt;?php<br />
+$fullcsv </span><span class="keyword">= </span><span class="default">array_map</span><span class="keyword">(</span><span class="string">'str_getcsv'</span><span class="keyword">, </span><span class="default">str_getcsv</span><span class="keyword">(</span><span class="default">$str_csv</span><span class="keyword">,</span><span class="string">"\n"</span><span class="keyword">));<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117692""></a>
+  <div class="note">
+   <strong class="user">starrychloe at oliveyou dot net</strong>
+   <a href="#117692" class="date">24-Jul-2015 03:12</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Based on James' line, this will create an array of associative arrays with the first row column headers as the keys.<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; $csv </span><span class="keyword">= </span><span class="default">array_map</span><span class="keyword">(</span><span class="string">'str_getcsv'</span><span class="keyword">, </span><span class="default">file</span><span class="keyword">(</span><span class="default">$file</span><span class="keyword">));<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">array_walk</span><span class="keyword">(</span><span class="default">$csv</span><span class="keyword">, function(&amp;</span><span class="default">$a</span><span class="keyword">) use (</span><span class="default">$csv</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$a </span><span class="keyword">= </span><span class="default">array_combine</span><span class="keyword">(</span><span class="default">$csv</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">], </span><span class="default">$a</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; });<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">array_shift</span><span class="keyword">(</span><span class="default">$csv</span><span class="keyword">); </span><span class="comment"># remove column header<br />
+</span><span class="default">?&gt;</span> <br />
+<br />
+This will yield something like<br />
+&nbsp;&nbsp;&nbsp; [2] =&gt; Array<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; (<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [Campaign ID] =&gt; 295095038<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [Ad group ID] =&gt; 22460178158<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [Keyword ID] =&gt; 3993587178</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117585""></a>
+  <div class="note">
+   <strong class="user">peter dot mlich at volny dot cz</strong>
+   <a href="#117585" class="date">02-Jul-2015 07:21</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+&gt; 49 durik at 3ilab dot net /&nbsp; 4 years ago<br />
+$rows = str_getcsv($csv_data, "\n");<br />
+- bug, data in csv can have "\n"<br />
+'aaa','bb<br />
+b','ccc'</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117519""></a>
+  <div class="note">
+   <strong class="user">str_getcsv at php dot net</strong>
+   <a href="#117519" class="date">23-Jun-2015 09:49</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+An alternative for 'str_getcsv'<br />
+<br />
+if (!function_exists('str_getcsv')) { <br />
+&nbsp;&nbsp;&nbsp; function str_getcsv($str, $length = 8096, $delimiter = ',', $enclosure = '"', $escape = '\\') { <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $handle = fopen('data://text/plain;base64,' . base64_encode($str), 'r');<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $data = array();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $i = 0;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; while (($line = fgetcsv($handle, $length, $delimiter, $enclosure)) !== false) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; foreach ($line as $value) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $data[$i] = $value;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $i ++;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; fclose($handle);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return $data; <br />
+&nbsp;&nbsp;&nbsp; } <br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117366""></a>
+  <div class="note">
+   <strong class="user">pasmanik at gmail dot com</strong>
+   <a href="#117366" class="date">28-May-2015 05:08</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I prepared some better function for parsing CSV string.<br />
+<br />
+function csv_to_array($string='', $row_delimiter=PHP_EOL, $delimiter = "," , $enclosure = '"' , $escape = "\\" )<br />
+{<br />
+&nbsp;&nbsp;&nbsp; $rows = array_filter(explode($row_delimiter, $string));<br />
+&nbsp;&nbsp;&nbsp; $header = NULL;<br />
+&nbsp;&nbsp;&nbsp; $data = array();<br />
+<br />
+&nbsp;&nbsp;&nbsp; foreach($rows as $row)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $row = str_getcsv ($row, $delimiter, $enclosure , $escape);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(!$header)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $header = $row;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; else<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $data[] = array_combine($header, $row);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; return $data;<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117230""></a>
+  <div class="note">
+   <strong class="user">csver at phper dot com</strong>
+   <a href="#117230" class="date">06-May-2015 07:02</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Quick and proper way:<br />
+<br />
+&nbsp;&nbsp;&nbsp; $temp = fopen('php://temp', 'r+');<br />
+&nbsp;&nbsp;&nbsp; fputs($csvString, $temp);<br />
+&nbsp;&nbsp;&nbsp; rewind($temp);<br />
+<br />
+&nbsp;&nbsp;&nbsp; $csvArray = array();<br />
+<br />
+&nbsp;&nbsp;&nbsp; while( $csvRow = fgetcsv($temp) )<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $csvArray[] = $csvRow;<br />
+&nbsp;&nbsp;&nbsp; fclose($temp);</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116763""></a>
   <div class="note">
    <strong class="user">sven at e7o dot de</strong>
    <a href="#116763" class="date">24-Feb-2015 11:53</a>

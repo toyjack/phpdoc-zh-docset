@@ -44,7 +44,7 @@
     private 的话）。
    </span>
   </p></blockquote>
-  <div class="example" id="example-199">
+  <div class="example" id="example-210">
    <p><strong>Example #1 使用新标准的构造函数</strong></p>
    <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -67,7 +67,7 @@
   <p class="para">
    自 PHP 5.3.3 起，在命名空间中，与类名同名的方法不再作为构造函数。这一改变不影响不在命名空间中的类。
   </p>
-  <div class="example" id="example-200">
+  <div class="example" id="example-211">
    <p><strong>Example #2 Constructors in namespaced classes</strong></p>
    <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -90,7 +90,7 @@
    PHP 5 引入了析构函数的概念，这类似于其它面向对象的语言，如
    C++。析构函数会在到某个对象的所有引用都被删除或者当对象被显式销毁时执行。
   </p>
-  <div class="example" id="example-201">
+  <div class="example" id="example-212">
    <p><strong>Example #3 析构函数示例</strong></p>
    <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -126,100 +126,91 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="115271""></a>
+<div id="allnotes">  <a name="117693""></a>
   <div class="note">
-   <strong class="user">mattsch at gmail dot com</strong>
-   <a href="#115271" class="date">25-Jun-2014 11:35</a>
+   <strong class="user">cottton</strong>
+   <a href="#117693" class="date">24-Jul-2015 04:06</a>
    <div class="text">
     <div class="phpcode">
 <code><span class="html">
-I would advise against the use of exceptions within __construct.&nbsp; If you store the error code for an exception within a function of that class, you have no way of reading that error code to tell what type of exception it is because the object does not exist yet.<br />
+[quote]<br />
+Note:<br />
+Attempting to throw an exception from a destructor (called in the time of script termination) causes a fatal error.<br />
+[/quote]<br />
+Not true.<br />
 <br />
-Checking the code cannot be accomplished if an exception is thrown in the construct:<br />
+Usually you wont be able to catch an Exception thrown out of a ::__destruct().<br />
+BUT following case shows that it IS possible to catch a thrown Exception from the ::__destruct()<br />
 <span class="default">&lt;?php<br />
-</span><span class="keyword">class </span><span class="default">FooException </span><span class="keyword">extends </span><span class="default">Exception<br />
+</span><span class="keyword">class </span><span class="default">Something<br />
 </span><span class="keyword">{<br />
-}<br />
-class </span><span class="default">Foo </span><span class="keyword">{<br />
-&nbsp;&nbsp;&nbsp; private </span><span class="default">$bar</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; private </span><span class="default">$baz</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; public function </span><span class="default">__construct</span><span class="keyword">(</span><span class="default">$foo </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__construct</span><span class="keyword">()<br />
 &nbsp;&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$foo </span><span class="keyword">=== </span><span class="default">null</span><span class="keyword">) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; throw new </span><span class="default">FooException</span><span class="keyword">(</span><span class="string">'An error occured in construct'</span><span class="keyword">, </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">errorConstruct</span><span class="keyword">());<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="default">__METHOD__ </span><span class="keyword">. </span><span class="default">PHP_EOL</span><span class="keyword">;<br />
 &nbsp;&nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; public function </span><span class="default">setBar</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__destruct</span><span class="keyword">()<br />
 &nbsp;&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">bar </span><span class="keyword">= </span><span class="string">'baz'</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; public function </span><span class="default">setBaz</span><span class="keyword">()<br />
-&nbsp;&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">baz </span><span class="keyword">= </span><span class="string">'foo'</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; final public function </span><span class="default">errorFooNotSet</span><span class="keyword">()<br />
-&nbsp;&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">1</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="default">__METHOD__ </span><span class="keyword">. </span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; throw new </span><span class="default">Exception</span><span class="keyword">(</span><span class="string">"Exception thrown out of ::__destruct()"</span><span class="keyword">, </span><span class="default">1</span><span class="keyword">);<br />
 &nbsp;&nbsp;&nbsp; }<br />
 }<br />
-<br />
-try {<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">$foo </span><span class="keyword">= new </span><span class="default">Foo</span><span class="keyword">();<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">$foo</span><span class="keyword">-&gt;</span><span class="default">setBar</span><span class="keyword">();<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">$foo</span><span class="keyword">-&gt;</span><span class="default">setBaz</span><span class="keyword">();<br />
-} catch (</span><span class="default">FooException $e</span><span class="keyword">) {<br />
-&nbsp;&nbsp;&nbsp; </span><span class="comment">// This will error because the object doesn't exist yet<br />
-&nbsp;&nbsp;&nbsp; </span><span class="keyword">if (</span><span class="default">$e</span><span class="keyword">-&gt;</span><span class="default">getCode</span><span class="keyword">() == </span><span class="default">$foo</span><span class="keyword">-&gt;</span><span class="default">errorFooNotSet</span><span class="keyword">()) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">'foo is not set'</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; }<br />
+try{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$Something </span><span class="keyword">= new </span><span class="default">Something</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$Something </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">; </span><span class="comment">// will cause to call the objects ::__destruct()<br />
+&nbsp;&nbsp;&nbsp; // also possible: unset($Something);<br />
+</span><span class="keyword">}catch(</span><span class="default">Exception $e</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">'Exception: ' </span><span class="keyword">. </span><span class="default">$e</span><span class="keyword">-&gt;</span><span class="default">getMessage</span><span class="keyword">() . </span><span class="default">PHP_EOL</span><span class="keyword">;<br />
 }<br />
+echo </span><span class="string">'End of script -- no Fatal Error.'</span><span class="keyword">;<br />
 </span><span class="default">?&gt;<br />
-</span><br />
-Checking the code can be accomplished if an exception is not thrown in the construct:<br />
+</span>IMO this is not a bug. It is ok to be able to throw and catch Exception.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117547""></a>
+  <div class="note">
+   <strong class="user">479258741 at qq dot com</strong>
+   <a href="#117547" class="date">26-Jun-2015 07:54</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If a new reference of the object is created during __destruct, the memory for the object will not be freed, and the __destruct will not be called for a second time.<br />
 <span class="default">&lt;?php<br />
-</span><span class="keyword">class </span><span class="default">FooException </span><span class="keyword">extends </span><span class="default">Exception<br />
-</span><span class="keyword">{<br />
-}<br />
-class </span><span class="default">Foo </span><span class="keyword">{<br />
-&nbsp;&nbsp;&nbsp; private </span><span class="default">$bar</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; private </span><span class="default">$baz</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; public function </span><span class="default">__construct</span><span class="keyword">(</span><span class="default">$foo </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">)<br />
-&nbsp;&nbsp;&nbsp; {<br />
+</span><span class="keyword">class </span><span class="default">Foo</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public </span><span class="default">$i </span><span class="keyword">= </span><span class="string">"I=12345678\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">showI</span><span class="keyword">(){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">i</span><span class="keyword">);<br />
 &nbsp;&nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; public function </span><span class="default">init</span><span class="keyword">()<br />
-&nbsp;&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$foo </span><span class="keyword">=== </span><span class="default">null</span><span class="keyword">) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; throw new </span><span class="default">FooException</span><span class="keyword">(</span><span class="string">'An error occured in construct'</span><span class="keyword">, </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">errorConstruct</span><span class="keyword">());<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; public function </span><span class="default">setBar</span><span class="keyword">()<br />
-&nbsp;&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">init</span><span class="keyword">();<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">bar </span><span class="keyword">= </span><span class="string">'baz'</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; public function </span><span class="default">setBaz</span><span class="keyword">()<br />
-&nbsp;&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">init</span><span class="keyword">();<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">baz </span><span class="keyword">= </span><span class="string">'foo'</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; final public function </span><span class="default">errorFooNotSet</span><span class="keyword">()<br />
-&nbsp;&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">1</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__destruct</span><span class="keyword">(){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo(</span><span class="string">"in __destruct\n"</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">$GLOBALS</span><span class="keyword">[</span><span class="string">'flag'</span><span class="keyword">])<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$GLOBALS</span><span class="keyword">[</span><span class="string">'test'</span><span class="keyword">][</span><span class="default">0</span><span class="keyword">] = </span><span class="default">$this</span><span class="keyword">;<br />
 &nbsp;&nbsp;&nbsp; }<br />
 }<br />
 <br />
-try {<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">$foo </span><span class="keyword">= new </span><span class="default">Foo</span><span class="keyword">();<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">$foo</span><span class="keyword">-&gt;</span><span class="default">setBar</span><span class="keyword">();<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">$foo</span><span class="keyword">-&gt;</span><span class="default">setBaz</span><span class="keyword">();<br />
-} catch (</span><span class="default">FooException $e</span><span class="keyword">) {<br />
-&nbsp;&nbsp;&nbsp; </span><span class="comment">// This will work because the object does exist<br />
-&nbsp;&nbsp;&nbsp; </span><span class="keyword">if (</span><span class="default">$e</span><span class="keyword">-&gt;</span><span class="default">getCode</span><span class="keyword">() == </span><span class="default">$foo</span><span class="keyword">-&gt;</span><span class="default">errorFooNotSet</span><span class="keyword">()) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">'foo is not set'</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; }<br />
-}<br />
-</span><span class="default">?&gt;</span>
-</span>
+</span><span class="default">$flag </span><span class="keyword">= </span><span class="default">true</span><span class="keyword">;<br />
+</span><span class="default">$test </span><span class="keyword">= [new </span><span class="default">Foo</span><span class="keyword">()];<br />
+echo(</span><span class="string">"deleting Foo\n"</span><span class="keyword">);<br />
+unset(</span><span class="default">$test</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">]);<br />
+echo(</span><span class="string">"deleted Foo\n"</span><span class="keyword">);<br />
+</span><span class="default">$test</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">]-&gt;</span><span class="default">showI</span><span class="keyword">();<br />
+</span><span class="default">$flag </span><span class="keyword">= </span><span class="default">false</span><span class="keyword">;<br />
+echo(</span><span class="string">"re-deleting Foo\n"</span><span class="keyword">);<br />
+unset(</span><span class="default">$test</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">]);<br />
+echo(</span><span class="string">"deleted Foo\n"</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span>In the above example, the output is:<br />
+deleting Foo<br />
+in __destruct<br />
+deleted Foo<br />
+I=12345678<br />
+re-deleting Foo<br />
+deleted Foo<br />
+so the __destruct was called only once and the memory was not freed.</span>
 </code>
     </div>
    </div>
@@ -790,44 +781,6 @@ public function </span><span class="default">__construct_string_integer</span><s
    </div>
   </div>
  <div class="foot"></div>
-  <a name="101009""></a>
-  <div class="note">
-   <strong class="user">gratcypalma at gmail dot com</strong>
-   <a href="#101009" class="date">19-Nov-2010 08:46</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-here is my multiple constructor.<br />
-<br />
-<span class="default">&lt;?php<br />
-</span><span class="keyword">class </span><span class="default">foo </span><span class="keyword">{<br />
-&nbsp;&nbsp;&nbsp; protected </span><span class="default">$mam </span><span class="keyword">= </span><span class="string">'mamam'</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; function </span><span class="default">__construct</span><span class="keyword">() {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">'foo'</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; }<br />
-}<br />
-class </span><span class="default">bar </span><span class="keyword">extends </span><span class="default">foo </span><span class="keyword">{<br />
-&nbsp;&nbsp;&nbsp; function </span><span class="default">__construct</span><span class="keyword">() {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">parent</span><span class="keyword">:: </span><span class="default">__construct</span><span class="keyword">(); </span><span class="comment">// use parent method to call parent class<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">echo </span><span class="string">'bar'</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; }<br />
-}<br />
-class </span><span class="default">foobar </span><span class="keyword">extends </span><span class="default">bar </span><span class="keyword">{<br />
-&nbsp;&nbsp;&nbsp; function </span><span class="default">__construct</span><span class="keyword">() {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">parent</span><span class="keyword">:: </span><span class="default">__construct</span><span class="keyword">();<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">'foobar'</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; }<br />
-}<br />
-</span><span class="default">$show </span><span class="keyword">= new </span><span class="default">foobar</span><span class="keyword">();<br />
-<br />
-</span><span class="comment">/* result is foobarfoobar */<br />
-</span><span class="default">?&gt;</span>
-</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
   <a name="99903""></a>
   <div class="note">
    <strong class="user">rayro at gmx dot de</strong>
@@ -1231,42 +1184,6 @@ class </span><span class="default">Y </span><span class="keyword">extends </span
 <br />
 </span><span class="default">?&gt;</span>
 </span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="91813""></a>
-  <div class="note">
-   <strong class="user">ramesh dot rips at gmail dot com</strong>
-   <a href="#91813" class="date">26-Jun-2009 03:49</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Without __constructor constructor will call like this.<br />
-Why because, Here Class name and function name are equal.<br />
-<span class="default">&lt;?php<br />
-</span><span class="keyword">class </span><span class="default">baseclass<br />
-</span><span class="keyword">{<br />
-&nbsp; function </span><span class="default">baseclass</span><span class="keyword">()<br />
-&nbsp; {<br />
-&nbsp;&nbsp;&nbsp; echo </span><span class="string">"constructor is called"</span><span class="keyword">.</span><span class="string">"&lt;br&gt;" </span><span class="keyword">;<br />
-&nbsp;&nbsp; }<br />
-&nbsp;}<br />
-&nbsp;class </span><span class="default">deriviedclass </span><span class="keyword">extends </span><span class="default">baseclass<br />
-&nbsp;</span><span class="keyword">{<br />
-&nbsp;&nbsp; function </span><span class="default">deriviedclass</span><span class="keyword">()<br />
-&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; </span><span class="default">parent</span><span class="keyword">::</span><span class="default">baseclass</span><span class="keyword">();<br />
-&nbsp;&nbsp; &nbsp; }<br />
-&nbsp; }<br />
-&nbsp;<br />
-&nbsp;</span><span class="default">$object_base</span><span class="keyword">=new </span><span class="default">baseclass</span><span class="keyword">();<br />
-&nbsp;</span><span class="default">$object_derive</span><span class="keyword">=new </span><span class="default">deriviedclass</span><span class="keyword">();<br />
-</span><span class="default">?&gt;<br />
-</span>Out put is <br />
-constructor is called<br />
-constructor is called</span>
 </code>
     </div>
    </div>
@@ -2514,42 +2431,6 @@ __construct and __destruct must be declared public in any class that you intend 
    </div>
   </div>
  <div class="foot"></div>
-  <a name="58426""></a>
-  <div class="note">
-   <strong class="user">derk AT oneindig DOT com</strong>
-   <a href="#58426" class="date">03-Nov-2005 11:02</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-If a constructor is not present in a child class, php5 will try to call a constructor from the parent class. This behaviour can be used to somewhat simulate constructor chaining.<br />
-<br />
-<span class="default">&lt;?php<br />
-</span><span class="keyword">abstract class </span><span class="default">Parent </span><span class="keyword">{<br />
-&nbsp;&nbsp;&nbsp; function </span><span class="default">__construct</span><span class="keyword">()<br />
-&nbsp;&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"Parent constructor called\n"</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">myConstruct</span><span class="keyword">();<br />
-&nbsp;&nbsp;&nbsp; }<br />
-}<br />
-<br />
-class </span><span class="default">Child </span><span class="keyword">extends </span><span class="default">Parent </span><span class="keyword">{<br />
-&nbsp;&nbsp;&nbsp; function </span><span class="default">myConstruct</span><span class="keyword">()<br />
-&nbsp;&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">" Child 'contructor' called"</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; }<br />
-}<br />
-<br />
-</span><span class="default">$c </span><span class="keyword">= new </span><span class="default">Child</span><span class="keyword">();<br />
-</span><span class="default">?&gt;<br />
-</span><br />
-will output:<br />
-Parent constructor called<br />
-Child 'constructor' called</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
   <a name="56996""></a>
   <div class="note">
    <strong class="user">contact at tcknetwork dot com</strong>
@@ -2591,35 +2472,6 @@ This can be misleading if you have debug info printed in the destructor but not 
 If you're using E_STRICT error reporting, PHP will tell you if you define both __construct() and an old-style constructor (a function with the same name as the class) together in a class. Note that this occurs even if the old constructor function is abstract or final (for instance, if you were intending to only use it in a sub-class). Be wary of this if you're trying to implement the 'command' design pattern.<br />
 <br />
 The solution? Either turn E_STRICT off (and possibly forgo some other important notices), rename your function (and possibly make things a little more complicated), or look at using an interface.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="51935""></a>
-  <div class="note">
-   <strong class="user">contact at tcknetwork dot com</strong>
-   <a href="#51935" class="date">15-Apr-2005 05:45</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Note that php5 use in priority __construct() instead of [classname](). So you could build a constructed/destructed class for php4/5 very easily using this.<br />
-&lt;?<br />
-class test {<br />
-&nbsp;function test() {<br />
-&nbsp; $this-&gt;__construct();<br />
-&nbsp; register_shutdown_function(array($this,"__destruct"));<br />
-&nbsp;}<br />
-&nbsp;function __construct() {<br />
-&nbsp; echo "construct\n";<br />
-&nbsp;}<br />
-&nbsp;function __destruct() {<br />
-&nbsp; echo "destruct\n";<br />
-&nbsp;}<br />
-};<br />
-$t=new test();<br />
-?&gt;<br />
-In case you use unset($t) in php4, the destructor is not called. so be careful.</span>
 </code>
     </div>
    </div>

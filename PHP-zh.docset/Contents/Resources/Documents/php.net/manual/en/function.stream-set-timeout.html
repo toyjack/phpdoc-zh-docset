@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.stream-set-timeout" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">stream_set_timeout</h1>
-  <p class="verinfo">(PHP 4 &gt;= 4.3.0, PHP 5)</p><p class="refpurpose"><span class="refname">stream_set_timeout</span> &mdash; <span class="dc-title">Set timeout period on a stream</span></p>
+  <p class="verinfo">(PHP 4 &gt;= 4.3.0, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">stream_set_timeout</span> &mdash; <span class="dc-title">Set timeout period on a stream</span></p>
 
  </div>
  <div class="refsect1 description" id="refsect1-function.stream-set-timeout-description">
@@ -141,7 +141,7 @@
  <div class="refsect1 examples" id="refsect1-function.stream-set-timeout-examples">
   <h3 class="title">·¶Àý</h3>
   <p class="para">
-   <div class="example" id="example-4052">
+   <div class="example" id="example-4443">
     <p><strong>Example #1 <span class="function"><strong>stream_set_timeout()</strong></span> example</strong></p>
      <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -184,7 +184,93 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="115113""></a>
+<div id="allnotes">  <a name="118620""></a>
+  <div class="note">
+   <strong class="user">burninleo at gmx dot net</strong>
+   <a href="#118620" class="date">10-Jan-2016 10:15</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If the timeout fails, because the server remains completely silent, one may have to add stream_select() to make the timeout work. This may be much more efficient that a non-blocking reading operation.<br />
+<br />
+<span class="default">&lt;?php<br />
+stream_set_timeout</span><span class="keyword">(</span><span class="default">$c</span><span class="keyword">, </span><span class="default">$timeout</span><span class="keyword">);<br />
+</span><span class="default">$data </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">;<br />
+</span><span class="default">$stR </span><span class="keyword">= array(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">smtp_conn</span><span class="keyword">);<br />
+</span><span class="default">$stW </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">;<br />
+while (</span><span class="default">is_resource</span><span class="keyword">(</span><span class="default">$c</span><span class="keyword">) &amp;&amp; !</span><span class="default">feof</span><span class="keyword">(</span><span class="default">$c</span><span class="keyword">)) {<br />
+&nbsp;&nbsp;&nbsp; if (!</span><span class="default">stream_select</span><span class="keyword">(</span><span class="default">$stR</span><span class="keyword">, </span><span class="default">$stW</span><span class="keyword">, </span><span class="default">$stW</span><span class="keyword">, </span><span class="default">$timeout</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">trigger_error</span><span class="keyword">(</span><span class="string">'Timeout'</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$str </span><span class="keyword">= </span><span class="default">fgets</span><span class="keyword">(</span><span class="default">$c</span><span class="keyword">, </span><span class="default">515</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$data</span><span class="keyword">.= </span><span class="default">$str</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// Handling of "traditional" timeout<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$info </span><span class="keyword">= </span><span class="default">stream_get_meta_data</span><span class="keyword">(</span><span class="default">$c</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; if (</span><span class="default">$info</span><span class="keyword">[</span><span class="string">'timed_out'</span><span class="keyword">]) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">trigger_error</span><span class="keyword">(</span><span class="string">'Timeout'</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Background: We had issues with a SMTP server that was addresses unencrypted while expecting TLS encryption. The stream_set_timeout() alone did not work as expected and the script hung for an hour or more.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118619""></a>
+  <div class="note">
+   <strong class="user">burninleo at gmx dot net</strong>
+   <a href="#118619" class="date">10-Jan-2016 08:06</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Another note alread states that blocking-reads may be an issue, if the counterpart responds very slowly - or not at all. The stream timeout may not work as expected in such a situation.<br />
+<br />
+However, php.net provides very little information on how to use non-blocking reading operations. Here's a code sample:<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; stream_set_timeout</span><span class="keyword">(</span><span class="default">$c</span><span class="keyword">, </span><span class="default">$timeout</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$data </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; while (</span><span class="default">is_resource</span><span class="keyword">(</span><span class="default">$c</span><span class="keyword">) &amp;&amp; !</span><span class="default">feof</span><span class="keyword">(</span><span class="default">$c</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Use non-blocking reading for first loop<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if ((</span><span class="default">$data </span><span class="keyword">=== </span><span class="string">''</span><span class="keyword">) and (</span><span class="default">$timeout </span><span class="keyword">&gt; </span><span class="default">0</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">stream_set_blocking</span><span class="keyword">(</span><span class="default">$c</span><span class="keyword">, </span><span class="default">false</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$endtimeOut </span><span class="keyword">= </span><span class="default">time</span><span class="keyword">() + </span><span class="default">$timeout</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$str </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; while ((</span><span class="default">time</span><span class="keyword">() &lt; </span><span class="default">$endtimeOut</span><span class="keyword">) and (</span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$str</span><span class="keyword">) &lt; </span><span class="default">515</span><span class="keyword">) and !</span><span class="default">feof</span><span class="keyword">(</span><span class="default">$c</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">sleep</span><span class="keyword">(</span><span class="default">1</span><span class="keyword">);&nbsp; </span><span class="comment">// Note: This may require tuning<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$str</span><span class="keyword">.= </span><span class="default">fgets</span><span class="keyword">(</span><span class="default">$c</span><span class="keyword">, </span><span class="default">515</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Handling first-read timeout<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if (</span><span class="default">time</span><span class="keyword">() &gt;= </span><span class="default">$endtimeOut</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">trigger_error</span><span class="keyword">(</span><span class="string">'Timeout'</span><span class="keyword">, </span><span class="default">E_USER_WARNING</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">stream_set_blocking</span><span class="keyword">(</span><span class="default">$c</span><span class="keyword">, </span><span class="default">true</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$str </span><span class="keyword">= </span><span class="default">fgets</span><span class="keyword">(</span><span class="default">$c</span><span class="keyword">, </span><span class="default">515</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$data</span><span class="keyword">.= </span><span class="default">$str</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Handling of "traditional" timeout<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$info </span><span class="keyword">= </span><span class="default">stream_get_meta_data</span><span class="keyword">(</span><span class="default">$c</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$info</span><span class="keyword">[</span><span class="string">'timed_out'</span><span class="keyword">]) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">trigger_error</span><span class="keyword">(</span><span class="string">'Timeout'</span><span class="keyword">, </span><span class="default">E_USER_WARNING</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115113""></a>
   <div class="note">
    <strong class="user">jack.whoami</strong>
    <a href="#115113" class="date">28-May-2014 05:25</a>

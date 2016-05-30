@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.parse-str" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">parse_str</h1>
-  <p class="verinfo">(PHP 4, PHP 5)</p><p class="refpurpose"><span class="refname">parse_str</span> &mdash; <span class="dc-title">将字符串解析成多个变量</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">parse_str</span> &mdash; <span class="dc-title">将字符串解析成多个变量</span></p>
 
  </div>
  
@@ -102,7 +102,7 @@
  <div class="refsect1 examples" id="refsect1-function.parse-str-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-4887">
+   <div class="example" id="example-5263">
     <p><strong>Example #1 <span class="function"><strong>parse_str()</strong></span> 的使用</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -134,7 +134,86 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="115695""></a>
+<div id="allnotes">  <a name="118922""></a>
+  <div class="note">
+   <strong class="user">aaronw at catalyst dot net dot nz</strong>
+   <a href="#118922" class="date">29-Feb-2016 10:17</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+DO NOT make a practice of using the one-parameter version of this function, particularly for processing user input. It's susceptible to exactly the same sorts of bugs and security problems as the old "register_globals" setting. I'm actually rather surprised there's not a warning message about it on this page.<br />
+<br />
+If you use the one-parameter version of parse_str() in global scope (i.e. outside of any functions), it lets the user override ANY global variables in your script, even superglobals like $_GET and $_REQUEST.<br />
+<br />
+If you use it inside a function, it can't touch your global variables but it can still override any variables already defined in the function, or populate variables that later get accessed without prior initialization.<br />
+<br />
+You can guard against these problems by making sure to call parse_str() only in function/method scope, and before any variable declarations, and making sure to initialize all variables before accessing them. But why leave yourself open? Just use the two-parameter version of parse_str().<br />
+<br />
+// BAD<br />
+parse_str($_SERVER['QUERY_STRING']);<br />
+echo $foo;<br />
+<br />
+// BETTER<br />
+parse_str($_SERVER['QUERY_STRING'], $urlparams);<br />
+echo $urlparams['foo'];</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118008""></a>
+  <div class="note">
+   <strong class="user">StanE</strong>
+   <a href="#118008" class="date">18-Sep-2015 06:57</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Note that the characters "." and " " (empty space) will be converted to "_". The characters "[" and "]" have special meaning: They represent arrays but there seems to be some weird behaviour, which I don't really understand:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">// Note: "[" = %5B, "]" = %5D<br />
+<br />
+/*<br />
+"v][=a" produces ("[" gets replaced by "_"):<br />
+Array<br />
+(<br />
+&nbsp;&nbsp;&nbsp; [v]_] =&gt; a<br />
+)<br />
+*/<br />
+</span><span class="default">parse_str</span><span class="keyword">(</span><span class="string">"v%5D%5B=a"</span><span class="keyword">, </span><span class="default">$r</span><span class="keyword">);<br />
+</span><span class="default">print_r</span><span class="keyword">(</span><span class="default">$r</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">/*<br />
+"v][[=a" produces (first "[" gets replaced by "_", but not all following):<br />
+Array<br />
+(<br />
+&nbsp;&nbsp;&nbsp; [v]_[] =&gt; a<br />
+)<br />
+*/<br />
+</span><span class="default">parse_str</span><span class="keyword">(</span><span class="string">"v%5D%5B%5B=a"</span><span class="keyword">, </span><span class="default">$r</span><span class="keyword">);<br />
+</span><span class="default">print_r</span><span class="keyword">(</span><span class="default">$r</span><span class="keyword">);<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117183""></a>
+  <div class="note">
+   <strong class="user">zweibieren at yahoo dot com</strong>
+   <a href="#117183" class="date">28-Apr-2015 12:18</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If the arr argument is provided, all its existing elements are removed.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115695""></a>
   <div class="note">
    <strong class="user">jmareda at seznam dot cz</strong>
    <a href="#115695" class="date">10-Sep-2014 09:08</a>

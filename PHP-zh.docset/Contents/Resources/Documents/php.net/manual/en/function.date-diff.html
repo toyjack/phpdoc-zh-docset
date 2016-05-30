@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.date-diff" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">date_diff</h1>
-  <p class="verinfo">(PHP 5 &gt;= 5.3.0)</p><p class="refpurpose"><span class="refname">date_diff</span> &mdash; <span class="dc-title">别名 <span class="methodname"><a href="datetime.diff.html" class="methodname">DateTime::diff()</a></span></span></p>
+  <p class="verinfo">(PHP 5 &gt;= 5.3.0, PHP 7)</p><p class="refpurpose"><span class="refname">date_diff</span> &mdash; <span class="dc-title">别名 <span class="methodname"><a href="datetime.diff.html" class="methodname">DateTime::diff()</a></span></span></p>
 
  </div>
 
@@ -42,7 +42,118 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116623""></a>
+<div id="allnotes">  <a name="118136""></a>
+  <div class="note">
+   <strong class="user">vladimir-nt at mail dot ru</strong>
+   <a href="#118136" class="date">13-Oct-2015 09:11</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+My simple function to count up the number of weekdays between the dates (inclusive for both ends), one can add a holidays between the dates to take them into account as well as the weekends, the weekend days could also be changed.<br />
+<br />
+function count_week_days($__date_from, $__date_to, $__holidays_between=array(), $__weekend_days=array(5,6)) {<br />
+&nbsp;&nbsp; $total_days_count = $__date_to &gt; $__date_from ? round(($__date_to - $__date_from)/(24*3600)) : 0;<br />
+&nbsp;&nbsp; $full_weeks_count = floor($total_days_count/7);<br />
+&nbsp;&nbsp; $weekend_days_count = $full_weeks_count*count($__weekend_days);<br />
+&nbsp;&nbsp; $days_left_uncovered = $total_days_count - $full_weeks_count*7;<br />
+&nbsp;&nbsp; for($i = 0; $i &lt; $days_left_uncovered; $i++) {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; $date_to_check = $i ? strtotime("+{$i} day", $__date_from) : $__date_from;<br />
+&nbsp;&nbsp; &nbsp;&nbsp; if(in_array(date('N', $date_to_check), $__weekend_days)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; $weekend_days_count++;<br />
+&nbsp;&nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; }<br />
+&nbsp;&nbsp; $week_days_count = $total_days_count - $weekend_days_count - count($__holidays_between);<br />
+&nbsp;&nbsp; return $week_days_count;<br />
+}<br />
+<br />
+Tests:<br />
+print "\n 12.10.2015 to 10.10.2015 diff=".count_week_days(strtotime('12.10.2015'), strtotime('10.10.2015'));<br />
+print "\n 12.10.2015 to 13.10.2015 diff=".count_week_days(strtotime('12.10.2015'), strtotime('13.10.2015'));<br />
+print "\n 12.10.2015 to 15.10.2015 diff=".count_week_days(strtotime('12.10.2015'), strtotime('26.10.2015'));<br />
+print "\n 12.10.2015 to 13.10.2015 diff=".count_week_days(strtotime('12.10.2015'), strtotime('13.10.2016'));<br />
+print "\n 12.10.2015 to 13.10.2015 diff=".count_week_days(strtotime('12.10.2015'), strtotime('12.11.2015'));<br />
+print "\n 12.10.2015 to 13.10.2015 diff=".count_week_days(strtotime('12.10.2015'), strtotime('12.11.2015'), array(strtotime('07.11.2015')));<br />
+<br />
+Results:<br />
+&nbsp;12.10.2015 to 10.10.2015 diff=0<br />
+&nbsp;12.10.2015 to 13.10.2015 diff=1<br />
+&nbsp;12.10.2015 to 15.10.2015 diff=10<br />
+&nbsp;12.10.2015 to 13.10.2015 diff=263<br />
+&nbsp;12.10.2015 to 13.10.2015 diff=23<br />
+&nbsp;12.10.2015 to 13.10.2015 diff=22</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117691""></a>
+  <div class="note">
+   <strong class="user">tuxedobob</strong>
+   <a href="#117691" class="date">24-Jul-2015 01:32</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Even the top rated comment here, Sergio Abreu's, doesn't treat leap years entirely correctly. It should work between 1901 and 2099, but outside that it'll be a little off.<br />
+<br />
+If you want to find out the number of days between two dates, use below. You can change to a different unit from that. It looks a little insane, but keep in mind the full set of rules for leap years:<br />
+<br />
+If the year is divisible by 4, it's a leap year...<br />
+&nbsp;- unless the year is divisible by 100, then it isn't...<br />
+&nbsp;- - unless the year is divisible by 400, then it really is.<br />
+<br />
+So in the functions below, we find the total numbers of days in full years since the mythical 1/1/0001, then add the number of days before the current one in the year passed. Do this for each date, then return the absolute value of the difference.<br />
+<br />
+function days_diff($d1, $d2) {<br />
+&nbsp;&nbsp;&nbsp; $x1 = days($d1);<br />
+&nbsp;&nbsp;&nbsp; $x2 = days($d2);<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; if ($x1 &amp;&amp; $x2) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return abs($x1 - $x2);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+function days($x) {<br />
+&nbsp;&nbsp;&nbsp; if (get_class($x) != 'DateTime') {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return false;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; $y = $x-&gt;format('Y') - 1;<br />
+&nbsp;&nbsp;&nbsp; $days = $y * 365;<br />
+&nbsp;&nbsp;&nbsp; $z = (int)($y / 4);<br />
+&nbsp;&nbsp;&nbsp; $days += $z;<br />
+&nbsp;&nbsp;&nbsp; $z = (int)($y / 100);<br />
+&nbsp;&nbsp;&nbsp; $days -= $z;<br />
+&nbsp;&nbsp;&nbsp; $z = (int)($y / 400);<br />
+&nbsp;&nbsp;&nbsp; $days += $z;<br />
+&nbsp;&nbsp;&nbsp; $days += $x-&gt;format('z');<br />
+<br />
+&nbsp;&nbsp;&nbsp; return $days;<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117010""></a>
+  <div class="note">
+   <strong class="user">Azuro</strong>
+   <a href="#117010" class="date">01-Apr-2015 07:12</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I had to find the difference between two days (here is my solution without Date_diff()) :<br />
+<br />
+$current_date = date("U") /* to have it in microseconds */<br />
+$selected_date_stamp = mktime(0,0,0,$your_month,$your_day,$your_year);<br />
+$selected_date = date("U",$selected_date_stamp);<br />
+$difference = round (($current_date - $selected_date)/(3600*24));<br />
+echo "The difference is :" . $difference . "&lt;br/&gt;";</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116623""></a>
   <div class="note">
    <strong class="user">maniarpratik at gmail dot com</strong>
    <a href="#116623" class="date">30-Jan-2015 09:09</a>
@@ -99,29 +210,6 @@ function getAge($birthdate){<br />
 &nbsp;&nbsp;&nbsp; $years = date("Y") - date("Y", strtotime($birthdate)); // Calculamos el número de a?os <br />
 &nbsp;&nbsp;&nbsp; return $years + $adjust; // Sumamos la diferencia de a?os más el ajuste<br />
 }</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="115852""></a>
-  <div class="note">
-   <strong class="user">waiyanmintun at gmail dot com</strong>
-   <a href="#115852" class="date">03-Oct-2014 11:45</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Why PHP skip counting 1914-1-2 in 5.5.11.0?<br />
-<br />
-$d1 = date_create('1914-1-1');<br />
-$d2 = date_create('1914-1-3');<br />
-$interval = date_diff($d1, $d2);<br />
-$i = (int) $interval-&gt;format('%a');<br />
-echo $i;<br />
-<br />
-$i value must be 2, but show 1.<br />
-<br />
-Environment : XAMPP 3.2.1 on Win 8.1</span>
 </code>
     </div>
    </div>

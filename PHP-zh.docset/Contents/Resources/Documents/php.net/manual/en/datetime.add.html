@@ -29,7 +29,7 @@
  <div class="refnamediv">
   <h1 class="refname">DateTime::add</h1>
   <h1 class="refname">date_add</h1>
-  <p class="verinfo">(PHP 5 &gt;= 5.3.0)</p><p class="refpurpose"><span class="refname">DateTime::add</span> -- <span class="refname">date_add</span> &mdash; <span class="dc-title">
+  <p class="verinfo">(PHP 5 &gt;= 5.3.0, PHP 7)</p><p class="refpurpose"><span class="refname">DateTime::add</span> -- <span class="refname">date_add</span> &mdash; <span class="dc-title">
    Adds an amount of days, months, years, hours, minutes and seconds to a
    DateTime object
   </span></p>
@@ -97,7 +97,7 @@
 
  <div class="refsect1 examples" id="refsect1-datetime.add-examples">
   <h3 class="title">范例</h3>
-  <div class="example" id="example-2261">
+  <div class="example" id="example-2383">
    <p><strong>Example #1 <span class="function"><strong>DateTime::add()</strong></span> example</strong></p>
    <div class="example-contents"><p>面向对象风格</p></div>
    <div class="example-contents">
@@ -122,7 +122,7 @@
 </pre></div>
    </div>
   </div>
-  <div class="example" id="example-2262">
+  <div class="example" id="example-2384">
    <p><strong>Example #2 Further <span class="function"><strong>DateTime::add()</strong></span> examples</strong></p>
    <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -139,7 +139,7 @@
 </pre></div>
    </div>
   </div>
-  <div class="example" id="example-2263">
+  <div class="example" id="example-2385">
    <p><strong>Example #3 Beware when adding months</strong></p>
    <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -183,7 +183,115 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116227""></a>
+<div id="allnotes">  <a name="118462""></a>
+  <div class="note">
+   <strong class="user">dm at resource-ps dot co dot uk</strong>
+   <a href="#118462" class="date">11-Dec-2015 01:22</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Be careful when using this function, I may have happened upon a bug in PHP7.<br />
+<br />
+My code is as follows<br />
+<br />
+//get date from post or else fill with today's date<br />
+if (isset($_POST["from"]))<br />
+{<br />
+$from = date_create($_POST["from"]);<br />
+}else{<br />
+$from = date_create(date("Y-m-d"));<br />
+}<br />
+<br />
+//get date from post if there isn't one just take the same date as what is in the $from variable and add one day to it<br />
+if (isset($_POST["to"]))<br />
+{<br />
+$to = date_create($_POST["to"]);<br />
+}else{<br />
+&nbsp;&nbsp;&nbsp; $to = $from;<br />
+date_modify($to, '+1 day');<br />
+}<br />
+echo(date_format($from, 'Y-m-d') . " " . date_format($to, 'Y-m-d'));<br />
+<br />
+The resultant output is<br />
+$from = 2015-12-11<br />
+$to = 2015-12-11<br />
+<br />
+In actuality the result should be<br />
+$from = 2015-12-10<br />
+$to = 2015-12-11<br />
+<br />
+For some reason the code above modifies the $from variable in the line date_modify($to, '+1 day'); even though it shouldn't as the $from variable isn't being modified.<br />
+<br />
+to fix this i needed to change the code to<br />
+<br />
+//get date from post or else fill with today's date<br />
+if (isset($_POST["from"]))<br />
+{<br />
+$from = date_create($_POST["from"]);<br />
+}else{<br />
+$from = date_create(date("Y-m-d"));<br />
+}<br />
+<br />
+//get date from post if there isn't one just take the same date as what is in the $from variable and add one day to it<br />
+if (isset($_POST["to"]))<br />
+{<br />
+$to = date_create($_POST["to"]);<br />
+}else{<br />
+&nbsp;&nbsp;&nbsp; $to = date_create(date("Y-m-d"));<br />
+date_modify($to, '+1 day');<br />
+}<br />
+echo(date_format($from, 'Y-m-d') . " " . date_format($to, 'Y-m-d'));<br />
+<br />
+This isn't strictly the code I wanted. Possible bug?</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118342""></a>
+  <div class="note">
+   <strong class="user">Angelo</strong>
+   <a href="#118342" class="date">19-Nov-2015 09:28</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Another simple solution to adding a month but not autocorrecting days to the next month is this.<br />
+(Also works for substracting months)<br />
+<br />
+$dt = new DateTime("2016-01-31");<br />
+<br />
+$oldDay = $dt-&gt;format("d");<br />
+$dt-&gt;add(new DateInterval("P1M")); // 2016-03-02<br />
+$newDay = $dt-&gt;format("d");<br />
+<br />
+if($oldDay != $newDay) {<br />
+&nbsp;&nbsp;&nbsp; // Check if the day is changed, if so we skipped to the next month.<br />
+&nbsp;&nbsp;&nbsp; // Substract days to go back to the last day of previous month.<br />
+&nbsp;&nbsp;&nbsp; $dt-&gt;sub(new DateInterval("P" . $newDay . "D"));<br />
+}<br />
+<br />
+echo $dt-&gt;format("Y-m-d"); // 2016-02-29<br />
+<br />
+Hope this helps someone.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117572""></a>
+  <div class="note">
+   <strong class="user">Anthony</strong>
+   <a href="#117572" class="date">01-Jul-2015 07:55</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you're using PHP &gt;= 5.5, instead of using "glavic at gmail dot com"'s DateTimeEnhanced class, use the built in DateTimeImmutable type. When you call DateTimeImmutable::add() it will return a new object, rather than modifying the original</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116227""></a>
   <div class="note">
    <strong class="user">patrick dot mckay7 at gmail dot com</strong>
    <a href="#116227" class="date">26-Nov-2014 01:34</a>

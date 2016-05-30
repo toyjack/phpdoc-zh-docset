@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.imap-8bit" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">imap_8bit</h1>
-  <p class="verinfo">(PHP 4, PHP 5)</p><p class="refpurpose"><span class="refname">imap_8bit</span> &mdash; <span class="dc-title">Convert an 8bit string to a quoted-printable string</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">imap_8bit</span> &mdash; <span class="dc-title">Convert an 8bit string to a quoted-printable string</span></p>
 
  </div>
  <div class="refsect1 description" id="refsect1-function.imap-8bit-description">
@@ -84,7 +84,56 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="104380""></a>
+<div id="allnotes">  <a name="117891""></a>
+  <div class="note">
+   <strong class="user">dave at jufer dot info</strong>
+   <a href="#117891" class="date">27-Aug-2015 06:18</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Encode a mail-subject-string to a encoded-word according to RFC2047 with awareness of special characters and total-linelength of 75.<br />
+Example: "Subject Test?" -&gt; "=?ISO-8859-1?Q?Subject_Test=E4?="<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">getSubjectEncoded</span><span class="keyword">(</span><span class="default">$_str</span><span class="keyword">,</span><span class="default">$_charset</span><span class="keyword">=</span><span class="string">'ISO-8859-1'</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// 27.08.2015 david jufer<br />
+&nbsp;&nbsp;&nbsp; // Convert an 8bit string to a encoded-word string (according to RFC2047) www.ietf.org/rfc/rfc2047.txt<br />
+&nbsp;&nbsp;&nbsp; // encoded-word = "=?" charset "?" encoding "?" encoded-text "?="<br />
+&nbsp;&nbsp;&nbsp; // An 'encoded-word' may not be more than 75 characters long, including 'charset', 'encoding', 'encoded-text', and delimiters.<br />
+&nbsp;&nbsp;&nbsp; // The "Q" encoding is similar to the "Quoted-Printable" content-transfer-encoding defined in RFC 2045<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$ret </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$str </span><span class="keyword">= </span><span class="default">imap_8bit</span><span class="keyword">(</span><span class="default">$_str</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$len </span><span class="keyword">= </span><span class="default">7</span><span class="keyword">+</span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$_charset</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// remove linebreaks from imap_8bit, string chunks are too long<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$str </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">"=\r\n"</span><span class="keyword">,</span><span class="string">''</span><span class="keyword">,</span><span class="default">$str</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// insert linebreaks at right position, be aware of special chars ("?" "=E4") do not split them<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$s </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$l </span><span class="keyword">= </span><span class="default">75</span><span class="keyword">-</span><span class="default">$len</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; while(</span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$str</span><span class="keyword">)&gt;</span><span class="default">$s</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$ts </span><span class="keyword">= </span><span class="default">$s</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">substr</span><span class="keyword">(</span><span class="default">$str</span><span class="keyword">,(</span><span class="default">$s</span><span class="keyword">+</span><span class="default">$l</span><span class="keyword">)-</span><span class="default">2</span><span class="keyword">,</span><span class="default">1</span><span class="keyword">)==</span><span class="string">'='</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$s </span><span class="keyword">+= </span><span class="default">$l</span><span class="keyword">-</span><span class="default">2</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }else if(</span><span class="default">substr</span><span class="keyword">(</span><span class="default">$str</span><span class="keyword">,(</span><span class="default">$s</span><span class="keyword">+</span><span class="default">$l</span><span class="keyword">)-</span><span class="default">1</span><span class="keyword">,</span><span class="default">1</span><span class="keyword">)==</span><span class="string">'='</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$s </span><span class="keyword">+= </span><span class="default">$l</span><span class="keyword">-</span><span class="default">1</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }else{<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$s </span><span class="keyword">+= </span><span class="default">$l</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$ret </span><span class="keyword">.= </span><span class="string">"\r\n"</span><span class="keyword">.</span><span class="default">substr</span><span class="keyword">(</span><span class="default">$str</span><span class="keyword">,</span><span class="default">$ts</span><span class="keyword">,</span><span class="default">$s</span><span class="keyword">-</span><span class="default">$ts</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// remove first linebreak, replace SPACES with "_"<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$ret </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">' '</span><span class="keyword">,</span><span class="string">'_'</span><span class="keyword">,</span><span class="default">trim</span><span class="keyword">(</span><span class="default">$ret</span><span class="keyword">));<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// put together encoded-word<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$ret </span><span class="keyword">= </span><span class="string">'=?'</span><span class="keyword">.</span><span class="default">$_charset</span><span class="keyword">.</span><span class="string">'?Q?'</span><span class="keyword">.</span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">"\r\n"</span><span class="keyword">,</span><span class="string">"?=\r\n =?"</span><span class="keyword">.</span><span class="default">$_charset</span><span class="keyword">.</span><span class="string">"?Q?"</span><span class="keyword">,</span><span class="default">$ret</span><span class="keyword">).</span><span class="string">"?="</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// r¨¹ckgabe<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">return </span><span class="default">$ret</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="104380""></a>
   <div class="note">
    <strong class="user">Michael Konecny</strong>
    <a href="#104380" class="date">12-Jun-2011 06:57</a>

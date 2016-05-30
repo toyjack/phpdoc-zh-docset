@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.pcntl-signal" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">pcntl_signal</h1>
-  <p class="verinfo">(PHP 4 &gt;= 4.1.0, PHP 5)</p><p class="refpurpose"><span class="refname">pcntl_signal</span> &mdash; <span class="dc-title">安装一个信号处理器</span></p>
+  <p class="verinfo">(PHP 4 &gt;= 4.1.0, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">pcntl_signal</span> &mdash; <span class="dc-title">安装一个信号处理器</span></p>
 
  </div>
  
@@ -160,7 +160,7 @@
  <div class="refsect1 examples" id="refsect1-function.pcntl-signal-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-3637">
+   <div class="example" id="example-4026">
     <p><strong>Example #1 <span class="function"><strong>pcntl_signal()</strong></span>示例</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -191,7 +191,34 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="115984""></a>
+<div id="allnotes">  <a name="119246""></a>
+  <div class="note">
+   <strong class="user">wally at soggysoftware dot co dot uk</strong>
+   <a href="#119246" class="date">26-Apr-2016 09:27</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+A word of caution around the third parameter (restart_syscalls) in pcntl_signal(...).<br />
+<br />
+I kept having a repeated issue where (seemingly randomly) my script would "exit unexpectedly" (_exit_, not crash: the exit code was always 0) while tracking forked children using signal handlers.<br />
+<br />
+It appears that the signal handling is not at fault (indeed, PHP isn't "at fault").&nbsp; Having "restart_syscalls" set to FALSE seemed to be the problem's cause.<br />
+<br />
+I haven't debugged the issue extensively - except to observe that the issue was highly intermittent and seemed to relate to my use of usleep() in conjunction with restart_syscalls=FALSE.<br />
+<br />
+My theory is the usleep() was wrongly tracking time - as described over here: <a href="http://man7.org/linux/man-pages/man2/restart_syscall.2.html" rel="nofollow" target="_blank">http://man7.org/linux/man-pages/man2/restart_syscall.2.html</a><br />
+<br />
+Long story short, I re-enabled (which is the default value) restart_syscalls, and the issue went away.<br />
+<br />
+If you're curious - register_shutdown_function was still being handled correctly - so PHP definitely was _NOT_ crashing.&nbsp; Interestingly however, my procedural code never "resumed" after the signal was handled.<br />
+<br />
+I do not believe this is a bug.&nbsp; I believe it was ignorant user error.&nbsp; YMMV.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115984""></a>
   <div class="note">
    <strong class="user">dorogikh dot alexander at gmail dot com</strong>
    <a href="#115984" class="date">23-Oct-2014 04:40</a>

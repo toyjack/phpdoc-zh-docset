@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.serialize" class="refentry">
    <div class="refnamediv">
     <h1 class="refname">serialize</h1>
-    <p class="verinfo">(PHP 4, PHP 5)</p><p class="refpurpose"><span class="refname">serialize</span> &mdash; <span class="dc-title">
+    <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">serialize</span> &mdash; <span class="dc-title">
      产生一个可存储的值的表示
     </span></p>
 
@@ -66,7 +66,7 @@
     </p>
    </p></blockquote>
     <p class="para">
-     <div class="example" id="example-5287">
+     <div class="example" id="example-5672">
       <p><strong>Example #1 <span class="function"><strong>serialize()</strong></span> 示例</strong></p>
       <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -86,7 +86,110 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="115159""></a>
+<div id="allnotes">  <a name="117333""></a>
+  <div class="note">
+   <strong class="user">MiChAeLoKGB</strong>
+   <a href="#117333" class="date">23-May-2015 02:28</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I did some testing to see the speed differences between serialize and json_encode, and my results with 250 iterations are:<br />
+<br />
+PHP serialized in 0.0651714730263 seconds average<br />
+JSON encoded in 0.0254955434799 seconds average<br />
+json_encode() was roughly 155.62% faster than serialize()<br />
+Test took 27.2039430141 seconds with 300 iretations.<br />
+<br />
+PHP serialized in 0.0564563179016 seconds average<br />
+JSON encoded in 0.0249140485128 seconds average<br />
+json_encode() was roughly 126.60% faster than serialize()<br />
+Test took 24.4148340225 seconds with 300 iretations.<br />
+<br />
+From all my tests it looks like json_encode is on average about 120% faster (sometimes it gets to about 85% and sometimes to 150%).<br />
+<br />
+Here is the PHP code you can run on your server to try it out:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="comment">// fillArray function myde by Peter Bailey<br />
+</span><span class="keyword">function </span><span class="default">fillArray</span><span class="keyword">(</span><span class="default">$depth</span><span class="keyword">, </span><span class="default">$max</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; static </span><span class="default">$seed</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">is_null</span><span class="keyword">(</span><span class="default">$seed</span><span class="keyword">)){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$seed </span><span class="keyword">= array(</span><span class="string">'a'</span><span class="keyword">, </span><span class="default">2</span><span class="keyword">, </span><span class="string">'c'</span><span class="keyword">, </span><span class="default">4</span><span class="keyword">, </span><span class="string">'e'</span><span class="keyword">, </span><span class="default">6</span><span class="keyword">, </span><span class="string">'g'</span><span class="keyword">, </span><span class="default">8</span><span class="keyword">, </span><span class="string">'i'</span><span class="keyword">, </span><span class="default">10</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">$depth </span><span class="keyword">&lt; </span><span class="default">$max</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$node </span><span class="keyword">= array();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach (</span><span class="default">$seed </span><span class="keyword">as </span><span class="default">$key</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$node</span><span class="keyword">[</span><span class="default">$key</span><span class="keyword">] = </span><span class="default">fillArray</span><span class="keyword">( </span><span class="default">$depth </span><span class="keyword">+ </span><span class="default">1</span><span class="keyword">, </span><span class="default">$max </span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$node</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="string">'empty'</span><span class="keyword">;<br />
+}<br />
+<br />
+function </span><span class="default">testSpeed</span><span class="keyword">(</span><span class="default">$testArray</span><span class="keyword">, </span><span class="default">$iterations </span><span class="keyword">= </span><span class="default">100</span><span class="keyword">){<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$json_time </span><span class="keyword">= array();<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$serialize_time </span><span class="keyword">= array();<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$test_start </span><span class="keyword">= </span><span class="default">microtime</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp;&nbsp; for (</span><span class="default">$x </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">; </span><span class="default">$x </span><span class="keyword">&lt;= </span><span class="default">$iterations</span><span class="keyword">; </span><span class="default">$x</span><span class="keyword">++){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$start </span><span class="keyword">= </span><span class="default">microtime</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">json_encode</span><span class="keyword">(</span><span class="default">$testArray</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$json_time</span><span class="keyword">[] = </span><span class="default">microtime</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">) - </span><span class="default">$start</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$start </span><span class="keyword">= </span><span class="default">microtime</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">serialize</span><span class="keyword">(</span><span class="default">$testArray</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$serialize_time</span><span class="keyword">[] = </span><span class="default">microtime</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">) - </span><span class="default">$start</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$test_lenght </span><span class="keyword">= </span><span class="default">microtime</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">) - </span><span class="default">$test_start</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$json_average </span><span class="keyword">= </span><span class="default">array_sum</span><span class="keyword">(</span><span class="default">$json_time</span><span class="keyword">) / </span><span class="default">count</span><span class="keyword">(</span><span class="default">$json_time</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$serialize_average </span><span class="keyword">= </span><span class="default">array_sum</span><span class="keyword">(</span><span class="default">$serialize_time</span><span class="keyword">) / </span><span class="default">count</span><span class="keyword">(</span><span class="default">$serialize_time</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">= </span><span class="string">"PHP serialized in "</span><span class="keyword">.</span><span class="default">$serialize_average</span><span class="keyword">.</span><span class="string">" seconds average&lt;br&gt;"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">.= </span><span class="string">"JSON encoded in "</span><span class="keyword">.</span><span class="default">$json_average</span><span class="keyword">.</span><span class="string">" seconds average&lt;br&gt;"</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">$json_average </span><span class="keyword">&lt; </span><span class="default">$serialize_average</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">.= </span><span class="string">"json_encode() was roughly "</span><span class="keyword">.</span><span class="default">number_format</span><span class="keyword">( (</span><span class="default">$serialize_average </span><span class="keyword">/ </span><span class="default">$json_average </span><span class="keyword">- </span><span class="default">1 </span><span class="keyword">) * </span><span class="default">100</span><span class="keyword">, </span><span class="default">2 </span><span class="keyword">).</span><span class="string">"% faster than serialize()&lt;br&gt;"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; } else if ( </span><span class="default">$serializeTime </span><span class="keyword">&lt; </span><span class="default">$jsonTime </span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">.= </span><span class="string">"serialize() was roughly "</span><span class="keyword">.</span><span class="default">number_format</span><span class="keyword">( (</span><span class="default">$json_average </span><span class="keyword">/ </span><span class="default">$serialize_average </span><span class="keyword">- </span><span class="default">1 </span><span class="keyword">) * </span><span class="default">100</span><span class="keyword">, </span><span class="default">2 </span><span class="keyword">).</span><span class="string">"% faster than json_encode()&lt;br&gt;"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">.= </span><span class="string">"No way!&lt;br&gt;"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">.= </span><span class="string">"Test took "</span><span class="keyword">.</span><span class="default">$test_lenght</span><span class="keyword">.</span><span class="string">" seconds with "</span><span class="keyword">.</span><span class="default">$iterations</span><span class="keyword">.</span><span class="string">" iterations."</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$result</span><span class="keyword">;<br />
+<br />
+}<br />
+<br />
+</span><span class="comment">// Change the number of iterations (250) to lower if you exceed your maximum execution time<br />
+</span><span class="keyword">echo </span><span class="default">testSpeed</span><span class="keyword">(</span><span class="default">fillArray</span><span class="keyword">(</span><span class="default">0</span><span class="keyword">, </span><span class="default">5</span><span class="keyword">), </span><span class="default">250</span><span class="keyword">);<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117093""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#117093" class="date">14-Apr-2015 10:57</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+For everyone facing the conversion nightmare another Anonymous described here in an older comment (and he took the words out of my mouth), this T-SQL script might be of great help: https://github.com/mjohnsonperl/tsqlphpunserialize/tree/master.<br />
+<br />
+Please do not follow the path of evil by dumping serialized data into relational databases.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115159""></a>
   <div class="note">
    <strong class="user">tuxedobob</strong>
    <a href="#115159" class="date">05-Jun-2014 01:36</a>

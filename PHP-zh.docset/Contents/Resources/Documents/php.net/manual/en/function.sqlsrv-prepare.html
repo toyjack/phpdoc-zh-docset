@@ -205,7 +205,7 @@
  <div class="refsect1 examples" id="refsect1-function.sqlsrv-prepare-examples">
   <h3 class="title">·¶Àý</h3>
   <p class="para">
-   <div class="example" id="example-2199">
+   <div class="example" id="example-2321">
     <p><strong>Example #1 <span class="function"><strong>sqlsrv_prepare()</strong></span> example</strong></p>
     <div class="example-contents"><p>
     This example demonstrates how to prepare a statement with <span class="function"><strong>sqlsrv_prepare()</strong></span> 
@@ -249,7 +249,61 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="115353""></a>
+<div id="allnotes">  <a name="117807""></a>
+  <div class="note">
+   <strong class="user">tuxedobob</strong>
+   <a href="#117807" class="date">13-Aug-2015 05:54</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Be careful with your variables once you bind them to a statement with sqlsrv_prepare.<br />
+<br />
+Consider the following:<br />
+<br />
+<span class="default">&lt;?php<br />
+$dude </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">;<br />
+</span><span class="default">$time </span><span class="keyword">= new </span><span class="default">DateTime</span><span class="keyword">();<br />
+</span><span class="default">$sql </span><span class="keyword">= </span><span class="string">"INSERT INTO my_table (person, timein) VALUES (?, ?)"</span><span class="keyword">;<br />
+</span><span class="default">$stmt </span><span class="keyword">= </span><span class="default">sqlsrv_prepare</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">, </span><span class="default">$sql</span><span class="keyword">, array(&amp;</span><span class="default">$dude</span><span class="keyword">, &amp;</span><span class="default">$time</span><span class="keyword">));<br />
+<br />
+...<br />
+</span><span class="comment">// many lines later<br />
+<br />
+</span><span class="keyword">foreach (</span><span class="default">$times </span><span class="keyword">as &amp;</span><span class="default">$time</span><span class="keyword">) {<br />
+&nbsp;&nbsp; </span><span class="comment">//do stuff<br />
+</span><span class="keyword">}<br />
+<br />
+</span><span class="comment">// later still...<br />
+</span><span class="default">$time </span><span class="keyword">= </span><span class="default">$times</span><span class="keyword">[</span><span class="string">'start'</span><span class="keyword">];<br />
+if( </span><span class="default">sqlsrv_execute</span><span class="keyword">( </span><span class="default">$stmt </span><span class="keyword">) === </span><span class="default">false </span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; die( </span><span class="default">print_r</span><span class="keyword">( </span><span class="default">sqlsrv_errors</span><span class="keyword">(), </span><span class="default">true</span><span class="keyword">));<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+I did something like this. I prepared a statement at the start, used the variable again in the middle, and then set the value I wanted before running the query.<br />
+<br />
+Trouble is, I used the variable as an iterator instead of a simple scalar. This caused PHP to use a different location in memory, and the location it was previously bound to was invalid. So SQL simply inserted a default date/time.<br />
+<br />
+Worse, because SQL just inserted a default, it didn't throw any errors, and in trying to debug it, I did something like this:<br />
+<br />
+<span class="default">&lt;?php<br />
+var_dump</span><span class="keyword">(</span><span class="default">$time</span><span class="keyword">);<br />
+</span><span class="default">sqlsrv_execute</span><span class="keyword">(</span><span class="default">$stmt</span><span class="keyword">);<br />
+</span><span class="default">$q </span><span class="keyword">= </span><span class="string">"SELECT * FROM my_table WHERE id=@@IDENTITY"</span><span class="keyword">;<br />
+</span><span class="default">$r </span><span class="keyword">= </span><span class="default">sqlsrv_query</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">, </span><span class="default">$q</span><span class="keyword">);<br />
+</span><span class="default">$row </span><span class="keyword">= </span><span class="default">sqlsrv_fetch_array</span><span class="keyword">(</span><span class="default">$r</span><span class="keyword">); </span><span class="default">$id </span><span class="keyword">= </span><span class="default">$row</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">];<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$row</span><span class="keyword">[</span><span class="string">'time'</span><span class="keyword">]);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Having it appear as though you're sending SQL the correct data, and seeing it spitting back something else entirely is absolutely maddening.<br />
+<br />
+So if SQL seems to be inserting garbage with prepared statements, MAKE SURE YOU'RE NOT USING THE VARIABLES ANYWHERE ELSE.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115353""></a>
   <div class="note">
    <strong class="user">matt at bigbadweb dot co dot uk</strong>
    <a href="#115353" class="date">10-Jul-2014 07:07</a>

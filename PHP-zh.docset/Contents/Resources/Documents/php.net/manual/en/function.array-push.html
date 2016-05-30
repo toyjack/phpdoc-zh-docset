@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.array-push" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">array_push</h1>
-  <p class="verinfo">(PHP 4, PHP 5)</p><p class="refpurpose"><span class="refname">array_push</span> &mdash; <span class="dc-title">
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">array_push</span> &mdash; <span class="dc-title">
    将一个或多个单元压入数组的末尾（入栈）
   </span></p>
 
@@ -114,7 +114,7 @@
    <div class="refsect1 examples" id="refsect1-function.array-push-examples">
     <h3 class="title">范例</h3>
     <p class="para">
-     <div class="example" id="example-5008">
+     <div class="example" id="example-5384">
       <p><strong>Example #1 <span class="function"><strong>array_push()</strong></span> 例子</strong></p>
       <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -154,7 +154,266 @@ Array
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="115697""></a>
+<div id="allnotes">  <a name="119229""></a>
+  <div class="note">
+   <strong class="user">raat1979 at gmail dot com</strong>
+   <a href="#119229" class="date">23-Apr-2016 11:39</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Unfortunately array_push returns the new number of items in the array<br />
+It does not give you the key of the item you just added, in numeric arrays you could do -1, you do however need to be sure that no associative key exists as that would break the assumption<br />
+<br />
+It would have been better if array_push would have returned the key of the item just added like the below function<br />
+(perhaps a native variant would be a good idea...)<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">if(!</span><span class="default">function_exists</span><span class="keyword">(</span><span class="string">'array_add'</span><span class="keyword">)){<br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">array_add</span><span class="keyword">(array &amp;</span><span class="default">$array</span><span class="keyword">,</span><span class="default">$value </span><span class="comment">/*[, $...]*/</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$values </span><span class="keyword">= </span><span class="default">func_get_args</span><span class="keyword">();&nbsp; &nbsp;&nbsp; </span><span class="comment">//get all values<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$values</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">]= &amp;</span><span class="default">$array</span><span class="keyword">;&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="comment">//REFERENCE!<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$org</span><span class="keyword">=</span><span class="default">key</span><span class="keyword">(</span><span class="default">$array</span><span class="keyword">);&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="comment">//where are we?<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">call_user_func_array</span><span class="keyword">(</span><span class="string">'array_push'</span><span class="keyword">,</span><span class="default">$values</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">end</span><span class="keyword">(</span><span class="default">$array</span><span class="keyword">);&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// move to the last item<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$key </span><span class="keyword">= </span><span class="default">key</span><span class="keyword">(</span><span class="default">$array</span><span class="keyword">);&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">//get the key of the last item<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if(</span><span class="default">$org</span><span class="keyword">===</span><span class="default">null</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">//was at eof, added something, move to it<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">return </span><span class="default">$key</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }elseif(</span><span class="default">$org</span><span class="keyword">&lt;(</span><span class="default">count</span><span class="keyword">(</span><span class="default">$array</span><span class="keyword">)/</span><span class="default">2</span><span class="keyword">)){ </span><span class="comment">//somewhere in the middle +/- is fine<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">reset</span><span class="keyword">(</span><span class="default">$array</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; while (</span><span class="default">key</span><span class="keyword">(</span><span class="default">$array</span><span class="keyword">) !== </span><span class="default">$org</span><span class="keyword">) </span><span class="default">next</span><span class="keyword">(</span><span class="default">$List</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }else{<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; while (</span><span class="default">key</span><span class="keyword">(</span><span class="default">$array</span><span class="keyword">) !== </span><span class="default">$org</span><span class="keyword">) </span><span class="default">prev</span><span class="keyword">(</span><span class="default">$List</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$key</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+echo </span><span class="string">"&lt;pre&gt;\n"</span><span class="keyword">;<br />
+</span><span class="default">$pr </span><span class="keyword">= array(</span><span class="string">'foo'</span><span class="keyword">=&gt;</span><span class="string">'bar'</span><span class="keyword">,</span><span class="string">'bar'</span><span class="keyword">=&gt;</span><span class="string">'foo'</span><span class="keyword">);<br />
+echo </span><span class="string">"Taken array;"</span><span class="keyword">; <br />
+</span><span class="default">print_r</span><span class="keyword">(</span><span class="default">$pr</span><span class="keyword">);<br />
+<br />
+echo </span><span class="string">"\npush 1 returns "</span><span class="keyword">.</span><span class="default">array_push</span><span class="keyword">(</span><span class="default">$pr</span><span class="keyword">,</span><span class="default">1</span><span class="keyword">).</span><span class="string">"\n"</span><span class="keyword">;<br />
+echo </span><span class="string">"------------------------------------\n"</span><span class="keyword">;<br />
+</span><span class="default">$pr </span><span class="keyword">= array(</span><span class="string">'foo'</span><span class="keyword">=&gt;</span><span class="string">'bar'</span><span class="keyword">,</span><span class="string">'bar'</span><span class="keyword">=&gt;</span><span class="string">'foo'</span><span class="keyword">);<br />
+echo </span><span class="string">"\npush 2 returns "</span><span class="keyword">.</span><span class="default">array_push</span><span class="keyword">(</span><span class="default">$pr</span><span class="keyword">,</span><span class="default">1</span><span class="keyword">,</span><span class="default">2</span><span class="keyword">).</span><span class="string">"\n"</span><span class="keyword">;<br />
+echo </span><span class="string">"------------------------------------\n"</span><span class="keyword">;<br />
+</span><span class="default">$pr </span><span class="keyword">= array(</span><span class="string">'foo'</span><span class="keyword">=&gt;</span><span class="string">'bar'</span><span class="keyword">,</span><span class="string">'bar'</span><span class="keyword">=&gt;</span><span class="string">'foo'</span><span class="keyword">);<br />
+echo </span><span class="string">"\n add 1 returns "</span><span class="keyword">.</span><span class="default">array_add</span><span class="keyword">(</span><span class="default">$pr</span><span class="keyword">,</span><span class="default">2</span><span class="keyword">).</span><span class="string">"\n\n"</span><span class="keyword">;<br />
+echo </span><span class="string">"------------------------------------\n"</span><span class="keyword">;<br />
+</span><span class="default">$pr </span><span class="keyword">= array(</span><span class="string">'foo'</span><span class="keyword">=&gt;</span><span class="string">'bar'</span><span class="keyword">,</span><span class="string">'bar'</span><span class="keyword">=&gt;</span><span class="string">'foo'</span><span class="keyword">);<br />
+echo </span><span class="string">"\n add 2 returns "</span><span class="keyword">.</span><span class="default">array_add</span><span class="keyword">(</span><span class="default">$pr</span><span class="keyword">,</span><span class="default">1</span><span class="keyword">,</span><span class="default">2</span><span class="keyword">).</span><span class="string">"\n\n"</span><span class="keyword">;<br />
+echo </span><span class="string">"&lt;pre/&gt;\n\n"</span><span class="keyword">;<br />
+</span><span class="default">?&gt;<br />
+</span>Outputs:<br />
+Taken array;Array<br />
+(<br />
+&nbsp;&nbsp;&nbsp; [foo] =&gt; bar<br />
+&nbsp;&nbsp;&nbsp; [bar] =&gt; foo<br />
+)<br />
+<br />
+push 1 returns 3<br />
+------------------------------------<br />
+<br />
+push 2 returns 4<br />
+------------------------------------<br />
+<br />
+&nbsp;add 1 returns 0<br />
+<br />
+------------------------------------<br />
+<br />
+&nbsp;add 2 returns 1</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118963""></a>
+  <div class="note">
+   <strong class="user">mrgreen dot webpost at gmail dot com</strong>
+   <a href="#118963" class="date">09-Mar-2016 11:11</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Rodrigo de Aquino asserted that instead of using array_push to append to an associative array you can instead just do...<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $data[$key] = $value;<br />
+<br />
+...but this is actually not true. Unlike array_push and even...<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $data[] = $value;<br />
+<br />
+...Rodrigo's suggestion is NOT guaranteed to append the new element to the END of the array. For instance...<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $data['one'] = 1;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $data['two'] = 2;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $data['three'] = 3;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $data['four'] = 4;<br />
+&nbsp;<br />
+...might very well result in an array that looks like this...<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; [ "four" =&gt; 4, "one" =&gt; 1, "three" =&gt; 3, "two" =&gt; 2 ]<br />
+<br />
+I can only assume that PHP sorts the array as elements are added to make it easier for it to find a specified element by its key later. In many cases it won't matter if the array is not stored internally in the same order you added the elements, but if, for instance, you execute a foreach on the array later, the elements may not be processed in the order you need them to be.<br />
+<br />
+If you want to add elements to the END of an associative array you should use the unary array union operator (+=) instead...<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; $data['one'] = 1;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; $data += [ "two" =&gt; 2 ];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; $data += [ "three" =&gt; 3 ];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; $data += [ "four" =&gt; 4 ];<br />
+<br />
+You can also, of course, append more than one element at once...<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; $data['one'] = 1;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; $data += [ "two" =&gt; 2, "three" =&gt; 3 ];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; $data += [ "four" =&gt; 4 ];<br />
+<br />
+Note that like array_push (but unlike $array[] =) the array must exist before the unary union, which means that if you are building an array in a loop you need to declare an empty array first...<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; $data = [];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; for ( $i = 1; $i &lt; 5; $i++ ) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $data += [ "element$i" =&gt; $i ];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; }<br />
+<br />
+...which will result in an array that looks like this...<br />
+<br />
+&nbsp;&nbsp; &nbsp;&nbsp; [ "element1" =&gt; 1, "element2" =&gt; 2, "element3" =&gt; 3, "element4" =&gt; 4 ]</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116943""></a>
+  <div class="note">
+   <strong class="user">golddragon007</strong>
+   <a href="#116943" class="date">25-Mar-2015 07:51</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I did a performance check, and I saw, if you push more than one value it can be faster the array push, that the normal $array[] version.<br />
+<br />
+Case 1: $array[] = something;<br />
+Case 2: array_push($array, $value);<br />
+Case 3: array_push($array, $value1, $value2, $value3 [...]); $values are definied<br />
+Case 4: array_push($array, $value1, $value2, $value3 [...]); $values are definied, when $array is not empty<br />
+Case 5: Case1 + Case 3<br />
+Case 6: Result array contains some value (Case 4)<br />
+Case 7: Result array contains same value as the push array (Case 4)<br />
+-----------------------------------------------------------------------------------------------------------<br />
+~~~~~~~~~~~~ Case 1 ~~~~~~~~~~~~<br />
+Times: 0.0310 0.0300 0.0290 0.0340 0.0400 0.0440 0.0480 0.0550 0.0570 0.0570<br />
+Min: 0.0290<br />
+Max: 0.0570<br />
+Avg: 0.0425<br />
+~~~~~~~~~~~~ Case 2 ~~~~~~~~~~~~<br />
+Times: 0.3890 0.3850 0.3770 0.4110 0.4020 0.3980 0.4020 0.4060 0.4130 0.4200<br />
+Min: 0.3770<br />
+Max: 0.4200<br />
+Avg: 0.4003<br />
+~~~~~~~~~~~~ Case 3 ~~~~~~~~~~~~<br />
+Times: 0.0200 0.0220 0.0240 0.0340 0.0360 0.0410 0.0460 0.0500 0.0520 0.0520<br />
+Min: 0.0200<br />
+Max: 0.0520<br />
+Avg: 0.0377<br />
+~~~~~~~~~~~~ Case 4 ~~~~~~~~~~~~<br />
+Times: 0.0200 0.0250 0.0230 0.0260 0.0330 0.0390 0.0460 0.0510 0.0520 0.0520<br />
+Min: 0.0200<br />
+Max: 0.0520<br />
+Avg: 0.0367<br />
+~~~~~~~~~~~~ Case 5 ~~~~~~~~~~~~<br />
+Times: 0.0260 0.0250 0.0370 0.0360 0.0390 0.0440 0.0510 0.0520 0.0530 0.0560<br />
+Min: 0.0250<br />
+Max: 0.0560<br />
+Avg: 0.0419<br />
+~~~~~~~~~~~~ Case 6 ~~~~~~~~~~~~<br />
+Times: 0.0340 0.0280 0.0370 0.0410 0.0450 0.0480 0.0560 0.0580 0.0580 0.0570<br />
+Min: 0.0280<br />
+Max: 0.0580<br />
+Avg: 0.0462<br />
+~~~~~~~~~~~~ Case 7 ~~~~~~~~~~~~<br />
+Times: 0.0290 0.0270 0.0350 0.0410 0.0430 0.0470 0.0540 0.0540 0.0550 0.0550<br />
+Min: 0.0270<br />
+Max: 0.0550<br />
+Avg: 0.044<br />
+<br />
+Tester code:<br />
+// Case 1<br />
+&nbsp;&nbsp;&nbsp; $startTime = microtime(true);<br />
+&nbsp;&nbsp;&nbsp; $array = array();<br />
+&nbsp;&nbsp;&nbsp; for ($x = 1; $x &lt;= 100000; $x++)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $array[] = $x;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; $endTime = microtime(true);<br />
+<br />
+// Case 2<br />
+&nbsp;&nbsp;&nbsp; $startTime = microtime(true);<br />
+&nbsp;&nbsp;&nbsp; $array = array();<br />
+&nbsp;&nbsp;&nbsp; for ($x = 1; $x &lt;= 100000; $x++)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; array_push($array, $x);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; $endTime = microtime(true);<br />
+<br />
+// Case 3<br />
+&nbsp;&nbsp;&nbsp; $result = array();<br />
+&nbsp;&nbsp;&nbsp; $array2 = array(&amp;$result)+$array;<br />
+&nbsp;&nbsp;&nbsp; $startTime = microtime(true);<br />
+&nbsp;&nbsp;&nbsp; call_user_func_array("array_push", $array2);<br />
+&nbsp;&nbsp;&nbsp; $endTime = microtime(true);<br />
+<br />
+// Case 4<br />
+&nbsp;&nbsp;&nbsp; $result = array();<br />
+&nbsp;&nbsp;&nbsp; for ($x = 1; $x &lt;= 100000; $x++)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $result[] = $x;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; $array2 = array(&amp;$result)+$array;<br />
+&nbsp;&nbsp;&nbsp; $startTime = microtime(true);<br />
+&nbsp;&nbsp;&nbsp; call_user_func_array("array_push", $array2);<br />
+&nbsp;&nbsp;&nbsp; $endTime = microtime(true);<br />
+<br />
+// Case 5<br />
+&nbsp;&nbsp;&nbsp; $result = array();<br />
+&nbsp;&nbsp;&nbsp; $startTime = microtime(true);<br />
+&nbsp;&nbsp;&nbsp; $array = array(&amp;$result);<br />
+&nbsp;&nbsp;&nbsp; for ($x = 1; $x &lt;= 100000; $x++)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $array[] = $x;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; $endTime = microtime(true);<br />
+<br />
+// Case 6<br />
+&nbsp;&nbsp;&nbsp; $result = array(1,2,3,4,5,6);<br />
+&nbsp;&nbsp;&nbsp; $startTime = microtime(true);<br />
+&nbsp;&nbsp;&nbsp; $array = array(&amp;$result);<br />
+&nbsp;&nbsp;&nbsp; for ($x = 1; $x &lt;= 100000; $x++)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $array[] = $x;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; $endTime = microtime(true);<br />
+<br />
+// Case 7<br />
+&nbsp;&nbsp;&nbsp; $result = array();<br />
+&nbsp;&nbsp;&nbsp; for ($x = 1; $x &lt;= 100000; $x++)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $result[] = $x;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; $startTime = microtime(true);<br />
+&nbsp;&nbsp;&nbsp; $array = array(&amp;$result);<br />
+&nbsp;&nbsp;&nbsp; for ($x = 1; $x &lt;= 100000; $x++)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $array[] = $x;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; $endTime = microtime(true);</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115697""></a>
   <div class="note">
    <strong class="user">Rob</strong>
    <a href="#115697" class="date">10-Sep-2014 05:59</a>
