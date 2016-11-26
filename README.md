@@ -19,6 +19,7 @@ PHP手册中文版－－用于Dash等
 参考了日本人miukoba的[方法](http://www.miukoba.net/blog/2013/12/14/Japanese-PHP-Docset-for-Dash/)
 
 大致方法：
+
 1. 下载PHP中文离线手册CHM版本（只有CHM版含有用户评论）
 2. 使用libchm-bin展开下载的chm文件
 3. 替换dash中下载的原版php.docset相关文件
