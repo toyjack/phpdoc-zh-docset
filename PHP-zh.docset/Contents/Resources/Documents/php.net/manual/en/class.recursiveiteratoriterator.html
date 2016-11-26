@@ -355,7 +355,86 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="119115""></a>
+<div id="allnotes">  <a name="120131""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#120131" class="date">08-Nov-2016 07:15</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+A very useful use case for RecusiveIteratorIterator in combination with RecursiveArrayIterator is to replace array values on a multidimensional array at any level deep.<br />
+<br />
+Usually, array_walk_recursive would be used to replace values deep within arrays, but unfortunately this only works when there is a standard key value pair - in other words, array_walk_recursive ONLY VISITS LEAF NODES, NOT arrays.<br />
+<br />
+So to get around this, the iterators can be used in this way:<br />
+<br />
+<span class="default">&lt;?php<br />
+$array </span><span class="keyword">= [<br />
+&nbsp;&nbsp;&nbsp; </span><span class="string">'test' </span><span class="keyword">=&gt; </span><span class="string">'value'</span><span class="keyword">,<br />
+&nbsp;&nbsp;&nbsp; </span><span class="string">'level_one' </span><span class="keyword">=&gt; [<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'level_two' </span><span class="keyword">=&gt; [<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'level_three' </span><span class="keyword">=&gt; [<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'replace_this_array' </span><span class="keyword">=&gt; [<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'special_key' </span><span class="keyword">=&gt; </span><span class="string">'replacement_value'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'key_one' </span><span class="keyword">=&gt; </span><span class="string">'testing'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'key_two' </span><span class="keyword">=&gt; </span><span class="string">'value'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'four' </span><span class="keyword">=&gt; </span><span class="string">'another value'<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">]<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; ],<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'ordinary_key' </span><span class="keyword">=&gt; </span><span class="string">'value'<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">]<br />
+&nbsp;&nbsp;&nbsp; ]<br />
+];<br />
+<br />
+</span><span class="default">$arrayIterator </span><span class="keyword">= new \</span><span class="default">RecursiveArrayIterator</span><span class="keyword">(</span><span class="default">$array</span><span class="keyword">);<br />
+</span><span class="default">$recursiveIterator </span><span class="keyword">= new \</span><span class="default">RecursiveIteratorIterator</span><span class="keyword">(</span><span class="default">$arrayIterator</span><span class="keyword">, \</span><span class="default">RecursiveIteratorIterator</span><span class="keyword">::</span><span class="default">SELF_FIRST</span><span class="keyword">);<br />
+<br />
+foreach (</span><span class="default">$recursiveIterator </span><span class="keyword">as </span><span class="default">$key </span><span class="keyword">=&gt; </span><span class="default">$value</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">is_array</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">) &amp;&amp; </span><span class="default">array_key_exists</span><span class="keyword">(</span><span class="string">'special_key'</span><span class="keyword">, </span><span class="default">$value</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Here we replace ALL keys with the same value from 'special_key'<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$replaced </span><span class="keyword">= </span><span class="default">array_fill</span><span class="keyword">(</span><span class="default">0</span><span class="keyword">, </span><span class="default">count</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">), </span><span class="default">$value</span><span class="keyword">[</span><span class="string">'special_key'</span><span class="keyword">]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$value </span><span class="keyword">= </span><span class="default">array_combine</span><span class="keyword">(</span><span class="default">array_keys</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">), </span><span class="default">$replaced</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// set a new key<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$value</span><span class="keyword">[</span><span class="string">'new_key'</span><span class="keyword">] = </span><span class="string">'new value'</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Get the current depth and traverse back up the tree, saving the modifications<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$currentDepth </span><span class="keyword">= </span><span class="default">$recursiveIterator</span><span class="keyword">-&gt;</span><span class="default">getDepth</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; for (</span><span class="default">$subDepth </span><span class="keyword">= </span><span class="default">$currentDepth</span><span class="keyword">; </span><span class="default">$subDepth </span><span class="keyword">&gt;= </span><span class="default">0</span><span class="keyword">; </span><span class="default">$subDepth</span><span class="keyword">--) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Get the current level iterator<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$subIterator </span><span class="keyword">= </span><span class="default">$recursiveIterator</span><span class="keyword">-&gt;</span><span class="default">getSubIterator</span><span class="keyword">(</span><span class="default">$subDepth</span><span class="keyword">); <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// If we are on the level we want to change, use the replacements ($value) other wise set the key to the parent iterators value<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$subIterator</span><span class="keyword">-&gt;</span><span class="default">offsetSet</span><span class="keyword">(</span><span class="default">$subIterator</span><span class="keyword">-&gt;</span><span class="default">key</span><span class="keyword">(), (</span><span class="default">$subDepth </span><span class="keyword">=== </span><span class="default">$currentDepth </span><span class="keyword">? </span><span class="default">$value </span><span class="keyword">: </span><span class="default">$recursiveIterator</span><span class="keyword">-&gt;</span><span class="default">getSubIterator</span><span class="keyword">((</span><span class="default">$subDepth</span><span class="keyword">+</span><span class="default">1</span><span class="keyword">))-&gt;</span><span class="default">getArrayCopy</span><span class="keyword">())); <br />
+&nbsp;&nbsp; &nbsp; &nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+return </span><span class="default">$recursiveIterator</span><span class="keyword">-&gt;</span><span class="default">getArrayCopy</span><span class="keyword">();<br />
+</span><span class="comment">// return:<br />
+</span><span class="default">$array </span><span class="keyword">= [<br />
+&nbsp;&nbsp;&nbsp; </span><span class="string">'test' </span><span class="keyword">=&gt; </span><span class="string">'value'</span><span class="keyword">,<br />
+&nbsp;&nbsp;&nbsp; </span><span class="string">'level_one' </span><span class="keyword">=&gt; [<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'level_two' </span><span class="keyword">=&gt; [<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'level_three' </span><span class="keyword">=&gt; [<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'replace_this_array' </span><span class="keyword">=&gt; [<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'special_key' </span><span class="keyword">=&gt; </span><span class="string">'replacement_value'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'key_one' </span><span class="keyword">=&gt; </span><span class="string">'replacement_value'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'key_two' </span><span class="keyword">=&gt; </span><span class="string">'replacement_value'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'four' </span><span class="keyword">=&gt; </span><span class="string">'replacement_value'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'new_key' </span><span class="keyword">=&gt; </span><span class="string">'new value'<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">]<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; ],<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'ordinary_key' </span><span class="keyword">=&gt; </span><span class="string">'value'<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">]<br />
+&nbsp;&nbsp;&nbsp; ]<br />
+];<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+The key is in traversing back up the tree to save the changes at that level - simply calling $recursiveIterator-&gt;offsetSet(); will only set a key on the root array.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119115""></a>
   <div class="note">
    <strong class="user">jhonatan dot teixeira at gmail dot com</strong>
    <a href="#119115" class="date">04-Apr-2016 06:45</a>

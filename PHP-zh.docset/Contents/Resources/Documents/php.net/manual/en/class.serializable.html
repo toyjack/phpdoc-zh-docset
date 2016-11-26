@@ -118,7 +118,103 @@ string(15) &quot;My private data&quot;
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="118264""></a>
+<div id="allnotes">  <a name="119701""></a>
+  <div class="note">
+   <strong class="user">Wojciech Brozyna</strong>
+   <a href="#119701" class="date">05-Aug-2016 05:56</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+My solution that let you serialize inherited objects.<br />
+Without specify what need to be serialized.<br />
+We want to get rid of PDO object in this example.<br />
+<br />
+abstract class DefaultModel() implements \Serializable<br />
+{<br />
+<br />
+&nbsp;&nbsp;&nbsp; /**<br />
+&nbsp;&nbsp;&nbsp; * @var PDO<br />
+&nbsp;&nbsp;&nbsp; */<br />
+&nbsp;&nbsp;&nbsp; private $pdo;<br />
+<br />
+&nbsp;&nbsp;&nbsp; /**<br />
+&nbsp;&nbsp; &nbsp; * Serialize object<br />
+&nbsp;&nbsp; &nbsp; * <br />
+&nbsp;&nbsp; &nbsp; * @return string<br />
+&nbsp;&nbsp; &nbsp; */<br />
+&nbsp;&nbsp;&nbsp; public function serialize()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $serializable = get_object_vars($this);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; // unset property name that hold PDO instance<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; unset($serializable['pdo']);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return serialize($serializable);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; /**<br />
+&nbsp;&nbsp; &nbsp; * Unserialize object<br />
+&nbsp;&nbsp; &nbsp; * <br />
+&nbsp;&nbsp; &nbsp; * @param string $serialized Serialized object<br />
+&nbsp;&nbsp; &nbsp; * @return DefaultModel<br />
+&nbsp;&nbsp; &nbsp; */<br />
+&nbsp;&nbsp;&nbsp; public function unserialize($serialized)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $unserialized = unserialize($serialized);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; // recreate PDO object<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;pdo = $this-&gt;createDBObject();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(is_array($unserialized) === true) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; foreach($unserialized as $property =&gt; $value) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;{$property} = $value;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+}<br />
+<br />
+class RealModel extends DefaultModel<br />
+{<br />
+<br />
+&nbsp;&nbsp;&nbsp; private $myVar;<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function setMyVar($value)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;myVar = $value;<br />
+<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+}<br />
+<br />
+$model = new RealModel();<br />
+$model-&gt;setMyVar('123456');<br />
+<br />
+$serialized = serialize($model);<br />
+$serialized = $model-&gt;serialize();&nbsp;&nbsp; // will also work<br />
+<br />
+print_r($serialized);<br />
+<br />
+$unserialized = unserialize($serialized);<br />
+<br />
+print_r($unserialized);<br />
+<br />
+Hope this help.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118264""></a>
   <div class="note">
    <strong class="user">grzeniufication</strong>
    <a href="#118264" class="date">06-Nov-2015 06:19</a>

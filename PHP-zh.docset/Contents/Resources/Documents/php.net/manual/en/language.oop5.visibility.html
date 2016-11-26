@@ -38,7 +38,7 @@
     <em class="emphasis">var</em> 定义，则被视为公有。
    </p>
    <p class="para">
-    <div class="example" id="example-213">
+    <div class="example" id="example-216">
      <p><strong>Example #1 属性声明</strong></p>
      <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -64,7 +64,7 @@
     类中的方法可以被定义为公有，私有或受保护。如果没有设置这些关键字，则该方法默认为公有。
    </p>
    <p class="para">
-    <div class="example" id="example-214">
+    <div class="example" id="example-217">
      <p><strong>Example #2 方法声明</strong></p>
      <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -82,7 +82,7 @@
    <p class="para">
     同一个类的对象即使不是同一个实例也可以互相访问对方的私有与受保护成员。这是由于在这些对象的内部具体实现的细节都是已知的。
    </p>
-   <div class="example" id="example-215">
+   <div class="example" id="example-218">
     <p><strong>Example #3 访问同一个对象类型的私有成员</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -105,7 +105,104 @@ Accessed the private method.
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="118738""></a>
+<div id="allnotes">  <a name="120150""></a>
+  <div class="note">
+   <strong class="user">bishop at php dot net</strong>
+   <a href="#120150" class="date">12-Nov-2016 12:27</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+&gt; Members declared protected can be accessed only within <br />
+&gt; the class itself and by inherited classes. Members declared <br />
+&gt; as private may only be accessed by the class that defines <br />
+&gt; the member.<br />
+<br />
+This is not strictly true. Code outside the object can get and set private and protected members:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">Sealed </span><span class="keyword">{ private </span><span class="default">$value </span><span class="keyword">= </span><span class="string">'foo'</span><span class="keyword">; }<br />
+<br />
+</span><span class="default">$sealed </span><span class="keyword">= new </span><span class="default">Sealed</span><span class="keyword">;<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$sealed</span><span class="keyword">); </span><span class="comment">// private $value =&gt; string(3) "foo"<br />
+<br />
+</span><span class="default">call_user_func</span><span class="keyword">(\</span><span class="default">Closure</span><span class="keyword">::</span><span class="default">bind</span><span class="keyword">(<br />
+&nbsp;&nbsp;&nbsp; function () use (</span><span class="default">$sealed</span><span class="keyword">) { </span><span class="default">$sealed</span><span class="keyword">-&gt;</span><span class="default">value </span><span class="keyword">= </span><span class="string">'BAZ'</span><span class="keyword">; },<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">null</span><span class="keyword">,<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$sealed<br />
+</span><span class="keyword">));<br />
+<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$sealed</span><span class="keyword">); </span><span class="comment">// private $value =&gt; string(3) "BAZ"<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+The magic lay in \Closure::bind, which allows an anonymous function to bind to a particular class scope. The documentation on \Closure::bind says:<br />
+<br />
+&gt; If an object is given, the type of the object will be used<br />
+&gt; instead. This determines the visibility of protected and<br />
+&gt; private methods of the bound object.<br />
+<br />
+So, effectively, we're adding a run-time setter to $sealed, then calling that setter. This can be elaborated to generic functions that can force set and force get object members:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">force_set</span><span class="keyword">(</span><span class="default">$object</span><span class="keyword">, </span><span class="default">$property</span><span class="keyword">, </span><span class="default">$value</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">call_user_func</span><span class="keyword">(\</span><span class="default">Closure</span><span class="keyword">::</span><span class="default">bind</span><span class="keyword">(<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; function () use (</span><span class="default">$object</span><span class="keyword">, </span><span class="default">$property</span><span class="keyword">, </span><span class="default">$value</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$object</span><span class="keyword">-&gt;{</span><span class="default">$property</span><span class="keyword">} = </span><span class="default">$value</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; },<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">null</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$object<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">));<br />
+}<br />
+<br />
+function </span><span class="default">force_get</span><span class="keyword">(</span><span class="default">$object</span><span class="keyword">, </span><span class="default">$property</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">call_user_func</span><span class="keyword">(\</span><span class="default">Closure</span><span class="keyword">::</span><span class="default">bind</span><span class="keyword">(<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; function () use (</span><span class="default">$object</span><span class="keyword">, </span><span class="default">$property</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$object</span><span class="keyword">-&gt;{</span><span class="default">$property</span><span class="keyword">};<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; },<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">null</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$object<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">));<br />
+}<br />
+<br />
+</span><span class="default">force_set</span><span class="keyword">(</span><span class="default">$sealed</span><span class="keyword">, </span><span class="string">'value'</span><span class="keyword">, </span><span class="string">'quux'</span><span class="keyword">);<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">force_get</span><span class="keyword">(</span><span class="default">$sealed</span><span class="keyword">, </span><span class="string">'value'</span><span class="keyword">)); </span><span class="comment">// 'quux'<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+You should probably not rely on this ability for production quality code, but having this ability for debugging and testing is handy.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119485""></a>
+  <div class="note">
+   <strong class="user">noel darlow</strong>
+   <a href="#119485" class="date">19-Jun-2016 05:19</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+After having the how explained, many people will still be left wondering about the why. How should the different kinds of visibility be used in practice?<br />
+<br />
+Some kind of labelling for the public and private parts of an interface is certainly necessary. We need to be clear which methods will be part of the public interface and which are only used internally .<br />
+<br />
+In older versions of php notionally-private functions were prefixed with an underscore - a much simpler and more elegant solution to the labelling problem. "Protected" adds clutter which affects readability. It adds a lot of unnecessary typing to what is already a keyboard-intensive job.<br />
+<br />
+As for enforcement.. no-one ever got mixed up about public/private so long as they were clearly labelled. As such, "protected" is an attempt to solve a problem which simply did not exist.<br />
+<br />
+Private is even worse. It specifically encourages bad object-oriented code with the use of inheritance in places where you should be thinking about separate, co-operating objects. <br />
+<br />
+A feeling that classes which inherit from each other need to hide some of their bits from each other is a sure sign that you need to break the code up into separate objects. This is exactly what encapsulation is for. It doesn't make any sense to try to encapsulate bits inside an inheritance tree. Classes which extend other classes must always be free to override whatever it is they need to override in their parent classes.<br />
+<br />
+In short, use protected if you must, do not use private at all. Do not try to squeeze too much new functionality into an inheritance tree: create networks of co-operating objects with clearly-defined responsibilities instead.<br />
+<br />
+It's a real shame that php took the decision to implement private and protected. They add nothing to our ability to write good quality OO code; they simply make that code more difficult to write and to understand.&nbsp;&nbsp; Clarity and simplicity are incredibly important in programming but now both php programmers and php developers are stuck with these unnecessary layers of complexity.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118738""></a>
   <div class="note">
    <strong class="user">gried at NOSPAM dot nsys dot by</strong>
    <a href="#118738" class="date">29-Jan-2016 03:18</a>
@@ -318,38 +415,6 @@ eg:<br />
 }<br />
 </span><span class="default">?&gt;</span>
 </span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="114525""></a>
-  <div class="note">
-   <strong class="user">hasan4it at gmail dot com</strong>
-   <a href="#114525" class="date">04-Mar-2014 04:19</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-class MyClass<br />
-{<br />
-&nbsp;&nbsp;&nbsp; public $public = 'Public';<br />
-&nbsp;&nbsp;&nbsp; protected $protected = 'Protected';<br />
-&nbsp;&nbsp;&nbsp; private $private = 'Private';<br />
-<br />
-&nbsp;&nbsp;&nbsp; function printHello()<br />
-&nbsp;&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo $this-&gt;public;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo $this-&gt;protected;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo $this-&gt;private;<br />
-&nbsp;&nbsp;&nbsp; }<br />
-}<br />
-<br />
-$obj = new MyClass();<br />
-<br />
-print_r($obj)<br />
-<br />
-it gives me the value of all variables <br />
-How can I hide this?</span>
 </code>
     </div>
    </div>

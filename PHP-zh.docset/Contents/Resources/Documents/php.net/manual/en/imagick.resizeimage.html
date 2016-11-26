@@ -170,7 +170,7 @@
  <div class="refsect1 examples" id="refsect1-imagick.resizeimage-examples">
   <h3 class="title">·¶Àý</h3>
   <p class="para">
-    <div class="example" id="example-3596">
+    <div class="example" id="example-3622">
       <p><strong>Example #1  <span class="function"><strong>Imagick::resizeImage()</strong></span></strong></p>
       <div class="example-contents">
       <div class="phpcode"><code><span style="color: #000000">
@@ -188,7 +188,47 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="107779""></a>
+<div id="allnotes">  <a name="119416""></a>
+  <div class="note">
+   <strong class="user">phper at krzysiu dot net</strong>
+   <a href="#119416" class="date">02-Jun-2016 09:41</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Some size, image and filter and blur combinations causes artifacts or even make image completely scrambled. As far, as I see, it happens with blur values smaller than 0.25 (sometimes less) and goes worse to the point of 0 - black image. Sometimes only some values gives artifacts, like Hanning with my test image: 0.0 blur is fine, 0.1 produces artefacts.<br />
+<br />
+Affected filters are e.g. Catrom, sinc, cubic, quadratic, while unaffected are e.g. Lanczos and Hanning. The problem seems to be the domain of the filter algorithms, not IMagick implementation. This image shows three filters: <a href="http://i.imgur.com/HcdwoUS.jpg" rel="nofollow" target="_blank">http://i.imgur.com/HcdwoUS.jpg</a><br />
+<br />
+Sometimes test image could look fine, but other not, so if you are using affected filters, the 0.5 value should be safe.<br />
+<br />
+This test script takes example image (you can download and use <a href="http://i.imgur.com/KsTJpFr.jpg which is affected" rel="nofollow" target="_blank">http://i.imgur.com/KsTJpFr.jpg which is affected</a>) and creates resized images in the same directory for every filter and one of four blur values, with naming like "test.jpg.sinc.0.1.jpg" for "test.jpg" input.<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; $imgPath </span><span class="keyword">= </span><span class="string">'imgtest/test.jpg'</span><span class="keyword">; </span><span class="comment">// set your image file<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$testBlurs </span><span class="keyword">= [</span><span class="default">0</span><span class="keyword">, </span><span class="default">0.1</span><span class="keyword">, </span><span class="default">0.2</span><span class="keyword">, </span><span class="default">0.5</span><span class="keyword">]; </span><span class="comment">// test these blur values<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$im </span><span class="keyword">= new </span><span class="default">IMagick</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$im</span><span class="keyword">-&gt;</span><span class="default">readImage</span><span class="keyword">(</span><span class="default">$imgPath</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; foreach ((new </span><span class="default">ReflectionClass</span><span class="keyword">(</span><span class="string">'IMagick'</span><span class="keyword">))-&gt;</span><span class="default">getConstants</span><span class="keyword">() as </span><span class="default">$n </span><span class="keyword">=&gt; </span><span class="default">$f</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">strncmp</span><span class="keyword">(</span><span class="default">$n</span><span class="keyword">, </span><span class="string">'FILTER_'</span><span class="keyword">, </span><span class="default">7</span><span class="keyword">) === </span><span class="default">0</span><span class="keyword">) { </span><span class="comment">// get available IMagick filters<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$filterName </span><span class="keyword">= </span><span class="default">strtolower</span><span class="keyword">(</span><span class="default">substr</span><span class="keyword">(</span><span class="default">$n</span><span class="keyword">, </span><span class="default">7</span><span class="keyword">)); </span><span class="comment">// extract filter name from constant<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">foreach (</span><span class="default">$testBlurs </span><span class="keyword">as </span><span class="default">$blur</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$imSize </span><span class="keyword">= clone </span><span class="default">$im</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$imSize</span><span class="keyword">-&gt;</span><span class="default">resizeImage</span><span class="keyword">(</span><span class="default">500</span><span class="keyword">, </span><span class="default">500</span><span class="keyword">, </span><span class="default">$f</span><span class="keyword">, </span><span class="default">$blur</span><span class="keyword">, </span><span class="default">true</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$imSize</span><span class="keyword">-&gt;</span><span class="default">writeImage</span><span class="keyword">(</span><span class="default">sprintf</span><span class="keyword">(</span><span class="string">"%s-%s-%.1f.jpg"</span><span class="keyword">, </span><span class="default">$imgPath</span><span class="keyword">, </span><span class="default">$filterName</span><span class="keyword">, </span><span class="default">$blur</span><span class="keyword">));<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$imSize</span><span class="keyword">-&gt;</span><span class="default">destroy</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="107779""></a>
   <div class="note">
    <strong class="user">Spitfires</strong>
    <a href="#107779" class="date">04-Mar-2012 06:39</a>

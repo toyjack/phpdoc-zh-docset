@@ -95,7 +95,7 @@
  <div class="refsect1 examples" id="refsect1-function.uniqid-examples">
   <h3 class="title">·¶Àý</h3>
   <p class="para">
-   <div class="example" id="example-4199">
+   <div class="example" id="example-4226">
     <p><strong>Example #1 <span class="function"><strong>uniqid()</strong></span> Àý×Ó</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -159,7 +159,95 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="119219""></a>
+<div id="allnotes">  <a name="120123""></a>
+  <div class="note">
+   <strong class="user">hackan at gmail dot com</strong>
+   <a href="#120123" class="date">06-Nov-2016 04:17</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Seriously, avoid using this function. Here's an example of why:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">for(</span><span class="default">$i</span><span class="keyword">=</span><span class="default">0</span><span class="keyword">;</span><span class="default">$i</span><span class="keyword">&lt;</span><span class="default">20</span><span class="keyword">;</span><span class="default">$i</span><span class="keyword">++) {<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="default">uniqid</span><span class="keyword">(), </span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Output:<br />
+<br />
+5819f3ad1c0ce<br />
+5819f3ad1c0ce<br />
+5819f3ad1c0ce<br />
+5819f3ad1c0ce<br />
+5819f3ad1c0ce<br />
+5819f3ad1c0ce<br />
+5819f3ad1c0ce<br />
+5819f3ad1c0ce<br />
+5819f3ad1c4b6<br />
+5819f3ad1c4b6<br />
+5819f3ad1c4b6<br />
+5819f3ad1c4b6<br />
+5819f3ad1c4b6<br />
+5819f3ad1c4b6<br />
+5819f3ad1c4b6<br />
+5819f3ad1c4b6<br />
+5819f3ad1c4b6<br />
+5819f3ad1c4b6<br />
+5819f3ad1c4b6<br />
+5819f3ad1c4b6<br />
+<br />
+As you can see, using it w/ a DB can cause the creation of documents with repeated ID's. You should instead opt for:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">uniqidReal</span><span class="keyword">(</span><span class="default">$lenght </span><span class="keyword">= </span><span class="default">13</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// uniqid gives 13 chars, but you could adjust it to your needs.<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">if (</span><span class="default">function_exists</span><span class="keyword">(</span><span class="string">"random_bytes"</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$bytes </span><span class="keyword">= </span><span class="default">random_bytes</span><span class="keyword">(</span><span class="default">ceil</span><span class="keyword">(</span><span class="default">$lenght </span><span class="keyword">/ </span><span class="default">2</span><span class="keyword">));<br />
+&nbsp;&nbsp;&nbsp; } elseif (</span><span class="default">function_exists</span><span class="keyword">(</span><span class="string">"openssl_random_pseudo_bytes"</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$bytes </span><span class="keyword">= </span><span class="default">openssl_random_pseudo_bytes</span><span class="keyword">(</span><span class="default">ceil</span><span class="keyword">(</span><span class="default">$lenght </span><span class="keyword">/ </span><span class="default">2</span><span class="keyword">));<br />
+&nbsp;&nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; throw new </span><span class="default">Exception</span><span class="keyword">(</span><span class="string">"no cryptographically secure random function available"</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">substr</span><span class="keyword">(</span><span class="default">bin2hex</span><span class="keyword">(</span><span class="default">$bytes</span><span class="keyword">), </span><span class="default">0</span><span class="keyword">, </span><span class="default">$lenght</span><span class="keyword">);<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Test:<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">for(</span><span class="default">$i</span><span class="keyword">=</span><span class="default">0</span><span class="keyword">;</span><span class="default">$i</span><span class="keyword">&lt;</span><span class="default">20</span><span class="keyword">;</span><span class="default">$i</span><span class="keyword">++) {<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="default">uniqid</span><span class="keyword">(), </span><span class="string">"\t"</span><span class="keyword">, </span><span class="default">uniqidReal</span><span class="keyword">(), </span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Output:<br />
+<br />
+5819fa0b63be3&nbsp;&nbsp; 9f39aa0ecd89d<br />
+5819fa0b70ed3&nbsp;&nbsp; 2c0735cabfcce<br />
+5819fa0b712bb&nbsp;&nbsp; 15e45d1ca1e90<br />
+5819fa0b712bb&nbsp;&nbsp; 89593dc230eb3<br />
+5819fa0b712bb&nbsp;&nbsp; 449795704aeef<br />
+5819fa0b712bb&nbsp;&nbsp; b046877b80ac9<br />
+5819fa0b712bb&nbsp;&nbsp; 0a6fa0ae3ec7b<br />
+5819fa0b712bb&nbsp;&nbsp; ba2f3f4d6afe0<br />
+5819fa0b712bb&nbsp;&nbsp; af03cfac83fd6<br />
+5819fa0b712bb&nbsp;&nbsp; eb9c3c6d475c0<br />
+5819fa0b712bb&nbsp;&nbsp; edfbbf59d5e1b<br />
+5819fa0b712bb&nbsp;&nbsp; 500dca18888d4<br />
+5819fa0b716a3&nbsp;&nbsp; 4f5a40ef715f1<br />
+5819fa0b716a3&nbsp;&nbsp; 154e42b616825<br />
+5819fa0b716a3&nbsp;&nbsp; a879a22663c9b<br />
+5819fa0b716a3&nbsp;&nbsp; ea7c044ddda8a<br />
+5819fa0b716a3&nbsp;&nbsp; 2c81a44dc674e<br />
+5819fa0b716a3&nbsp;&nbsp; bb32f37304fd9<br />
+5819fa0b716a3&nbsp;&nbsp; 30cdf6c0317d7<br />
+5819fa0b716a3&nbsp;&nbsp; d25f529d126ae</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119219""></a>
   <div class="note">
    <strong class="user">php at  dot  dot  dot metehanarslan dot com</strong>
    <a href="#119219" class="date">21-Apr-2016 09:33</a>

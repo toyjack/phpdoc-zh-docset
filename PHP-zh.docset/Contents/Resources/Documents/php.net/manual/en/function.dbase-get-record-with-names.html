@@ -26,7 +26,7 @@
   <div id="layout-content"><div id="function.dbase-get-record-with-names" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">dbase_get_record_with_names</h1>
-  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">dbase_get_record_with_names</span> &mdash; <span class="dc-title">
+  <p class="verinfo">(PHP 5 &lt; 5.3.0, dbase 5, dbase 7)</p><p class="refpurpose"><span class="refname">dbase_get_record_with_names</span> &mdash; <span class="dc-title">
    Gets a record from a database as an associative array
   </span></p>
 
@@ -35,7 +35,7 @@
   <h3 class="title">说明</h3>
   <div class="methodsynopsis dc-description">
    <span class="type">array</span> <span class="methodname"><strong>dbase_get_record_with_names</strong></span>
-    ( <span class="methodparam"><span class="type">int</span> <code class="parameter">$dbase_identifier</code></span>
+    ( <span class="methodparam"><span class="type">resource</span> <code class="parameter">$dbase_identifier</code></span>
    , <span class="methodparam"><span class="type">int</span> <code class="parameter">$record_number</code></span>
    )</div>
 
@@ -69,7 +69,8 @@
      <dd>
 
       <p class="para">
-       The index of the record.
+       The index of the record between <em>1</em> and
+       <em>dbase_numrecords($dbase_identifier)</em>.
       </p>
      </dd>
 
@@ -85,6 +86,8 @@
    An associative array with the record. This will also include a key named 
    <em>deleted</em> which is set to 1 if the record has been marked
    for deletion (see <span class="function"><a href="function.dbase-delete-record.html" class="function">dbase_delete_record()</a></span>).
+   Therefore it is not possible to retrieve the value of a field named
+   <em>deleted</em> with this function.
   </p>
   <p class="para">
    Each field is converted to the appropriate PHP type, except:
@@ -96,8 +99,20 @@
     </li>
     <li class="listitem">
      <span class="simpara">
-      Integers that would have caused an overflow (&gt; 32 bits)
-      are returned as strings.
+      DateTime values are converted to strings.
+     </span>
+    </li>
+    <li class="listitem">
+     <span class="simpara">
+      Integers outside the range
+      <strong><code>PHP_INT_MIN</code></strong>..<strong><code>PHP_INT_MAX</code></strong> are
+      returned as strings.
+     </span>
+    </li>
+    <li class="listitem">
+     <span class="simpara">
+      Before dbase 7.0.0, booleans (<em>L</em>) were converted to <em>1</em> or
+      <em>0</em>.
      </span>
     </li>
    </ul>
@@ -107,10 +122,39 @@
   </p>
  </div>
 
+
+ <div class="refsect1 changelog" id="refsect1-function.dbase-get-record-with-names-changelog">
+  <h3 class="title">更新日志</h3>
+  <table class="doctable informaltable">
+   
+    <thead>
+     <tr>
+      <th>版本</th>
+      <th>说明</th>
+     </tr>
+
+    </thead>
+
+    <tbody class="tbody">
+     <tr>
+      <td>dbase 7.0.0</td>
+      <td>
+       <code class="parameter">dbase_identifier</code> is now a <span class="type"><a href="language.types.resource.html" class="type resource">resource</a></span>
+       instead of an <span class="type"><a href="language.types.integer.html" class="type int">int</a></span>.
+      </td>
+     </tr>
+
+    </tbody>
+   
+  </table>
+
+ </div>
+
+
  <div class="refsect1 examples" id="refsect1-function.dbase-get-record-with-names-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-1162">
+   <div class="example" id="example-1167">
     <p><strong>Example #1 Listing all the registered members in the database</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -136,73 +180,6 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="56822""></a>
-  <div class="note">
-   
-   <a href="#56822" class="date">16-Sep-2005 01:32</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-$foo_db = dbase_open ( 'foo.dbf', 0);<br />
-<br />
-if ($foo_db) {<br />
-&nbsp; $rn = dbase_numrecords($foo_db);<br />
-<br />
-&nbsp; echo "Record 0: ";<br />
-&nbsp; $test = dbase_get_record_with_names($foo_db, 0);<br />
-&nbsp; echo $test['deleted'] . " FOO BAR: '" . $test['BAR'] . "'\n";<br />
-<br />
-&nbsp; echo "Record n+1: ";<br />
-&nbsp; $test = dbase_get_record_with_names($foo_db, $rn+1);<br />
-&nbsp; echo $test['deleted'] . " FOO BAR: '" . $test['BAR'] . "'\n";<br />
-<br />
-}<br />
-<br />
-Gives: <br />
-<br />
-Record 0: 0 FOO BAR: ' '<br />
-<br />
-Record n+1:<br />
-Warning: Tried to read bad record 30 in ./DisplayAccounts.php on line 21<br />
-FOO BAR: ''<br />
-<br />
-0 is not an error record, it's just empty - and actually, not quite empty, as you see BAR got a single space.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="54397""></a>
-  <div class="note">
-   <strong class="user">bishop</strong>
-   <a href="#54397" class="date">03-Jul-2005 02:52</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-I would like to emphasize that record numbers begin with 1, not 0. So, this is wrong:<br />
-<span class="default">&lt;?php<br />
-$recCnt </span><span class="keyword">= </span><span class="default">dbase_numrecords</span><span class="keyword">(</span><span class="default">$fh</span><span class="keyword">);<br />
-for (</span><span class="default">$recNum </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">; </span><span class="default">$recNum </span><span class="keyword">&lt; </span><span class="default">$recCnt</span><span class="keyword">; </span><span class="default">$recNum</span><span class="keyword">++) {<br />
-&nbsp;&nbsp;&nbsp; </span><span class="comment">// wrong! first record will fail<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">$record </span><span class="keyword">= </span><span class="default">dbase_get_record_with_names</span><span class="keyword">(</span><span class="default">$fh</span><span class="keyword">, </span><span class="default">$recNum</span><span class="keyword">);<br />
-}<br />
-</span><span class="default">?&gt;<br />
-</span><br />
-This is right:<br />
-<br />
-<span class="default">&lt;?php<br />
-$recCnt </span><span class="keyword">= </span><span class="default">dbase_numrecords</span><span class="keyword">(</span><span class="default">$fh</span><span class="keyword">);<br />
-for (</span><span class="default">$recNum </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">; </span><span class="default">$recNum </span><span class="keyword">&lt;= </span><span class="default">$recCnt</span><span class="keyword">; </span><span class="default">$recNum</span><span class="keyword">++) {<br />
-&nbsp;&nbsp;&nbsp; </span><span class="comment">// right! record #s begin with 1, don't forget &lt;=<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">$record </span><span class="keyword">= </span><span class="default">dbase_get_record_with_names</span><span class="keyword">(</span><span class="default">$fh</span><span class="keyword">, </span><span class="default">$recNum</span><span class="keyword">);<br />
-}<br />
-</span><span class="default">?&gt;</span>
-</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-</div>
+ <div class="note">There are no user contributed notes for this page.</div>
 </div>
 </div></div></body></html>

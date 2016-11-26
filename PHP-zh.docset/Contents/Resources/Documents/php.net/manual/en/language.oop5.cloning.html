@@ -65,7 +65,7 @@ $copy_of_object = clone $object;
   </p>
    
 
-  <div class="example" id="example-251">
+  <div class="example" id="example-254">
    <p><strong>Example #1 复制一个对象</strong></p>
    <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -115,7 +115,103 @@ MyCloneable Object
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="118877""></a>
+<div id="allnotes">  <a name="119554""></a>
+  <div class="note">
+   <strong class="user">yinzw at chuchujie dot com</strong>
+   <a href="#119554" class="date">05-Jul-2016 10:10</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+It's clearly depicted in the manual, about the mechanism of clone process:<br />
+- First, shallow copy: properties of references will keep references (refer to the same target/variable)<br />
+- Then, change content/property as requested (calling __clone method which is defined by user).<br />
+<br />
+To illustrate this process, the following example codes seems better, comparing the the original version:<br />
+<br />
+class SubObject<br />
+{<br />
+&nbsp;&nbsp;&nbsp; static $num_cons = 0;<br />
+&nbsp;&nbsp;&nbsp; static $num_clone = 0;<br />
+<br />
+&nbsp;&nbsp;&nbsp; public $construct_value;<br />
+&nbsp;&nbsp;&nbsp; public $clone_value;<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function __construct() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;construct_value = ++self::$num_cons;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function __clone() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;clone_value = ++self::$num_clone;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+class MyCloneable<br />
+{<br />
+&nbsp;&nbsp;&nbsp; public $object1;<br />
+&nbsp;&nbsp;&nbsp; public $object2;<br />
+<br />
+&nbsp;&nbsp;&nbsp; function __clone()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; // 强制复制一份this-&gt;object， 否则仍然指向同一个对象<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;object1 = clone $this-&gt;object1;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+$obj = new MyCloneable();<br />
+<br />
+$obj-&gt;object1 = new SubObject();<br />
+$obj-&gt;object2 = new SubObject();<br />
+<br />
+$obj2 = clone $obj;<br />
+<br />
+print("Original Object:\n");<br />
+print_r($obj);<br />
+echo '&lt;br&gt;';<br />
+print("Cloned Object:\n");<br />
+print_r($obj2);<br />
+<br />
+==================<br />
+<br />
+the output is as below<br />
+<br />
+Original Object:<br />
+MyCloneable Object<br />
+(<br />
+&nbsp;&nbsp;&nbsp; [object1] =&gt; SubObject Object<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; (<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [construct_value] =&gt; 1<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [clone_value] =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; )<br />
+<br />
+&nbsp;&nbsp;&nbsp; [object2] =&gt; SubObject Object<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; (<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [construct_value] =&gt; 2<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [clone_value] =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; )<br />
+<br />
+)<br />
+&lt;br&gt;Cloned Object:<br />
+MyCloneable Object<br />
+(<br />
+&nbsp;&nbsp;&nbsp; [object1] =&gt; SubObject Object<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; (<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [construct_value] =&gt; 1<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [clone_value] =&gt; 1<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; )<br />
+<br />
+&nbsp;&nbsp;&nbsp; [object2] =&gt; SubObject Object<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; (<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [construct_value] =&gt; 2<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [clone_value] =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; )<br />
+<br />
+)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118877""></a>
   <div class="note">
    <strong class="user">fabio at naoimporta dot com</strong>
    <a href="#118877" class="date">22-Feb-2016 06:53</a>
@@ -170,78 +266,6 @@ echo </span><span class="string">'Clones:' </span><span class="keyword">. </span
 @DPB<br />
 <br />
 I believe the two functions are not quite the same. The serialize followed by deserialize method is the way I've done deep cloning in other languages (bypasses any weird clone function behavior and ensures you have a no-strings-attached copy of the object).</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="117616""></a>
-  <div class="note">
-   <strong class="user">dennis</strong>
-   <a href="#117616" class="date">09-Jul-2015 07:45</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-I had some trouble with cloning an array with objects in another object.<br />
-But I found a function on the internet&nbsp; that was very helpful:<br />
-<br />
-&nbsp;function array_clone( array $array ) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $result = array();<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach( $array as $key =&gt; $val ) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if( is_array( $val ) ) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $result[$key] = arrayCopy( $val );<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } elseif ( is_object( $val ) ) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $result[$key] = clone $val;<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $result[$key] = $val;<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return $result;<br />
-} <br />
-<br />
-//== my test case:<br />
-class Employee<br />
-{<br />
-&nbsp;&nbsp;&nbsp; public $sName = '';<br />
-}<br />
-<br />
-class EmployeesContainer<br />
-{<br />
-&nbsp;&nbsp;&nbsp; private $arrObjects = array();<br />
-&nbsp;&nbsp;&nbsp; <br />
-&nbsp;&nbsp;&nbsp; public function __clone()<br />
-&nbsp;&nbsp;&nbsp; {&nbsp; &nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; //try to comment out the line below, you will see the out differs<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;arrObjects = array_clone($this-&gt;arrObjects);<br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; <br />
-&nbsp;&nbsp;&nbsp; public function add(Employee $objEmployee)<br />
-&nbsp;&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;arrObjects[] = $objEmployee;<br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; <br />
-&nbsp;&nbsp;&nbsp; public function getInternalArray()<br />
-&nbsp;&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return $this-&gt;arrObjects;<br />
-&nbsp;&nbsp;&nbsp; }<br />
-}<br />
-<br />
-$objContainerOriginal = new EmployeesContainer();<br />
-<br />
-$objEmpl1 = new Employee();<br />
-$objEmpl1-&gt;sName = 'erny';<br />
-$objContainerOriginal-&gt;add($objEmpl1);<br />
-<br />
-$objEmpl2 = new Employee();<br />
-$objEmpl2-&gt;sName = 'bert';<br />
-$objContainerOriginal-&gt;add($objEmpl2);<br />
-<br />
-$objContainerClone = clone $objContainerOriginal;<br />
-<br />
-if ($objContainerClone-&gt;getInternalArray()[1] === $objEmpl2)<br />
-&nbsp;&nbsp;&nbsp; echo 'SAME object: '.$objContainerClone-&gt;getInternalArray()[0]-&gt;sName.' &lt;-&gt; '.$objEmpl1-&gt;sName;<br />
-else <br />
-&nbsp;&nbsp;&nbsp; echo 'OTHER object: '.$objContainerClone-&gt;getInternalArray()[0]-&gt;sName.' &lt;-&gt; '.$objEmpl1-&gt;sName;</span>
 </code>
     </div>
    </div>
@@ -332,127 +356,6 @@ Example:<br />
 &nbsp;&nbsp;&nbsp; echo </span><span class="string">"f2.attr2[1] = " </span><span class="keyword">. </span><span class="default">$f2</span><span class="keyword">-&gt;</span><span class="default">attr2</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">]-&gt;</span><span class="default">attr </span><span class="keyword">. </span><span class="string">"\n"</span><span class="keyword">;<br />
 </span><span class="default">?&gt;</span>
 </span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="114932""></a>
-  <div class="note">
-   <strong class="user">obaidmaroof at gmail dot com</strong>
-   <a href="#114932" class="date">29-Apr-2014 11:01</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-<span class="default">&lt;?php<br />
-</span><span class="keyword">class </span><span class="default">A</span><span class="keyword">{<br />
-&nbsp; public </span><span class="default">$my_var</span><span class="keyword">;<br />
-&nbsp; function </span><span class="default">__construct</span><span class="keyword">() { </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">my_var </span><span class="keyword">= </span><span class="string">'aaa'</span><span class="keyword">; }<br />
-&nbsp; }<br />
-&nbsp; <br />
-&nbsp; </span><span class="default">$a </span><span class="keyword">= new </span><span class="default">A</span><span class="keyword">;<br />
-&nbsp; </span><span class="default">$b </span><span class="keyword">= clone </span><span class="default">$a</span><span class="keyword">;<br />
-&nbsp; </span><span class="default">$b</span><span class="keyword">-&gt;</span><span class="default">my_var </span><span class="keyword">= </span><span class="string">'bbb'</span><span class="keyword">;<br />
-&nbsp; <br />
-&nbsp; echo(</span><span class="default">$a</span><span class="keyword">-&gt;</span><span class="default">my_var</span><span class="keyword">);&nbsp;&nbsp; </span><span class="comment">// 'aaa'<br />
-&nbsp; </span><span class="keyword">echo(</span><span class="default">$b</span><span class="keyword">-&gt;</span><span class="default">my_var</span><span class="keyword">);&nbsp;&nbsp; </span><span class="comment">// 'bbb'<br />
-&nbsp;<br />
-&nbsp; </span><span class="default">$c </span><span class="keyword">= new </span><span class="default">A</span><span class="keyword">;<br />
-&nbsp; </span><span class="default">$d </span><span class="keyword">= </span><span class="default">$c</span><span class="keyword">;<br />
-&nbsp; </span><span class="default">$d</span><span class="keyword">-&gt;</span><span class="default">my_var </span><span class="keyword">= </span><span class="string">'bbb'</span><span class="keyword">;<br />
-&nbsp; <br />
-&nbsp; echo(</span><span class="default">$c</span><span class="keyword">-&gt;</span><span class="default">my_var</span><span class="keyword">);&nbsp;&nbsp; </span><span class="comment">// 'bbb'<br />
-&nbsp; </span><span class="keyword">echo(</span><span class="default">$d</span><span class="keyword">-&gt;</span><span class="default">my_var</span><span class="keyword">);&nbsp;&nbsp; </span><span class="comment">// 'bbb'<br />
-</span><span class="default">?&gt;<br />
-</span><br />
-simple example to understand the basic concept behind clone.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="108938""></a>
-  <div class="note">
-   <strong class="user">seriously at something dot com</strong>
-   <a href="#108938" class="date">07-Jun-2012 01:58</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-If you want a property that gets the same value in every clone if changed, you can do this simple trick:<br />
-<br />
-<span class="default">&lt;?php<br />
-<br />
-</span><span class="keyword">class </span><span class="default">A<br />
-</span><span class="keyword">{<br />
-&nbsp;&nbsp;&nbsp; public static </span><span class="default">$name </span><span class="keyword">;<br />
-<br />
-}<br />
-<br />
-</span><span class="default">$a </span><span class="keyword">= new </span><span class="default">A</span><span class="keyword">;<br />
-</span><span class="default">$a</span><span class="keyword">::</span><span class="default">$name </span><span class="keyword">= </span><span class="string">'George'</span><span class="keyword">;<br />
-<br />
-</span><span class="default">$b </span><span class="keyword">= clone </span><span class="default">$a</span><span class="keyword">;<br />
-</span><span class="default">$b</span><span class="keyword">::</span><span class="default">$name </span><span class="keyword">= </span><span class="string">"Somebody else"</span><span class="keyword">;<br />
-<br />
-echo </span><span class="string">'a: ' </span><span class="keyword">. </span><span class="default">$a</span><span class="keyword">::</span><span class="default">$name </span><span class="keyword">. </span><span class="string">"\n"</span><span class="keyword">;<br />
-echo </span><span class="string">'b: ' </span><span class="keyword">. </span><span class="default">$b</span><span class="keyword">::</span><span class="default">$name </span><span class="keyword">. </span><span class="string">"\n"</span><span class="keyword">;<br />
-<br />
-</span><span class="default">?&gt;<br />
-</span><br />
-this will output:<br />
-<br />
-a: Somebody else<br />
-b: Somebody else<br />
-<br />
-You can change any of the clones property and all of the others will change accordingly.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="106135""></a>
-  <div class="note">
-   <strong class="user">walkman at walkman dot pk</strong>
-   <a href="#106135" class="date">13-Oct-2011 02:11</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-If you want a property that gets the same value in every clone if changed, you can do this simple trick:<br />
-<br />
-<span class="default">&lt;?php<br />
-<br />
-</span><span class="keyword">class </span><span class="default">A<br />
-</span><span class="keyword">{<br />
-&nbsp;&nbsp;&nbsp; public </span><span class="default">$name </span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; <br />
-&nbsp;&nbsp;&nbsp; public function </span><span class="default">__construct</span><span class="keyword">()<br />
-&nbsp;&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">name </span><span class="keyword">= &amp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">name</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; }<br />
-}<br />
-<br />
-</span><span class="default">$a </span><span class="keyword">= new </span><span class="default">A</span><span class="keyword">;<br />
-</span><span class="default">$a</span><span class="keyword">-&gt;</span><span class="default">name </span><span class="keyword">= </span><span class="string">"George"</span><span class="keyword">;<br />
-<br />
-</span><span class="default">$b </span><span class="keyword">= clone </span><span class="default">$a</span><span class="keyword">;<br />
-</span><span class="default">$b</span><span class="keyword">-&gt;</span><span class="default">name </span><span class="keyword">= </span><span class="string">"Somebody else"</span><span class="keyword">;<br />
-<br />
-</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">);<br />
-</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$b</span><span class="keyword">);<br />
-</span><span class="default">?&gt;<br />
-</span><br />
-this will output:<br />
-<br />
-object(A)#1 (1) {<br />
-&nbsp; ["name"]=&gt;<br />
-&nbsp; &amp;string(13) "Somebody else"<br />
-}<br />
-object(A)#2 (1) {<br />
-&nbsp; ["name"]=&gt;<br />
-&nbsp; &amp;string(13) "Somebody else"<br />
-}<br />
-<br />
-You can change any of the clones property and all of the others will change accordingly.</span>
 </code>
     </div>
    </div>
@@ -571,32 +474,6 @@ class </span><span class="default">bar<br />
    </div>
   </div>
  <div class="foot"></div>
-  <a name="97249""></a>
-  <div class="note">
-   <strong class="user">henke at henke37 dot cjb dot net</strong>
-   <a href="#97249" class="date">10-Apr-2010 12:31</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Arrays are shallow cloned on assignment, so don't use the clone keyword on them, just assign it to a new variable. That would lead to an error instead.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="96852""></a>
-  <div class="note">
-   <strong class="user">olivier dot pons at goo dot without dot oo dot mail dot com</strong>
-   <a href="#96852" class="date">19-Mar-2010 07:14</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-If you think "clone" will create a new instance, thus calling "__constructor", you're wrong. clone seems to only allocate memory for the object cloned, and simply copies the variables memory from the original to the new one (imagine something alike memcpy() in C). Nothing more. Keep in mind you'll have to do all the rest by yourself.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
   <a name="96493""></a>
   <div class="note">
    <strong class="user">emile at webflow dot nl</strong>
@@ -700,52 +577,6 @@ class </span><span class="default">ByRef<br />
    </div>
   </div>
  <div class="foot"></div>
-  <a name="89321""></a>
-  <div class="note">
-   <strong class="user">koyama</strong>
-   <a href="#89321" class="date">03-Mar-2009 04:28</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-The __clone() method for deep cloning by cheetah at tanabi dot org also works when the object to be cloned contains references to itself. This is not the case for any variation of the __clone() method in edit by danbrown at php dot net.<br />
-<br />
-We are taking advantage of the fact that one can serialize an object that references itself.<br />
-<br />
-Example:<br />
-<br />
-<span class="default">&lt;?php<br />
-</span><span class="keyword">class </span><span class="default">Foo<br />
-</span><span class="keyword">{<br />
-&nbsp;&nbsp;&nbsp; function </span><span class="default">__construct</span><span class="keyword">()<br />
-&nbsp;&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">_myself </span><span class="keyword">= </span><span class="default">$this</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; }<br />
-<br />
-&nbsp;&nbsp;&nbsp; function </span><span class="default">__clone</span><span class="keyword">() {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach (</span><span class="default">$this </span><span class="keyword">as </span><span class="default">$key </span><span class="keyword">=&gt; </span><span class="default">$val</span><span class="keyword">) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">is_object</span><span class="keyword">(</span><span class="default">$val</span><span class="keyword">) || (</span><span class="default">is_array</span><span class="keyword">(</span><span class="default">$val</span><span class="keyword">))) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;{</span><span class="default">$key</span><span class="keyword">} = </span><span class="default">unserialize</span><span class="keyword">(</span><span class="default">serialize</span><span class="keyword">(</span><span class="default">$val</span><span class="keyword">));<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; }<br />
-}<br />
-<br />
-</span><span class="comment">// this object references itself<br />
-</span><span class="default">$foo </span><span class="keyword">= new </span><span class="default">Foo</span><span class="keyword">();<br />
-<br />
-</span><span class="comment">// create a deep clone<br />
-</span><span class="default">$bar </span><span class="keyword">= clone </span><span class="default">$foo</span><span class="keyword">;<br />
-<br />
-</span><span class="comment">// check if we reach this point<br />
-</span><span class="keyword">echo </span><span class="string">'Finished cloning!'</span><span class="keyword">;<br />
-</span><span class="default">?&gt;<br />
-</span><br />
-Replacing the __clone() method with the one shown in edit by danbrown at php dot net we run into an infinite loop, and we never get message 'Finished cloning!'.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
   <a name="87066""></a>
   <div class="note">
    <strong class="user">cheetah at tanabi dot org</strong>
@@ -809,149 +640,9 @@ That will insure any object, or array that may potentially contain objects, will
 <br />
 </span>
 <br />
-Giving credit where it's due.&nbsp; ~DPB]</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="86093""></a>
-  <div class="note">
-   <strong class="user">wbcarts at juno dot com</strong>
-   <a href="#86093" class="date">02-Oct-2008 08:41</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-CLONED ARMIES? USE STATIC DATA<br />
+Giving credit where it's due.&nbsp; ~DPB]
 <br />
-When I think of cloning, I always think of Star Wars "Cloned Army"... where the number of clones are in the hundreds of thousands. So far, I have only seen examples of one or two clones with either shallow, deep, or recursive references. My fix is to use the static keyword. With static, you choose the properties your objects share... and makes scaling up the number of so-called "clones" much easier.<br />
-<br />
-<span class="default">&lt;?php<br />
-<br />
-</span><span class="keyword">class </span><span class="default">Soldier </span><span class="keyword">{<br />
-&nbsp; public static </span><span class="default">$status</span><span class="keyword">;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// this is the property I'm trying to clone<br />
-<br />
-&nbsp; </span><span class="keyword">protected static </span><span class="default">$idCount </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;&nbsp;&nbsp; </span><span class="comment">// used to increment ID numbers<br />
-&nbsp; </span><span class="keyword">protected </span><span class="default">$id</span><span class="keyword">;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// each Soldier will have a unique ID<br />
-<br />
-&nbsp; </span><span class="keyword">public function </span><span class="default">__construct</span><span class="keyword">() {<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">id </span><span class="keyword">= ++</span><span class="default">self</span><span class="keyword">::</span><span class="default">$idCount</span><span class="keyword">;<br />
-&nbsp; }&nbsp; <br />
-<br />
-&nbsp; public function </span><span class="default">issueCommand</span><span class="keyword">(</span><span class="default">$task</span><span class="keyword">) {<br />
-&nbsp;&nbsp;&nbsp; switch(</span><span class="default">$task</span><span class="keyword">){<br />
-&nbsp;&nbsp; &nbsp;&nbsp; case </span><span class="string">'Deploy Troops'</span><span class="keyword">: </span><span class="default">self</span><span class="keyword">::</span><span class="default">$status </span><span class="keyword">= </span><span class="string">'deploying'</span><span class="keyword">; break;<br />
-&nbsp;&nbsp; &nbsp;&nbsp; case </span><span class="string">'March Forward'</span><span class="keyword">: </span><span class="default">self</span><span class="keyword">::</span><span class="default">$status </span><span class="keyword">= </span><span class="string">'marching forward'</span><span class="keyword">; break;<br />
-&nbsp;&nbsp; &nbsp;&nbsp; case </span><span class="string">'Fire!'</span><span class="keyword">: </span><span class="default">self</span><span class="keyword">::</span><span class="default">$status </span><span class="keyword">= </span><span class="string">'shot fired'</span><span class="keyword">; break;<br />
-&nbsp;&nbsp; &nbsp;&nbsp; case </span><span class="string">'Retreat!'</span><span class="keyword">: </span><span class="default">self</span><span class="keyword">::</span><span class="default">$status </span><span class="keyword">= </span><span class="string">'course reversed'</span><span class="keyword">; break;<br />
-&nbsp;&nbsp; &nbsp;&nbsp; default: </span><span class="default">self</span><span class="keyword">::</span><span class="default">$status </span><span class="keyword">= </span><span class="string">'at ease'</span><span class="keyword">; break;<br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; echo </span><span class="string">'COMMAND ISSUED: ' </span><span class="keyword">. </span><span class="default">$task </span><span class="keyword">. </span><span class="string">'&lt;br&gt;'</span><span class="keyword">;<br />
-&nbsp; }<br />
-<br />
-&nbsp; public function </span><span class="default">__toString</span><span class="keyword">() {<br />
-&nbsp;&nbsp;&nbsp; return </span><span class="string">"Soldier[id=</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">id</span><span class="string">, status=" </span><span class="keyword">. </span><span class="default">self</span><span class="keyword">::</span><span class="default">$status </span><span class="keyword">. </span><span class="string">']'</span><span class="keyword">;<br />
-&nbsp; }<br />
-}<br />
-<br />
-</span><span class="comment"># create the General and the Cloned Army<br />
-</span><span class="default">$general </span><span class="keyword">= new </span><span class="default">Soldier</span><span class="keyword">();<br />
-</span><span class="default">$platoon </span><span class="keyword">= array();<br />
-&nbsp; for(</span><span class="default">$i </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">; </span><span class="default">$i </span><span class="keyword">&lt; </span><span class="default">250</span><span class="keyword">; </span><span class="default">$i</span><span class="keyword">++) </span><span class="default">$platoon</span><span class="keyword">[] = new </span><span class="default">Soldier</span><span class="keyword">();<br />
-<br />
-</span><span class="comment"># issue commands, then check what soldiers are doing<br />
-</span><span class="default">$general</span><span class="keyword">-&gt;</span><span class="default">issueCommand</span><span class="keyword">(</span><span class="string">'Deploy Troops'</span><span class="keyword">);<br />
-echo </span><span class="default">$general </span><span class="keyword">. </span><span class="string">'&lt;br&gt;'</span><span class="keyword">;<br />
-echo </span><span class="default">$platoon</span><span class="keyword">[</span><span class="default">223</span><span class="keyword">] . </span><span class="string">'&lt;br&gt;'</span><span class="keyword">;<br />
-echo </span><span class="default">$platoon</span><span class="keyword">[</span><span class="default">12</span><span class="keyword">] . </span><span class="string">'&lt;br&gt;'</span><span class="keyword">;<br />
-<br />
-</span><span class="default">$general</span><span class="keyword">-&gt;</span><span class="default">issueCommand</span><span class="keyword">(</span><span class="string">'March Forward'</span><span class="keyword">);<br />
-echo </span><span class="default">$platoon</span><span class="keyword">[</span><span class="default">47</span><span class="keyword">] . </span><span class="string">'&lt;br&gt;'</span><span class="keyword">;<br />
-echo </span><span class="default">$platoon</span><span class="keyword">[</span><span class="default">163</span><span class="keyword">] . </span><span class="string">'&lt;br&gt;'</span><span class="keyword">;<br />
-<br />
-</span><span class="default">$general</span><span class="keyword">-&gt;</span><span class="default">issueCommand</span><span class="keyword">(</span><span class="string">'Fire!'</span><span class="keyword">);<br />
-echo </span><span class="default">$platoon</span><span class="keyword">[</span><span class="default">248</span><span class="keyword">] . </span><span class="string">'&lt;br&gt;'</span><span class="keyword">;<br />
-echo </span><span class="default">$platoon</span><span class="keyword">[</span><span class="default">68</span><span class="keyword">] . </span><span class="string">'&lt;br&gt;'</span><span class="keyword">;<br />
-<br />
-</span><span class="default">$general</span><span class="keyword">-&gt;</span><span class="default">issueCommand</span><span class="keyword">(</span><span class="string">'Retreat!'</span><span class="keyword">);<br />
-echo </span><span class="default">$platoon</span><span class="keyword">[</span><span class="default">26</span><span class="keyword">] . </span><span class="string">'&lt;br&gt;'</span><span class="keyword">;<br />
-echo </span><span class="default">$platoon</span><span class="keyword">[</span><span class="default">197</span><span class="keyword">] . </span><span class="string">'&lt;br&gt;'</span><span class="keyword">;<br />
-</span><span class="default">?&gt;<br />
-</span><br />
-COMMAND ISSUED: Deploy Troops<br />
-&nbsp; Soldier[id=1, status=deploying]<br />
-&nbsp; Soldier[id=225, status=deploying]<br />
-&nbsp; Soldier[id=14, status=deploying]<br />
-<br />
-COMMAND ISSUED: March Forward<br />
-&nbsp; Soldier[id=49, status=marching forward]<br />
-&nbsp; Soldier[id=165, status=marching forward]<br />
-<br />
-COMMAND ISSUED: Fire!<br />
-&nbsp; Soldier[id=250, status=shot fired]<br />
-&nbsp; Soldier[id=70, status=shot fired]<br />
-<br />
-COMMAND ISSUED: Retreat!<br />
-&nbsp; Soldier[id=28, status=course reversed]<br />
-&nbsp; Soldier[id=199, status=course reversed]</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="84575""></a>
-  <div class="note">
-   <strong class="user">Jim Brown</strong>
-   <a href="#84575" class="date">20-Jul-2008 12:34</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Regarding the generic deep __clone() example provided by david ashe at metabin:<br />
-<br />
-If your object has a variable that stores an array of objects, that particular __clone() example will NOT perform a deep copy on your array of objects.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="83286""></a>
-  <div class="note">
-   <strong class="user">alex dot offshore at gmail dot com</strong>
-   <a href="#83286" class="date">19-May-2008 12:23</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Remember that in PHP 5 ALL objects are assigned BY REFERENCE.<br />
-<br />
-<span class="default">&lt;?php<br />
-<br />
-&nbsp; </span><span class="keyword">function </span><span class="default">foo</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">) </span><span class="comment">// notice that '&amp;' near $a is missing<br />
-&nbsp; </span><span class="keyword">{<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">$a</span><span class="keyword">[</span><span class="string">'bar'</span><span class="keyword">] = </span><span class="default">10</span><span class="keyword">;<br />
-&nbsp; }<br />
-<br />
-&nbsp; </span><span class="default">$x </span><span class="keyword">= array(</span><span class="string">'bar' </span><span class="keyword">=&gt; </span><span class="default">0</span><span class="keyword">); </span><span class="comment">// built-in array() is not an object<br />
-&nbsp; </span><span class="default">$y </span><span class="keyword">= new </span><span class="default">ArrayObject</span><span class="keyword">(array(</span><span class="string">'bar' </span><span class="keyword">=&gt; </span><span class="default">0</span><span class="keyword">));<br />
-<br />
-&nbsp; echo </span><span class="string">"\$x['bar'] == </span><span class="keyword">${</span><span class="default">x</span><span class="keyword">[</span><span class="string">'bar'</span><span class="keyword">]}</span><span class="string">;\n\$y['bar'] == </span><span class="keyword">${</span><span class="default">y</span><span class="keyword">[</span><span class="string">'bar'</span><span class="keyword">]}</span><span class="string">;\n\n"</span><span class="keyword">;<br />
-<br />
-&nbsp; </span><span class="default">foo</span><span class="keyword">(</span><span class="default">$x</span><span class="keyword">);<br />
-&nbsp; </span><span class="default">foo</span><span class="keyword">(</span><span class="default">$y</span><span class="keyword">);<br />
-<br />
-&nbsp; echo </span><span class="string">"\$x['bar'] == </span><span class="keyword">${</span><span class="default">x</span><span class="keyword">[</span><span class="string">'bar'</span><span class="keyword">]}</span><span class="string">;\n\$y['bar'] == </span><span class="keyword">${</span><span class="default">y</span><span class="keyword">[</span><span class="string">'bar'</span><span class="keyword">]}</span><span class="string">;\n"</span><span class="keyword">;<br />
-<br />
-</span><span class="default">?&gt;<br />
-</span><br />
-Output:<br />
-$x['bar'] == 0;<br />
-$y['bar'] == 0;<br />
-<br />
-$x['bar'] == 0;<br />
-$y['bar'] == 10;<br />
-<br />
-Hope this will be useful.<br />
-<br />
-By the way, to determine whether the variable is compatible with ArrayAccess/ArrayObject see <a href="http://php.net/manual/en/function.is-array.php#48083" rel="nofollow" target="_blank">http://php.net/manual/en/function.is-array.php#48083</a></span>
+[EDIT BY cmb AT php DOT net: the latter function fails to make deep copies of object arrays, and might end up with infinite recursion.]</span>
 </code>
     </div>
    </div>

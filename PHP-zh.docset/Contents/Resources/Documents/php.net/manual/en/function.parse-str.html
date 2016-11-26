@@ -102,7 +102,7 @@
  <div class="refsect1 examples" id="refsect1-function.parse-str-examples">
   <h3 class="title">·¶Àý</h3>
   <p class="para">
-   <div class="example" id="example-5263">
+   <div class="example" id="example-5306">
     <p><strong>Example #1 <span class="function"><strong>parse_str()</strong></span> µÄÊ¹ÓÃ</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -134,28 +134,90 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="118922""></a>
+<div id="allnotes">  <a name="119484""></a>
   <div class="note">
-   <strong class="user">aaronw at catalyst dot net dot nz</strong>
-   <a href="#118922" class="date">29-Feb-2016 10:17</a>
+   <strong class="user">alxcube at gmail dot com</strong>
+   <a href="#119484" class="date">18-Jun-2016 03:50</a>
    <div class="text">
     <div class="phpcode">
 <code><span class="html">
-DO NOT make a practice of using the one-parameter version of this function, particularly for processing user input. It's susceptible to exactly the same sorts of bugs and security problems as the old "register_globals" setting. I'm actually rather surprised there's not a warning message about it on this page.<br />
+if you need custom arg separator, you can use this function. it returns parsed&nbsp; query as associative array.<br />
 <br />
-If you use the one-parameter version of parse_str() in global scope (i.e. outside of any functions), it lets the user override ANY global variables in your script, even superglobals like $_GET and $_REQUEST.<br />
+<span class="default">&lt;?php<br />
 <br />
-If you use it inside a function, it can't touch your global variables but it can still override any variables already defined in the function, or populate variables that later get accessed without prior initialization.<br />
+</span><span class="comment">/**<br />
+&nbsp;* Parses http query string into an array<br />
+&nbsp;* <br />
+&nbsp;* @author Alxcube &lt;alxcube@gmail.com&gt;<br />
+&nbsp;* <br />
+&nbsp;* @param string $queryString String to parse<br />
+&nbsp;* @param string $argSeparator Query arguments separator<br />
+&nbsp;* @param integer $decType Decoding type<br />
+&nbsp;* @return array<br />
+&nbsp;*/<br />
+</span><span class="keyword">function </span><span class="default">http_parse_query</span><span class="keyword">(</span><span class="default">$queryString</span><span class="keyword">, </span><span class="default">$argSeparator </span><span class="keyword">= </span><span class="string">'&amp;'</span><span class="keyword">, </span><span class="default">$decType </span><span class="keyword">= </span><span class="default">PHP_QUERY_RFC1738</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$result&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">= array();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$parts&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">(</span><span class="default">$argSeparator</span><span class="keyword">, </span><span class="default">$queryString</span><span class="keyword">);<br />
 <br />
-You can guard against these problems by making sure to call parse_str() only in function/method scope, and before any variable declarations, and making sure to initialize all variables before accessing them. But why leave yourself open? Just use the two-parameter version of parse_str().<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach (</span><span class="default">$parts </span><span class="keyword">as </span><span class="default">$part</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; list(</span><span class="default">$paramName</span><span class="keyword">, </span><span class="default">$paramValue</span><span class="keyword">)&nbsp;&nbsp; = </span><span class="default">explode</span><span class="keyword">(</span><span class="string">'='</span><span class="keyword">, </span><span class="default">$part</span><span class="keyword">, </span><span class="default">2</span><span class="keyword">);<br />
 <br />
-// BAD<br />
-parse_str($_SERVER['QUERY_STRING']);<br />
-echo $foo;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; switch (</span><span class="default">$decType</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="default">PHP_QUERY_RFC3986</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$paramName&nbsp; &nbsp; &nbsp; </span><span class="keyword">= </span><span class="default">rawurldecode</span><span class="keyword">(</span><span class="default">$paramName</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$paramValue&nbsp; &nbsp;&nbsp; </span><span class="keyword">= </span><span class="default">rawurldecode</span><span class="keyword">(</span><span class="default">$paramValue</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break;<br />
 <br />
-// BETTER<br />
-parse_str($_SERVER['QUERY_STRING'], $urlparams);<br />
-echo $urlparams['foo'];</span>
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="default">PHP_QUERY_RFC1738</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; default:<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$paramName&nbsp; &nbsp; &nbsp; </span><span class="keyword">= </span><span class="default">urldecode</span><span class="keyword">(</span><span class="default">$paramName</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$paramValue&nbsp; &nbsp;&nbsp; </span><span class="keyword">= </span><span class="default">urldecode</span><span class="keyword">(</span><span class="default">$paramValue</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">preg_match_all</span><span class="keyword">(</span><span class="string">'/\[([^\]]*)\]/m'</span><span class="keyword">, </span><span class="default">$paramName</span><span class="keyword">, </span><span class="default">$matches</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$paramName&nbsp; &nbsp; &nbsp; </span><span class="keyword">= </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$paramName</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">, </span><span class="default">strpos</span><span class="keyword">(</span><span class="default">$paramName</span><span class="keyword">, </span><span class="string">'['</span><span class="keyword">));<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$keys&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">= </span><span class="default">array_merge</span><span class="keyword">(array(</span><span class="default">$paramName</span><span class="keyword">), </span><span class="default">$matches</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$keys&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">= array(</span><span class="default">$paramName</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$target&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">= &amp;</span><span class="default">$result</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; foreach (</span><span class="default">$keys </span><span class="keyword">as </span><span class="default">$index</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$index </span><span class="keyword">=== </span><span class="string">''</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (isset(</span><span class="default">$target</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">is_array</span><span class="keyword">(</span><span class="default">$target</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$intKeys&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="keyword">= </span><span class="default">array_filter</span><span class="keyword">(</span><span class="default">array_keys</span><span class="keyword">(</span><span class="default">$target</span><span class="keyword">), </span><span class="string">'is_int'</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$index&nbsp; </span><span class="keyword">= </span><span class="default">count</span><span class="keyword">(</span><span class="default">$intKeys</span><span class="keyword">) ? </span><span class="default">max</span><span class="keyword">(</span><span class="default">$intKeys</span><span class="keyword">)+</span><span class="default">1 </span><span class="keyword">: </span><span class="default">0</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$target </span><span class="keyword">= array(</span><span class="default">$target</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$index&nbsp; </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$target&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">= array();<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$index&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } elseif (isset(</span><span class="default">$target</span><span class="keyword">[</span><span class="default">$index</span><span class="keyword">]) &amp;&amp; !</span><span class="default">is_array</span><span class="keyword">(</span><span class="default">$target</span><span class="keyword">[</span><span class="default">$index</span><span class="keyword">])) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$target</span><span class="keyword">[</span><span class="default">$index</span><span class="keyword">] = array(</span><span class="default">$target</span><span class="keyword">[</span><span class="default">$index</span><span class="keyword">]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$target&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">= &amp;</span><span class="default">$target</span><span class="keyword">[</span><span class="default">$index</span><span class="keyword">];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">is_array</span><span class="keyword">(</span><span class="default">$target</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$target</span><span class="keyword">[]&nbsp;&nbsp; = </span><span class="default">$paramValue</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$target&nbsp; &nbsp;&nbsp; </span><span class="keyword">= </span><span class="default">$paramValue</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$result</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
 </code>
     </div>
    </div>
@@ -381,48 +443,6 @@ It may need adapting to handle various edge cases.</span>
    </div>
   </div>
  <div class="foot"></div>
-  <a name="98652""></a>
-  <div class="note">
-   <strong class="user">sam dot fullman at verizon dot net</strong>
-   <a href="#98652" class="date">29-Jun-2010 10:28</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-If you're using .htaccess to spoof pages in any type of application, then $QUERY_STRING or $_SERVER['QUERY_STRING'] is going to be blank.&nbsp; Instead, $_SERVER['REDIRECT_QUERY_STRING'] will hold the actual query string passed by user.&nbsp; Use this function to parse this variable.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="96035""></a>
-  <div class="note">
-   <strong class="user">me at bubjavier dot com</strong>
-   <a href="#96035" class="date">04-Feb-2010 11:48</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-be careful using parse_str() without the [array &amp;$arr] parameter, as this may override values of global and existing variables.<br />
-<br />
-<span class="default">&lt;?php<br />
-$var1 </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">;<br />
-</span><span class="default">parse_str</span><span class="keyword">(</span><span class="string">'var1=one&amp;var2=two'</span><span class="keyword">);<br />
-</span><span class="comment">// $var1 is now 'one'<br />
-</span><span class="default">?&gt;<br />
-</span><br />
-Also may lead to variable value injection when used with user input data:<br />
-<br />
-<span class="default">&lt;?php<br />
-$_POST</span><span class="keyword">[</span><span class="string">'range'</span><span class="keyword">] = </span><span class="string">'min=1&amp;max=5&amp;important_var=important_value_no_more'</span><span class="keyword">;<br />
-<br />
-</span><span class="default">$important_var </span><span class="keyword">= </span><span class="string">'important_value'</span><span class="keyword">;<br />
-</span><span class="default">parse_str</span><span class="keyword">(</span><span class="default">$_POST</span><span class="keyword">[</span><span class="string">'range'</span><span class="keyword">]);<br />
-</span><span class="default">?&gt;</span>
-</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
   <a name="84165""></a>
   <div class="note">
    <strong class="user">tobsn at php dot net</strong>
@@ -481,19 +501,6 @@ var names and var values - both have to be urlencoded!</span>
 &nbsp;}<br />
 <br />
 ?&gt;</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="82675""></a>
-  <div class="note">
-   <strong class="user">sean at getclicky dot com</strong>
-   <a href="#82675" class="date">21-Apr-2008 06:39</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-This function automatically urldecodes values (not mentioned in the docs).</span>
 </code>
     </div>
    </div>
@@ -582,27 +589,6 @@ If you wish a version of parse_str sans magic quotes, the following will do the 
    </div>
   </div>
  <div class="foot"></div>
-  <a name="76978""></a>
-  <div class="note">
-   <strong class="user">kermodebear at kermodebear dot org</strong>
-   <a href="#76978" class="date">08-Aug-2007 08:09</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-An old post from several years ago mentions that variable names cannot have a dot. They also cannot have a space. Spaces are automatically replaced with an underscore.<br />
-<br />
-The following:<br />
-parse_str("My Value=Something", $result);<br />
-<br />
-Will result in:<br />
-$result['My_Value'] = 'Something'<br />
-<br />
-Although I understand why it is done, I still feel that this is unintuitive behavior.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
   <a name="76792""></a>
   <div class="note">
    <strong class="user">Evan K</strong>
@@ -683,19 +669,6 @@ This can be confusing for anyone who's used to the CGI standard, so keep it in m
 parse_str() is confused by ampersands (&amp;) being encoded as HTML entities (&amp;amp;). This is relevant if you're extracting your query string from an HTML page (scraping). The solution is to run the string through html_entity_decode() before running it through parse_str().<br />
 <br />
 (Editors: my original comment was a caution whose solution is obvious, but it has resulted in three replies ("so what?" "as intended" and "this is how to fix it"). Please remove the previous four posts dealing with this (69529, 70234, 72745, 74818) and leave just the above summary. This issue is too trivial to warrant the number of comments it has received.)</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="76477""></a>
-  <div class="note">
-   <strong class="user">Vladimir Kornea</strong>
-   <a href="#76477" class="date">17-Jul-2007 05:46</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-parse_str() contained a bug (#39763) in PHP 5.2.0 that caused it to apply magic quotes twice. This bug was marked as fixed in the release notes of PHP 5.2.1, but there were apparently some issues with getting the fix through CVS on time, as our install of PHP 5.2.1 was still affected by it.</span>
 </code>
     </div>
    </div>
@@ -1298,35 +1271,6 @@ Output will be:<br />
 blah<br />
 burp<br />
 bleh</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="43317""></a>
-  <div class="note">
-   
-   <a href="#43317" class="date">17-Jun-2004 02:23</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Note that variables cannot contain a DOT (.) in PHP. So, DOT will be replaced by underscore. <br />
-e.g. variables like "variable.something" will be converted into "variable_something".</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="41143""></a>
-  <div class="note">
-   
-   <a href="#41143" class="date">31-Mar-2004 07:58</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-The documentation does not appear to mention that parse_str also urldecodes each item in the resulting array.<br />
-<br />
-There also appears to be a bug in earlier versions of PHP that causes these urldecoded strings to also be escaped.&nbsp; (Certainly I was having problems with %22 being turned into /" on my server, but not on my development box, despite forcing magic quotes off).</span>
 </code>
     </div>
    </div>

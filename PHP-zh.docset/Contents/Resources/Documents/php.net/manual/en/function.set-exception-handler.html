@@ -89,7 +89,7 @@
  <div class="refsect1 examples" id="refsect1-function.set-exception-handler-examples">
   <h3 class="title">·¶Àý</h3>
   <p class="para">
-   <div class="example" id="example-480">
+   <div class="example" id="example-483">
     <p><strong>Example #1 <span class="function"><strong>set_exception_handler()</strong></span> ·¶Àý</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -121,7 +121,42 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="115781""></a>
+<div id="allnotes">  <a name="120196""></a>
+  <div class="note">
+   <strong class="user">dev at codesatori dot com</strong>
+   <a href="#120196" class="date">22-Nov-2016 12:51</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+For those of you wanting to convert PHP errors to ErrorExceptions (useful), but frustrated with the script being halted on every E_NOTICE et al. In your error handler, simply create the ErrorException, and then either throw it (script halted), or pass the object directly (script continues) to your exception handler function.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">const </span><span class="default">EXIT_ON_ALL_PHP_ERRORS </span><span class="keyword">= </span><span class="default">false</span><span class="keyword">; </span><span class="comment">// or true<br />
+<br />
+</span><span class="keyword">function </span><span class="default">proc_error</span><span class="keyword">(</span><span class="default">$errno</span><span class="keyword">, </span><span class="default">$errstr</span><span class="keyword">, </span><span class="default">$errfile</span><span class="keyword">, </span><span class="default">$errline</span><span class="keyword">) <br />
+{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$e </span><span class="keyword">= new </span><span class="default">ErrorException</span><span class="keyword">(</span><span class="default">$errstr</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">, </span><span class="default">$errno</span><span class="keyword">, </span><span class="default">$errfile</span><span class="keyword">, </span><span class="default">$errline</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">EXIT_ON_ALL_PHP_ERRORS</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; throw </span><span class="default">$e</span><span class="keyword">; </span><span class="comment">// This will halt your script.<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">} else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">proc_exception</span><span class="keyword">(</span><span class="default">$e</span><span class="keyword">); </span><span class="comment">// This will let it continue.<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">}<br />
+}<br />
+<br />
+</span><span class="default">set_error_handler</span><span class="keyword">(</span><span class="string">"proc_error"</span><span class="keyword">);<br />
+</span><span class="default">set_exception_handler</span><span class="keyword">(</span><span class="string">"proc_exception"</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+You could further customize the error severity level (from $errno, match bitmasks with error level constants) at which the script is halted or allowed to continue. The above simply allows passthru for PHP errors' default behavior. <br />
+<br />
+If your exception handler is receiving both error ErrorExceptions (with severity level etc.) and other types of uncaught Exceptions, then use a <span class="default">&lt;?php </span><span class="keyword">if (</span><span class="default">$e </span><span class="keyword">instanceof </span><span class="default">ErrorException</span><span class="keyword">) { </span><span class="comment">// ... } </span><span class="default">?&gt;</span> condition to deal with the variance. I had to further wrap it into a <span class="default">&lt;?php </span><span class="keyword">try { </span><span class="default">$errno </span><span class="keyword">= </span><span class="default">$e</span><span class="keyword">-&gt;</span><span class="default">getSeverity</span><span class="keyword">(); } catch (</span><span class="default">Exception $x</span><span class="keyword">) { </span><span class="default">$errno </span><span class="keyword">= </span><span class="default">0 </span><span class="keyword">} ... </span><span class="default">?&gt;</span>, because some EE-s were mysteriously lacking the severity level property (yet to dig in and find out why).</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115781""></a>
   <div class="note">
    <strong class="user">Josef Spak</strong>
    <a href="#115781" class="date">22-Sep-2014 07:34</a>

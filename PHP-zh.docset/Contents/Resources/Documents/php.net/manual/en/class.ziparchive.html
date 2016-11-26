@@ -542,7 +542,56 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="118392""></a>
+<div id="allnotes">  <a name="119749""></a>
+  <div class="note">
+   <strong class="user">M. Wolf</strong>
+   <a href="#119749" class="date">17-Aug-2016 02:39</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+How to detect corrupt files with CRC mismatch:<br />
+<br />
+Creating a corrupt archive for testing is simple - zip some files and change a byte with a hex editor in the resulting ZIP file. Now you can test the file with a ZIP application to learn which file inside the archive is corrupt.<br />
+<br />
+ZipArchive seems unable to detect broken files. ZipArchive::CHECKCONS doesn't help, only if it's not a ZIP file at all. It happily decompressed corrupt files in my tests and the user downloading the data is not informed.<br />
+<br />
+You can simply verify on the server for smaller files:<br />
+<span class="default">&lt;?php<br />
+$maxsize </span><span class="keyword">= </span><span class="default">1024</span><span class="keyword">*</span><span class="default">1024</span><span class="keyword">;<br />
+</span><span class="default">$z </span><span class="keyword">= new </span><span class="default">ZipArchive</span><span class="keyword">;<br />
+</span><span class="default">$r </span><span class="keyword">= </span><span class="default">$z</span><span class="keyword">-&gt;</span><span class="default">open</span><span class="keyword">(</span><span class="string">"foo.zip"</span><span class="keyword">, </span><span class="default">ZipArchive</span><span class="keyword">::</span><span class="default">CHECKCONS</span><span class="keyword">);<br />
+if(</span><span class="default">$r </span><span class="keyword">!== </span><span class="default">TRUE</span><span class="keyword">)<br />
+&nbsp; die(</span><span class="string">'ZIP error when trying to open "foo.zip": '</span><span class="keyword">.</span><span class="default">$r</span><span class="keyword">);<br />
+<br />
+</span><span class="default">$stat </span><span class="keyword">= </span><span class="default">$z</span><span class="keyword">-&gt;</span><span class="default">statName</span><span class="keyword">(</span><span class="string">"mybrokenfile.txt"</span><span class="keyword">);<br />
+if(</span><span class="default">$stat</span><span class="keyword">[</span><span class="string">'size'</span><span class="keyword">] &gt; </span><span class="default">$maxsize</span><span class="keyword">)<br />
+&nbsp; die(</span><span class="string">'File too large, decompression denied'</span><span class="keyword">);<br />
+</span><span class="default">$s </span><span class="keyword">= </span><span class="default">$z</span><span class="keyword">-&gt;</span><span class="default">getStream</span><span class="keyword">(</span><span class="default">$file</span><span class="keyword">);<br />
+</span><span class="default">$data </span><span class="keyword">= </span><span class="default">stream_get_contents</span><span class="keyword">(</span><span class="default">$s</span><span class="keyword">, </span><span class="default">$maxsize</span><span class="keyword">);<br />
+</span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$s</span><span class="keyword">);<br />
+if(</span><span class="default">$stat</span><span class="keyword">[</span><span class="string">'crc'</span><span class="keyword">] != </span><span class="default">crc32</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">))<br />
+&nbsp; die(</span><span class="string">'File is corrupt!'</span><span class="keyword">);<br />
+</span><span class="comment">//echo 'File is valid';<br />
+<br />
+//you may send the file to the client now if you didn't output anything before<br />
+</span><span class="default">header</span><span class="keyword">(</span><span class="string">'Content-Description: File Transfer'</span><span class="keyword">);<br />
+</span><span class="default">header</span><span class="keyword">(</span><span class="string">'Content-Type: application/octet-stream'</span><span class="keyword">);<br />
+</span><span class="default">header</span><span class="keyword">(</span><span class="string">'Content-Disposition: attachment; filename="mybrokenfile.txt"'</span><span class="keyword">);<br />
+</span><span class="default">header</span><span class="keyword">(</span><span class="string">'Content-Transfer-Encoding: binary'</span><span class="keyword">);<br />
+</span><span class="default">header</span><span class="keyword">(</span><span class="string">'Content-Length: ' </span><span class="keyword">. </span><span class="default">$stat</span><span class="keyword">[</span><span class="string">'size'</span><span class="keyword">]);<br />
+</span><span class="default">ob_clean</span><span class="keyword">();<br />
+echo </span><span class="default">$data</span><span class="keyword">;<br />
+</span><span class="default">$z</span><span class="keyword">-&gt;</span><span class="default">close</span><span class="keyword">();<br />
+</span><span class="default">?&gt;<br />
+</span> <br />
+If the file shall not be fully decompressed on the server but decompressed while streaming to the client due to it's size, the file transfer already startet and printing an error message later doesn't work. Maybe the best way would be to interrupt the connection before closing the file transfer. The client should be able to detect this as corrupt download.<br />
+On the server side a function is needed, that can calculate the CRC32 on streamed data stepwise.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118392""></a>
   <div class="note">
    <strong class="user">ohcc at 163 dot com</strong>
    <a href="#118392" class="date">29-Nov-2015 03:14</a>

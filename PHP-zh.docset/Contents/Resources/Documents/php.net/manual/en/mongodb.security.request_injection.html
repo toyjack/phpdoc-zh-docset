@@ -1,0 +1,74 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Request Injection Attacks</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="mongodb.security.html">? Security</a></li>
+      <li style="float: right;"><a href="mongodb.security.script_injection.html">Script Injection Attacks ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="mongodb.security.html">Security</a></li>
+    <li>Request Injection Attacks</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="mongodb.security.request_injection" class="article">
+  <h1>Request Injection Attacks</h1>
+
+  <p class="para">
+   If you are passing <em>$_GET</em> (or <em>$_POST</em>)
+   parameters to your queries, make sure that they are cast to strings first.
+   Users can insert associative arrays in GET and POST requests, which could
+   then become unwanted $-queries.
+  </p>
+
+  <p class="para">
+   A fairly innocuous example: suppose you are looking up a user&#039;s information
+   with the request <em class="emphasis">http://www.example.com?username=bob</em>.
+   Your application creates the query
+   <em>$q = new \MongoDB\Driver\Query( [ &#039;username&#039; =&gt; $_GET[&#039;username&#039;] ])</em>.
+  </p>
+
+  <p class="para">
+   Someone could subvert this by getting
+   <em class="emphasis">http://www.example.com?username[$ne]=foo</em>, which PHP
+   will magically turn into an associative array, turning your query into
+   <em>$q = new \MongoDB\Driver\Query( [ &#039;username&#039; =&gt; [ &#039;$ne&#039; =&gt; &#039;foo&#039; ] ] )</em>,
+   which will return all users not named &quot;foo&quot; (all of your users, probably).
+  </p>
+
+  <p class="para">
+   This is a fairly easy attack to defend against: make sure $_GET and $_POST
+   parameters are the type you expect before you send them to the database.
+   PHP has the <span class="function"><a href="function.filter-var.html" class="function">filter_var()</a></span> function to assist with this.
+  </p>
+
+  <p class="para">
+   Note that this type of attack can be used with any databases interation that
+   locates a document, including updates, upserts, deletes, and findAndModify
+   commands.
+  </p>
+
+  <p class="para">
+   See <a href="http://docs.mongodb.org/manual/security/" class="link external" title="Link : http://docs.mongodb.org/manual/security/">&raquo;&nbsp;the main documentation</a>
+   for more information about SQL-injection-like issues with MongoDB.
+  </p>
+ </div>
+<div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+ <div class="note">There are no user contributed notes for this page.</div>
+</div>
+</div></div></body></html>

@@ -123,7 +123,7 @@
 
  <div class="refsect1 examples" id="refsect1-closure.bindto-examples">
   <h3 class="title">·¶Àý</h3>
-  <div class="example" id="example-336">
+  <div class="example" id="example-339">
    <p><strong>Example #1 <span class="function"><strong>Closure::bindTo()</strong></span> ÊµÀý</strong></p>
    <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -157,7 +157,108 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116527""></a>
+<div id="allnotes">  <a name="119410""></a>
+  <div class="note">
+   <strong class="user">luc at s dot illi dot be</strong>
+   <a href="#119410" class="date">31-May-2016 01:44</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Access private members of parent classes; playing with the scopes:<br />
+<span class="default">&lt;?PHP<br />
+</span><span class="keyword">class </span><span class="default">Grandparents</span><span class="keyword">{ private </span><span class="default">$__status1 </span><span class="keyword">= </span><span class="string">'married'</span><span class="keyword">; }<br />
+class </span><span class="default">Parents </span><span class="keyword">extends </span><span class="default">Grandparents</span><span class="keyword">{ private </span><span class="default">$__status2 </span><span class="keyword">= </span><span class="string">'divorced'</span><span class="keyword">; }<br />
+class </span><span class="default">Me </span><span class="keyword">extends </span><span class="default">Parents</span><span class="keyword">{ private </span><span class="default">$__status3 </span><span class="keyword">= </span><span class="string">'single'</span><span class="keyword">; }<br />
+<br />
+</span><span class="default">$status1_3 </span><span class="keyword">= function()<br />
+{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">__status1 </span><span class="keyword">= </span><span class="string">'happy'</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">__status2 </span><span class="keyword">= </span><span class="string">'happy'</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">__status3 </span><span class="keyword">= </span><span class="string">'happy'</span><span class="keyword">;<br />
+};<br />
+<br />
+</span><span class="default">$status1_2 </span><span class="keyword">= function()<br />
+{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">__status1 </span><span class="keyword">= </span><span class="string">'happy'</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">__status2 </span><span class="keyword">= </span><span class="string">'happy'</span><span class="keyword">;<br />
+};<br />
+<br />
+</span><span class="comment">// test 1:<br />
+</span><span class="default">$c </span><span class="keyword">= </span><span class="default">$status1_3</span><span class="keyword">-&gt;</span><span class="default">bindTo</span><span class="keyword">(</span><span class="default">$R </span><span class="keyword">= new </span><span class="default">Me</span><span class="keyword">, </span><span class="default">Parents</span><span class="keyword">::class);&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <br />
+</span><span class="comment">#$c();&nbsp; &nbsp; // Fatal: Cannot access private property Me::$__status3<br />
+<br />
+// test 2:<br />
+</span><span class="default">$d </span><span class="keyword">= </span><span class="default">$status1_2</span><span class="keyword">-&gt;</span><span class="default">bindTo</span><span class="keyword">(</span><span class="default">$R </span><span class="keyword">= new </span><span class="default">Me</span><span class="keyword">, </span><span class="default">Parents</span><span class="keyword">::class);<br />
+</span><span class="default">$d</span><span class="keyword">();<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$R</span><span class="keyword">);<br />
+</span><span class="comment">/*<br />
+object(Me)#5 (4) {<br />
+&nbsp; ["__status3":"Me":private]=&gt;<br />
+&nbsp; string(6) "single"<br />
+&nbsp; ["__status2":"Parents":private]=&gt;<br />
+&nbsp; string(5) "happy"<br />
+&nbsp; ["__status1":"Grandparents":private]=&gt;<br />
+&nbsp; string(7) "married"<br />
+&nbsp; ["__status1"]=&gt;<br />
+&nbsp; string(5) "happy"<br />
+}<br />
+*/<br />
+<br />
+// test 3:<br />
+</span><span class="default">$e </span><span class="keyword">= </span><span class="default">$status1_3</span><span class="keyword">-&gt;</span><span class="default">bindTo</span><span class="keyword">(</span><span class="default">$R </span><span class="keyword">= new </span><span class="default">Me</span><span class="keyword">, </span><span class="default">Grandparents</span><span class="keyword">::class);&nbsp; &nbsp; <br />
+</span><span class="comment">#$e(); // Fatal: Cannot access private property Me::$__status3<br />
+<br />
+// test 4:<br />
+</span><span class="default">$f </span><span class="keyword">= </span><span class="default">$status1_2</span><span class="keyword">-&gt;</span><span class="default">bindTo</span><span class="keyword">(</span><span class="default">$R </span><span class="keyword">= new </span><span class="default">Me</span><span class="keyword">, </span><span class="default">Grandparents</span><span class="keyword">::class);&nbsp; &nbsp; <br />
+</span><span class="default">$f</span><span class="keyword">();<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$R</span><span class="keyword">);<br />
+</span><span class="comment">/*<br />
+object(Me)#9 (4) {<br />
+&nbsp; ["__status3":"Me":private]=&gt;<br />
+&nbsp; string(6) "single"<br />
+&nbsp; ["__status2":"Parents":private]=&gt;<br />
+&nbsp; string(8) "divorced"<br />
+&nbsp; ["__status1":"Grandparents":private]=&gt;<br />
+&nbsp; string(5) "happy"<br />
+&nbsp; ["__status2"]=&gt;<br />
+&nbsp; string(5) "happy"<br />
+}<br />
+*/<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Clear the stack trace:<br />
+<span class="default">&lt;?PHP<br />
+</span><span class="keyword">use </span><span class="default">Exception</span><span class="keyword">;<br />
+use </span><span class="default">ReflectionException</span><span class="keyword">;<br />
+<br />
+</span><span class="default">$c </span><span class="keyword">= function()<br />
+{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">trace </span><span class="keyword">= [];<br />
+};<br />
+<br />
+</span><span class="default">$c </span><span class="keyword">= </span><span class="default">$c</span><span class="keyword">-&gt;</span><span class="default">bindTo</span><span class="keyword">(</span><span class="default">$R </span><span class="keyword">= new </span><span class="default">ReflectionException</span><span class="keyword">, </span><span class="default">Exception</span><span class="keyword">::class);<br />
+</span><span class="default">$c</span><span class="keyword">();<br />
+<br />
+try<br />
+{<br />
+&nbsp;&nbsp;&nbsp; throw </span><span class="default">$R</span><span class="keyword">;<br />
+}<br />
+catch(</span><span class="default">ReflectionException $R</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$R</span><span class="keyword">-&gt;</span><span class="default">getTrace</span><span class="keyword">());<br />
+}<br />
+</span><span class="comment">/*<br />
+array(0) {<br />
+}<br />
+*/<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116527""></a>
   <div class="note">
    <strong class="user">Nezar Fadle</strong>
    <a href="#116527" class="date">19-Jan-2015 07:40</a>

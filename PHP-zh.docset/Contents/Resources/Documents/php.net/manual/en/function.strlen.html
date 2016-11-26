@@ -105,7 +105,7 @@
  <div class="refsect1 examples" id="refsect1-function.strlen-examples">
   <h3 class="title">·¶Àý</h3>
   <p class="para">
-   <div class="example" id="example-5303">
+   <div class="example" id="example-5346">
     <p><strong>Example #1 <span class="function"><strong>strlen()</strong></span> ·¶Àý</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -151,7 +151,58 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="119047""></a>
+<div id="allnotes">  <a name="119650""></a>
+  <div class="note">
+   <strong class="user">joeri at sebrechts dot net</strong>
+   <a href="#119650" class="date">26-Jul-2016 05:26</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+When checking for length to make sure a value will fit in a database field, be mindful of using the right function.<br />
+<br />
+There are three possible situations:<br />
+<br />
+1. Most likely case: the database column is UTF-8 with a length defined in unicode code points (e.g. mysql varchar(200) for a utf-8 database).<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">// ok if php.ini default_charset set to UTF-8 (= default value)<br />
+</span><span class="default">mb_strlen</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">);<br />
+</span><span class="default">iconv_strlen</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">);<br />
+</span><span class="comment">// always ok <br />
+</span><span class="default">mb_strlen</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">, </span><span class="string">"UTF-8"</span><span class="keyword">);<br />
+</span><span class="default">iconv_strlen</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">, </span><span class="string">"UTF-8"</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// BAD, do not use:<br />
+</span><span class="default">strlen</span><span class="keyword">(</span><span class="default">utf8_decode</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">)); </span><span class="comment">// breaks for some multi-byte characters<br />
+</span><span class="default">grapheme_strlen</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">); </span><span class="comment">// counts graphemes, not code points <br />
+</span><span class="default">?&gt;<br />
+</span><br />
+2. The database column has a length defined in bytes (e.g. oracle's VARCHAR2(200 BYTE))<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">// ok, but assumes mbstring.func_overload is 0 in php.ini (= default value)<br />
+</span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">);<br />
+</span><span class="comment">// ok, forces count in bytes<br />
+</span><span class="default">mb_strlen</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">, </span><span class="string">"8bit"</span><span class="keyword">)<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+3. The database column is in another character set (UTF-16, ISO-8859-1, etc...) with a length defined in characters / code points.<br />
+<br />
+Find the character set used, and pass it explicitly to the length function.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">// ok, supported charsets: <a href="http://php.net/manual/en/mbstring.supported-encodings.php" rel="nofollow" target="_blank">http://php.net/manual/en/mbstring.supported-encodings.php</a><br />
+</span><span class="default">mb_strlen</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">, </span><span class="default">$charset</span><span class="keyword">);<br />
+</span><span class="comment">// ok, supported charsets: https://www.gnu.org/software/libiconv/<br />
+</span><span class="default">iconv_strlen</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">, </span><span class="default">$charset</span><span class="keyword">);<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119047""></a>
   <div class="note">
    <strong class="user">johan at hultin dot se</strong>
    <a href="#119047" class="date">23-Mar-2016 09:55</a>

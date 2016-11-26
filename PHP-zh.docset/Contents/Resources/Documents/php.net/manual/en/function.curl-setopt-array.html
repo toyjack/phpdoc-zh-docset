@@ -83,7 +83,7 @@
  <div class="refsect1 examples" id="refsect1-function.curl-setopt-array-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-4623">
+   <div class="example" id="example-4650">
     <p><strong>Example #1 
      初始化一个新的cURL会话并抓取一个web页面
     </strong></p>
@@ -100,7 +100,7 @@
    早于PHP 5.1.3这个函数可以做如下模拟：
   </p>
   <p class="para">
-   <div class="example" id="example-4624">
+   <div class="example" id="example-4651">
     <p><strong>Example #2 我们对<span class="function"><strong>curl_setopt_array()</strong></span>的等价实现</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -137,7 +137,53 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="118000""></a>
+<div id="allnotes">  <a name="120169""></a>
+  <div class="note">
+   <strong class="user">Alexander</strong>
+   <a href="#120169" class="date">15-Nov-2016 09:14</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Once upon a time I've got an error like "Problem with the SSL CA cert (path? access rights?)". Since what I was doing was pretty much an administrative task with no actual security issues involved, I decided to disallow certificate validation and this is where the most interesting stuff began.<br />
+<br />
+First I did it like this and it worked:<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);<br />
+<br />
+Next I thought, "But hey, I don't want any hardcoded stuff here. Let's use it in a configurable way!". And so I did something like this:<br />
+<br />
+// in configuration<br />
+$CURL_OPTIONS = array(CURLOPT_SSL_VERIFYPEER =&gt; 0, CURLOPT_SSL_VERIFYHOST =&gt; 0);<br />
+<br />
+...........<br />
+<br />
+// in place of two direct calls from earlier<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; curl_setopt_array($ch, $CURL_OPTIONS);<br />
+<br />
+And I was so happy, there was no error anymore... and do you think I was happy for a long time? If so, then you're wrong. It stopped giving an error, while it didn't start to work!<br />
+<br />
+I checked the actual data but they were allright. Then I thought: "Is it the curl_setopt_array() problem? Let's make it a cycle." The way it is mentioned in this help, actually.<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; foreach ($CURL_OPTIONS as $name =&gt; $value)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; curl_setopt($ch, $name, $value);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+And... it did not work the same way as with the curl_setopt_array() call. And the data were still allright...<br />
+<br />
+So, if by chance you can't set CURL options with the curl_setopt_array() call, then now you know what to do and you know it is definitely not you who is to blame.<br />
+<br />
+P.S.<br />
+By the way, the configuration used was:<br />
+Linux i-ween.com 3.2.0-4-amd64 #1 SMP Debian 3.2.73-2+deb7u3 x86_64<br />
+PHP Version 5.5.17</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118000""></a>
   <div class="note">
    <strong class="user">Lionel</strong>
    <a href="#118000" class="date">17-Sep-2015 03:58</a>

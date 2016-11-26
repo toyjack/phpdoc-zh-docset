@@ -45,9 +45,6 @@
    Encrypts given data with given method and key, returns a raw
    or base64 encoded string
   </p>
-
-  <div class="warning"><strong class="warning">Warning</strong><p class="simpara">本函数还未编写文档，仅有参数列表。</p></div>
-
  </div>
 
 
@@ -99,8 +96,8 @@
       <dd>
 
         <p class="para">
-          <code class="parameter">options</code> can be one of
-          <strong><code>OPENSSL_RAW_DATA</code></strong>,
+          <code class="parameter">options</code> is a bitwise disjunction of the flags
+          <strong><code>OPENSSL_RAW_DATA</code></strong> and
           <strong><code>OPENSSL_ZERO_PADDING</code></strong>.
         </p>
       </dd>
@@ -193,7 +190,140 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="119346""></a>
+<div id="allnotes">  <a name="120141""></a>
+  <div class="note">
+   <strong class="user">naitsirch at e dot mail dot de</strong>
+   <a href="#120141" class="date">10-Nov-2016 08:52</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+PHP lacks a build-in function to encrypt and decrypt large files. `openssl_encrypt()` can be used to encrypt strings, but loading a huge file into memory is a bad idea.<br />
+<br />
+So we have to write a userland function doing that. This example uses the symmetric AES-128-CBC algorithm to encrypt smaller chunks of a large file and writes them into another file.<br />
+<br />
+# Encrypt Files<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">/**<br />
+&nbsp;* Define the number of blocks that should be read from the source file for each chunk.<br />
+&nbsp;* For 'AES-128-CBC' each block consist of 16 bytes.<br />
+&nbsp;* So if we read 10,000 blocks we load 160kb into memory. You may adjust this value<br />
+&nbsp;* to read/write shorter or longer chunks.<br />
+&nbsp;*/<br />
+</span><span class="default">define</span><span class="keyword">(</span><span class="string">'FILE_ENCRYPTION_BLOCKS'</span><span class="keyword">, </span><span class="default">10000</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">/**<br />
+&nbsp;* Encrypt the passed file and saves the result in a new file with ".enc" as suffix.<br />
+&nbsp;* <br />
+&nbsp;* @param string $source Path to file that should be encrypted<br />
+&nbsp;* @param string $key&nbsp; &nbsp; The key used for the encryption<br />
+&nbsp;* @param string $dest&nbsp;&nbsp; File name where the encryped file should be written to.<br />
+&nbsp;* @return string|false&nbsp; Returns the file name that has been created or FALSE if an error occured<br />
+&nbsp;*/<br />
+</span><span class="keyword">function </span><span class="default">encryptFile</span><span class="keyword">(</span><span class="default">$source</span><span class="keyword">, </span><span class="default">$key</span><span class="keyword">, </span><span class="default">$dest</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$key </span><span class="keyword">= </span><span class="default">substr</span><span class="keyword">(</span><span class="default">sha1</span><span class="keyword">(</span><span class="default">$key</span><span class="keyword">, </span><span class="default">true</span><span class="keyword">), </span><span class="default">0</span><span class="keyword">, </span><span class="default">16</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$iv </span><span class="keyword">= </span><span class="default">openssl_random_pseudo_bytes</span><span class="keyword">(</span><span class="default">16</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$error </span><span class="keyword">= </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">$fpOut </span><span class="keyword">= </span><span class="default">fopen</span><span class="keyword">(</span><span class="default">$dest</span><span class="keyword">, </span><span class="string">'w'</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Put the initialzation vector to the beginning of the file<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$fpOut</span><span class="keyword">, </span><span class="default">$iv</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$fpIn </span><span class="keyword">= </span><span class="default">fopen</span><span class="keyword">(</span><span class="default">$source</span><span class="keyword">, </span><span class="string">'rb'</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; while (!</span><span class="default">feof</span><span class="keyword">(</span><span class="default">$fpIn</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$plaintext </span><span class="keyword">= </span><span class="default">fread</span><span class="keyword">(</span><span class="default">$fpIn</span><span class="keyword">, </span><span class="default">16 </span><span class="keyword">* </span><span class="default">FILE_ENCRYPTION_BLOCKS</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$ciphertext </span><span class="keyword">= </span><span class="default">openssl_encrypt</span><span class="keyword">(</span><span class="default">$plaintext</span><span class="keyword">, </span><span class="string">'AES-128-CBC'</span><span class="keyword">, </span><span class="default">$key</span><span class="keyword">, </span><span class="default">OPENSSL_RAW_DATA</span><span class="keyword">, </span><span class="default">$iv</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Use the first 16 bytes of the ciphertext as the next initialization vector<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$iv </span><span class="keyword">= </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$ciphertext</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">, </span><span class="default">16</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$fpOut</span><span class="keyword">, </span><span class="default">$ciphertext</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$fpIn</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$error </span><span class="keyword">= </span><span class="default">true</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$fpOut</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$error </span><span class="keyword">= </span><span class="default">true</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$error </span><span class="keyword">? </span><span class="default">false </span><span class="keyword">: </span><span class="default">$dest</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+# Decrypt Files<br />
+<br />
+To decrypt files that have been encrypted with the above function you can use this function.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">/**<br />
+&nbsp;* Dencrypt the passed file and saves the result in a new file, removing the<br />
+&nbsp;* last 4 characters from file name.<br />
+&nbsp;* <br />
+&nbsp;* @param string $source Path to file that should be decrypted<br />
+&nbsp;* @param string $key&nbsp; &nbsp; The key used for the decryption (must be the same as for encryption)<br />
+&nbsp;* @param string $dest&nbsp;&nbsp; File name where the decryped file should be written to.<br />
+&nbsp;* @return string|false&nbsp; Returns the file name that has been created or FALSE if an error occured<br />
+&nbsp;*/<br />
+</span><span class="keyword">function </span><span class="default">decryptFile</span><span class="keyword">(</span><span class="default">$source</span><span class="keyword">, </span><span class="default">$key</span><span class="keyword">, </span><span class="default">$dest</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$key </span><span class="keyword">= </span><span class="default">substr</span><span class="keyword">(</span><span class="default">sha1</span><span class="keyword">(</span><span class="default">$key</span><span class="keyword">, </span><span class="default">true</span><span class="keyword">), </span><span class="default">0</span><span class="keyword">, </span><span class="default">16</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$error </span><span class="keyword">= </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">$fpOut </span><span class="keyword">= </span><span class="default">fopen</span><span class="keyword">(</span><span class="default">$dest</span><span class="keyword">, </span><span class="string">'w'</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$fpIn </span><span class="keyword">= </span><span class="default">fopen</span><span class="keyword">(</span><span class="default">$source</span><span class="keyword">, </span><span class="string">'rb'</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Get the initialzation vector from the beginning of the file<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$iv </span><span class="keyword">= </span><span class="default">fread</span><span class="keyword">(</span><span class="default">$fpIn</span><span class="keyword">, </span><span class="default">16</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; while (!</span><span class="default">feof</span><span class="keyword">(</span><span class="default">$fpIn</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// we have to read one block more for decrypting than for encrypting<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$ciphertext </span><span class="keyword">= </span><span class="default">fread</span><span class="keyword">(</span><span class="default">$fpIn</span><span class="keyword">, </span><span class="default">16 </span><span class="keyword">* (</span><span class="default">FILE_ENCRYPTION_BLOCKS </span><span class="keyword">+ </span><span class="default">1</span><span class="keyword">)); <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$plaintext </span><span class="keyword">= </span><span class="default">openssl_decrypt</span><span class="keyword">(</span><span class="default">$ciphertext</span><span class="keyword">, </span><span class="string">'AES-128-CBC'</span><span class="keyword">, </span><span class="default">$key</span><span class="keyword">, </span><span class="default">OPENSSL_RAW_DATA</span><span class="keyword">, </span><span class="default">$iv</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Use the first 16 bytes of the ciphertext as the next initialization vector<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$iv </span><span class="keyword">= </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$ciphertext</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">, </span><span class="default">16</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$fpOut</span><span class="keyword">, </span><span class="default">$plaintext</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$fpIn</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$error </span><span class="keyword">= </span><span class="default">true</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$fpOut</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$error </span><span class="keyword">= </span><span class="default">true</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$error </span><span class="keyword">? </span><span class="default">false </span><span class="keyword">: </span><span class="default">$dest</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Source: <a href="http://stackoverflow.com/documentation/php/5794/cryptography/25499/" rel="nofollow" target="_blank">http://stackoverflow.com/documentation/php/5794/cryptography/25499/</a></span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119986""></a>
+  <div class="note">
+   <strong class="user">Kruthers</strong>
+   <a href="#119986" class="date">05-Oct-2016 04:37</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+There still seems to be some confusion about the "password" argument to this function.&nbsp; It accepts a binary string for the key (ie. NOT encoded), at least for the cipher methods I tried (AES-128-CTR and AES-256-CTR).&nbsp; One of the posts says you should hex encode the key (which is wrong), and some say you should hash the key but don't make it clear how to properly pass the hashed key.<br />
+<br />
+Instead of the post made by anonymous, this should be more accurate info about the parameters:<br />
+<br />
+data - BINARY string<br />
+method - regular string, from openssl_get_cipher_methods()<br />
+password - BINARY string (ie. the encryption key in binary)<br />
+options - integer (use the constants provided)<br />
+iv - BINARY string<br />
+<br />
+This is not only from my testing, but backed up by the usage of this function by https://github.com/defuse/php-encryption</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119346""></a>
   <div class="note">
    <strong class="user">Nick</strong>
    <a href="#119346" class="date">18-May-2016 06:09</a>
@@ -350,20 +480,6 @@ Alternatively, you can use openssl_cipher_iv_length().<br />
 From the security standpoint, make sure you understand whether your IV needs to be random, secret or encrypted. Many times the IV can be non-secret but it has to be a cryptographically secure random number. Make sure you generate it with an appropriate function like openssl_random_pseudo_bytes(), not mt_rand().<br />
 <br />
 *Note that the available cipher methods can differ between your dev server and your production server! They will depend on the installation and compilation options used for OpenSSL in your machine(s).</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="110047""></a>
-  <div class="note">
-   <strong class="user">kasper at webmasteren dot eu</strong>
-   <a href="#110047" class="date">14-Sep-2012 08:36</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-For security reasons, if NOT&nbsp; encrypting using a (cryptographically) random IV, then the IV itself must be entryptet as well ( this is not handled behind the scene). <br />
-the reason is that it leads to predictable IV's, which then breaks semantic security. [this kind of attack can already be done on ssl/ TLS 1.1].</span>
 </code>
     </div>
    </div>
@@ -529,28 +645,6 @@ The correct command for decrypting is:<br />
 As it has no salt has no padding and by setting functions third parameter we have no more base64 encoded file to decode. The command will echo that it works...<br />
 <br />
 : /</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="99188""></a>
-  <div class="note">
-   <strong class="user">public at grik dot net</strong>
-   <a href="#99188" class="date">02-Aug-2010 02:25</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-In 5.3.3 they added a new parameter, string $iv (initialization vector)<br />
-Real parameters are:<br />
-string openssl_encrypt ( string $data , string $method , string $password, bool $raw_output = false, string $iv )<br />
-<br />
-If $iv is missing, a warning is issued: "Using an empty Initialization Vector (iv) is potentially insecure and not recommended".<br />
-<br />
-If $iv is too short, another warning: <br />
-"IV passed is only 3 bytes long, cipher expects an IV of precisely 8 bytes, padding with \0"<br />
-<br />
-same IV should be used in openssl_decrypt()</span>
 </code>
     </div>
    </div>

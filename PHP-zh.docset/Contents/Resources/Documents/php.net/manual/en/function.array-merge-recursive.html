@@ -93,7 +93,7 @@
     <div class="refsect1 examples" id="refsect1-function.array-merge-recursive-examples">
   <h3 class="title">·¶Àý</h3>
   <p class="para">
-   <div class="example" id="example-5372">
+   <div class="example" id="example-5415">
     <p><strong>Example #1 <span class="function"><strong>array_merge_recursive()</strong></span> Àý×Ó</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -142,7 +142,102 @@ Array
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="118727""></a>
+<div id="allnotes">  <a name="120006""></a>
+  <div class="note">
+   <strong class="user">karl (dot) hepler (at) gmail (dot) com</strong>
+   <a href="#120006" class="date">08-Oct-2016 05:24</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I ran into a fairly unique situation where array_merge_recursive ALMOST did what I wanted, but NOT QUITE. I read through all of the comments, and I didn't find anything that really helped me. I saw a lot of functions submitted that were just trying to recreate array_replace_recursive. This is not that.<br />
+<br />
+Take a look at the code and try it out. Hopefully it helps someone in need!<br />
+<br />
+class Arr<br />
+{<br />
+&nbsp;&nbsp;&nbsp; /**<br />
+&nbsp;&nbsp; &nbsp; * Merge multiple arrays.<br />
+&nbsp;&nbsp; &nbsp; *<br />
+&nbsp;&nbsp; &nbsp; * This is similar to, but slightly different than array_merge_recursive.<br />
+&nbsp;&nbsp; &nbsp; * The main difference is that it will merge like keys in subarrays,<br />
+&nbsp;&nbsp; &nbsp; * instead of simply pushing them into the output array.<br />
+&nbsp;&nbsp; &nbsp; *<br />
+&nbsp;&nbsp; &nbsp; * @param&nbsp; array ...$array<br />
+&nbsp;&nbsp; &nbsp; *<br />
+&nbsp;&nbsp; &nbsp; * @return array<br />
+&nbsp;&nbsp; &nbsp; */<br />
+&nbsp;&nbsp;&nbsp; public static function merge()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; /** Initialize the output array */<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $merged = [];<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; /** Go through each argument */<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach (func_get_args() as $array) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; /** Go through each key/value of this array */<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; foreach ($array as $key =&gt; $value) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; /**<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; * If this key isn't set on merged,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; * then it needs to be set for the first time<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; */<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (! isset($merged[$key])) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; /**<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; * Before we can set it, we must make sure<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; * to dive into this value if it is an array,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; * so that all of its children will be processed.<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; */<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (is_array($value)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $value = static::merge($value);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; /**<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; * Now that we're happy with this value,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; * and we're sure that, if it is an array,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; * all of its children have been processed,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; * let's go ahead and set it.<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; */<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $merged[$key] = $value;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; /** We can skip the rest of the loop */<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; continue;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; /**<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; * We're here because we want to set a key<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; * that is already set on merged. We don't want<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; * to overwrite anything - we want to add to it.<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; * So, we need to make sure that we're working with an array.<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; */<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (! is_array($merged[$key])) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $merged[$key] = [$merged[$key]];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; /**<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; * Before we push the value onto the array,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; * we need to check to see if it is an array itself.<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; * If it is, then we need to make sure all of its children<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; * are processed. We do this by merging all of the children<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; * together. This is where it differs from array_merge_recursive,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; * which would simply push the children onto the end of the array.<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; */<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (is_array($value)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $value = forward_static_call_array([Arr::class, 'merge'], $value);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; /** Now we're ready to push the value into merged */<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $merged[$key][] = $value;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; /** Return the merged array */<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return $merged;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118727""></a>
   <div class="note">
    <strong class="user">fantomx1 at gmail dot com</strong>
    <a href="#118727" class="date">27-Jan-2016 08:35</a>

@@ -266,7 +266,7 @@
  <div class="refsect1 examples" id="refsect1-function.set-error-handler-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-479">
+   <div class="example" id="example-482">
     <p><strong>Example #1 用 <span class="function"><strong>set_error_handler()</strong></span> 和 <span class="function"><a href="function.trigger-error.html" class="function">trigger_error()</a></span> 进行错误处理</strong></p>
     <div class="example-contents"><p>
      以下示例展示了通过触发错误并以用户自定义的程序来进行内部异常的处理。
@@ -337,7 +337,35 @@ Aborting...&lt;br /&gt;
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="118630""></a>
+<div id="allnotes">  <a name="119696""></a>
+  <div class="note">
+   <strong class="user">chris at ocproducts dot com</strong>
+   <a href="#119696" class="date">04-Aug-2016 07:53</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Note that error handlers don't run recursively. If you have an error while an error handler is running (in the error handler itself or code called from it) then you won't get the error handler called again.<br />
+<br />
+This has subtle ramifications for $php_errormsg. If you are relying on your error handler to suppress certain kinds of error message from going into $php_errormsg (via return true; because error_reporting doesn't affect $php_errormsg setting) then this will not work for any code called within that error handler.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119694""></a>
+  <div class="note">
+   <strong class="user">chris at ocproducts dot com</strong>
+   <a href="#119694" class="date">04-Aug-2016 07:47</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Note that $php_errormsg (with track_errors) is only set if the function returns false (i.e. bubble on). If you return true then $php_errormsg will not be set.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118630""></a>
   <div class="note">
    <strong class="user">aditycse at gmail dot com</strong>
    <a href="#118630" class="date">12-Jan-2016 04:36</a>
@@ -484,59 +512,6 @@ https://gist.github.com/anonymous/556c6c75daf83039b6f8/9c36020422a4be148a1f4df88
 I saw many checking for all the error constants manually in a switch statement. If you just want to add the type of the error (E_WARNING, E_NOTICE, etc) to your ErrorException, use array_search() with get_defined_constants():<br />
 <br />
 new ErrorException("[" . array_search($errno, get_defined_constants(), true)&nbsp; . "] " . $errstr, 0, $errno, $errfile, $errline);</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="116507""></a>
-  <div class="note">
-   <strong class="user">419472477 at qq dot com</strong>
-   <a href="#116507" class="date">15-Jan-2015 07:37</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-&lt;html&gt;<br />
-&lt;head&gt;&lt;title&gt;自定义错误&lt;/title&gt;&lt;/head&gt;<br />
-自定义错误函数：&lt;br&gt;<br />
-&lt;form action='index.php' method='post'&gt;<br />
-&lt;select name='kind'&gt; <br />
-&lt;option value='E_WARNING'&gt;E_WARNING&lt;/option&gt;<br />
-&lt;option value='E_NOTICE'&gt;E_NOTICE&lt;/option&gt;<br />
-&lt;option value='E_USER_ERROR'&gt;E_USER_ERROR&lt;/option&gt;<br />
-&lt;option value='E_USER_WARNING'&gt;E_USER_WARNING&lt;/option&gt;<br />
-&lt;option value='E_USER_NOTICE'&gt;E_USER_NOTICE&lt;/option&gt;<br />
-&lt;/select&gt;<br />
-&lt;input type='submit' value='测试自定义错误函数'&gt;<br />
-&lt;/form&gt;<br />
-&lt;/html&gt;<br />
-<span class="default">&lt;?php<br />
-</span><span class="comment">//自定义错误函数：<br />
-</span><span class="default">set_error_handler</span><span class="keyword">(</span><span class="string">'a'</span><span class="keyword">,</span><span class="default">E_WARNING</span><span class="keyword">);<br />
-</span><span class="default">set_error_handler</span><span class="keyword">(</span><span class="string">'b'</span><span class="keyword">,</span><span class="default">E_NOTICE</span><span class="keyword">);<br />
-</span><span class="default">set_error_handler</span><span class="keyword">(</span><span class="string">'c'</span><span class="keyword">,</span><span class="default">E_USER_ERROR</span><span class="keyword">);<br />
-</span><span class="default">set_error_handler</span><span class="keyword">(</span><span class="string">'d'</span><span class="keyword">,</span><span class="default">E_USER_WARNING</span><span class="keyword">);<br />
-</span><span class="default">set_error_handler</span><span class="keyword">(</span><span class="string">'e'</span><span class="keyword">,</span><span class="default">E_USER_NOTICE</span><span class="keyword">);<br />
-</span><span class="default">$x</span><span class="keyword">=</span><span class="default">$_REQUEST</span><span class="keyword">[</span><span class="string">'kind'</span><span class="keyword">];<br />
-switch(</span><span class="default">$x</span><span class="keyword">)<br />
-{<br />
-&nbsp;&nbsp;&nbsp; case </span><span class="string">'E_WARNING'</span><span class="keyword">:</span><span class="default">trigger_error</span><span class="keyword">(</span><span class="string">'这是自定义错误函数E_WARNING:'</span><span class="keyword">,</span><span class="default">E_WARNING</span><span class="keyword">);break;<br />
-&nbsp;&nbsp;&nbsp; case </span><span class="string">'E_NOTICE'</span><span class="keyword">:</span><span class="default">trigger_error</span><span class="keyword">(</span><span class="string">'这是自定义错误函数E_NOTICE:'</span><span class="keyword">,</span><span class="default">E_NOTICE</span><span class="keyword">);break;<br />
-&nbsp;&nbsp;&nbsp; case </span><span class="string">'E_USER_ERROR'</span><span class="keyword">:</span><span class="default">trigger_error</span><span class="keyword">(</span><span class="string">'这是自定义错误函数E_USER_ERROR:'</span><span class="keyword">,</span><span class="default">E_USER_ERROR</span><span class="keyword">);break;<br />
-&nbsp;&nbsp;&nbsp; case </span><span class="string">'E_USER_WARNING'</span><span class="keyword">:</span><span class="default">trigger_error</span><span class="keyword">(</span><span class="string">'这是自定义错误函数E_USER_WARNING:'</span><span class="keyword">,</span><span class="default">E_USER_WARNING</span><span class="keyword">);break;<br />
-&nbsp;&nbsp;&nbsp; case </span><span class="string">'E_USER_NOTICE'</span><span class="keyword">:</span><span class="default">trigger_error</span><span class="keyword">(</span><span class="string">'这是自定义错误函数E_USER_NOTICE:'</span><span class="keyword">,</span><span class="default">E_USER_NOTICE</span><span class="keyword">);break;<br />
-&nbsp;&nbsp;&nbsp; default: echo </span><span class="string">'请选择支持的错误'</span><span class="keyword">;break;<br />
-}<br />
-<br />
-</span><span class="comment">//错误函数：<br />
-</span><span class="keyword">function </span><span class="default">a</span><span class="keyword">(</span><span class="default">$errno</span><span class="keyword">,</span><span class="default">$errstr</span><span class="keyword">){echo </span><span class="string">'我就是自定义错误函数E_WARNING'</span><span class="keyword">.</span><span class="default">$errno</span><span class="keyword">;}<br />
-function </span><span class="default">b</span><span class="keyword">(</span><span class="default">$errno</span><span class="keyword">,</span><span class="default">$errstr</span><span class="keyword">){echo </span><span class="string">'我就是E_NOTICE自定义错误函数'</span><span class="keyword">.</span><span class="default">$errno</span><span class="keyword">;}<br />
-function </span><span class="default">c</span><span class="keyword">(</span><span class="default">$errno</span><span class="keyword">,</span><span class="default">$errstr</span><span class="keyword">){echo </span><span class="string">'我就是E_USER_ERROR自定义错误函数'</span><span class="keyword">.</span><span class="default">$errno</span><span class="keyword">;}<br />
-function </span><span class="default">d</span><span class="keyword">(</span><span class="default">$errno</span><span class="keyword">,</span><span class="default">$errstr</span><span class="keyword">){echo </span><span class="string">'我就是E_USER_WARNING自定义错误函数'</span><span class="keyword">.</span><span class="default">$errno</span><span class="keyword">;}<br />
-function </span><span class="default">e</span><span class="keyword">(</span><span class="default">$errno</span><span class="keyword">,</span><span class="default">$errstr</span><span class="keyword">){echo </span><span class="string">'我就是E_USER_NOTICE自定义错误函数'</span><span class="keyword">.</span><span class="default">$errno</span><span class="keyword">;}<br />
-</span><span class="default">?&gt;<br />
-</span>完整的set_error_handler与trigger_error使用。<br />
-保存为php文件浏览器访问即可见到效果</span>
 </code>
     </div>
    </div>

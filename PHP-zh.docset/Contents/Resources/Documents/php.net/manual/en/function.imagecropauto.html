@@ -41,11 +41,9 @@
   ]]] )</div>
 
   <p class="para rdfs-comment">
-
+   Automatically crops an image according to the given
+   <code class="parameter">mode</code>.
   </p>
-
-  <div class="warning"><strong class="warning">Warning</strong><p class="simpara">本函数还未编写文档，仅有参数列表。</p></div>
-
  </div>
 
 
@@ -66,8 +64,87 @@
     <dd>
 
      <p class="para">
-      One of <strong><code>IMG_CROP_*</code></strong> constants.
+      One of the following constants:
      </p>
+     <dl>
+
+      
+       <dt>
+<strong><code>IMG_CROP_DEFAULT</code></strong></dt>
+
+       <dd>
+
+        <span class="simpara">
+         Attempts to use <strong><code>IMG_CROP_TRANSPARENT</code></strong> and if it
+         fails it falls back to <strong><code>IMG_CROP_SIDES</code></strong>.
+        </span>
+       </dd>
+
+      
+      
+       <dt>
+<strong><code>IMG_CROP_TRANSPARENT</code></strong></dt>
+
+       <dd>
+
+        <span class="simpara">
+         Crops out a transparent background.
+        </span>
+       </dd>
+
+      
+      
+       <dt>
+<strong><code>IMG_CROP_BLACK</code></strong></dt>
+
+       <dd>
+
+        <span class="simpara">
+         Crops out a black background.
+        </span>
+       </dd>
+
+      
+      
+       <dt>
+<strong><code>IMG_CROP_WHITE</code></strong></dt>
+
+       <dd>
+
+        <span class="simpara">
+          Crops out a white background.
+        </span>
+       </dd>
+
+      
+      
+       <dt>
+<strong><code>IMG_CROP_SIDES</code></strong></dt>
+
+       <dd>
+
+        <span class="simpara">
+         Uses the 4 corners of the image to attempt to detect the background to
+         crop.
+        </span>
+       </dd>
+
+      
+      
+       <dt>
+<strong><code>IMG_CROP_THRESHOLD</code></strong></dt>
+
+       <dd>
+
+        <span class="simpara">
+         Crops an image using the given <code class="parameter">threshold</code> and
+         <code class="parameter">color</code>.
+        </span>
+       </dd>
+
+      
+     </dl>
+
     </dd>
 
    
@@ -78,7 +155,12 @@
     <dd>
 
      <p class="para">
-      Used in <strong><code>IMG_CROP_THRESHOLD</code></strong> mode.
+      Specifies the tolerance in percent to be used while comparing the image
+      color and the color to crop. The method used to calculate the color
+      difference is based on the color distance in the RGB(a) cube.
+     </p>
+     <p class="para">
+      Used only in <strong><code>IMG_CROP_THRESHOLD</code></strong> mode.
      </p>
     </dd>
 
@@ -90,7 +172,10 @@
     <dd>
 
      <p class="para">
-      Used in <strong><code>IMG_CROP_THRESHOLD</code></strong> mode.
+      Either an RGB color value or a palette index.
+     </p>
+     <p class="para">
+      Used only in <strong><code>IMG_CROP_THRESHOLD</code></strong> mode.
      </p>
     </dd>
 
@@ -103,8 +188,42 @@
  <div class="refsect1 returnvalues" id="refsect1-function.imagecropauto-returnvalues">
   <h3 class="title">返回值</h3>
   <p class="para">
-   Return cropped image resource on success 或者在失败时返回 <strong><code>FALSE</code></strong>.
+   Returns a cropped image resource on success 或者在失败时返回 <strong><code>FALSE</code></strong>.
+   If no cropping would occur, or the complete image would be cropped, that is
+   treated as failure, i.e. <span class="function"><a href="function.imagecrop.html" class="function">imagecrop()</a></span> returns <strong><code>FALSE</code></strong>.
   </p>
+ </div>
+
+
+ <div class="refsect1 examples" id="refsect1-function.imagecropauto-examples">
+  <h3 class="title">范例</h3>
+  <p class="para">
+   <div class="example" id="example-3437">
+    <p><strong>Example #1 Proper handling of auto-cropping</strong></p>
+    <div class="example-contents"><p>
+     As noted in the return value section, <span class="function"><strong>imagecropauto()</strong></span>
+     returns <strong><code>FALSE</code></strong> when there is either nothing to crop or the whole image
+     would be cropped. In this example we have an image resource
+     <em>$im</em> which should be automatically cropped only if there
+     is something to crop; otherwise we want to proceed with the original image.
+    </p></div>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$cropped&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">imagecropauto</span><span style="color: #007700">(</span><span style="color: #0000BB">$im</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">IMG_CROP_DEFAULT</span><span style="color: #007700">);<br />if&nbsp;(</span><span style="color: #0000BB">$cropped&nbsp;</span><span style="color: #007700">!==&nbsp;</span><span style="color: #0000BB">false</span><span style="color: #007700">)&nbsp;{&nbsp;</span><span style="color: #FF8000">//&nbsp;in&nbsp;case&nbsp;a&nbsp;new&nbsp;image&nbsp;resource&nbsp;was&nbsp;returned<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">imagedestroy</span><span style="color: #007700">(</span><span style="color: #0000BB">$im</span><span style="color: #007700">);&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;we&nbsp;destroy&nbsp;the&nbsp;original&nbsp;image<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$im&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$cropped</span><span style="color: #007700">;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;and&nbsp;assign&nbsp;the&nbsp;cropped&nbsp;image&nbsp;to&nbsp;$im<br /></span><span style="color: #007700">}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+   </div>
+  </p>
+ </div>
+
+ 
+ <div class="refsect1 seealso" id="refsect1-function.imagecropauto-seealso">
+  <h3 class="title">参见</h3>
+  <ul class="simplelist">
+   <li class="member"><span class="function"><a href="function.imagecrop.html" class="function" rel="rdfs-seeAlso">imagecrop()</a> - Crop an image to the given rectangle</span></li>
+  </ul>
  </div>
 
 
@@ -112,28 +231,33 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="115559""></a>
+<div id="allnotes">  <a name="119620""></a>
   <div class="note">
-   <strong class="user">jordie at jordie dot org</strong>
-   <a href="#115559" class="date">16-Aug-2014 01:38</a>
+   <strong class="user">raphael.deiana</strong>
+   <a href="#119620" class="date">19-Jul-2016 08:49</a>
    <div class="text">
     <div class="phpcode">
 <code><span class="html">
-Found the list of IMG_CROP_* constants in the PHP source code:<br />
+In some cases the use of the IMG_CROP_WHITE or IMG_CROP_BLACK does not work. The function returns FALSE. It is best to use the IMG_CROP_THRESHOLD mode and specify the color in fourth argument as in the example below :<br />
 <br />
-Essentially this function crops the image from any padded background if the background is a single standard colour. It will look at columns of pixels first, if a whole column is the same color that's being searched for, the column (image width) will be cropped. Then the pixel rows will be analyzed and height cropped.<br />
+<span class="default">&lt;?php<br />
 <br />
-IMG_CROP_TRANSPARENT - crops out a transparent background<br />
+$original_img </span><span class="keyword">= </span><span class="default">imagecreatefromjpeg</span><span class="keyword">(</span><span class="default">$image_path</span><span class="keyword">);<br />
 <br />
-IMG_CROP_BLACK - crops out a black background<br />
+</span><span class="comment">// Use this :<br />
+</span><span class="default">$cropped_img_white </span><span class="keyword">= </span><span class="default">imagecropauto</span><span class="keyword">(</span><span class="default">$original_img </span><span class="keyword">, </span><span class="default">IMG_CROP_THRESHOLD</span><span class="keyword">, </span><span class="default">null</span><span class="keyword">, </span><span class="default">16777215</span><span class="keyword">);<br />
+</span><span class="comment">// Rather than :<br />
+</span><span class="default">$cropped_img_white </span><span class="keyword">= </span><span class="default">imagecropauto</span><span class="keyword">(</span><span class="default">$original_img </span><span class="keyword">, </span><span class="default">IMG_CROP_WHITE</span><span class="keyword">);<br />
 <br />
-IMG_CROP_WHITE - crops out a black background<br />
+</span><span class="comment">// AND<br />
 <br />
-IMG_CROP_SIDES - Uses the 4 corners of the image to attempt to detect the background to crop<br />
+// Use this :<br />
+</span><span class="default">$cropped_img_black </span><span class="keyword">= </span><span class="default">imagecropauto</span><span class="keyword">(</span><span class="default">$original_img </span><span class="keyword">, </span><span class="default">IMG_CROP_THRESHOLD</span><span class="keyword">, </span><span class="default">null</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">);<br />
+</span><span class="comment">// Rather than :<br />
+</span><span class="default">$cropped_img_black </span><span class="keyword">= </span><span class="default">imagecropauto</span><span class="keyword">(</span><span class="default">$original_img </span><span class="keyword">, </span><span class="default">IMG_CROP_BLACK</span><span class="keyword">);<br />
 <br />
-IMG_CROP_THRESHOLD -&nbsp; Crop an image using a given color. The threshold argument defines the tolerance to be used while comparing the image color and the color to crop. The method used to calculate the color difference is based on the color distance in the RGB(a) cube.<br />
-<br />
-IMG_CROP_DEFAULT - Attempts to use IMG_CROP_TRANSPARENT and if it fails it falls back to IMG_CROP_SIDES</span>
+</span><span class="default">?&gt;</span>
+</span>
 </code>
     </div>
    </div>

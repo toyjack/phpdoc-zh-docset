@@ -1,0 +1,277 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>不向后兼容的变更</title>
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="migration71.constants.html">? New global constants</a></li>
+      <li style="float: right;"><a href="migration71.deprecated.html">PHP 7.1.x 中废弃的特性 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="migration71.html">从PHP 7.0.x 移植到 PHP 7.1.x</a></li>
+    <li>不向后兼容的变更</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="migration71.incompatible" class="sect1">
+ <h2 class="title">不向后兼容的变更</h2>
+
+ <div class="sect2" id="migration71.incompatible.too-few-arguments-exception">
+  <h3 class="title">当传递参数过少时将抛出错误</h3>
+
+  <p class="para">
+   在过去如果我们调用一个用户定义的函数时，提供的参数不足，那么将会产生一个警告(warning)。
+   现在，这个警告被提升为一个错误异常(Error exception)。这个变更仅对用户定义的函数生效，
+   并不包含内置函数。例如：
+  </p>
+
+  <div class="informalexample">
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">function&nbsp;</span><span style="color: #0000BB">test</span><span style="color: #007700">(</span><span style="color: #0000BB">$param</span><span style="color: #007700">){}<br /></span><span style="color: #0000BB">test</span><span style="color: #007700">();</span>
+</span>
+</code></div>
+   </div>
+
+   <p class="para">Output of the above example in PHP 5.5:</p>
+   <div class="example-contents screen">
+<div class="cdata"><pre>
+Uncaught Error: Too few arguments to function test(), 0 passed in %s on line %d and exactly 1 expected in %s:%d
+</pre></div>
+   </div>
+  </div>
+ </div>
+
+ <div class="sect2" id="migration71.incompatible.forbid-dynamic-calls-to-scope-introspection-functions">
+  <h3 class="title">Forbid dynamic calls to scope introspection functions</h3>
+
+  <p class="para">
+   Dynamic calls for certain functions have been forbidden (in the form of
+   <em>$func()</em> or <em>array_map(&#039;extract&#039;, ...)</em>,
+   etc). These functions either inspect or modify another scope, and present
+   with them ambiguous and unreliable behavior. The functions are as follows:
+  </p>
+
+  <ul class="itemizedlist">
+   <li class="listitem">
+    <span class="simpara">
+     <span class="function"><a href="function.assert.html" class="function">assert()</a></span> - with a string as the first argument
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     <span class="function"><a href="function.compact.html" class="function">compact()</a></span>
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     <span class="function"><a href="function.extract.html" class="function">extract()</a></span>
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     <span class="function"><a href="function.func-get-args.html" class="function">func_get_args()</a></span>
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     <span class="function"><a href="function.func-get-arg.html" class="function">func_get_arg()</a></span>
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     <span class="function"><a href="function.func-num-args.html" class="function">func_num_args()</a></span>
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     <span class="function"><a href="function.get-defined-vars.html" class="function">get_defined_vars()</a></span>
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     <span class="function"><a href="function.mb-parse-str.html" class="function">mb_parse_str()</a></span> - with one arg
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     <span class="function"><a href="function.parse-str.html" class="function">parse_str()</a></span> - with one arg
+    </span>
+   </li>
+  </ul>
+
+  <div class="informalexample">
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">(function&nbsp;()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">'func_num_args'</span><span style="color: #007700">();<br />})();</span>
+</span>
+</code></div>
+   </div>
+
+   <p class="para">以上例程会输出：</p>
+   <div class="example-contents screen">
+<div class="cdata"><pre>
+Warning: Cannot call func_num_args() dynamically in %s on line %d
+</pre></div>
+   </div>
+  </div>
+ </div>
+
+ <div class="sect2" id="migration71.incompatible.invalid-class-names">
+  <h3 class="title">Invalid class, interface, and trait names</h3>
+
+  <p class="para">
+   The following names cannot be used to name classes, interfaces, or traits:
+  </p>
+
+  <ul class="itemizedlist">
+   <li class="listitem">
+    <span class="simpara"><span class="type"><span class="type void">void</span></span></span>
+   </li>
+   <li class="listitem">
+    <span class="simpara"><span class="type"><span class="type iterable">iterable</span></span></span>
+   </li>
+  </ul>
+ </div>
+
+ <div class="sect2" id="migration71.incompatible.numerical-strings-scientific-notation">
+  <h3 class="title">Numerical string conversions now respect scientific notation</h3>
+
+  <p class="para">
+   Integer operations and conversions on numerical strings now respect
+   scientific notation. This also includes the <em>(int)</em> cast
+   operation, and the following functions: <span class="function"><a href="function.intval.html" class="function">intval()</a></span> (where
+   the base is 10), <span class="function"><a href="function.settype.html" class="function">settype()</a></span>, <span class="function"><a href="function.decbin.html" class="function">decbin()</a></span>,
+   <span class="function"><a href="function.decoct.html" class="function">decoct()</a></span>, and <span class="function"><a href="function.dechex.html" class="function">dechex()</a></span>.
+  </p>
+ </div>
+
+ <div class="sect2" id="migration71.incompatible.fixes-to-mt_rand-algorithm">
+  <h3 class="title">Fixes to <span class="function"><a href="function.mt-rand.html" class="function">mt_rand()</a></span> algorithm</h3>
+
+  <p class="para">
+   <span class="function"><a href="function.mt-rand.html" class="function">mt_rand()</a></span> will now default to using the fixed version of
+   the Mersenne Twister algorithm. If deterministic output from
+   <span class="function"><a href="function.mt-srand.html" class="function">mt_srand()</a></span> was relied upon, then the
+   <strong><code>MT_RAND_PHP</code></strong> with the ability to preserve the old
+   (incorrect) implementation via an additional optional second parameter to
+   <span class="function"><a href="function.mt-srand.html" class="function">mt_srand()</a></span>.
+  </p>
+ </div>
+
+ <div class="sect2" id="migration71.incompatible.rand-srand-aliases">
+  <h3 class="title">
+   <span class="function"><a href="function.rand.html" class="function">rand()</a></span> aliased to <span class="function"><a href="function.mt-rand.html" class="function">mt_rand()</a></span> and
+   <span class="function"><a href="function.srand.html" class="function">srand()</a></span> aliased to <span class="function"><a href="function.mt-srand.html" class="function">mt_srand()</a></span>
+  </h3>
+
+  <p class="para">
+   <span class="function"><a href="function.rand.html" class="function">rand()</a></span> and <span class="function"><a href="function.srand.html" class="function">srand()</a></span> have now been made
+   aliases to <span class="function"><a href="function.mt-rand.html" class="function">mt_rand()</a></span> and <span class="function"><a href="function.mt-srand.html" class="function">mt_srand()</a></span>,
+   respectively. This means that the output for the following functions have
+   changes: <span class="function"><a href="function.rand.html" class="function">rand()</a></span>, <span class="function"><a href="function.shuffle.html" class="function">shuffle()</a></span>,
+   <span class="function"><a href="function.str-shuffle.html" class="function">str_shuffle()</a></span>, and <span class="function"><a href="function.array-rand.html" class="function">array_rand()</a></span>.
+  </p>
+ </div>
+
+ <div class="sect2" id="migration71.incompatible.delete-control-character-in-identifiers">
+  <h3 class="title">Disallow the ASCII delete control character in identifiers</h3>
+
+  <p class="para">
+   The ASCII delete control character (<em>0x7F</em>) can no longer
+   be used in identifiers that are not quoted.
+  </p>
+ </div>
+
+ <div class="sect2" id="migration71.incompatible.error_log-syslog">
+  <h3 class="title">
+   <code class="parameter">error_log</code> changes with <em>syslog</em>
+   value
+  </h3>
+
+  <p class="para">
+   If the <code class="parameter">error_log</code> ini setting is set to
+   <em>syslog</em>, the PHP error levels are mapped to the syslog
+   error levels. This brings finer differentiation in the error logs in
+   contrary to the previous approach where all the errors are logged with the
+   notice level only.
+  </p>
+ </div>
+
+ <div class="sect2" id="migration71.incompatible.dont-call-destructors">
+  <h3 class="title">在不完整的对象上不再调用析构方法</h3>
+
+  <p class="para">
+   析构方法在一个不完整的对象（例如在构造方法中抛出一个异常）上将不再会被调用。
+  </p>
+ </div>
+
+ <div class="sect2" id="migration71.incompatible.call_user_func-with-ref-args">
+  <h3 class="title">
+   <span class="function"><a href="function.call-user-func.html" class="function">call_user_func()</a></span>不再支持对传址的函数的调用
+  </h3>
+
+  <p class="para">
+   <span class="function"><a href="function.call-user-func.html" class="function">call_user_func()</a></span> 现在在调用一个以引用作为参数的函数时将始终失败。
+  </p>
+ </div>
+
+ <div class="sect2" id="migration71.incompatible.empty-string-index-operator">
+  <h3 class="title">
+   字符串不再支持空索引操作符
+   The empty index operator is not supported for strings anymore
+  </h3>
+
+  <p class="para">
+   对字符串使用一个空索引操作符（例如<em>$str[] = $x</em>）将会抛出一个致命错误，
+   而不是静默地将其转为一个数组。
+  </p>
+ </div>
+
+ <div class="sect2" id="migration71.incompatible.removed-ini-directives">
+  <h3 class="title">ini配置项移除</h3>
+
+  <p class="para">
+   下列ini配置项已经被移除：
+  </p>
+
+  <ul class="itemizedlist">
+   <li class="listitem">
+    <span class="simpara">
+     <code class="parameter">session.entropy_file</code>
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     <code class="parameter">session.entropy_length</code>
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     <code class="parameter">session.hash_function</code>
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     <code class="parameter">session.hash_bits_per_character</code>
+    </span>
+   </li>
+  </ul>
+ </div>
+</div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+ <div class="note">There are no user contributed notes for this page.</div>
+</div>
+</div></div></body></html>

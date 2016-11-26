@@ -131,7 +131,7 @@
  <div class="refsect1 examples" id="refsect1-pdostatement.fetchall-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-1015"><p><strong>Example #1 获取结果集中所有剩余的行</strong></p>
+   <div class="example" id="example-1020"><p><strong>Example #1 获取结果集中所有剩余的行</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
 <span style="color: #0000BB">&lt;?php<br />$sth&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$dbh</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">prepare</span><span style="color: #007700">(</span><span style="color: #DD0000">"SELECT&nbsp;name,&nbsp;colour&nbsp;FROM&nbsp;fruit"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$sth</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">execute</span><span style="color: #007700">();<br /><br /></span><span style="color: #FF8000">/*&nbsp;获取结果集中所有剩余的行&nbsp;*/<br /></span><span style="color: #007700">print(</span><span style="color: #DD0000">"Fetch&nbsp;all&nbsp;of&nbsp;the&nbsp;remaining&nbsp;rows&nbsp;in&nbsp;the&nbsp;result&nbsp;set:\n"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$result&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$sth</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">fetchAll</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">print_r</span><span style="color: #007700">(</span><span style="color: #0000BB">$result</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
@@ -165,7 +165,7 @@ Array
 </pre></div>
     </div>
    </div>
-   <div class="example" id="example-1016"><p><strong>Example #2 获取结果集中单独一列的所有值</strong></p>
+   <div class="example" id="example-1021"><p><strong>Example #2 获取结果集中单独一列的所有值</strong></p>
     <div class="example-contents"><p>
      下面例子演示了如何从一个结果集中返回单独一列所有的值，尽管 SQL 语句自身可能返回每行多列。
     </p></div>
@@ -191,7 +191,7 @@ Array(3)
 </pre></div>
     </div>
    </div>
-   <div class="example" id="example-1017"><p><strong>Example #3 根据单独的一列把所有值分组</strong></p>
+   <div class="example" id="example-1022"><p><strong>Example #3 根据单独的一列把所有值分组</strong></p>
     <div class="example-contents"><p>
      下面例子演示了如何返回一个根据结果集中指定列的值分组的关联数组。该数组包含三个键：返回的 <em>apple</em> 和 <em>pear</em> 数组包含了两种不同的颜色，而返回的 <em>watermelon</em> 数组仅包含一种颜色。 
     </p></div>
@@ -230,7 +230,7 @@ array(3) {
 </pre></div>
     </div>
    </div>
-   <div class="example" id="example-1018"><p><strong>Example #4 每行结果实例化一个类</strong></p>
+   <div class="example" id="example-1023"><p><strong>Example #4 每行结果实例化一个类</strong></p>
     <div class="example-contents"><p>
      下面列子演示了 <strong><code>PDO::FETCH_CLASS</code></strong> 获取风格的行为。
     </p></div>
@@ -270,7 +270,7 @@ array(3) {
 </pre></div>
     </div>
    </div>
-   <div class="example" id="example-1019"><p><strong>Example #5  每行调用一次函数</strong></p>
+   <div class="example" id="example-1024"><p><strong>Example #5  每行调用一次函数</strong></p>
     <div class="example-contents"><p>
      下面列子演示了 <strong><code>PDO::FETCH_FUNC</code></strong> 获取风格的行为。
     </p></div>
@@ -317,7 +317,55 @@ array(3) {
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="118231""></a>
+<div id="allnotes">  <a name="120175""></a>
+  <div class="note">
+   <strong class="user">jeroen dot deklerk at hotmail dot com</strong>
+   <a href="#120175" class="date">16-Nov-2016 08:47</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I was having trouble with returning PDO query results in arrays, due to the structure of the results of those queries (query array with arrays for results inside). Now when executing a fetchAll() on a query you get the following: <br />
+<br />
+Array ( [0] = Array ( [key1] =&gt; "value1", [key2] =&gt; "value2") [1] = Array( [key1] =&gt; "value1", [key2] =&gt; "value2") )<br />
+<br />
+This is a smaller array, but return results in a HUGE database this way and it quickly becomes IMPPOSIBRU to read out the array given.<br />
+<br />
+This is where the glorious foreach comes in! We all know the basic writing of a foreach (foreach ($array as $key =&gt; $value) {...}), but with query results there's a twist, as both the $key AND $value variables are arrays, where $key is the array of the query containing the result arrays and $value is/are the result array(s) themselves.<br />
+<br />
+So in this foreach we have to talk directly to $value to get our results! This would look something like this:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+&nbsp; </span><span class="keyword">foreach (</span><span class="default">$query </span><span class="keyword">as </span><span class="default">$key </span><span class="keyword">=&gt; </span><span class="default">$value</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; return </span><span class="default">$value</span><span class="keyword">[</span><span class="string">"key2"</span><span class="keyword">];<br />
+&nbsp; }<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+This already does the job, but to return them in arrays we have to change our return code a little bit, like so:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+&nbsp;&nbsp; </span><span class="keyword">foreach (</span><span class="default">$query </span><span class="keyword">as </span><span class="default">$key </span><span class="keyword">=&gt; </span><span class="default">$value</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; return array (<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="string">"key1" </span><span class="keyword">=&gt; </span><span class="default">$value</span><span class="keyword">[</span><span class="string">"key1"</span><span class="keyword">],<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="string">"key2" </span><span class="keyword">=&gt; </span><span class="default">$value</span><span class="keyword">[</span><span class="string">"key2"</span><span class="keyword">]<br />
+&nbsp;&nbsp; &nbsp;&nbsp; );<br />
+&nbsp;&nbsp; }<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+This foreach loops through the query array, just like the firs one, but the return code just doesn't return the keys representing the result arrays ($key) and returns only keys from inside the result arrays,&nbsp; stored in $value. This gives us an array looking like this:<br />
+<br />
+Array ( [key1] =&gt; "value1", [key2] =&gt; "value2")<br />
+<br />
+This should return all the values in your array, if written properly. I'm still having problems with the foreach not returning ALL results, but this note was mainly to show how it can be returned in an array.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118231""></a>
   <div class="note">
    <strong class="user">Dean S.</strong>
    <a href="#118231" class="date">30-Oct-2015 05:38</a>

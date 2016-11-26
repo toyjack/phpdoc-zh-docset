@@ -134,7 +134,7 @@
  <div class="refsect1 examples" id="refsect1-function.strip-tags-examples">
   <h3 class="title">·¶Àý</h3>
   <p class="para">
-   <div class="example" id="example-5296">
+   <div class="example" id="example-5339">
     <p><strong>Example #1 <span class="function"><strong>strip_tags()</strong></span> ·¶Àý</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -190,7 +190,52 @@ Test paragraph. Other text
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="118485""></a>
+<div id="allnotes">  <a name="119909""></a>
+  <div class="note">
+   <strong class="user">stever at starburstpublishing dot com dot au</strong>
+   <a href="#119909" class="date">19-Sep-2016 03:09</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Since strip_tags does not remove attributes and thus creates a potential XSS security hole, here is a small function I wrote to allow only specific tags with specific attributes and strip all other tags and attributes.<br />
+<br />
+If you only allow formatting tags such as b, i, and p, and styling attributes such as class, id and style, this will strip all javascript including event triggers in formatting tags.<br />
+<br />
+Note that allowing anchor tags or href attributes opens another potential security hole that this solution won't protect against. You'll need more comprehensive protection if you plan to allow links in your text.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">stripUnwantedTagsAndAttrs</span><span class="keyword">(</span><span class="default">$html_str</span><span class="keyword">){<br />
+&nbsp; </span><span class="default">$xml </span><span class="keyword">= new </span><span class="default">DOMDocument</span><span class="keyword">();<br />
+</span><span class="comment">//Suppress warnings: proper error handling is beyond scope of example<br />
+&nbsp; </span><span class="default">libxml_use_internal_errors</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">);<br />
+</span><span class="comment">//List the tags you want to allow here, NOTE you MUST allow html and body otherwise entire string will be cleared<br />
+&nbsp; </span><span class="default">$allowed_tags </span><span class="keyword">= array(</span><span class="string">"html"</span><span class="keyword">, </span><span class="string">"body"</span><span class="keyword">, </span><span class="string">"b"</span><span class="keyword">, </span><span class="string">"br"</span><span class="keyword">, </span><span class="string">"em"</span><span class="keyword">, </span><span class="string">"hr"</span><span class="keyword">, </span><span class="string">"i"</span><span class="keyword">, </span><span class="string">"li"</span><span class="keyword">, </span><span class="string">"ol"</span><span class="keyword">, </span><span class="string">"p"</span><span class="keyword">, </span><span class="string">"s"</span><span class="keyword">, </span><span class="string">"span"</span><span class="keyword">, </span><span class="string">"table"</span><span class="keyword">, </span><span class="string">"tr"</span><span class="keyword">, </span><span class="string">"td"</span><span class="keyword">, </span><span class="string">"u"</span><span class="keyword">, </span><span class="string">"ul"</span><span class="keyword">);<br />
+</span><span class="comment">//List the attributes you want to allow here<br />
+&nbsp; </span><span class="default">$allowed_attrs </span><span class="keyword">= array (</span><span class="string">"class"</span><span class="keyword">, </span><span class="string">"id"</span><span class="keyword">, </span><span class="string">"style"</span><span class="keyword">);<br />
+&nbsp; if (!</span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$html_str</span><span class="keyword">)){return </span><span class="default">false</span><span class="keyword">;}<br />
+&nbsp; if (</span><span class="default">$xml</span><span class="keyword">-&gt;</span><span class="default">loadHTML</span><span class="keyword">(</span><span class="default">$html_str</span><span class="keyword">, </span><span class="default">LIBXML_HTML_NOIMPLIED </span><span class="keyword">| </span><span class="default">LIBXML_HTML_NODEFDTD</span><span class="keyword">)){<br />
+&nbsp;&nbsp;&nbsp; foreach (</span><span class="default">$xml</span><span class="keyword">-&gt;</span><span class="default">getElementsByTagName</span><span class="keyword">(</span><span class="string">"*"</span><span class="keyword">) as </span><span class="default">$tag</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp;&nbsp; if (!</span><span class="default">in_array</span><span class="keyword">(</span><span class="default">$tag</span><span class="keyword">-&gt;</span><span class="default">tagName</span><span class="keyword">, </span><span class="default">$allowed_tags</span><span class="keyword">)){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$tag</span><span class="keyword">-&gt;</span><span class="default">parentNode</span><span class="keyword">-&gt;</span><span class="default">removeChild</span><span class="keyword">(</span><span class="default">$tag</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp;&nbsp; }else{<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach (</span><span class="default">$tag</span><span class="keyword">-&gt;</span><span class="default">attributes </span><span class="keyword">as </span><span class="default">$attr</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (!</span><span class="default">in_array</span><span class="keyword">(</span><span class="default">$attr</span><span class="keyword">-&gt;</span><span class="default">nodeName</span><span class="keyword">, </span><span class="default">$allowed_attrs</span><span class="keyword">)){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$tag</span><span class="keyword">-&gt;</span><span class="default">removeAttribute</span><span class="keyword">(</span><span class="default">$attr</span><span class="keyword">-&gt;</span><span class="default">nodeName</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp; }<br />
+&nbsp; return </span><span class="default">$xml</span><span class="keyword">-&gt;</span><span class="default">saveHTML</span><span class="keyword">();<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118485""></a>
   <div class="note">
    <strong class="user">Trititaty</strong>
    <a href="#118485" class="date">14-Dec-2015 06:28</a>
@@ -509,28 +554,6 @@ echo </span><span class="default">$str</span><span class="keyword">; </span><spa
 $data = '&lt;br&gt;Each&lt;br/&gt;New&lt;br /&gt;Line'; <br />
 $new&nbsp; = strip_tags($data, '&lt;br /&gt;||&lt;br/&gt;||&lt;br&gt;'); <br />
 var_dump($new); // OUTPUTS string(11) "&lt;br&gt;Each&lt;br/&gt;New&lt;br /&gt;Line"</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="114909""></a>
-  <div class="note">
-   <strong class="user">Kenji</strong>
-   <a href="#114909" class="date">24-Apr-2014 11:11</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-A word of warning!!<br />
-Do NOT use "admin at automapit dot com"s regex. It's broken:<br />
-<br />
-"lalala &lt;b&lt;b&gt;&gt; lala &lt;/b&lt;b&gt;&gt;"<br />
-<br />
-will be stripped into<br />
-<br />
-"lalala &lt;b&gt; lala &lt;/b&gt;"<br />
-<br />
-I CANNOT overstate the severity of the security issues you are introducing with such a code! Don't use it, stay safe.</span>
 </code>
     </div>
    </div>
@@ -869,19 +892,6 @@ With most web based user input of more than a line of text, it seems I get 90% '
    </div>
   </div>
  <div class="foot"></div>
-  <a name="90080""></a>
-  <div class="note">
-   <strong class="user">brettz9 AAT yah</strong>
-   <a href="#90080" class="date">05-Apr-2009 05:10</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Works on shortened &lt;?...?&gt; syntax and thus also will remove XML processing instructions.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
   <a name="89410""></a>
   <div class="note">
    <strong class="user">kai at froghh dot de</strong>
@@ -1043,47 +1053,6 @@ Result for strip_tags_content($text, '&lt;b&gt;', TRUE);
 
 <br />
 I hope that someone is useful :)</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="68757""></a>
-  <div class="note">
-   <strong class="user">admin at automapit dot com</strong>
-   <a href="#68757" class="date">09-Aug-2006 07:01</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-<span class="default">&lt;?php
-<br />
-</span><span class="keyword">function </span><span class="default">html2txt</span><span class="keyword">(</span><span class="default">$document</span><span class="keyword">){
-<br />
-</span><span class="default">$search </span><span class="keyword">= array(</span><span class="string">'@&lt;script[^&gt;]*?&gt;.*?&lt;/script&gt;@si'</span><span class="keyword">,&nbsp; </span><span class="comment">// Strip out javascript
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="string">'@&lt;[\/\!]*?[^&lt;&gt;]*?&gt;@si'</span><span class="keyword">,&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="comment">// Strip out HTML tags
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="string">'@&lt;style[^&gt;]*?&gt;.*?&lt;/style&gt;@siU'</span><span class="keyword">,&nbsp; &nbsp; </span><span class="comment">// Strip style tags properly
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="string">'@&lt;![\s\S]*?--[ \t\n\r]*&gt;@'&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Strip multi-line comments including CDATA
-<br />
-</span><span class="keyword">);
-<br />
-</span><span class="default">$text </span><span class="keyword">= </span><span class="default">preg_replace</span><span class="keyword">(</span><span class="default">$search</span><span class="keyword">, </span><span class="string">''</span><span class="keyword">, </span><span class="default">$document</span><span class="keyword">);
-<br />
-return </span><span class="default">$text</span><span class="keyword">;
-<br />
-}
-<br />
-</span><span class="default">?&gt;
-<br />
-</span>
-<br />
-This function turns HTML into text... strips tags, comments spanning multiple lines including CDATA, and anything else that gets in it's way.
-<br />
-
-<br />
-It's a frankenstein function I made from bits picked up on my travels through the web, thanks to the many who have unwittingly contributed!</span>
 </code>
     </div>
    </div>

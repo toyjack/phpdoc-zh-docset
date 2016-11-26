@@ -135,7 +135,60 @@ EXPONENT_DNUM [+-]?(({LNUM} | {DNUM}) [eE][+-]? {LNUM})
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="117212""></a>
+<div id="allnotes">  <a name="119860""></a>
+  <div class="note">
+   <strong class="user">Eduard</strong>
+   <a href="#119860" class="date">07-Sep-2016 11:23</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+In the gettype() manual, it says "(for historical reasons "double" is returned in case of a float, and not simply "float") ".<br />
+<br />
+However, I think that internally PHP sometimes uses the C double definition (i.e. a double is twice the size of a float/real). See the example below:<br />
+<br />
+&lt;?<br />
+//Function required to reverse a string on blocks of two<br />
+function strrev_x($s, $x = 2) {<br />
+&nbsp;&nbsp;&nbsp; if ($x &lt;= 1) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return strrev($s); <br />
+&nbsp;&nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return (implode(array_reverse(array_map('implode', array_chunk(str_split($s), $x)))));<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+echo 'double pack'. PHP_EOL;<br />
+$tst = pack('d', '1.6');<br />
+var_dump(strrev_x(bin2hex($tst)));<br />
+$tst = pack('d', 8-6.4);<br />
+var_dump(strrev_x(bin2hex($tst)));<br />
+echo 'float pack'. PHP_EOL;<br />
+$tst = pack('f', '1.6');<br />
+var_dump(strrev_x(bin2hex($tst)));<br />
+$tst = pack('f', 8-6.4);<br />
+var_dump(strrev_x(bin2hex($tst)));<br />
+?&gt;<br />
+(The strrev_x-bin2hex combination is just to give printable characters.)<br />
+<br />
+Given that PHP treats doubles and floats identically, I'd expected the same string as output, however, the output is:<br />
+<br />
+double pack<br />
+string(16) "3ff999999999999a" //Here you see that there is a minute difference...<br />
+string(16) "3ff9999999999998"<br />
+float pack<br />
+string(8) "3fcccccd" //... which doesn't exist here<br />
+string(8) "3fcccccd"<br />
+<br />
+So, as an alternative to using<br />
+&nbsp; $float1 === $float2<br />
+one could use<br />
+&nbsp; pack('f', $float1) === pack ('f', $float2)<br />
+with a big footnote that one should really remember that one is *reducing* your accuracy of the comparison. AFAIK is this the only way (apart from epsilon methods) to securely compare two floats.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117212""></a>
   <div class="note">
    <strong class="user">luizvid at gmail dot com</strong>
    <a href="#117212" class="date">04-May-2015 09:06</a>
@@ -610,31 +663,6 @@ This usually won't matter when converting to binary memory storage form and edit
    </div>
   </div>
  <div class="foot"></div>
-  <a name="95624""></a>
-  <div class="note">
-   <strong class="user">pgarvin76+phpmanual at gmail dot com</strong>
-   <a href="#95624" class="date">13-Jan-2010 04:36</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-When converting from float to string trailing zeros will be dropped. Consider the following example. Tested on PHP 5.3.1.<br />
-<br />
-<span class="default">&lt;?php<br />
-$a </span><span class="keyword">= </span><span class="default">5.00500</span><span class="keyword">;<br />
-</span><span class="default">$b </span><span class="keyword">= </span><span class="default">30.00</span><span class="keyword">;<br />
-echo </span><span class="string">"a = </span><span class="default">$a</span><span class="string">\n"</span><span class="keyword">;<br />
-echo </span><span class="string">"b = </span><span class="default">$b</span><span class="string">\n"</span><span class="keyword">;<br />
-</span><span class="comment">/* outputs:<br />
-a = 5.005<br />
-b = 30<br />
-*/<br />
-</span><span class="default">?&gt;</span>
-</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
   <a name="92885""></a>
   <div class="note">
    <strong class="user">francois dot barbier at gmail dot com</strong>
@@ -721,28 +749,6 @@ setLocale</span><span class="keyword">(</span><span class="default">LC_ALL</span
 </span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">str2num</span><span class="keyword">(</span><span class="default">$string</span><span class="keyword">)); </span><span class="comment">// float(-123456,79)<br />
 </span><span class="default">?&gt;</span>
 </span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="91267""></a>
-  <div class="note">
-   <strong class="user">rob at willo dot org</strong>
-   <a href="#91267" class="date">03-Jun-2009 06:18</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-PHP will parse ".123" with no leading digit; just a decimal point. For a command-line example:<br />
-<br />
-php -r "echo 1 + .123;"<br />
-<br />
-The regular expression provided above does not parse it.<br />
-My correction is:<br />
-<br />
-EXPONENT_DNUM = "[+-]?({DNUM} | ({LNUM} | {DNUM}) [eE][+-]? {LNUM})"<br />
-<br />
-NOTE: {LNUM} by itself is an integer, not a floating point.</span>
 </code>
     </div>
    </div>
@@ -1003,49 +1009,6 @@ var foo = doBar(0,23);<br />
 which is obviously a different call to the function. JavaScript won't state an error, additional arguments are discarded without notice, but the function doBar(a) would get 0 as parameter. Similar problems could arise anywhere else (SQL, any string used as code somewhere else). The problem persists, if you use the "." operator instead of evaluating the variable in the string.<br />
 <br />
 So if you REALLY need to be sure to have the string correctly formatted, use number_format() to do it!</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="57110""></a>
-  <div class="note">
-   <strong class="user">TRI0N</strong>
-   <a href="#57110" class="date">24-Sep-2005 04:01</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Here is a simple formula to break down a number and get rid of the decimal values.&nbsp; I built this to take a number in seconds and convert it to a readable value for Server Uptimes.<br />
-<br />
-<span class="default">&lt;?php<br />
-$day </span><span class="keyword">= </span><span class="default">floor</span><span class="keyword">((</span><span class="default">$uptime </span><span class="keyword">/ </span><span class="default">86400</span><span class="keyword">)*</span><span class="default">1.0</span><span class="keyword">) ;<br />
-</span><span class="default">$calc1 </span><span class="keyword">= </span><span class="default">$day </span><span class="keyword">* </span><span class="default">86400 </span><span class="keyword">;<br />
-</span><span class="default">$calc2 </span><span class="keyword">= </span><span class="default">$uptime </span><span class="keyword">- </span><span class="default">$calc1 </span><span class="keyword">;<br />
-</span><span class="default">$hour </span><span class="keyword">= </span><span class="default">floor</span><span class="keyword">((</span><span class="default">$calc2 </span><span class="keyword">/ </span><span class="default">3600</span><span class="keyword">)*</span><span class="default">1.0</span><span class="keyword">) ;<br />
-if (</span><span class="default">$hour </span><span class="keyword">&lt; </span><span class="default">10</span><span class="keyword">) {<br />
-</span><span class="default">$hour </span><span class="keyword">= </span><span class="string">"0"</span><span class="keyword">.</span><span class="default">$hour </span><span class="keyword">;<br />
-}<br />
-</span><span class="default">$calc3 </span><span class="keyword">= </span><span class="default">$hour </span><span class="keyword">* </span><span class="default">3600 </span><span class="keyword">;<br />
-</span><span class="default">$calc4 </span><span class="keyword">= </span><span class="default">$calc2 </span><span class="keyword">- </span><span class="default">$calc3 </span><span class="keyword">;<br />
-</span><span class="default">$min </span><span class="keyword">= </span><span class="default">floor</span><span class="keyword">((</span><span class="default">$calc4 </span><span class="keyword">/ </span><span class="default">60</span><span class="keyword">)*</span><span class="default">1.0</span><span class="keyword">) ;<br />
-if (</span><span class="default">$min </span><span class="keyword">&lt; </span><span class="default">10</span><span class="keyword">) {<br />
-</span><span class="default">$min </span><span class="keyword">= </span><span class="string">"0"</span><span class="keyword">.</span><span class="default">$min </span><span class="keyword">;<br />
-}<br />
-</span><span class="default">$calc5 </span><span class="keyword">= </span><span class="default">$min </span><span class="keyword">* </span><span class="default">60 </span><span class="keyword">;<br />
-</span><span class="default">$sec </span><span class="keyword">= </span><span class="default">floor</span><span class="keyword">((</span><span class="default">$calc4 </span><span class="keyword">- </span><span class="default">$calc5</span><span class="keyword">)*</span><span class="default">1.0</span><span class="keyword">) ;<br />
-if (</span><span class="default">$min </span><span class="keyword">&lt; </span><span class="default">10</span><span class="keyword">) {<br />
-</span><span class="default">$sec </span><span class="keyword">= </span><span class="string">"0"</span><span class="keyword">.</span><span class="default">$sec </span><span class="keyword">;<br />
-}<br />
-</span><span class="default">$uptime2 </span><span class="keyword">= </span><span class="default">$day</span><span class="keyword">.</span><span class="string">" Days, "</span><span class="keyword">.</span><span class="default">$hour</span><span class="keyword">.</span><span class="string">":"</span><span class="keyword">.</span><span class="default">$min</span><span class="keyword">.</span><span class="string">":"</span><span class="keyword">.</span><span class="default">$sec </span><span class="keyword">;<br />
-</span><span class="default">?&gt;<br />
-</span><br />
-Place this where you want the results to be seen:<br />
-<span class="default">&lt;?php </span><span class="keyword">echo </span><span class="default">$uptime2 </span><span class="keyword">; </span><span class="default">?&gt;<br />
-</span><br />
-For a Value of 1455587 seconds the results will show as followed:<br />
-16 Days, 20:19:47<br />
-<br />
-Enjoy</span>
 </code>
     </div>
    </div>

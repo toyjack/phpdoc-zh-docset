@@ -47,7 +47,7 @@
    和 W3C 的 <span class="productname">Amaya</span> 客户端使用这种方法。请参阅<a href="features.file-upload.put-method.html" class="link">对 PUT 方法的支持</a>以获取更多信息。
   </p>
   <p class="para">
-   <div class="example" id="example-384">
+   <div class="example" id="example-387">
     <p><strong>Example #1 文件上传表单</strong></p>
     <div class="example-contents"><p>
      可以如下建立一个特殊的表单来支持文件上传：
@@ -169,7 +169,7 @@
    运行环境的环境变量 <span class="envar">TMPDIR</span> 来重新设置，但是在
    PHP 脚本内部通过运行 <span class="function"><a href="function.putenv.html" class="function">putenv()</a></span>
    函数来设置是不起作用的。该环境变量也可以用来确认其它的操作也是在上传的文件上进行的。
-   <div class="example" id="example-385">
+   <div class="example" id="example-388">
     <p><strong>Example #2 使文件上传生效</strong></p>
     <div class="example-contents"><p>
     请查阅函数 <span class="function"><a href="function.is-uploaded-file.html" class="function">is_uploaded_file()</a></span> 和 <span class="function"><a href="function.move-uploaded-file.html" class="function">move_uploaded_file()</a></span> 以获取进一步的信息。以下范例处理由表单提供的文件上传。
@@ -202,7 +202,7 @@
    如果该文件没有被移动到其它地方也没有被改名，则该文件将在表单请求结束时被删除。
   </p>
 
-  <div class="example" id="example-386">
+  <div class="example" id="example-389">
    <p><strong>Example #3 上传一组文件</strong></p>
    <div class="example-contents"><p>
     PHP 的 <a href="faq.html.html#faq.html.arrays" class="link">HTML 数组特性</a>甚至支持文件类型。
@@ -231,7 +231,97 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="118858""></a>
+<div id="allnotes">  <a name="119786""></a>
+  <div class="note">
+   <strong class="user">russianhacker</strong>
+   <a href="#119786" class="date">25-Aug-2016 10:09</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+function normalize_files_array($files = []) {<br />
+<br />
+&nbsp;&nbsp;&nbsp; $arr = [];<br />
+<br />
+&nbsp;&nbsp;&nbsp; foreach ($files['name'] as $index =&gt; $filename) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $arr[] = array(<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 'name' =&gt; $filename,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 'tmp_name' =&gt; $files['tmp_name'][$index],<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 'error' =&gt; $files['error'][$index],<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 'size' =&gt; $files['size'][$index],<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 'type' =&gt; $files['type'][$index]<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; );<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; return $arr;<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119643""></a>
+  <div class="note">
+   <strong class="user">mpyw</strong>
+   <a href="#119643" class="date">24-Jul-2016 03:44</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Do not use Coreywelch or Daevid's way, because their methods can handle only within two-dimensional structure. $_FILES can consist of any hierarchy, such as 3d or 4d structure.<br />
+<br />
+The following example form breaks their codes:<br />
+<br />
+&lt;form action="" method="post" enctype="multipart/form-data"&gt;<br />
+&nbsp;&nbsp;&nbsp; &lt;input type="file" name="files[x][y][z]"&gt;<br />
+&nbsp;&nbsp;&nbsp; &lt;input type="submit"&gt;<br />
+&lt;/form&gt;<br />
+<br />
+As the solution, you should use PSR-7 based zendframework/zend-diactoros.<br />
+<br />
+GitHub:<br />
+<br />
+https://github.com/zendframework/zend-diactoros<br />
+<br />
+Example:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">use </span><span class="default">Psr</span><span class="keyword">\</span><span class="default">Http</span><span class="keyword">\</span><span class="default">Message</span><span class="keyword">\</span><span class="default">UploadedFileInterface</span><span class="keyword">;<br />
+use </span><span class="default">Zend</span><span class="keyword">\</span><span class="default">Diactoros</span><span class="keyword">\</span><span class="default">ServerRequestFactory</span><span class="keyword">;<br />
+<br />
+</span><span class="default">$request </span><span class="keyword">= </span><span class="default">ServerRequestFactory</span><span class="keyword">::</span><span class="default">fromGlobals</span><span class="keyword">();<br />
+<br />
+if (</span><span class="default">$request</span><span class="keyword">-&gt;</span><span class="default">getMethod</span><span class="keyword">() !== </span><span class="string">'POST'</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">http_response_code</span><span class="keyword">(</span><span class="default">405</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; exit(</span><span class="string">'Use POST method.'</span><span class="keyword">);<br />
+}<br />
+<br />
+</span><span class="default">$uploaded_files </span><span class="keyword">= </span><span class="default">$request</span><span class="keyword">-&gt;</span><span class="default">getUploadedFiles</span><span class="keyword">();<br />
+<br />
+if (<br />
+&nbsp;&nbsp;&nbsp; !isset(</span><span class="default">$uploaded_files</span><span class="keyword">[</span><span class="string">'files'</span><span class="keyword">][</span><span class="string">'x'</span><span class="keyword">][</span><span class="string">'y'</span><span class="keyword">][</span><span class="string">'z'</span><span class="keyword">]) ||<br />
+&nbsp;&nbsp;&nbsp; !</span><span class="default">$uploaded_files</span><span class="keyword">[</span><span class="string">'files'</span><span class="keyword">][</span><span class="string">'x'</span><span class="keyword">][</span><span class="string">'y'</span><span class="keyword">][</span><span class="string">'z'</span><span class="keyword">] instanceof </span><span class="default">UploadedFileInterface<br />
+</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">http_response_code</span><span class="keyword">(</span><span class="default">400</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; exit(</span><span class="string">'Invalid request body.'</span><span class="keyword">);<br />
+}<br />
+<br />
+</span><span class="default">$file </span><span class="keyword">= </span><span class="default">$uploaded_files</span><span class="keyword">[</span><span class="string">'files'</span><span class="keyword">][</span><span class="string">'x'</span><span class="keyword">][</span><span class="string">'y'</span><span class="keyword">][</span><span class="string">'z'</span><span class="keyword">];<br />
+<br />
+if (</span><span class="default">$file</span><span class="keyword">-&gt;</span><span class="default">getError</span><span class="keyword">() !== </span><span class="default">UPLOAD_ERR_OK</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">http_response_code</span><span class="keyword">(</span><span class="default">400</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; exit(</span><span class="string">'File uploading failed.'</span><span class="keyword">);<br />
+}<br />
+<br />
+</span><span class="default">$file</span><span class="keyword">-&gt;</span><span class="default">moveTo</span><span class="keyword">(</span><span class="string">'/path/to/new/file'</span><span class="keyword">);<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118858""></a>
   <div class="note">
    <strong class="user">coreywelch+phpnet at gmail dot com</strong>
    <a href="#118858" class="date">18-Feb-2016 07:29</a>
@@ -490,19 +580,6 @@ Normalizing $_FILES structure:<br />
    </div>
   </div>
  <div class="foot"></div>
-  <a name="105308""></a>
-  <div class="note">
-   <strong class="user">gustavo at roskus dot com</strong>
-   <a href="#105308" class="date">08-Aug-2011 09:21</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Some hosting does not have permission to use the move_uploaded_file function should replace the copy function</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
   <a name="104349""></a>
   <div class="note">
    <strong class="user">Age Bosma</strong>
@@ -516,42 +593,6 @@ Note that the situation above is the same when a file exceeding the MAX_FILE_SIZ
 Simply checking for these two conditions and assuming no file upload has been attempted is incorrect.<br />
 <br />
 Instead, check if $_FILES['userfile']['name'] is set or not. If it is, a file upload has at least been attempted (a failed attempt or not). If it is not set, no attempt has been made.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="102213""></a>
-  <div class="note">
-   <strong class="user">zingaburga at hotmail dot com</strong>
-   <a href="#102213" class="date">03-Feb-2011 04:09</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-The documentation is a little unclear about the MAX_FILE_SIZE value sent in the form with multiple file input fields.&nbsp; The following is what I have found through testing - hopefully it may clarify it for others.<br />
-<br />
-The MAX_FILE_SIZE is applied to each file (not the total size of all files) and to all file inputs which appear after it.&nbsp; This means that it can be overridden for different file fields.&nbsp; You can also disable it by sending no number, or sending 0 (probably anything that == '0' if you think about it).<br />
-<br />
-Example:<br />
-<br />
-&lt;form enctype="multipart/form-data" action="." method="POST"&gt;<br />
-&nbsp; &lt;!-- no maximum size for userfile0 --&gt;<br />
-&nbsp; &lt;input name="userfile0" type="file" /&gt;<br />
-<br />
-&nbsp; &lt;input type="hidden" name="MAX_FILE_SIZE" value="1000" /&gt;<br />
-&nbsp; &lt;!-- maximum size for userfile1 is 1000 bytes --&gt;<br />
-&nbsp; &lt;input name="userfile1" type="file" /&gt;<br />
-&nbsp; &lt;!-- maximum size for userfile2 is 1000 bytes --&gt;<br />
-&nbsp; &lt;input name="userfile2" type="file" /&gt;<br />
-<br />
-&nbsp; &lt;input type="hidden" name="MAX_FILE_SIZE" value="2000" /&gt;<br />
-&nbsp; &lt;!-- maximum size for userfile3 is 2000 bytes --&gt;<br />
-&nbsp; &lt;input name="userfile3" type="file" /&gt;<br />
-<br />
-&nbsp; &lt;input type="hidden" name="MAX_FILE_SIZE" value="0" /&gt;<br />
-&nbsp; &lt;!-- no maximum size for userfile4 --&gt;<br />
-&nbsp; &lt;input name="userfile4" type="file" /&gt;<br />
-&lt;/form&gt;</span>
 </code>
     </div>
    </div>

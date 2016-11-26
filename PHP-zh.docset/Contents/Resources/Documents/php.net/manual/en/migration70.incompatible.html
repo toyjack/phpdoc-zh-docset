@@ -412,12 +412,12 @@ array(2) {
 
  <div class="sect3" id="migration70.incompatible.variable-handling.parentheses">
   <h4 class="title">
-   Parentheses around function parameters no longer affect behaviour
+   Parentheses around function arguments no longer affect behaviour
   </h4>
 
   <p class="para">
-   In PHP 5, using redundant parentheses around a function parameter could
-   quiet strict standards warnings when the function parameter was passed by
+   In PHP 5, using redundant parentheses around a function argument could
+   quiet strict standards warnings when the function argument was passed by
    reference. The warning will now always be issued.
   </p>
 
@@ -605,7 +605,7 @@ Stack trace:
    Previously, when 0 was used as the divisor for either the divide (/) or
    modulus (%) operators, an E_WARNING would be emitted and
    <strong><code>false</code></strong> would be returned. Now, the divide operator
-   returns a float as either +INF, -INF, or NAN. The modulus operator E_WARNING
+   returns a float as either +INF, -INF, or NAN, as specified by IEEE 754. The modulus operator E_WARNING
    has been removed and will throw a <strong class="classname">DivisionByZeroError</strong>
    exception.
   </p>
@@ -1192,7 +1192,64 @@ NULL
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="119324""></a>
+<div id="allnotes">  <a name="119633""></a>
+  <div class="note">
+   <strong class="user">viktor dot csiky at nospam dot nospam dot eu</strong>
+   <a href="#119633" class="date">21-Jul-2016 08:16</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+It is stated:<br />
+<br />
+"foreach by-value operates on a copy of the array<br />
+<br />
+When used in the default by-value mode, foreach will now operate on a copy of the array being iterated rather than the array itself. This means that changes to the array made during iteration will not affect the values that are iterated."<br />
+<br />
+Please note that this is not exactly true. New foreach operates on a copy of the array, by-value or by-reference. It seems that in the latter case, the array copy is simply moved over (to) the original array before it is presumably destroyed.<br />
+<br />
+As a consequence of this, you may not "dereference" an array containing values - e.g. for use with ReflectionMethod::invokeArgs() or the good ole' call_user_func().<br />
+Consider the snippet below:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">deref</span><span class="keyword">(Array </span><span class="default">$inputArray</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$retVal </span><span class="keyword">= [];<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach (</span><span class="default">$inputArray </span><span class="keyword">as &amp;</span><span class="default">$inputValue</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$retVal</span><span class="keyword">[] = </span><span class="default">$inputValue</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$retVal</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+As of PHP 7.0, this *will no longer work*. You will get the usual suspect:<br />
+<br />
+PHP Warning:&nbsp; Parameter n to whatever() expected to be a reference, value given in baz.php on line x<br />
+<br />
+You need to convert it to explicitly reference the original array:<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">deref</span><span class="keyword">(Array </span><span class="default">$inputArray</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$retVal </span><span class="keyword">= [];<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach (</span><span class="default">$inputArray </span><span class="keyword">as </span><span class="default">$inputKey </span><span class="keyword">=&gt; </span><span class="default">$inputValue</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$retVal</span><span class="keyword">[</span><span class="default">$inputKey</span><span class="keyword">] = &amp;</span><span class="default">$inputArray</span><span class="keyword">[</span><span class="default">$inputKey</span><span class="keyword">];<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$retVal</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+PLEASE NOTE that this might have the unforeseen consequence of your code not working anymore in php versions less than 5.3 (that is, 5.2 and below).</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119324""></a>
   <div class="note">
    <strong class="user">maba at mb-systemhaus dot net</strong>
    <a href="#119324" class="date">13-May-2016 06:52</a>
@@ -1250,70 +1307,6 @@ In fact, this is the only thing we had to change in a number of places for our c
    </div>
   </div>
  <div class="foot"></div>
-  <a name="119128""></a>
-  <div class="note">
-   <strong class="user">anatoliy at ukhvanovy dot name</strong>
-   <a href="#119128" class="date">06-Apr-2016 11:35</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-x = int(3) , y = float(0) , x / y = float(INF) <br />
-x = int(3) , y = int(0) , x / y = float(INF) <br />
-x = int(3) , y = float(-0) , x / y = float(-INF) <br />
-<br />
-x = int(-3) , y = float(0) , x / y = float(-INF) <br />
-x = int(-3) , y = int(0) , x / y = float(-INF) <br />
-x = int(-3) , y = float(-0) , x / y = float(INF) <br />
-<br />
-As we can see, PHP treats int(0) exactly as float(+0.0)&nbsp;&mdash; this is incorrect, IMO. I think, PHP shouldn't treat it neither like float(+0.0) nor like float(-0.0)&nbsp;&mdash; because PHP doesn't know what exactly is it. That's why, IMO, PHP shouldn't return ¡ÀINF, but NAN when attempted to divide 3/int(0)&nbsp;&mdash; because PHP doesn't know is it 3/float(+0.0) or 3/float(-0.0) (which evaluates to +INF and -INF respectively&nbsp;&mdash;&nbsp;it's a huge difference).<br />
-<br />
-Here is the code, that produced output provided above:<br />
-<span class="default">&lt;?php<br />
-error_reporting</span><span class="keyword">(</span><span class="default">0</span><span class="keyword">);<br />
-function </span><span class="default">dbg</span><span class="keyword">(</span><span class="default">$x</span><span class="keyword">, </span><span class="default">$y</span><span class="keyword">) {<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">$d </span><span class="keyword">= </span><span class="default">$x </span><span class="keyword">/ </span><span class="default">$y</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; echo </span><span class="string">'x = '</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$x</span><span class="keyword">);<br />
-&nbsp;&nbsp;&nbsp; echo </span><span class="string">', y = '</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$y</span><span class="keyword">);<br />
-&nbsp;&nbsp;&nbsp; echo </span><span class="string">', x / y = '</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">var_dump </span><span class="keyword">(</span><span class="default">$d</span><span class="keyword">);<br />
-&nbsp;&nbsp;&nbsp; echo </span><span class="string">'&lt;br /&gt;'</span><span class="keyword">;<br />
-}<br />
-</span><span class="default">dbg</span><span class="keyword">(+</span><span class="default">3</span><span class="keyword">, +</span><span class="default">0.0</span><span class="keyword">);<br />
-</span><span class="default">dbg</span><span class="keyword">(+</span><span class="default">3</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">);<br />
-</span><span class="default">dbg</span><span class="keyword">(+</span><span class="default">3</span><span class="keyword">, -</span><span class="default">0.0</span><span class="keyword">);<br />
-</span><span class="default">dbg</span><span class="keyword">(-</span><span class="default">3</span><span class="keyword">, +</span><span class="default">0.0</span><span class="keyword">);<br />
-</span><span class="default">dbg</span><span class="keyword">(-</span><span class="default">3</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">);<br />
-</span><span class="default">dbg</span><span class="keyword">(-</span><span class="default">3</span><span class="keyword">, -</span><span class="default">0.0</span><span class="keyword">);<br />
-</span><span class="default">?&gt;</span>
-</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="118948""></a>
-  <div class="note">
-   <strong class="user">just for floats</strong>
-   <a href="#118948" class="date">05-Mar-2016 05:07</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Paolo:<br />
-<br />
-Change this:<br />
-"foreach ([-1.0, -0.75, -0.5, -0.25, -0.1, -0.01, 0] as $x) {"<br />
-<br />
-to this:<br />
-"foreach ([-1.0, -0.75, -0.5, -0.25, -0.1, -0.01, -1/1e10000] as $x) {"<br />
-<br />
-and try again. Note replacing zero with -1/1e10000, which underflows to negative zero. You used "positive" zero there :)</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
   <a name="118517""></a>
   <div class="note">
    <strong class="user">mossy2100</strong>
@@ -1364,51 +1357,6 @@ For example: <a href="http://stackoverflow.com/questions/14682005/why-does-divis
    </div>
   </div>
  <div class="foot"></div>
-  <a name="118426""></a>
-  <div class="note">
-   <strong class="user">me at fquff dot io</strong>
-   <a href="#118426" class="date">04-Dec-2015 04:46</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-In my previous comment, I mistyped the limit. Should be lim_{x-&gt;0+} 3/x == +INF.<br />
-<br />
-lim_{x-&gt;0} 3/x does not exist.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="118425""></a>
-  <div class="note">
-   <strong class="user">Paolo</strong>
-   <a href="#118425" class="date">04-Dec-2015 04:00</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Just a word about the "division-by-zero gate":<br />
-<br />
-<span class="default">&lt;?php<br />
-</span><span class="keyword">foreach ([-</span><span class="default">1.0</span><span class="keyword">, -</span><span class="default">0.75</span><span class="keyword">, -</span><span class="default">0.5</span><span class="keyword">, -</span><span class="default">0.25</span><span class="keyword">, -</span><span class="default">0.1</span><span class="keyword">, -</span><span class="default">0.01</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">] as </span><span class="default">$x</span><span class="keyword">) {<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">var_dump</span><span class="keyword">(-</span><span class="default">3 </span><span class="keyword">/ </span><span class="default">$x</span><span class="keyword">);<br />
-}<br />
-<br />
-</span><span class="comment">// OUTPUT:<br />
-// float(3)&nbsp; &lt;-- Ok...<br />
-// float(4)<br />
-// float(6)<br />
-// float(12)&nbsp; &lt;-- It becomes increasingly bigger...<br />
-// float(30)<br />
-// float(300)&nbsp; &lt;-- Wow, that's pretty big, indeed!<br />
-//<br />
-// Warning: Division by zero in php shell code on line 2<br />
-// float(-INF)&nbsp; &lt;-- Suddenly, a wild "-INF" appears.</span>
-</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
   <a name="118424""></a>
   <div class="note">
    <strong class="user">me at fquff dot io</strong>
@@ -1416,48 +1364,29 @@ Just a word about the "division-by-zero gate":<br />
    <div class="text">
     <div class="phpcode">
 <code><span class="html">
-As a mathematician, 3/0 == +INF IS JUST WRONG. You can't just assume 3/0 == lim_{x-&gt;0} 3/x, which is +INF indeed, because division IS NOT A CONTINUOUS FUNCTION in x == 0.<br />
+[Editor's note: fixed limit on user request]
 <br />
-Also, 3/0 == +INF ("positive" infinity) while -3/0 == -INF ("negative" infinity) requires the assumption that 0 is a positive number, which is just as illogical as it looks like.<br />
+
 <br />
-The fact that a warning is emitted is good, but it should definitely equals to NaN. ¡ÀINF is just illogical (and arithmetically wrong).<br />
+As a mathematician, 3/0 == +INF IS JUST WRONG. You can't just assume 3/0 == lim_{x-&gt;0+} 3/x, which is +INF indeed, because division IS NOT A CONTINUOUS FUNCTION in x == 0.
 <br />
-Except for this "detail", looks an amazing update, can't wait to test it even further!<br />
+
 <br />
-Cheers,<br />
+Also, 3/0 == +INF ("positive" infinity) while -3/0 == -INF ("negative" infinity) requires the assumption that 0 is a positive number, which is just as illogical as it looks like.
+<br />
+
+<br />
+The fact that a warning is emitted is good, but it should definitely equals to NaN. ¡ÀINF is just illogical (and arithmetically wrong).
+<br />
+
+<br />
+Except for this "detail", looks an amazing update, can't wait to test it even further!
+<br />
+
+<br />
+Cheers,
+<br />
 P.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="118423""></a>
-  <div class="note">
-   <strong class="user">jdbradbury at gmail dot com</strong>
-   <a href="#118423" class="date">04-Dec-2015 08:36</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-I like that divide by Zero now throws an exception, however returning 3 different possible values seem's incredibly wrong.&nbsp; <br />
-<br />
-Why not simply NaN and 3 slightly different exceptions? That seems like the way most people would use this (if it gets used at all). I don't think anyone is ever planning on operating with NaN/INF+/INF- variables and if they are testing, they are likely testing for all 3 at the same time. <br />
-<br />
-However, we may want to use a different error based on those results.<br />
-<br />
-Isn't this is a fairly significant tangent away from other similar languages?</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="118422""></a>
-  <div class="note">
-   <strong class="user">maki at maki-chan dot de</strong>
-   <a href="#118422" class="date">04-Dec-2015 06:25</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-If you divide zero by zero, it's NAN (Not a number), but the division of any other value resulting in INF is definitely logical, as you could draw the result approximately via a hyperbole. A division through 0 would result either in -INF or +INF depending on the side from which you try to approach the result of the division.</span>
 </code>
     </div>
    </div>

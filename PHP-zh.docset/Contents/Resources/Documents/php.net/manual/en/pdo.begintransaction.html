@@ -60,7 +60,7 @@
  <div class="refsect1 examples" id="refsect1-pdo.begintransaction-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-978"><p><strong>Example #1 回滚一个事务</strong></p>
+   <div class="example" id="example-983"><p><strong>Example #1 回滚一个事务</strong></p>
     <div class="example-contents"><p>
      下面例子在回滚此更改前开始一个事务并发出两条修改数据库的语句。但在 MySQL 中，DROP TABLE 语句自动提交事务，使得在此事务中的任何更改都不会被回滚。
     </p></div>
@@ -92,7 +92,143 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="119120""></a>
+<div id="allnotes">  <a name="120178""></a>
+  <div class="note">
+   <strong class="user">sasi dot viragelet at gmail dot com</strong>
+   <a href="#120178" class="date">17-Nov-2016 06:29</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+When transaction gets your enemy:<br />
+<br />
+try {<br />
+<br />
+$pdo-&gt;beginTransaction();<br />
+<br />
+// ... whatever db actions you have and then:<br />
+<br />
+$sql_insert = 'INSERT INTO a (a_id, a_name, a_date)<br />
+&nbsp; VALUES (:a_id, :a_name CURRENT_TIMESTAMP)';<br />
+<br />
+&nbsp; $stmt = $pdo-&gt;prepare($sql_insert);<br />
+<br />
+&nbsp; $stmt-&gt;bindValue(':_id', $id);<br />
+&nbsp; $stmt-&gt;bindValue(':a_name', $name);<br />
+<br />
+&nbsp; $stmt-&gt;execute();<br />
+<br />
+&nbsp; $pdo-&gt;commit();<br />
+<br />
+} catch (\PDOException $e) {<br />
+<br />
+&nbsp; $pdo-&gt;rollBack();<br />
+<br />
+&nbsp; http_response_code(500);<br />
+&nbsp; header("Content-type: text/plain");<br />
+&nbsp; echo $e;<br />
+&nbsp; exit();<br />
+<br />
+}<br />
+<br />
+Notice the sytax error? There's a missing comma that just slips through every gate of surveillance:<br />
+<br />
+"...UES (:a_id, :a_name CURR..." :: between the to be binded value and current timestamp command. The missing comma will not generate any error no syntax error, no database error. Though this record will never or partially make it. This will just silently fail. The story gets rough if you build your other dependencies on the transactions unmovable foot-stones of trust.<br />
+<br />
+Just imagine you have some basic records in your transaction that you really wanna ensure ends up correctly in your db. And these records have a foreign constraint relation with another record. (That of course if you'd include in the transaction would throw you a big red error(-for who don't get it: transaction will first attempt to write everything into a temporary place, where it will get checked before everything gets into its permanent place, so constraints cannot be checked for something that don't exist yet.)) So you have a constraint that's based on the trust PDO will throw an error if something gets screwed, so what, you'll just place that insertion after the commit was successful. (Without any doublecheck.)<br />
+<br />
+What happens you will get some partial records in your database without a relation that just might be important. You will that way be able to build up very sophisticated strange behaviours in your application. So pay attention!</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119975""></a>
+  <div class="note">
+   <strong class="user">cristian at crishk dot com</strong>
+   <a href="#119975" class="date">02-Oct-2016 07:12</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+OK I'm finding a solution for "NESTED" transactions in MySQL, and as you know in the MySQL documentation says that it's not possible to have transactions within transactions. I was trying to use the Database class propossed here in <a href="http://php.net/manual/en/pdo.begintransaction.php but unfortunately that" rel="nofollow" target="_blank">http://php.net/manual/en/pdo.begintransaction.php but unfortunately that</a>'s wrong for many things related to the control flow that I have been solved with the following code (LOOK THE EXAMPLE AT THE END, CarOwner)<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">class </span><span class="default">TransactionController </span><span class="keyword">extends \\</span><span class="default">PDO </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public static </span><span class="default">$warn_rollback_was_thrown </span><span class="keyword">= </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; public static </span><span class="default">$transaction_rollbacked </span><span class="keyword">= </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__construct</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">parent </span><span class="keyword">:: </span><span class="default">__construct</span><span class="keyword">( ... </span><span class="default">connection info </span><span class="keyword">... );<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; public static </span><span class="default">$nest </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">reset</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">TransactionController </span><span class="keyword">:: </span><span class="default">$transaction_rollbacked </span><span class="keyword">= </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">TransactionController </span><span class="keyword">:: </span><span class="default">$warn_rollback_was_thrown </span><span class="keyword">= </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">TransactionController </span><span class="keyword">:: </span><span class="default">$nest </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">beginTransaction</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">TransactionController </span><span class="keyword">:: </span><span class="default">$nest </span><span class="keyword">== </span><span class="default">0</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">reset</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">= </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">beginTransaction</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">TransactionController </span><span class="keyword">:: </span><span class="default">$nest</span><span class="keyword">++;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$result</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">commit</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">TransactionController </span><span class="keyword">:: </span><span class="default">$nest </span><span class="keyword">== </span><span class="default">0 </span><span class="keyword">&amp;&amp;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; !</span><span class="default">TransactionController </span><span class="keyword">:: </span><span class="default">$transaction_rollbacked </span><span class="keyword">&amp;&amp;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; !</span><span class="default">TransactionController </span><span class="keyword">:: </span><span class="default">$warn_rollback_was_thrown</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">= </span><span class="default">parent </span><span class="keyword">:: </span><span class="default">commit</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">TransactionController </span><span class="keyword">:: </span><span class="default">$nest</span><span class="keyword">--;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$result</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">rollback</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">TransactionController </span><span class="keyword">:: </span><span class="default">$nest </span><span class="keyword">&gt;= </span><span class="default">0</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">TransactionController </span><span class="keyword">:: </span><span class="default">$nest </span><span class="keyword">== </span><span class="default">0</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">= </span><span class="default">parent </span><span class="keyword">:: </span><span class="default">rollback</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">TransactionController </span><span class="keyword">:: </span><span class="default">$transaction_rollbacked </span><span class="keyword">= </span><span class="default">true</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">TransactionController&nbsp; </span><span class="keyword">:: </span><span class="default">$warn_rollback_was_thrown </span><span class="keyword">= </span><span class="default">true</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">TransactionController </span><span class="keyword">:: </span><span class="default">$nest</span><span class="keyword">--;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$result</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">transactionFailed</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">TransactionController </span><span class="keyword">:: </span><span class="default">$warn_rollback_was_thrown </span><span class="keyword">=== </span><span class="default">true</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// to force rollback you can only do it from $nest = 0<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">public function </span><span class="default">forceRollback</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">TransactionController </span><span class="keyword">:: </span><span class="default">$nest </span><span class="keyword">=== </span><span class="default">0</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">throws </span><span class="keyword">new \</span><span class="default">PDOException</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119120""></a>
   <div class="note">
    <strong class="user">kesler dot alwin at gmail dot com</strong>
    <a href="#119120" class="date">05-Apr-2016 10:35</a>

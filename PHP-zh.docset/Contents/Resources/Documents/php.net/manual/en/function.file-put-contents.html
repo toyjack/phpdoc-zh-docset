@@ -184,7 +184,7 @@
  <div class="refsect1 examples" id="refsect1-function.file-put-contents-examples">
   <h3 class="title">·¶Àý</h3>
   <p class="para">
-   <div class="example" id="example-2510">
+   <div class="example" id="example-2529">
     <p><strong>Example #1 Simple usage example</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -194,7 +194,7 @@
     </div>
 
    </div>
-   <div class="example" id="example-2511">
+   <div class="example" id="example-2530">
     <p><strong>Example #2 Using flags</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -270,7 +270,47 @@ wapper µÄ²»Í¬¹¦ÄÜÇë²Î¼û <a href="wrappers.html" class="xref">Ö§³ÖµÄÐ­ÒéºÍ·â×°Ð­Ò
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="119046""></a>
+<div id="allnotes">  <a name="119921""></a>
+  <div class="note">
+   <strong class="user">josemiguel at likeik dot com</strong>
+   <a href="#119921" class="date">20-Sep-2016 09:22</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Under PHP7.0, I have seen that using an empty string as $data, the function returns FALSE instead of 0 as it should:<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $data = ''<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $size = file_put_contents($filename, $data, FILE_APPEND);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ($size == FALSE)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; echo "error writing file"<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+Code will give error when $data is an empty string even using == operator.<br />
+<br />
+Hope it helps somebody...</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119363""></a>
+  <div class="note">
+   <strong class="user">aabaev arroba gmail coma com</strong>
+   <a href="#119363" class="date">21-May-2016 08:02</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I suggest to expand file_force_contents() function of TrentTompkins at gmail dot com by adding verification if patch is like: "../foo/bar/file"<br />
+<br />
+if (strpos($dir, "../") === 0)<br />
+&nbsp;&nbsp;&nbsp; $dir = str_replace("..", substr(__DIR__, 0, strrpos(__DIR__, "/")), $dir);</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119046""></a>
   <div class="note">
    <strong class="user">vilhar at hotmail dot com</strong>
    <a href="#119046" class="date">23-Mar-2016 08:48</a>
@@ -1100,92 +1140,6 @@ File put contents fails if you try to put a file in a directory that doesn't exi
 &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(!</span><span class="default">is_dir</span><span class="keyword">(</span><span class="default">$dir </span><span class="keyword">.= </span><span class="string">"/</span><span class="default">$part</span><span class="string">"</span><span class="keyword">)) </span><span class="default">mkdir</span><span class="keyword">(</span><span class="default">$dir</span><span class="keyword">);<br />
 &nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">file_put_contents</span><span class="keyword">(</span><span class="string">"</span><span class="default">$dir</span><span class="string">/</span><span class="default">$file</span><span class="string">"</span><span class="keyword">, </span><span class="default">$contents</span><span class="keyword">);<br />
 &nbsp;&nbsp;&nbsp; }<br />
-</span><span class="default">?&gt;</span>
-</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="82934""></a>
-  <div class="note">
-   <strong class="user">Anonymous</strong>
-   <a href="#82934" class="date">02-May-2008 08:06</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-file_put_contents() will cause concurrency problems - that is, it doesn't write files atomically (in a single operation), which sometimes means that one php script will be able to, for example, read a file before another script is done writing that file completely.
-<br />
-
-<br />
-The following function was derived from a function in Smarty (<a href="http://smarty.php.net" rel="nofollow" target="_blank">http://smarty.php.net</a>) which uses rename() to replace the file - rename() is atomic on Linux.
-<br />
-
-<br />
-On Windows, rename() is not currently atomic, but should be in the next release. Until then, this function, if used on Windows, will fall back on unlink() and rename(), which is still not atomic...
-<br />
-
-<br />
-<span class="default">&lt;?php
-<br />
-
-<br />
-define</span><span class="keyword">(</span><span class="string">"FILE_PUT_CONTENTS_ATOMIC_TEMP"</span><span class="keyword">, </span><span class="default">dirname</span><span class="keyword">(</span><span class="default">__FILE__</span><span class="keyword">).</span><span class="string">"/cache"</span><span class="keyword">);
-<br />
-</span><span class="default">define</span><span class="keyword">(</span><span class="string">"FILE_PUT_CONTENTS_ATOMIC_MODE"</span><span class="keyword">, </span><span class="default">0777</span><span class="keyword">);
-<br />
-
-<br />
-function </span><span class="default">file_put_contents_atomic</span><span class="keyword">(</span><span class="default">$filename</span><span class="keyword">, </span><span class="default">$content</span><span class="keyword">) {
-<br />
-&nbsp;&nbsp; 
-<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">$temp </span><span class="keyword">= </span><span class="default">tempnam</span><span class="keyword">(</span><span class="default">FILE_PUT_CONTENTS_ATOMIC_TEMP</span><span class="keyword">, </span><span class="string">'temp'</span><span class="keyword">);
-<br />
-&nbsp;&nbsp;&nbsp; if (!(</span><span class="default">$f </span><span class="keyword">= @</span><span class="default">fopen</span><span class="keyword">(</span><span class="default">$temp</span><span class="keyword">, </span><span class="string">'wb'</span><span class="keyword">))) {
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$temp </span><span class="keyword">= </span><span class="default">FILE_PUT_CONTENTS_ATOMIC_TEMP </span><span class="keyword">. </span><span class="default">DIRECTORY_SEPARATOR </span><span class="keyword">. </span><span class="default">uniqid</span><span class="keyword">(</span><span class="string">'temp'</span><span class="keyword">);
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (!(</span><span class="default">$f </span><span class="keyword">= @</span><span class="default">fopen</span><span class="keyword">(</span><span class="default">$temp</span><span class="keyword">, </span><span class="string">'wb'</span><span class="keyword">))) {
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">trigger_error</span><span class="keyword">(</span><span class="string">"file_put_contents_atomic() : error writing temporary file '</span><span class="default">$temp</span><span class="string">'"</span><span class="keyword">, </span><span class="default">E_USER_WARNING</span><span class="keyword">);
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }
-<br />
-&nbsp;&nbsp;&nbsp; }
-<br />
-&nbsp;&nbsp; 
-<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$f</span><span class="keyword">, </span><span class="default">$content</span><span class="keyword">);
-<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$f</span><span class="keyword">);
-<br />
-&nbsp;&nbsp; 
-<br />
-&nbsp;&nbsp;&nbsp; if (!@</span><span class="default">rename</span><span class="keyword">(</span><span class="default">$temp</span><span class="keyword">, </span><span class="default">$filename</span><span class="keyword">)) {
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; @</span><span class="default">unlink</span><span class="keyword">(</span><span class="default">$filename</span><span class="keyword">);
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; @</span><span class="default">rename</span><span class="keyword">(</span><span class="default">$temp</span><span class="keyword">, </span><span class="default">$filename</span><span class="keyword">);
-<br />
-&nbsp;&nbsp;&nbsp; }
-<br />
-&nbsp;&nbsp; 
-<br />
-&nbsp;&nbsp;&nbsp; @</span><span class="default">chmod</span><span class="keyword">(</span><span class="default">$filename</span><span class="keyword">, </span><span class="default">FILE_PUT_CONTENTS_ATOMIC_MODE</span><span class="keyword">);
-<br />
-&nbsp;&nbsp; 
-<br />
-&nbsp;&nbsp;&nbsp; return </span><span class="default">true</span><span class="keyword">;
-<br />
-&nbsp;&nbsp; 
-<br />
-}
-<br />
-
-<br />
 </span><span class="default">?&gt;</span>
 </span>
 </code>

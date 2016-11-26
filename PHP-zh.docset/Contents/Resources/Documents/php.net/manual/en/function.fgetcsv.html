@@ -188,7 +188,7 @@
  <div class="refsect1 examples" id="refsect1-function.fgetcsv-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-2502">
+   <div class="example" id="example-2521">
     <p><strong>Example #1 读取并显示 CSV 文件的整个内容</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -230,7 +230,117 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="119215""></a>
+<div id="allnotes">  <a name="120104""></a>
+  <div class="note">
+   <strong class="user">Daniel Klein</strong>
+   <a href="#120104" class="date">01-Nov-2016 10:26</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The $escape parameter is completely unintuitive, but it is not broken. Here is a breakdown of fgetcsv()'s behaviour. In the examples I've used underscores (_) to show spaces and brackets ([]) to show individual fields:<br />
+<br />
+- Leading whitespace in each field will be stripped if it comes immediately before an enclosure: ___"foo" -&gt; [foo]<br />
+- There can only be one enclosure per field, although it will be concatenated with any data that appears between the end enclosure and the next delimiter/new line, including any trailing whitespaces ___"foo"_"bar"__ -&gt; [foo_"bar"__]<br />
+- If the field does not start with (leading whitespace +) an enclosure, the whole field is interpreted as raw data, even if enclosure characters appear elsewhere within the field: _foo"bar"_ -&gt; [_foo"bar"_]<br />
+- Delimiters cannot be escaped outside enclosures, they have to be enclosed instead. Delimiters don't need to be escaped inside enclosures: "foo,bar","baz,qux" -&gt; [foo,bar][baz,qux]; foo\,bar -&gt; [foo\][bar]; "foo\,bar" -&gt; [foo\,bar]<br />
+- Double enclosures inside single enclosures are converted to single enclosures: "foobar" -&gt; [foobar]; "foo""bar" -&gt; [foo"bar]; """foo""" -&gt; ["foo"]; ""foo"" -&gt; [foo""] (empty enclosure followed by raw data)<br />
+- The $escape parameter works as expected, but unlike enclosures DOES NOT get unescaped. It is necessary to unescape the data elsewhere in the code: "\"foo\"" -&gt; [\"foo\"]; "foo\"bar" -&gt; [foo\"bar]<br />
+<br />
+Note: the following data (which is a very common problem) is invalid: "\". Its structure is equivalent to "@ or in other words, an open enclosure, some data and no closing enclosure.<br />
+<br />
+The following functions can be used to get the expected behaviour:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">// Removes escape characters before both enclosures and escapes, but leaves everything else untouched, similiar to single quoting<br />
+</span><span class="keyword">function </span><span class="default">fgetcsv_unescape_enclosures_and_escapes</span><span class="keyword">(</span><span class="default">$fh</span><span class="keyword">, </span><span class="default">$length </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">, </span><span class="default">$delimiter </span><span class="keyword">= </span><span class="string">','</span><span class="keyword">, </span><span class="default">$enclosure </span><span class="keyword">= </span><span class="string">'"'</span><span class="keyword">, </span><span class="default">$escape </span><span class="keyword">= </span><span class="string">'\\'</span><span class="keyword">) {<br />
+&nbsp; </span><span class="default">$fields </span><span class="keyword">= </span><span class="default">fgetcsv</span><span class="keyword">(</span><span class="default">$fh</span><span class="keyword">, </span><span class="default">$length</span><span class="keyword">, </span><span class="default">$delimiter</span><span class="keyword">, </span><span class="default">$enclosure</span><span class="keyword">, </span><span class="default">$escape</span><span class="keyword">);<br />
+&nbsp; if (</span><span class="default">$fields</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$regex_enclosure </span><span class="keyword">= </span><span class="default">preg_quote</span><span class="keyword">(</span><span class="default">$enclosure</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$regex_escape </span><span class="keyword">= </span><span class="default">preg_quote</span><span class="keyword">(</span><span class="default">$escape</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$fields </span><span class="keyword">= </span><span class="default">preg_replace</span><span class="keyword">(</span><span class="string">"/</span><span class="keyword">{</span><span class="default">$regex_escape</span><span class="keyword">}</span><span class="string">(</span><span class="keyword">{</span><span class="default">$regex_enclosure</span><span class="keyword">}</span><span class="string">|</span><span class="keyword">{</span><span class="default">$regex_escape</span><span class="keyword">}</span><span class="string">)/"</span><span class="keyword">, </span><span class="string">'$1'</span><span class="keyword">, </span><span class="default">$fields</span><span class="keyword">);<br />
+&nbsp; }<br />
+&nbsp; return </span><span class="default">$fields</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="comment">// Does NOT remove a lone escape character at the end of a field<br />
+</span><span class="keyword">function </span><span class="default">fgetcsv_unescape_all</span><span class="keyword">(</span><span class="default">$fh</span><span class="keyword">, </span><span class="default">$length </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">, </span><span class="default">$delimiter </span><span class="keyword">= </span><span class="string">','</span><span class="keyword">, </span><span class="default">$enclosure </span><span class="keyword">= </span><span class="string">'"'</span><span class="keyword">, </span><span class="default">$escape </span><span class="keyword">= </span><span class="string">'\\'</span><span class="keyword">) {<br />
+&nbsp; </span><span class="default">$fields </span><span class="keyword">= </span><span class="default">fgetcsv</span><span class="keyword">(</span><span class="default">$fh</span><span class="keyword">, </span><span class="default">$length</span><span class="keyword">, </span><span class="default">$delimiter</span><span class="keyword">, </span><span class="default">$enclosure</span><span class="keyword">, </span><span class="default">$escape</span><span class="keyword">);<br />
+&nbsp; if (</span><span class="default">$fields</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$regex_escape </span><span class="keyword">= </span><span class="default">preg_quote</span><span class="keyword">(</span><span class="default">$escape</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$fields </span><span class="keyword">= </span><span class="default">preg_replace</span><span class="keyword">(</span><span class="string">"/</span><span class="keyword">{</span><span class="default">$regex_escape</span><span class="keyword">}</span><span class="string">(.)/s"</span><span class="keyword">, </span><span class="string">'$1'</span><span class="keyword">, </span><span class="default">$fields</span><span class="keyword">);<br />
+&nbsp; }<br />
+&nbsp; return </span><span class="default">$fields</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="comment">// Removes lone escape characters at the end of fields<br />
+</span><span class="keyword">function </span><span class="default">fgetcsv_unescape_all_strip_last</span><span class="keyword">(</span><span class="default">$fh</span><span class="keyword">, </span><span class="default">$length </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">, </span><span class="default">$delimiter </span><span class="keyword">= </span><span class="string">','</span><span class="keyword">, </span><span class="default">$enclosure </span><span class="keyword">= </span><span class="string">'"'</span><span class="keyword">, </span><span class="default">$escape </span><span class="keyword">= </span><span class="string">'\\'</span><span class="keyword">) {<br />
+&nbsp; </span><span class="default">$fields </span><span class="keyword">= </span><span class="default">fgetcsv</span><span class="keyword">(</span><span class="default">$fh</span><span class="keyword">, </span><span class="default">$length</span><span class="keyword">, </span><span class="default">$delimiter</span><span class="keyword">, </span><span class="default">$enclosure</span><span class="keyword">, </span><span class="default">$escape</span><span class="keyword">);<br />
+&nbsp; if (</span><span class="default">$fields</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$regex_escape </span><span class="keyword">= </span><span class="default">preg_quote</span><span class="keyword">(</span><span class="default">$escape</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$fields </span><span class="keyword">= </span><span class="default">preg_replace</span><span class="keyword">(</span><span class="string">"/</span><span class="keyword">{</span><span class="default">$regex_escape</span><span class="keyword">}</span><span class="string">(.?)/s"</span><span class="keyword">, </span><span class="string">'$1'</span><span class="keyword">, </span><span class="default">$fields</span><span class="keyword">);<br />
+&nbsp; }<br />
+&nbsp; return </span><span class="default">$fields</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Caution: ideally, there shouldn't be any unescaped escape characters outside enclosures; the field should be enclosed and escaped instead. If there are any, they could end up being removed as well, depending on the function used.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="120015""></a>
+  <div class="note">
+   <strong class="user">ae4c5796 at opayq dot com</strong>
+   <a href="#120015" class="date">10-Oct-2016 11:55</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+This page needs to add information on the particular form that PHP thinks CSV is. It seems to want quotes within fields to become \"\" and commas within fields to become \",\"</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119896""></a>
+  <div class="note">
+   <strong class="user">from_php at puggan dot se</strong>
+   <a href="#119896" class="date">16-Sep-2016 10:37</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Setting the $escape parameter dosn't return unescaped strings, but just avoid splitting on a $delimiter that have an escpae-char infront of it:<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $tmp_file </span><span class="keyword">= </span><span class="string">"/tmp/test.csv"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">file_put_contents</span><span class="keyword">(</span><span class="default">$tmp_file</span><span class="keyword">, </span><span class="string">"\"first\\\";\\\"secound\""</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"raw:" </span><span class="keyword">. </span><span class="default">PHP_EOL </span><span class="keyword">. </span><span class="default">file_get_contents</span><span class="keyword">(</span><span class="default">$tmp_file</span><span class="keyword">) . </span><span class="default">PHP_EOL </span><span class="keyword">. </span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"fgetcsv escaped bs:" </span><span class="keyword">. </span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$f </span><span class="keyword">= </span><span class="default">fopen</span><span class="keyword">(</span><span class="default">$tmp_file</span><span class="keyword">, </span><span class="string">'r'</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; while(</span><span class="default">$r </span><span class="keyword">= </span><span class="default">fgetcsv</span><span class="keyword">(</span><span class="default">$f</span><span class="keyword">, </span><span class="default">1024</span><span class="keyword">, </span><span class="string">';'</span><span class="keyword">, </span><span class="string">'"'</span><span class="keyword">, </span><span class="string">"\\"</span><span class="keyword">))<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">print_r</span><span class="keyword">(</span><span class="default">$r</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$f</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"fgetcsv escaped #:" </span><span class="keyword">. </span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$f </span><span class="keyword">= </span><span class="default">fopen</span><span class="keyword">(</span><span class="default">$tmp_file</span><span class="keyword">, </span><span class="string">'r'</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; while(</span><span class="default">$r </span><span class="keyword">= </span><span class="default">fgetcsv</span><span class="keyword">(</span><span class="default">$f</span><span class="keyword">, </span><span class="default">1024</span><span class="keyword">, </span><span class="string">';'</span><span class="keyword">, </span><span class="string">'"'</span><span class="keyword">, </span><span class="string">"#"</span><span class="keyword">))<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">print_r</span><span class="keyword">(</span><span class="default">$r</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$f</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119215""></a>
   <div class="note">
    <strong class="user">a. s.</strong>
    <a href="#119215" class="date">20-Apr-2016 09:26</a>

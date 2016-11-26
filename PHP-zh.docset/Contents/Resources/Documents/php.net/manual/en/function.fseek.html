@@ -126,7 +126,7 @@
  <div class="refsect1 examples" id="refsect1-function.fseek-examples">
   <h3 class="title">·¶Àý</h3>
   <p class="para">
-   <div class="example" id="example-2534">
+   <div class="example" id="example-2553">
     <p><strong>Example #1 <span class="function"><strong>fseek()</strong></span> Àý×Ó</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -172,7 +172,98 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="115516""></a>
+<div id="allnotes">  <a name="119511""></a>
+  <div class="note">
+   <strong class="user">marin at sagovac dot com</strong>
+   <a href="#119511" class="date">26-Jun-2016 10:33</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Seek to a line of code than break from while to improve performance. Seek to specific line using SEEK_SET and get a specific line. If $range is '0' than will show seeked line. If set to '2' it will show current line + 2 lines above + 2 lines below.<br />
+<br />
+Useful for get a content of a file in very huge file to get lines range. To improve performance a while loop breaks from iteration than go for seeking.<br />
+<br />
+I've created a function that read a file and count lines and store into arrays each lines bytes to seek. If maximum specified by `linenum` is set, it will break from while to keep performance than in a new loop function to seek a position in bytes to get a content of file.<br />
+<br />
+&nbsp;&nbsp;&nbsp; function readFileSeek($source, $linenum = 0, $range = 0)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $fh = fopen($source, 'r');<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $meta = stream_get_meta_data($fh);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (!$meta['seekable']) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; throw new Exception(sprintf("A source is not seekable: %s", print_r($source, true)));<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $pos = 2;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $result = null;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ($linenum) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $minline = $linenum - $range - 1;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $maxline = $minline+$range+$range;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $totalLines = 0;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; while (!feof($fh)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $char = fgetc($fh);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if ($char == "\n" || $char == "\r") {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; ++$totalLines;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $result[$totalLines] = $pos;&nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $pos++;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if ($maxline+1 == $totalLines) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; // break from while to not read entire file<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $buffer = '';<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; for ($nr=$minline; $nr&lt;=$maxline; $nr++) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (isset($result[$nr])) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; fseek($fh, $result[$nr], SEEK_SET);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; while (!feof($fh)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $char = fgetc($fh);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if ($char == "\n" || $char == "\r") {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $buffer .= $char;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $buffer .= $char;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return $buffer;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+Test results (1.3 GB file, 100000000 lines of codes, seek to 300000 line a code):<br />
+<br />
+&nbsp;&nbsp;&nbsp; string(55) "299998_abc<br />
+&nbsp;&nbsp;&nbsp; 299999_abc<br />
+&nbsp;&nbsp;&nbsp; 300000_abc<br />
+&nbsp;&nbsp;&nbsp; 300001_abc<br />
+&nbsp;&nbsp;&nbsp; 300002_abc<br />
+&nbsp;&nbsp;&nbsp; "<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; Time: 612 ms, Memory: 20.00Mb<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; $ ll -h /tmp/testfile<br />
+&nbsp;&nbsp;&nbsp; -rw-rw-r-- 1&nbsp; 1,3G /tmp/testfile</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115516""></a>
   <div class="note">
    <strong class="user">synnus at gmail dot com</strong>
    <a href="#115516" class="date">08-Aug-2014 12:54</a>

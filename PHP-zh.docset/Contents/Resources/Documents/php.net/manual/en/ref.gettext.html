@@ -89,7 +89,45 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="85411""></a>
+<div id="allnotes">  <a name="120159""></a>
+  <div class="note">
+   <strong class="user">richardbrinkman at hotmail dot com</strong>
+   <a href="#120159" class="date">14-Nov-2016 08:28</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Gettext caches the machine readable *.mo files. This makes it pretty fast but also impossible to change a .mo file while running an application. Since PHP is running as a server, you cannot update your .mo file and see your new translation immediately. There are two ways to overcome this caching problem:<br />
+<br />
+1. Restart your webserver. For example by a `systemctl restart apache2`. This will kill already running php processes and reload them afterwards.<br />
+<br />
+2. If you don't have rights to restart a webserver (for example you are using a shared host), you can change the domain. Use for example this PHP code to hard link the new domain to the changed .mo files:<br />
+<br />
+$locale = "nl_NL.utf8"; //set this to your language<br />
+setlocale(LC_ALL, $locale);<br />
+putenv('LANG=' . $locale);<br />
+$mtime = 0;<br />
+$translationDir = "locale"; //or where ever you store your translations<br />
+$originals = glob("$translationDir/*/LC_MESSAGES/messages.mo");<br />
+foreach ($originals as $file)<br />
+&nbsp;&nbsp;&nbsp; $mtime = max($mtime, filemtime($file));<br />
+$domain = "messages_$mtime";<br />
+$current = glob("$translationDir/*/LC_MESSAGES/$domain.mo");<br />
+if (count($originals) != count($current)) {<br />
+&nbsp;&nbsp;&nbsp; foreach (glob("$translationDir/*/LC_MESSAGES/messages_*.mo") as $file)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; unlink($file);<br />
+&nbsp;&nbsp;&nbsp; foreach ($originals as $file)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; link($file, substr($file, 0, -3)."_$mtime.mo");<br />
+}<br />
+bindtextdomain($domain, $translationDir);<br />
+textdomain($domain);<br />
+<br />
+What this script does is check whether at least one of the translations is updated and if so remove all messages_*.so and hard link all messages.po to corresponding messages_$mtime.po, where $mtime is set to the latest modified translation file. Since it uses a new domain ("messages_$mtime") it is not cached.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="85411""></a>
   <div class="note">
    <strong class="user">analpaper{gmail}</strong>
    <a href="#85411" class="date">28-Aug-2008 11:36</a>

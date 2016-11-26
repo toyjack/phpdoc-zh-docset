@@ -192,7 +192,94 @@ int(-898)
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="118636""></a>
+<div id="allnotes">  <a name="119670""></a>
+  <div class="note">
+   <strong class="user">s rotondo90 at gmail com</strong>
+   <a href="#119670" class="date">30-Jul-2016 10:11</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Here is a simple backporting function, it works for PHP &gt;= 5.1<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">if (!</span><span class="default">function_exists</span><span class="keyword">(</span><span class="string">'random_int'</span><span class="keyword">)) {<br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">random_int</span><span class="keyword">(</span><span class="default">$min</span><span class="keyword">, </span><span class="default">$max</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (!</span><span class="default">function_exists</span><span class="keyword">(</span><span class="string">'mcrypt_create_iv'</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">trigger_error</span><span class="keyword">(<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'mcrypt must be loaded for random_int to work'</span><span class="keyword">, <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">E_USER_WARNING<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">null</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (!</span><span class="default">is_int</span><span class="keyword">(</span><span class="default">$min</span><span class="keyword">) || !</span><span class="default">is_int</span><span class="keyword">(</span><span class="default">$max</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">trigger_error</span><span class="keyword">(</span><span class="string">'$min and $max must be integer values'</span><span class="keyword">, </span><span class="default">E_USER_NOTICE</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$min </span><span class="keyword">= (int)</span><span class="default">$min</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$max </span><span class="keyword">= (int)</span><span class="default">$max</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$min </span><span class="keyword">&gt; </span><span class="default">$max</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">trigger_error</span><span class="keyword">(</span><span class="string">'$max can\'t be lesser than $min'</span><span class="keyword">, </span><span class="default">E_USER_WARNING</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">null</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$range </span><span class="keyword">= </span><span class="default">$counter </span><span class="keyword">= </span><span class="default">$max </span><span class="keyword">- </span><span class="default">$min</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$bits </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; while (</span><span class="default">$counter </span><span class="keyword">&gt;&gt;= </span><span class="default">1</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; ++</span><span class="default">$bits</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$bytes </span><span class="keyword">= (int)</span><span class="default">max</span><span class="keyword">(</span><span class="default">ceil</span><span class="keyword">(</span><span class="default">$bits</span><span class="keyword">/</span><span class="default">8</span><span class="keyword">), </span><span class="default">1</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$bitmask </span><span class="keyword">= </span><span class="default">pow</span><span class="keyword">(</span><span class="default">2</span><span class="keyword">, </span><span class="default">$bits</span><span class="keyword">) - </span><span class="default">1</span><span class="keyword">;<br />
+&nbsp;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$bitmask </span><span class="keyword">&gt;= </span><span class="default">PHP_INT_MAX</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$bitmask </span><span class="keyword">= </span><span class="default">PHP_INT_MAX</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; do {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">= </span><span class="default">hexdec</span><span class="keyword">(<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">bin2hex</span><span class="keyword">(<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">mcrypt_create_iv</span><span class="keyword">(</span><span class="default">$bytes</span><span class="keyword">, </span><span class="default">MCRYPT_DEV_URANDOM</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; )<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; ) &amp; </span><span class="default">$bitmask</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; } while (</span><span class="default">$result </span><span class="keyword">&gt; </span><span class="default">$range</span><span class="keyword">);<br />
+&nbsp;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$result </span><span class="keyword">+ </span><span class="default">$min</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Randomness test<br />
+<br />
+<span class="default">&lt;?php<br />
+$max </span><span class="keyword">= </span><span class="default">100</span><span class="keyword">; </span><span class="comment">// number of random values<br />
+</span><span class="default">$test </span><span class="keyword">= </span><span class="default">1000000</span><span class="keyword">;<br />
+<br />
+</span><span class="default">$array </span><span class="keyword">= </span><span class="default">array_fill</span><span class="keyword">(</span><span class="default">0</span><span class="keyword">, </span><span class="default">$max</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">);<br />
+<br />
+for (</span><span class="default">$i </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">; </span><span class="default">$i </span><span class="keyword">&lt; </span><span class="default">$test</span><span class="keyword">; ++</span><span class="default">$i</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; ++</span><span class="default">$array</span><span class="keyword">[</span><span class="default">random_int</span><span class="keyword">(</span><span class="default">0</span><span class="keyword">, </span><span class="default">$max</span><span class="keyword">-</span><span class="default">1</span><span class="keyword">)];<br />
+}<br />
+<br />
+function </span><span class="default">arrayFormatResult</span><span class="keyword">(&amp;</span><span class="default">$item</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; global </span><span class="default">$test</span><span class="keyword">, </span><span class="default">$max</span><span class="keyword">; </span><span class="comment">// try to avoid this nowdays ;)<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$perc </span><span class="keyword">= (</span><span class="default">$item</span><span class="keyword">/(</span><span class="default">$test</span><span class="keyword">/</span><span class="default">$max</span><span class="keyword">))-</span><span class="default">1</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$item </span><span class="keyword">.= </span><span class="string">' '</span><span class="keyword">. </span><span class="default">number_format</span><span class="keyword">(</span><span class="default">$perc</span><span class="keyword">, </span><span class="default">4</span><span class="keyword">, </span><span class="string">'.'</span><span class="keyword">, </span><span class="string">''</span><span class="keyword">) .</span><span class="string">'%'</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="default">array_walk</span><span class="keyword">(</span><span class="default">$array</span><span class="keyword">, </span><span class="string">'arrayFormatResult'</span><span class="keyword">);<br />
+<br />
+</span><span class="default">print_r</span><span class="keyword">(</span><span class="default">$array</span><span class="keyword">);<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118636""></a>
   <div class="note">
    <strong class="user">info at raymondrodgers dot com</strong>
    <a href="#118636" class="date">14-Jan-2016 09:30</a>

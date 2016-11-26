@@ -96,7 +96,37 @@ link</code></dt>
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="117412""></a>
+<div id="allnotes">  <a name="119819""></a>
+  <div class="note">
+   <strong class="user">Jeff C</strong>
+   <a href="#119819" class="date">01-Sep-2016 06:32</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+stmt_init() seems to clear previous (possibly erroneous) results on the DB connection, which means you don't necessarily need to use it but it could make the code more robust.<br />
+<br />
+In a PHPUnit test, I had a sequence of prepared queries on the same connection. One of them fetched a row from a SELECT but didn't keep fetching until it drained the connection, so it left some stale results. When the next query did this:<br />
+<br />
+<span class="default">&lt;?php<br />
+$db </span><span class="keyword">= </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">getConnection</span><span class="keyword">()-&gt;</span><span class="default">getDbConnection</span><span class="keyword">();<br />
+</span><span class="default">$preparedQuery </span><span class="keyword">= </span><span class="default">$db</span><span class="keyword">-&gt;</span><span class="default">prepare </span><span class="keyword">(</span><span class="default">$query</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+the prepare() call generated an error: "Could not prepare query: Commands out of sync; you can't run this command now." Changing to this:<br />
+<br />
+<span class="default">&lt;?php<br />
+$db </span><span class="keyword">= </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">getConnection</span><span class="keyword">()-&gt;</span><span class="default">getDbConnection</span><span class="keyword">();<br />
+</span><span class="default">$preparedQuery </span><span class="keyword">= </span><span class="default">$db</span><span class="keyword">-&gt;</span><span class="default">stmt_init</span><span class="keyword">();<br />
+</span><span class="default">$preparedQuery</span><span class="keyword">-&gt;</span><span class="default">prepare </span><span class="keyword">(</span><span class="default">$query</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+resolved the problem.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117412""></a>
   <div class="note">
    <strong class="user">Deepak Sati</strong>
    <a href="#117412" class="date">06-Jun-2015 08:56</a>

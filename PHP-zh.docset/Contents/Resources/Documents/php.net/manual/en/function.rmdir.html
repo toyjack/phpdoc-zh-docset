@@ -122,7 +122,7 @@
  <div class="refsect1 examples" id="refsect1-function.rmdir-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-2571">
+   <div class="example" id="example-2590">
     <p><strong>Example #1 <span class="function"><strong>rmdir()</strong></span> 例子</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -159,7 +159,80 @@ PHP 会在执行脚本时检查被脚本操作的目录是否与被执行的脚本有相同的 UID（所有者）。
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="119320""></a>
+<div id="allnotes">  <a name="119949""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#119949" class="date">26-Sep-2016 07:44</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+itay at itgoldman's function falls into an infinite loop if the $src directory doesn't exist.<br />
+Here's a fix - one should do at least a file_exists() check before the loop:<br />
+<br />
+function rrmdir($src) {<br />
+&nbsp;&nbsp;&nbsp; if (file_exists($src)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $dir = opendir($src);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; while (false !== ($file = readdir($dir))) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (($file != '.') &amp;&amp; ($file != '..')) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $full = $src . '/' . $file;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (is_dir($full)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; rrmdir($full);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; unlink($full);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; closedir($dir);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; rmdir($src);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+Thanks to itay for the original function, though, it was helpful.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119545""></a>
+  <div class="note">
+   <strong class="user">YAPs</strong>
+   <a href="#119545" class="date">04-Jul-2016 06:48</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+This version delete tree<br />
+<br />
+<span class="default">&lt;?PHP<br />
+<br />
+</span><span class="keyword">if(!</span><span class="default">defined</span><span class="keyword">(</span><span class="string">'DS'</span><span class="keyword">))</span><span class="default">define</span><span class="keyword">(</span><span class="string">"DS"</span><span class="keyword">,</span><span class="default">DIRECTORY_SEPARATOR</span><span class="keyword">);<br />
+<br />
+function </span><span class="default">delTree</span><span class="keyword">(</span><span class="default">$folder</span><span class="keyword">,</span><span class="default">$del_root</span><span class="keyword">=</span><span class="default">true</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$folder</span><span class="keyword">=</span><span class="default">trim</span><span class="keyword">(</span><span class="default">$folder</span><span class="keyword">,</span><span class="default">DS</span><span class="keyword">).</span><span class="default">DS</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$f</span><span class="keyword">=</span><span class="default">glob</span><span class="keyword">(</span><span class="default">$folder</span><span class="keyword">.</span><span class="string">'*'</span><span class="keyword">,</span><span class="default">GLOB_MARK</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; if(</span><span class="default">count</span><span class="keyword">(</span><span class="default">$f</span><span class="keyword">)&gt;</span><span class="default">0</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach(</span><span class="default">$f </span><span class="keyword">as </span><span class="default">$e</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">is_dir</span><span class="keyword">(</span><span class="default">$e</span><span class="keyword">))<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">delTree</span><span class="keyword">(</span><span class="default">$e</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; else <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">unlink</span><span class="keyword">(</span><span class="default">$e</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">$del_root</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">rmdir</span><span class="keyword">(</span><span class="default">$folder</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(!</span><span class="default">file_exists</span><span class="keyword">(</span><span class="default">$folder</span><span class="keyword">))<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$folder</span><span class="keyword">.</span><span class="string">" is deleted"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; else<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$folder</span><span class="keyword">.</span><span class="string">" not deleted"</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119320""></a>
   <div class="note">
    <strong class="user">frederico05 dot figueira at gmail dot com</strong>
    <a href="#119320" class="date">12-May-2016 11:00</a>

@@ -252,7 +252,7 @@
  <div class="refsect1 examples" id="refsect1-function.session-set-save-handler-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-5175">
+   <div class="example" id="example-5218">
     <p><strong>Example #1 
      自定义会话管理器： 完整代码请参见 <a href="class.sessionhandlerinterface.html" class="classname">SessionHandlerInterface</a>。
     </strong></p>
@@ -273,7 +273,7 @@
     </div>
 
    </div>
-   <div class="example" id="example-5176">
+   <div class="example" id="example-5219">
     <p><strong>Example #2 使用对象自定义会话保存管理器</strong></p>
     <div class="example-contents"><p>
      下列代码适用于 PHP 5.4.0 之前的版本。
@@ -403,7 +403,111 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="118592""></a>
+<div id="allnotes">  <a name="119514""></a>
+  <div class="note">
+   <strong class="user">shanikawm at gmail dot com</strong>
+   <a href="#119514" class="date">27-Jun-2016 08:45</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Here is a class to handle session using an Oracle table.<br />
+https://github.com/shanikawm/PHP_Oracle_Based_Session_Handler_Class<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">/**<br />
+&nbsp;* By Shanika Amarasoma<br />
+&nbsp;* Date: 6/24/2016<br />
+&nbsp;* PHP session handler using Oracle database<br />
+&nbsp;* Oracle Create table statement<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; CREATE TABLE PHP_SESSIONS<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; (<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; SESSION_ID&nbsp; VARCHAR2(256 BYTE) UNIQUE,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; DATA&nbsp; &nbsp; &nbsp; &nbsp; CLOB,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; TOUCHED&nbsp; &nbsp;&nbsp; NUMBER(38)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; );<br />
+&nbsp;*/<br />
+</span><span class="keyword">class </span><span class="default">session_handler </span><span class="keyword">implements </span><span class="default">SessionHandlerInterface<br />
+</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; private </span><span class="default">$con</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__construct</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(!</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">con</span><span class="keyword">=</span><span class="default">oci_pconnect</span><span class="keyword">(</span><span class="default">DBUSER</span><span class="keyword">,</span><span class="default">DBPASS</span><span class="keyword">,</span><span class="default">CONNECTION_STR</span><span class="keyword">)){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; die(</span><span class="string">'Database connection failed !'</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">open</span><span class="keyword">(</span><span class="default">$save_path </span><span class="keyword">,</span><span class="default">$name</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">true</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">close</span><span class="keyword">(){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">true</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">read</span><span class="keyword">(</span><span class="default">$session_id</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$query </span><span class="keyword">= </span><span class="string">"SELECT \"DATA\" FROM PHP_SESSIONS WHERE SESSION_ID=Q'{" </span><span class="keyword">. </span><span class="default">$session_id </span><span class="keyword">. </span><span class="string">"}'"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$stid </span><span class="keyword">= </span><span class="default">oci_parse</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">con</span><span class="keyword">, </span><span class="default">$query</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">oci_execute</span><span class="keyword">(</span><span class="default">$stid</span><span class="keyword">, </span><span class="default">OCI_DEFAULT</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$row </span><span class="keyword">= </span><span class="default">oci_fetch_array</span><span class="keyword">(</span><span class="default">$stid</span><span class="keyword">, </span><span class="default">OCI_ASSOC </span><span class="keyword">+ </span><span class="default">OCI_RETURN_LOBS</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">oci_free_statement</span><span class="keyword">(</span><span class="default">$stid</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$row</span><span class="keyword">[</span><span class="string">'DATA'</span><span class="keyword">];<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">write</span><span class="keyword">(</span><span class="default">$session_id</span><span class="keyword">,</span><span class="default">$session_data</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$dquery</span><span class="keyword">=</span><span class="string">"DELETE FROM PHP_SESSIONS WHERE SESSION_ID=Q'{"</span><span class="keyword">.</span><span class="default">$session_id</span><span class="keyword">.</span><span class="string">"}'"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$dstid </span><span class="keyword">= </span><span class="default">oci_parse</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">con</span><span class="keyword">,</span><span class="default">$dquery</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">oci_execute</span><span class="keyword">(</span><span class="default">$dstid</span><span class="keyword">, </span><span class="default">OCI_NO_AUTO_COMMIT</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">oci_free_statement</span><span class="keyword">(</span><span class="default">$dstid</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$query</span><span class="keyword">=</span><span class="string">"INSERT INTO PHP_SESSIONS(SESSION_ID,TOUCHED,\"DATA\") VALUES(Q'{"</span><span class="keyword">.</span><span class="default">$session_id</span><span class="keyword">.</span><span class="string">"}',"</span><span class="keyword">.</span><span class="default">time</span><span class="keyword">().</span><span class="string">",EMPTY_CLOB()) RETURNING \"DATA\" INTO :clob"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$stid </span><span class="keyword">= </span><span class="default">oci_parse</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">con</span><span class="keyword">,</span><span class="default">$query</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$clob</span><span class="keyword">=</span><span class="default">oci_new_descriptor</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">con</span><span class="keyword">,</span><span class="default">OCI_D_LOB</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">oci_bind_by_name</span><span class="keyword">(</span><span class="default">$stid</span><span class="keyword">, </span><span class="string">':clob'</span><span class="keyword">, </span><span class="default">$clob</span><span class="keyword">, -</span><span class="default">1</span><span class="keyword">, </span><span class="default">OCI_B_CLOB</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(!</span><span class="default">oci_execute</span><span class="keyword">(</span><span class="default">$stid</span><span class="keyword">, </span><span class="default">OCI_NO_AUTO_COMMIT</span><span class="keyword">)){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; @</span><span class="default">oci_free_statement</span><span class="keyword">(</span><span class="default">$stid</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">$clob</span><span class="keyword">-&gt;</span><span class="default">save</span><span class="keyword">(</span><span class="default">$session_data</span><span class="keyword">)){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">oci_commit</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">con</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$return</span><span class="keyword">=</span><span class="default">true</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">oci_rollback</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">con</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$return</span><span class="keyword">=</span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$clob</span><span class="keyword">-&gt;</span><span class="default">free</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">oci_free_statement</span><span class="keyword">(</span><span class="default">$stid</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$return</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">destroy</span><span class="keyword">(</span><span class="default">$session_id</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$query</span><span class="keyword">=</span><span class="string">"DELETE FROM PHP_SESSIONS WHERE SESSION_ID=Q'{"</span><span class="keyword">.</span><span class="default">$session_id</span><span class="keyword">.</span><span class="string">"}'"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$stid </span><span class="keyword">= </span><span class="default">oci_parse</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">con</span><span class="keyword">,</span><span class="default">$query</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">oci_execute</span><span class="keyword">(</span><span class="default">$stid</span><span class="keyword">, </span><span class="default">OCI_DEFAULT</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$rows</span><span class="keyword">=</span><span class="default">oci_num_rows</span><span class="keyword">(</span><span class="default">$stid</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">oci_commit</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">con</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">oci_free_statement</span><span class="keyword">(</span><span class="default">$stid</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">$rows</span><span class="keyword">&gt;</span><span class="default">0</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">true</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">gc</span><span class="keyword">(</span><span class="default">$maxlifetime</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$query</span><span class="keyword">=</span><span class="string">"DELETE FROM PHP_SESSIONS WHERE TOUCHED&lt;"</span><span class="keyword">.(</span><span class="default">time</span><span class="keyword">()-</span><span class="default">$maxlifetime</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$stid </span><span class="keyword">= </span><span class="default">oci_parse</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">con</span><span class="keyword">,</span><span class="default">$query</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">oci_execute</span><span class="keyword">(</span><span class="default">$stid</span><span class="keyword">, </span><span class="default">OCI_DEFAULT</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$rows</span><span class="keyword">=</span><span class="default">oci_num_rows</span><span class="keyword">(</span><span class="default">$stid</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">oci_commit</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">con</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">oci_free_statement</span><span class="keyword">(</span><span class="default">$stid</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">$rows</span><span class="keyword">&gt;</span><span class="default">0</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">true</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+</span><span class="default">session_set_save_handler</span><span class="keyword">(new </span><span class="default">session_handler</span><span class="keyword">(), </span><span class="default">true</span><span class="keyword">);<br />
+</span><span class="default">session_start</span><span class="keyword">();</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118592""></a>
   <div class="note">
    <strong class="user">carlos dot vini at gmail dot com</strong>
    <a href="#118592" class="date">05-Jan-2016 10:25</a>
@@ -920,19 +1024,6 @@ I was sure it was a bug in PHP, but turned out (like 99% of the time) to be me o
    </div>
   </div>
  <div class="foot"></div>
-  <a name="91352""></a>
-  <div class="note">
-   <strong class="user">foddex at foddex dot net</strong>
-   <a href="#91352" class="date">08-Jun-2009 10:01</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-A quick note for people having problems storing binary session data. Using prepared statements solves all your quote-related issues! Start reading here <a href="http://php.net/manual/en/mysqli-stmt.prepare.php for more information!" rel="nofollow" target="_blank">http://php.net/manual/en/mysqli-stmt.prepare.php for more information!</a></span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
   <a name="90431""></a>
   <div class="note">
    <strong class="user">yangqingrong at gmail dot com</strong>
@@ -1096,37 +1187,6 @@ $sessiondata is the variable passed through the function and $result['data'] is 
    </div>
   </div>
  <div class="foot"></div>
-  <a name="85066""></a>
-  <div class="note">
-   <strong class="user">james at dunmore dot me dot uk</strong>
-   <a href="#85066" class="date">13-Aug-2008 03:31</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-If your using database session handler and your database is in UTF8, but you happen to have a script running in IS0-8859 that tries to put symbols such as ￡ signs into the database - then the session will corrupt and data will go missing.<br />
-<br />
-You can either - make sure you never put special characters into the session, or - more helpful, do this in your 'write' function<br />
-<br />
-<span class="default">&lt;?php<br />
-<br />
-</span><span class="keyword">public static function </span><span class="default">write</span><span class="keyword">( </span><span class="default">$key</span><span class="keyword">, </span><span class="default">$val </span><span class="keyword">)<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$val </span><span class="keyword">= </span><span class="default">utf8_encode</span><span class="keyword">( </span><span class="default">$val </span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$val </span><span class="keyword">= </span><span class="default">preg_replace</span><span class="keyword">( </span><span class="string">'!s:(\d+):"(.*?)";!se'</span><span class="keyword">, </span><span class="string">"'s:'.strlen('$2').':\"$2\";'"</span><span class="keyword">, </span><span class="default">$val </span><span class="keyword">); <br />
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="comment">//......<br />
-<br />
-</span><span class="default">?&gt;<br />
-</span><br />
-probably an overhead on this, but less overhead than loosing data.<br />
-<br />
-You could also use WDDX for storing sessions I suppose</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
   <a name="84300""></a>
   <div class="note">
    <strong class="user">tomas at slax dot org</strong>
@@ -1232,23 +1292,6 @@ Some PHP code for memcached session handler.
    </div>
   </div>
  <div class="foot"></div>
-  <a name="82340""></a>
-  <div class="note">
-   <strong class="user">james at enginecreative dot co dot uk</strong>
-   <a href="#82340" class="date">07-Apr-2008 12:22</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-With regards to db session handling:<br />
-<br />
-Remember if you use the REPLACE INTO method to have your session key as the primary key otherwise you will end up with duplicate records in your table.<br />
-<br />
-<a href="http://dev.mysql.com/doc/refman/5.0/en/replace.html" rel="nofollow" target="_blank">http://dev.mysql.com/doc/refman/5.0/en/replace.html</a></span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
   <a name="82293""></a>
   <div class="note">
    <strong class="user">james dot ellis at gmail dot com</strong>
@@ -1265,157 +1308,6 @@ If you have 1000 requests per minute on session enabled pages, everyone needs a 
 In this example, setting your probability/divisor to 1/1000 would be sufficient to clean up old sessions at a minimum once a minute. If you don't need that kind of granularity, increase the gc divisor.<br />
 <br />
 Finding the tradeoff between clearing up old sessions and server load is the important aspect here.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="79706""></a>
-  <div class="note">
-   <strong class="user">maria at junkies dot jp</strong>
-   <a href="#79706" class="date">09-Dec-2007 03:51</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-blow example and ta summary of these comments.<br />
-and using the simple native functions of mysql.<br />
-<br />
-<span class="default">&lt;?php<br />
-</span><span class="keyword">class </span><span class="default">Session<br />
-</span><span class="keyword">{<br />
-<br />
-&nbsp;&nbsp;&nbsp; </span><span class="comment">/**<br />
-&nbsp;&nbsp; &nbsp; * a database connection resource<br />
-&nbsp;&nbsp; &nbsp; * @var resource<br />
-&nbsp;&nbsp; &nbsp; */<br />
-&nbsp;&nbsp;&nbsp; </span><span class="keyword">private </span><span class="default">$_sess_db</span><span class="keyword">;<br />
-<br />
-&nbsp;&nbsp;&nbsp; </span><span class="comment">/**<br />
-&nbsp;&nbsp; &nbsp; * Open the session<br />
-&nbsp;&nbsp; &nbsp; * @return bool<br />
-&nbsp;&nbsp; &nbsp; */<br />
-&nbsp;&nbsp;&nbsp; </span><span class="keyword">public function </span><span class="default">open</span><span class="keyword">() {<br />
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">_sess_db </span><span class="keyword">= </span><span class="default">mysql_connect</span><span class="keyword">(</span><span class="default">SESSION_DB_HOST</span><span class="keyword">,<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">SESSION_DB_USER</span><span class="keyword">,<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">SESSION_DB_PASS</span><span class="keyword">)) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">mysql_select_db</span><span class="keyword">(</span><span class="default">SESSION_DB_DATABASE</span><span class="keyword">, </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">_sess_db</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;<br />
-<br />
-&nbsp;&nbsp;&nbsp; }<br />
-<br />
-&nbsp;&nbsp;&nbsp; </span><span class="comment">/**<br />
-&nbsp;&nbsp; &nbsp; * Close the session<br />
-&nbsp;&nbsp; &nbsp; * @return bool<br />
-&nbsp;&nbsp; &nbsp; */<br />
-&nbsp;&nbsp;&nbsp; </span><span class="keyword">public function </span><span class="default">close</span><span class="keyword">() {<br />
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">mysql_close</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">_sess_db</span><span class="keyword">);<br />
-<br />
-&nbsp;&nbsp;&nbsp; }<br />
-<br />
-&nbsp;&nbsp;&nbsp; </span><span class="comment">/**<br />
-&nbsp;&nbsp; &nbsp; * Close the session<br />
-&nbsp;&nbsp; &nbsp; * @return bool<br />
-&nbsp;&nbsp; &nbsp; */<br />
-&nbsp;&nbsp;&nbsp; </span><span class="keyword">public function </span><span class="default">close</span><span class="keyword">() {<br />
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">mysql_close</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">_sess_db</span><span class="keyword">);<br />
-<br />
-&nbsp;&nbsp;&nbsp; }<br />
-<br />
-&nbsp;&nbsp;&nbsp; </span><span class="comment">/**<br />
-&nbsp;&nbsp; &nbsp; * Read the session<br />
-&nbsp;&nbsp; &nbsp; * @param int session id<br />
-&nbsp;&nbsp; &nbsp; * @return string string of the sessoin<br />
-&nbsp;&nbsp; &nbsp; */<br />
-&nbsp;&nbsp;&nbsp; </span><span class="keyword">public function </span><span class="default">read</span><span class="keyword">(</span><span class="default">$id</span><span class="keyword">) {<br />
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$id </span><span class="keyword">= </span><span class="default">mysql_real_escape_string</span><span class="keyword">(</span><span class="default">$id</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$sql </span><span class="keyword">= </span><span class="default">sprintf</span><span class="keyword">(</span><span class="string">"SELECT `data` FROM `sessions` " </span><span class="keyword">.<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="string">"WHERE id = '%s'"</span><span class="keyword">, </span><span class="default">$id</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$result </span><span class="keyword">= </span><span class="default">mysql_query</span><span class="keyword">(</span><span class="default">$sql</span><span class="keyword">, </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">_sess_db</span><span class="keyword">)) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">mysql_num_rows</span><span class="keyword">(</span><span class="default">$result</span><span class="keyword">)) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$record </span><span class="keyword">= </span><span class="default">mysql_fetch_assoc</span><span class="keyword">(</span><span class="default">$result</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$record</span><span class="keyword">[</span><span class="string">'data'</span><span class="keyword">];<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="string">''</span><span class="keyword">;<br />
-<br />
-&nbsp;&nbsp;&nbsp; }<br />
-<br />
-&nbsp;&nbsp;&nbsp; </span><span class="comment">/**<br />
-&nbsp;&nbsp; &nbsp; * Write the session<br />
-&nbsp;&nbsp; &nbsp; * @param int session id<br />
-&nbsp;&nbsp; &nbsp; * @param string data of the session<br />
-&nbsp;&nbsp; &nbsp; */<br />
-&nbsp;&nbsp;&nbsp; </span><span class="keyword">public function </span><span class="default">write</span><span class="keyword">(</span><span class="default">$id</span><span class="keyword">, </span><span class="default">$data</span><span class="keyword">) {<br />
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$sql </span><span class="keyword">= </span><span class="default">sprintf</span><span class="keyword">(</span><span class="string">"REPLACE INTO `sessions` VALUES('%s', '%s', '%s')"</span><span class="keyword">,<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="default">mysql_real_escape_string</span><span class="keyword">(</span><span class="default">$id</span><span class="keyword">),<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="default">mysql_real_escape_string</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">),<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="default">mysql_real_escape_string</span><span class="keyword">(</span><span class="default">time</span><span class="keyword">()));<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">mysql_query</span><span class="keyword">(</span><span class="default">$sql</span><span class="keyword">, </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">_sess_db</span><span class="keyword">);<br />
-<br />
-&nbsp;&nbsp;&nbsp; }<br />
-<br />
-&nbsp;&nbsp;&nbsp; </span><span class="comment">/**<br />
-&nbsp;&nbsp; &nbsp; * Destoroy the session<br />
-&nbsp;&nbsp; &nbsp; * @param int session id<br />
-&nbsp;&nbsp; &nbsp; * @return bool<br />
-&nbsp;&nbsp; &nbsp; */<br />
-&nbsp;&nbsp;&nbsp; </span><span class="keyword">public function </span><span class="default">destroy</span><span class="keyword">(</span><span class="default">$id</span><span class="keyword">) {<br />
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$sql </span><span class="keyword">= </span><span class="default">sprintf</span><span class="keyword">(</span><span class="string">"DELETE FROM `sessions` WHERE `id` = '%s'"</span><span class="keyword">, </span><span class="default">$id</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">mysql_query</span><span class="keyword">(</span><span class="default">$sql</span><span class="keyword">, </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">_sess_db</span><span class="keyword">);<br />
-<br />
-}<br />
-<br />
-&nbsp;&nbsp;&nbsp; </span><span class="comment">/**<br />
-&nbsp;&nbsp; &nbsp; * Garbage Collector<br />
-&nbsp;&nbsp; &nbsp; * @param int life time (sec.)<br />
-&nbsp;&nbsp; &nbsp; * @return bool<br />
-&nbsp;&nbsp; &nbsp; * @see session.gc_divisor&nbsp; &nbsp; &nbsp; 100<br />
-&nbsp;&nbsp; &nbsp; * @see session.gc_maxlifetime 1440<br />
-&nbsp;&nbsp; &nbsp; * @see session.gc_probability&nbsp; &nbsp; 1<br />
-&nbsp;&nbsp; &nbsp; * @usage execution rate 1/100<br />
-&nbsp;&nbsp; &nbsp; *&nbsp; &nbsp; &nbsp; &nbsp; (session.gc_probability/session.gc_divisor)<br />
-&nbsp;&nbsp; &nbsp; */<br />
-&nbsp;&nbsp;&nbsp; </span><span class="keyword">public function </span><span class="default">gc</span><span class="keyword">(</span><span class="default">$max</span><span class="keyword">) {<br />
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$sql </span><span class="keyword">= </span><span class="default">sprintf</span><span class="keyword">(</span><span class="string">"DELETE FROM `sessions` WHERE `timestamp` &lt; '%s'"</span><span class="keyword">,<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="default">mysql_real_escape_string</span><span class="keyword">(</span><span class="default">time</span><span class="keyword">() - </span><span class="default">$max</span><span class="keyword">));<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">mysql_query</span><span class="keyword">(</span><span class="default">$sql</span><span class="keyword">, </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">_sess_db</span><span class="keyword">);<br />
-<br />
-&nbsp;&nbsp;&nbsp; }<br />
-<br />
-}<br />
-<br />
-</span><span class="comment">//ini_set('session.gc_probability', 50);<br />
-</span><span class="default">ini_set</span><span class="keyword">(</span><span class="string">'session.save_handler'</span><span class="keyword">, </span><span class="string">'user'</span><span class="keyword">);<br />
-<br />
-</span><span class="default">$session </span><span class="keyword">= new </span><span class="default">Session</span><span class="keyword">();<br />
-</span><span class="default">session_set_save_handler</span><span class="keyword">(array(</span><span class="default">$session</span><span class="keyword">, </span><span class="string">'open'</span><span class="keyword">),<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; array(</span><span class="default">$session</span><span class="keyword">, </span><span class="string">'close'</span><span class="keyword">),<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; array(</span><span class="default">$session</span><span class="keyword">, </span><span class="string">'read'</span><span class="keyword">),<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; array(</span><span class="default">$session</span><span class="keyword">, </span><span class="string">'write'</span><span class="keyword">),<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; array(</span><span class="default">$session</span><span class="keyword">, </span><span class="string">'destroy'</span><span class="keyword">),<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; array(</span><span class="default">$session</span><span class="keyword">, </span><span class="string">'gc'</span><span class="keyword">));<br />
-<br />
-</span><span class="comment">// below sample main<br />
-<br />
-</span><span class="default">session_start</span><span class="keyword">();<br />
-</span><span class="default">session_regenerate_id</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">);<br />
-<br />
-if (isset(</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'counter'</span><span class="keyword">])) {<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'counter'</span><span class="keyword">]++;<br />
-} else {<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'counter'</span><span class="keyword">] = </span><span class="default">1</span><span class="keyword">;<br />
-}<br />
-<br />
-</span><span class="default">?&gt;</span>
-</span>
 </code>
     </div>
    </div>

@@ -130,7 +130,7 @@
  <div class="refsect1 examples" id="refsect1-function.unserialize-examples">
   <h3 class="title">·¶Àý</h3>
   <p class="para">
-   <div class="example" id="example-5674">
+   <div class="example" id="example-5951">
     <p><strong>Example #1 <span class="function"><strong>unserialize()</strong></span> Àý×Ó</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -142,7 +142,7 @@
    </div>
   </p>
   <p class="para">
-   <div class="example" id="example-5675">
+   <div class="example" id="example-5952">
     <p><strong>Example #2 unserialize_callback_func Àý×Ó</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -183,7 +183,77 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="117887""></a>
+<div id="allnotes">  <a name="119851""></a>
+  <div class="note">
+   <strong class="user">m.m.j.kronenburg</strong>
+   <a href="#119851" class="date">07-Sep-2016 06:52</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+You can use the following code to use the php 7 unserialize function in php 5.3 and upwards. This adds the $option argument.<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">namespace<br />
+{<br />
+<br />
+</span><span class="comment">/**<br />
+&nbsp;* PHP 7 unserialize function for PHP 5.3 upwards.<br />
+&nbsp;* Added the $option argument (allowed_classes).<br />
+&nbsp;* See php unserialize manual for more detail.<br />
+&nbsp;**/<br />
+</span><span class="keyword">function </span><span class="default">php7_unserialize</span><span class="keyword">(</span><span class="default">$str</span><span class="keyword">, </span><span class="default">$options </span><span class="keyword">= array())<br />
+{<br />
+&nbsp; if(</span><span class="default">version_compare</span><span class="keyword">(</span><span class="default">PHP_VERSION</span><span class="keyword">, </span><span class="string">'7.0.0'</span><span class="keyword">, </span><span class="string">'&gt;='</span><span class="keyword">))<br />
+&nbsp; { return </span><span class="default">unserialize</span><span class="keyword">(</span><span class="default">$str</span><span class="keyword">, </span><span class="default">$options</span><span class="keyword">); }<br />
+<br />
+&nbsp; </span><span class="default">$allowed_classes </span><span class="keyword">= isset(</span><span class="default">$options</span><span class="keyword">[</span><span class="string">'allowed_classes'</span><span class="keyword">]) ? <br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$options</span><span class="keyword">[</span><span class="string">'allowed_classes'</span><span class="keyword">] : </span><span class="default">true</span><span class="keyword">;<br />
+&nbsp; if(</span><span class="default">is_array</span><span class="keyword">(</span><span class="default">$allowed_classes</span><span class="keyword">) || !</span><span class="default">$allowed_classes</span><span class="keyword">)<br />
+&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$str </span><span class="keyword">= </span><span class="default">preg_replace_callback</span><span class="keyword">(<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="string">'/(?=^|:)(O|C):\d+:"([^"]*)":(\d+):{/'</span><span class="keyword">, <br />
+&nbsp;&nbsp; &nbsp;&nbsp; function(</span><span class="default">$matches</span><span class="keyword">) use (</span><span class="default">$allowed_classes</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">is_array</span><span class="keyword">(</span><span class="default">$allowed_classes</span><span class="keyword">) &amp;&amp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">in_array</span><span class="keyword">(</span><span class="default">$matches</span><span class="keyword">[</span><span class="default">2</span><span class="keyword">], </span><span class="default">$allowed_classes</span><span class="keyword">))<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; { return </span><span class="default">$matches</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">]; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; else<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$matches</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">].</span><span class="string">':22:"__PHP_Incomplete_Class":'</span><span class="keyword">.<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; (</span><span class="default">$matches</span><span class="keyword">[</span><span class="default">3</span><span class="keyword">] + </span><span class="default">1</span><span class="keyword">).<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">':{s:27:"__PHP_Incomplete_Class_Name";'</span><span class="keyword">.<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">serialize</span><span class="keyword">(</span><span class="default">$matches</span><span class="keyword">[</span><span class="default">2</span><span class="keyword">]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp;&nbsp; },<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$str<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">);<br />
+&nbsp; }<br />
+&nbsp; unset(</span><span class="default">$allowed_classes</span><span class="keyword">);<br />
+&nbsp; return </span><span class="default">unserialize</span><span class="keyword">(</span><span class="default">$str</span><span class="keyword">);<br />
+}<br />
+<br />
+} </span><span class="comment">// namespace<br />
+<br />
+</span><span class="keyword">namespace </span><span class="default">my_name_space<br />
+</span><span class="keyword">{<br />
+&nbsp; </span><span class="comment">/**<br />
+&nbsp;&nbsp; * Use the new php7 unserialize in your namespace without<br />
+&nbsp;&nbsp; * renaming all unserialize(...) function calls to <br />
+&nbsp;&nbsp; * php7_unserialize(...).<br />
+&nbsp;&nbsp; **/<br />
+&nbsp; </span><span class="keyword">function </span><span class="default">unserialize</span><span class="keyword">(</span><span class="default">$str</span><span class="keyword">, </span><span class="default">$options </span><span class="keyword">= array())<br />
+&nbsp; { return </span><span class="default">php7_unserialize</span><span class="keyword">(</span><span class="default">$str</span><span class="keyword">, </span><span class="default">$options</span><span class="keyword">); }<br />
+}<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117887""></a>
   <div class="note">
    <strong class="user">smilesrg at gmail dot com</strong>
    <a href="#117887" class="date">27-Aug-2015 02:28</a>

@@ -30,7 +30,7 @@
    应用程序在某一时刻，可能需要在数据库中存储"大"数据。"大"通常意味着"大约 4kb 或以上"，尽管某些数据库在数据达到"大"之前可以轻松地处理多达 32kb 的数据。大对象本质上可能是文本或二进制。在 <span class="function"><a href="pdostatement.bindparam.html" class="function">PDOStatement::bindParam()</a></span> 或 <span class="function"><a href="pdostatement.bindcolumn.html" class="function">PDOStatement::bindColumn()</a></span>)  调用中使用 <strong><code>PDO::PARAM_LOB</code></strong> 类型码可以让 PDO 使用大数据类型。<strong><code>PDO::PARAM_LOB</code></strong> 告诉 PDO 作为流来映射数据，以便能使用  <a href="ref.stream.html" class="link">PHP Streams API</a> 来操作。
  </p>
  <p class="para">
-  <div class="example" id="example-975">
+  <div class="example" id="example-980">
    <p><strong>Example #1 从数据库中显示一张图片</strong></p>
    <div class="example-contents"><p>
     下面例子绑定一个 LOB 到 $lob 变量，然后用  <span class="function"><a href="function.fpassthru.html" class="function">fpassthru()</a></span> 将其发送到浏览器。因为 LOB 代表一个流，所以类似 <span class="function"><a href="function.fgets.html" class="function">fgets()</a></span>、<span class="function"><a href="function.fread.html" class="function">fread()</a></span> 以及 <span class="function"><a href="function.stream-get-contents.html" class="function">stream_get_contents()</a></span> 这样的函数都可以用在它上面。
@@ -45,7 +45,7 @@
   </div>
  </p>
  <p class="para">
-  <div class="example" id="example-976">
+  <div class="example" id="example-981">
    <p><strong>Example #2 插入一张图片到数据库</strong></p>
    <div class="example-contents"><p>
    下面例子打开一个文件并将文件句柄传给 PDO 来做为一个 LOB 插入。PDO尽可能地让数据库以最有效的方式获取文件内容。
@@ -60,7 +60,7 @@
   </div>
  </p>
  <p class="para">
-  <div class="example" id="example-977">
+  <div class="example" id="example-982">
    <p><strong>Example #3  插入一张图片到数据库：Oracle</strong></p>
    <div class="example-contents"><p>
    对于从文件插入一个 lob，Oracle略有不同。必须在事务之后进行插入，否则当执行查询时导致新近插入 LOB 将以0长度被隐式提交：
@@ -79,7 +79,39 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="101841""></a>
+<div id="allnotes">  <a name="119464""></a>
+  <div class="note">
+   <strong class="user">ben dot leiting at gmail dot com</strong>
+   <a href="#119464" class="date">14-Jun-2016 02:56</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+For selecting data out of Postgres, the data type of the column in the table determined if the parameter bound with PARAM_LOB returned a string or returned a resource.<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="comment">// create table log ( data text ) ;<br />
+</span><span class="default">$geth </span><span class="keyword">= </span><span class="default">$dbh</span><span class="keyword">-&gt;</span><span class="default">prepare</span><span class="keyword">(</span><span class="string">'select data from log '</span><span class="keyword">);<br />
+</span><span class="default">$geth</span><span class="keyword">-&gt;</span><span class="default">execute</span><span class="keyword">();<br />
+</span><span class="default">$geth</span><span class="keyword">-&gt;</span><span class="default">bindColumn</span><span class="keyword">(</span><span class="default">1</span><span class="keyword">, </span><span class="default">$dataString</span><span class="keyword">, </span><span class="default">PDO</span><span class="keyword">::</span><span class="default">PARAM_LOB</span><span class="keyword">);<br />
+</span><span class="default">$geth</span><span class="keyword">-&gt;</span><span class="default">fetch</span><span class="keyword">(</span><span class="default">PDO</span><span class="keyword">::</span><span class="default">FETCH_BOUND</span><span class="keyword">);<br />
+<br />
+echo (</span><span class="default">$dataString</span><span class="keyword">); </span><span class="comment">// $dataString is a string<br />
+<br />
+// create table log ( data bytea ) ;<br />
+</span><span class="default">$geth </span><span class="keyword">= </span><span class="default">$dbh</span><span class="keyword">-&gt;</span><span class="default">prepare</span><span class="keyword">(</span><span class="string">'select data from log'</span><span class="keyword">);<br />
+</span><span class="default">$geth</span><span class="keyword">-&gt;</span><span class="default">execute</span><span class="keyword">();<br />
+</span><span class="default">$geth</span><span class="keyword">-&gt;</span><span class="default">bindColumn</span><span class="keyword">(</span><span class="default">1</span><span class="keyword">, </span><span class="default">$dataFH</span><span class="keyword">, </span><span class="default">PDO</span><span class="keyword">::</span><span class="default">PARAM_LOB</span><span class="keyword">);<br />
+</span><span class="default">$geth</span><span class="keyword">-&gt;</span><span class="default">fetch</span><span class="keyword">(</span><span class="default">PDO</span><span class="keyword">::</span><span class="default">FETCH_BOUND</span><span class="keyword">);<br />
+<br />
+</span><span class="default">fpassthru</span><span class="keyword">(</span><span class="default">$dataFH</span><span class="keyword">); </span><span class="comment">// $dataFH is a resource</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="101841""></a>
   <div class="note">
    <strong class="user">xorinox at gmx dot ch</strong>
    <a href="#101841" class="date">13-Jan-2011 08:11</a>

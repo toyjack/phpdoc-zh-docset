@@ -134,7 +134,91 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="119004""></a>
+<div id="allnotes">  <a name="119810""></a>
+  <div class="note">
+   <strong class="user">Hernanibus</strong>
+   <a href="#119810" class="date">31-Aug-2016 11:52</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Just a little note on&nbsp; [P.Peyremorte]'s note.<br />
+<br />
+"- openssl_private_encrypt can encrypt a maximum of 117 chars at one time."<br />
+<br />
+This depends on the length of $key:<br />
+<br />
+- For a 1024 bit key length =&gt; max number of chars (bytes) to encrypt = 1024/8 - 11(when padding used) = 117 chars (bytes).<br />
+- For a 2048 bit key length =&gt; max number of chars (bytes) to encrypt = 2048/8 - 11(when padding used) = 245 chars (bytes).<br />
+... and so on<br />
+<br />
+By the way, if openssl_private_encrypt fails because of data size you won't get anything but just false as returned value, the same for openssl_public_decrypt() on decryption.<br />
+<br />
+"- the encrypted output string is always 129 char length. If you use base64_encode on the encrypted output, it will give always 172 chars, with the last always "=" (filler)"<br />
+<br />
+This again depends on the length of $key:<br />
+<br />
+- For a 1024 bit key length =&gt; encrypted number of raw bytes is always a block of 128 bytes (1024 bits) by RSA design.<br />
+- For a 2048 bit key length =&gt; encrypted number of raw bytes is always a block of 256 bytes (2048 bits) by RSA design.<br />
+... and so on<br />
+<br />
+About base64_encode output length, it depends on what you encode (meaning it depends on the bytes resulting after encryption), but in general the resulting encoded string will be about a 33% bigger (for 128 bytes bout 170 bytes and for 256 bytes about 340 bytes).<br />
+<br />
+I would then generalize a little [P.Peyremorte]'s note by:<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">// given the variables as constants:<br />
+<br />
+&nbsp; //Block size for encryption block cipher<br />
+&nbsp; </span><span class="keyword">private </span><span class="default">$ENCRYPT_BLOCK_SIZE </span><span class="keyword">= </span><span class="default">200</span><span class="keyword">;</span><span class="comment">// this for 2048 bit key for example, leaving some room<br />
+<br />
+&nbsp; //Block size for decryption block cipher<br />
+&nbsp; </span><span class="keyword">private </span><span class="default">$DECRYPT_BLOCK_SIZE </span><span class="keyword">= </span><span class="default">256</span><span class="keyword">;</span><span class="comment">// this again for 2048 bit key<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; //For encryption we would use:<br />
+&nbsp; </span><span class="keyword">function </span><span class="default">encrypt_RSA</span><span class="keyword">(</span><span class="default">$plainData</span><span class="keyword">, </span><span class="default">$privatePEMKey</span><span class="keyword">)<br />
+&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$encrypted </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$plainData </span><span class="keyword">= </span><span class="default">str_split</span><span class="keyword">(</span><span class="default">$plainData</span><span class="keyword">, </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">ENCRYPT_BLOCK_SIZE</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; foreach(</span><span class="default">$plainData </span><span class="keyword">as </span><span class="default">$chunk</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$partialEncrypted </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="comment">//using for example OPENSSL_PKCS1_PADDING as padding<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$encryptionOk </span><span class="keyword">= </span><span class="default">openssl_private_encrypt</span><span class="keyword">(</span><span class="default">$chunk</span><span class="keyword">, </span><span class="default">$partialEncrypted</span><span class="keyword">, </span><span class="default">$privatePEMKey</span><span class="keyword">, </span><span class="default">OPENSSL_PKCS1_PADDING</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; &nbsp;&nbsp; if(</span><span class="default">$encryptionOk </span><span class="keyword">=== </span><span class="default">false</span><span class="keyword">){return </span><span class="default">false</span><span class="keyword">;}</span><span class="comment">//also you can return and error. If too big this will be false<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$encrypted </span><span class="keyword">.= </span><span class="default">$partialEncrypted</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">base64_encode</span><span class="keyword">(</span><span class="default">$encrypted</span><span class="keyword">);</span><span class="comment">//encoding the whole binary String as MIME base 64<br />
+&nbsp; </span><span class="keyword">}<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="comment">//For decryption we would use:<br />
+&nbsp; </span><span class="keyword">protected function </span><span class="default">decrypt_RSA</span><span class="keyword">(</span><span class="default">$publicPEMKey</span><span class="keyword">, </span><span class="default">$data</span><span class="keyword">)<br />
+&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$decrypted </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">//decode must be done before spliting for getting the binary String<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$data </span><span class="keyword">= </span><span class="default">str_split</span><span class="keyword">(</span><span class="default">base64_decode</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">), </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">DECRYPT_BLOCK_SIZE</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp;&nbsp; foreach(</span><span class="default">$data </span><span class="keyword">as </span><span class="default">$chunk</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$partial </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="comment">//be sure to match padding<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$decryptionOK </span><span class="keyword">= </span><span class="default">openssl_public_decrypt</span><span class="keyword">(</span><span class="default">$chunk</span><span class="keyword">, </span><span class="default">$partial</span><span class="keyword">, </span><span class="default">$publicPEMKey</span><span class="keyword">, </span><span class="default">OPENSSL_PKCS1_PADDING</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; &nbsp;&nbsp; if(</span><span class="default">$decryptionOK </span><span class="keyword">=== </span><span class="default">false</span><span class="keyword">){return </span><span class="default">false</span><span class="keyword">;}</span><span class="comment">//here also processed errors in decryption. If too big this will be false<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$decrypted </span><span class="keyword">.= </span><span class="default">$partial</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$decrypted</span><span class="keyword">;<br />
+&nbsp; }<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119004""></a>
   <div class="note">
    <strong class="user">P.Peyremorte</strong>
    <a href="#119004" class="date">16-Mar-2016 03:17</a>
