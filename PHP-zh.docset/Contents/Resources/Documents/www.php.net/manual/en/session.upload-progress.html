@@ -1,0 +1,356 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Session 上传进度</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="session.customhandler.html">? 自定义会话管理器</a></li>
+      <li style="float: right;"><a href="session.security.html">会话和安全 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="book.session.html">Sessions</a></li>
+    <li>Session 上传进度</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="session.upload-progress" class="chapter">
+ <h1>Session 上传进度</h1>
+
+
+ <blockquote class="note"><p><strong class="note">Note</strong>: 
+  <span class="simpara">
+   此特性自 PHP 5.4.0 后可用。
+  </span>
+ </p></blockquote>
+
+ <p class="para">
+  当
+  <a href="session.configuration.html#ini.session.upload-progress.enabled" class="link">session.upload_progress.enabled</a>
+  INI 选项开启时，PHP 能够在每一个文件上传时监测上传进度。
+  这个信息对上传请求自身并没有什么帮助，但在文件上传时应用可以发送一个POST请求到终端（例如通过<acronym>XHR</acronym>）来检查这个状态
+ </p>
+ <p class="para">
+  当一个上传在处理中，同时POST一个与INI中设置的<a href="session.configuration.html#ini.session.upload-progress.name" class="link">session.upload_progress.name</a>同名变量时，上传进度可以在<var class="varname"><var class="varname"><a href="reserved.variables.session.html" class="classname">$_SESSION</a></var></var>中获得。
+  当PHP检测到这种POST请求时，它会在<var class="varname"><var class="varname"><a href="reserved.variables.session.html" class="classname">$_SESSION</a></var></var>中添加一组数据, 索引是
+  <a href="session.configuration.html#ini.session.upload-progress.prefix" class="link">session.upload_progress.prefix</a>
+  与
+  <a href="session.configuration.html#ini.session.upload-progress.name" class="link">session.upload_progress.name</a>连接在一起的值。
+  通常这些键值可以通过读取INI设置来获得，例如
+  <div class="informalexample">
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$key&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">ini_get</span><span style="color: #007700">(</span><span style="color: #DD0000">"session.upload_progress.prefix"</span><span style="color: #007700">)&nbsp;.&nbsp;</span><span style="color: #0000BB">ini_get</span><span style="color: #007700">(</span><span style="color: #DD0000">"session.upload_progress.name"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$_SESSION</span><span style="color: #007700">[</span><span style="color: #0000BB">$key</span><span style="color: #007700">]);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+ </p>
+ <p class="para">
+  通过将<em>$_SESSION[$key][&quot;cancel_upload&quot;]</em>设置为<strong><code>TRUE</code></strong>，还可以<em class="emphasis">取消</em>一个正在处理中的文件上传。
+  当在同一个请求中上传多个文件，它仅会取消当前正在处理的文件上传和未处理的文件上传，但是不会移除那些已经完成的上传。
+  当一个上传请求被这么取消时，<var class="varname"><var class="varname"><a href="reserved.variables.files.html" class="classname">$_FILES</a></var></var>中的<em>error</em>将会被设置为
+  <strong><code>UPLOAD_ERR_EXTENSION</code></strong>。
+ </p>
+ <p class="para">
+  <a href="session.configuration.html#ini.session.upload-progress.freq" class="link">session.upload_progress.freq</a>
+  和
+  <a href="session.configuration.html#ini.session.upload-progress.min-freq" class="link">session.upload_progress.min_freq</a>
+  INI选项控制了上传进度信息应该多久被重新计算一次。
+  通过合理设置这两个选项的值，这个功能的开销几乎可以忽略不计。
+ </p>
+ <p class="para">
+  <div class="example" id="example-5876">
+   <p><strong>Example #1 样例信息</strong></p>
+   <div class="example-contents"><p>
+    一个上传进度数组的结构的例子
+   </p></div>
+   <div class="example-contents">
+<div class="htmlcode"><pre class="htmlcode">&lt;form action=&quot;upload.php&quot; method=&quot;POST&quot; enctype=&quot;multipart/form-data&quot;&gt;
+ &lt;input type=&quot;hidden&quot; name=&quot;&lt;?php echo ini_get(&quot;session.upload_progress.name&quot;); ?&gt;&quot; value=&quot;123&quot; /&gt;
+ &lt;input type=&quot;file&quot; name=&quot;file1&quot; /&gt;
+ &lt;input type=&quot;file&quot; name=&quot;file2&quot; /&gt;
+ &lt;input type=&quot;submit&quot; /&gt;
+&lt;/form&gt;</pre>
+</div>
+   </div>
+
+   <div class="example-contents"><p>
+    在session中存放的数据看上去是这样子的：
+   </p></div>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$_SESSION</span><span style="color: #007700">[</span><span style="color: #DD0000">"upload_progress_123"</span><span style="color: #007700">]&nbsp;=&nbsp;array(<br />&nbsp;</span><span style="color: #DD0000">"start_time"&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #0000BB">1234567890</span><span style="color: #007700">,&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;The&nbsp;request&nbsp;time<br />&nbsp;</span><span style="color: #DD0000">"content_length"&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #0000BB">57343257</span><span style="color: #007700">,&nbsp;</span><span style="color: #FF8000">//&nbsp;POST&nbsp;content&nbsp;length<br />&nbsp;</span><span style="color: #DD0000">"bytes_processed"&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #0000BB">453489</span><span style="color: #007700">,&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;Amount&nbsp;of&nbsp;bytes&nbsp;received&nbsp;and&nbsp;processed<br />&nbsp;</span><span style="color: #DD0000">"done"&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #0000BB">false</span><span style="color: #007700">,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;true&nbsp;when&nbsp;the&nbsp;POST&nbsp;handler&nbsp;has&nbsp;finished,&nbsp;successfully&nbsp;or&nbsp;not<br />&nbsp;</span><span style="color: #DD0000">"files"&nbsp;</span><span style="color: #007700">=&gt;&nbsp;array(<br />&nbsp;&nbsp;</span><span style="color: #0000BB">0&nbsp;</span><span style="color: #007700">=&gt;&nbsp;array(<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">"field_name"&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #DD0000">"file1"</span><span style="color: #007700">,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;Name&nbsp;of&nbsp;the&nbsp;&lt;input/&gt;&nbsp;field<br />&nbsp;&nbsp;&nbsp;//&nbsp;The&nbsp;following&nbsp;3&nbsp;elements&nbsp;equals&nbsp;those&nbsp;in&nbsp;$_FILES<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">"name"&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #DD0000">"foo.avi"</span><span style="color: #007700">,<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">"tmp_name"&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #DD0000">"/tmp/phpxxxxxx"</span><span style="color: #007700">,<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">"error"&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #0000BB">0</span><span style="color: #007700">,<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">"done"&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #0000BB">true</span><span style="color: #007700">,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;True&nbsp;when&nbsp;the&nbsp;POST&nbsp;handler&nbsp;has&nbsp;finished&nbsp;handling&nbsp;this&nbsp;file<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">"start_time"&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #0000BB">1234567890</span><span style="color: #007700">,&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;When&nbsp;this&nbsp;file&nbsp;has&nbsp;started&nbsp;to&nbsp;be&nbsp;processed<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">"bytes_processed"&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #0000BB">57343250</span><span style="color: #007700">,&nbsp;</span><span style="color: #FF8000">//&nbsp;Amount&nbsp;of&nbsp;bytes&nbsp;received&nbsp;and&nbsp;processed&nbsp;for&nbsp;this&nbsp;file<br />&nbsp;&nbsp;</span><span style="color: #007700">),<br />&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;An&nbsp;other&nbsp;file,&nbsp;not&nbsp;finished&nbsp;uploading,&nbsp;in&nbsp;the&nbsp;same&nbsp;request<br />&nbsp;&nbsp;</span><span style="color: #0000BB">1&nbsp;</span><span style="color: #007700">=&gt;&nbsp;array(<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">"field_name"&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #DD0000">"file2"</span><span style="color: #007700">,<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">"name"&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #DD0000">"bar.avi"</span><span style="color: #007700">,<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">"tmp_name"&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #0000BB">NULL</span><span style="color: #007700">,<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">"error"&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #0000BB">0</span><span style="color: #007700">,<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">"done"&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #0000BB">false</span><span style="color: #007700">,<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">"start_time"&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #0000BB">1234567899</span><span style="color: #007700">,<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">"bytes_processed"&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #0000BB">54554</span><span style="color: #007700">,<br />&nbsp;&nbsp;),<br />&nbsp;)<br />);</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+ </p>
+ <div class="warning"><strong class="warning">Warning</strong>
+  <p class="para">
+   为了使这个正常工作，web服务器的请求缓冲区需要禁用，否则 PHP可能仅当文件完全上传完成时才能收到文件上传请求。
+   已知会缓冲这种大请求的程序有Nginx。
+  </p>
+ </div>
+ <div class="caution"><strong class="caution">Caution</strong>
+  <p class="para">
+   这个进度信息是在任意脚本被执行前写入session的，因此通过
+   <span class="function"><a href="function.ini-set.html" class="function">ini_set()</a></span>或<span class="function"><a href="function.session-name.html" class="function">session_name()</a></span>修改session名将会导致一个没有上传进度信息的session。
+  </p>
+ </div>
+</div>
+<div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="119631""></a>
+  <div class="note">
+   <strong class="user">alice at librelamp dot com</strong>
+   <a href="#119631" class="date">20-Jul-2016 11:49</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+There were two gotchas that got me with implementing this.<br />
+<br />
+The first - if you use session_name() to change the name of sessions, this will not work. I discovered this by looking at phpinfo() and seeing that is saw a different session name.<br />
+<br />
+At least in Apache, a better way to set the session is in your apache config use<br />
+<br />
+php_value session.name "your custom name"<br />
+<br />
+It goes within the Directory directive, might work in .htaccess - I don't know.<br />
+<br />
+-=-<br />
+<br />
+Secondly - in apache, don't use mod_mpm_prefork.so<br />
+<br />
+That was the problem I had, that's the default in CentOS 7.<br />
+<br />
+The problem is it causes Apache to wait with any additional requests until the upload is finished.<br />
+<br />
+Commenting that module out and using mod_mpm_worker.so instead fixed that problem, and the progress meter worked.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118866""></a>
+  <div class="note">
+   <strong class="user">adri74 at hotmail dot fr</strong>
+   <a href="#118866" class="date">18-Feb-2016 04:15</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+It seems like defining a session name before starting the session makes the $_SESSION['upload_progress...'] not to work any more !<br />
+<br />
+session_name('session');<br />
+session_start();<br />
+<br />
+(in both the upload page, and the XHR request)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117188""></a>
+  <div class="note">
+   <strong class="user">ricki at rocker dot com</strong>
+   <a href="#117188" class="date">28-Apr-2015 06:36</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+session.upload_progress updates completely ignore custom session handlers set via&nbsp; session_set_save_handler()</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117030""></a>
+  <div class="note">
+   <strong class="user">howtomakeaturn</strong>
+   <a href="#117030" class="date">04-Apr-2015 07:18</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+ATTENTION:<br />
+<br />
+Put the upload progress session name input field BEFORE your file field in the form :<br />
+<br />
+&nbsp; &lt;form action="upload.php" method="POST" enctype="multipart/form-data"&gt;<br />
+&nbsp; &lt;input type="hidden" name="<span class="default">&lt;?php </span><span class="keyword">echo </span><span class="default">ini_get</span><span class="keyword">(</span><span class="string">"session.upload_progress.name"</span><span class="keyword">); </span><span class="default">?&gt;</span>" value="123" /&gt;<br />
+&nbsp; &lt;input type="file" name="file1" /&gt;<br />
+&nbsp; &lt;input type="file" name="file2" /&gt;<br />
+&nbsp; &lt;input type="submit" /&gt;<br />
+&nbsp; &lt;/form&gt;<br />
+<br />
+If you make it after your file field, you'll waste a lot of time figuring why (just like me ...)<br />
+<br />
+The following form will make you crazy and waste really a lot of time:<br />
+<br />
+&lt;form action="upload.php" method="POST" enctype="multipart/form-data"&gt;<br />
+&nbsp;&lt;input type="file" name="file1" /&gt;<br />
+&nbsp;&lt;input type="file" name="file2" /&gt;<br />
+&nbsp;&lt;input type="hidden" name="<span class="default">&lt;?php </span><span class="keyword">echo </span><span class="default">ini_get</span><span class="keyword">(</span><span class="string">"session.upload_progress.name"</span><span class="keyword">); </span><span class="default">?&gt;</span>" value="123" /&gt;<br />
+&nbsp;&lt;input type="submit" /&gt;<br />
+&lt;/form&gt;<br />
+<br />
+DON'T do this!</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115971""></a>
+  <div class="note">
+   <strong class="user">StrateGeyti</strong>
+   <a href="#115971" class="date">20-Oct-2014 10:07</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+It seems like if you send a form with the field like :<br />
+<br />
+<span class="default">&lt;?php </span><span class="keyword">echo </span><span class="string">'&lt;input type="hidden" name="'</span><span class="keyword">.</span><span class="default">ini_get</span><span class="keyword">(</span><span class="string">'session.upload_progress.name'</span><span class="keyword">) .</span><span class="string">'" value="123" /&gt;'</span><span class="keyword">;&nbsp; </span><span class="default">?&gt;<br />
+</span><br />
+without any field type "file", the server respons will be an 500 error.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115847""></a>
+  <div class="note">
+   <strong class="user">wilsonr at st dot com</strong>
+   <a href="#115847" class="date">03-Oct-2014 07:22</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you have upload progress enabled in your php.ini, and you have <br />
+<br />
+&lt;form enctype="multipart/form-data" ...<br />
+&nbsp;&nbsp;&nbsp; &lt;input type="hidden" name="PHP_SESSION_UPLOAD_PROGRESS" ...<br />
+<br />
+in your form, but you DON'T specify an input with 'type="file"', you may lose your session ID. I am using PHP 5.5 and I lose my session ID on the second loading of such a page. To prevent this, you can use a dummy input as follows:<br />
+<br />
+&lt;form enctype="multipart/form-data" ... &gt;<br />
+&nbsp;&nbsp;&nbsp; &lt;input type="hidden" name="PHP_SESSION_UPLOAD_PROGRESS" ... /&gt;<br />
+&nbsp;&nbsp;&nbsp; &lt;input type="file"' name="dummy" style="display="none;" ... /&gt;</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="113344""></a>
+  <div class="note">
+   <strong class="user">jortsc at gmail dot com</strong>
+   <a href="#113344" class="date">29-Sep-2013 06:47</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Note that if you run that code and you print out the content of $_SESSSION[$key] you get an empty array due that session.upload_progress.cleanup is on by default and it&nbsp; cleans the progress information as soon as all POST data has been read.<br />
+<br />
+Set it to Off or 0 to see the content of $_SESSION[$key].</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="112406""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#112406" class="date">12-Jun-2013 03:34</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+While the example in the documentation is accurate, the description is a bit off. To clarify:<br />
+<br />
+PHP will populate an array in the $_SESSION, where the index is a concatenated value of the session.upload_progress.prefix and the VALUE of the POSTed session.upload_progress.name variable.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="112094""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#112094" class="date">02-May-2013 08:01</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+dont't forget, that the session has to be initialized before the form is generated, otherwise the mentioned example above won't work.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="109915""></a>
+  <div class="note">
+   <strong class="user">isius</strong>
+   <a href="#109915" class="date">03-Sep-2012 05:11</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you're seeing<br />
+"PHP Warning:&nbsp; Unknown: The session id is too long or contains illegal characters, valid characters are a-z, A-Z, 0-9 and '-,' in Unknown on line 0",<br />
+then a misplaced input could be the cause. It's worth mentioning again that the hidden element MUST be before the file elements.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="109691""></a>
+  <div class="note">
+   <strong class="user">nihaopaul at gmail dot com</strong>
+   <a href="#109691" class="date">10-Aug-2012 06:12</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+it should be noted that the hidden element come before the file element otherwise you wont get any updates.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="109091""></a>
+  <div class="note">
+   <strong class="user">s.zarges</strong>
+   <a href="#109091" class="date">19-Jun-2012 09:32</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Note, this feature doesn't work, when your webserver is runnig PHP via FastCGI. There will be no progress informations in the session array.<br />
+Unfortunately PHP gets the data only after the upload is completed and can't show any progress.<br />
+<br />
+I hope this informations helps.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="107759""></a>
+  <div class="note">
+   <strong class="user">powtac at gmx dot de</strong>
+   <a href="#107759" class="date">02-Mar-2012 08:35</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+For PHP &gt;= 5.2 there is <a href="http://pecl.php.net/package/uploadprogress" rel="nofollow" target="_blank">http://pecl.php.net/package/uploadprogress</a></span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

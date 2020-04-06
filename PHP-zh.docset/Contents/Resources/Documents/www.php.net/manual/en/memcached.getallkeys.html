@@ -1,0 +1,256 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Gets the keys stored on all the servers</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="memcached.get.html">? Memcached::get</a></li>
+      <li style="float: right;"><a href="memcached.getbykey.html">Memcached::getByKey ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="class.memcached.html">Memcached</a></li>
+    <li>Gets the keys stored on all the servers</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="memcached.getallkeys" class="refentry">
+ <div class="refnamediv">
+  <h1 class="refname">Memcached::getAllKeys</h1>
+  <p class="verinfo">(PECL memcached &gt;= 2.0.0)</p><p class="refpurpose"><span class="refname">Memcached::getAllKeys</span> &mdash; <span class="dc-title">Gets the keys stored on all the servers</span></p>
+
+ </div>
+
+ <div class="refsect1 description" id="refsect1-memcached.getallkeys-description">
+  <h3 class="title">说明</h3>
+  <div class="methodsynopsis dc-description">
+   <span class="modifier">public</span> <span class="methodname"><strong>Memcached::getAllKeys</strong></span>
+    ( <span class="methodparam">void</span>
+   ) : <span class="type">array</span></div>
+
+  <p class="para rdfs-comment">
+   <span class="function"><strong>Memcached::getAllKeys()</strong></span> queries each memcache server
+   and retrieves an array of all keys stored on them at that point in time.
+   This is not an atomic operation, so it isn&#039;t a truly consistent snapshot of
+   the keys at point in time. As memcache doesn&#039;t guarantee to return all keys
+   you also cannot assume that all keys have been returned.
+  </p>
+ </div>
+
+
+ <div class="refsect1 parameters" id="refsect1-memcached.getallkeys-parameters">
+  <h3 class="title">参数</h3>
+  <p class="para">此函数没有参数。</p>
+ </div>
+
+
+ <div class="refsect1 returnvalues" id="refsect1-memcached.getallkeys-returnvalues">
+  <h3 class="title">返回值</h3>
+  <p class="para">
+   Returns the keys stored on all the servers on success 或者在失败时返回 <strong><code>FALSE</code></strong>.
+  </p>
+ </div>
+
+
+</div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="123793""></a>
+  <div class="note">
+   <strong class="user">harold at snel dot me</strong>
+   <a href="#123793" class="date">23-Apr-2019 08:59</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+/**<br />
+&nbsp;* Get all memcached keys. Special function because getAllKeys() is broken since memcached 1.4.23. Should only be needed on php 5.6<br />
+&nbsp;*<br />
+&nbsp;* cleaned up version of code found on Stackoverflow.com by Maduka Jayalath<br />
+&nbsp;*<br />
+&nbsp;* @return array|int - all retrieved keys (or negative number on error)<br />
+&nbsp;*/<br />
+public function getMemcachedKeys($host = '127.0.0.1', $port = 11211)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; $mem = @fsockopen($host, $port);<br />
+&nbsp;&nbsp;&nbsp; if ($mem === false)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return -1;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; // retrieve distinct slab<br />
+&nbsp;&nbsp;&nbsp; $r = @fwrite($mem, 'stats items' . chr(10));<br />
+&nbsp;&nbsp;&nbsp; if ($r === false)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return -2;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; $slab = [];<br />
+&nbsp;&nbsp;&nbsp; while (($l = @fgets($mem, 1024)) !== false)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; // finished?<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $l = trim($l);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ($l == 'END') <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $m = [];<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; // &lt;STAT items:22:evicted_nonzero 0&gt;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $r = preg_match('/^STAT\sitems\:(\d+)\:/', $l, $m);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ($r != 1) <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return -3;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $a_slab = $m[1];<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (!array_key_exists($a_slab, $slab)) <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $slab[$a_slab] = [];<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; reset($slab);<br />
+&nbsp;&nbsp;&nbsp; foreach ($slab as $a_slab_key =&gt; &amp;$a_slab)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $r = @fwrite($mem, 'stats cachedump ' . $a_slab_key . ' 100' . chr(10));<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ($r === false) <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return -4;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; while (($l = @fgets($mem, 1024)) !== false)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; // finished?<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $l = trim($l);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if ($l == 'END') <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $m = [];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; // ITEM 42 [118 b; 1354717302 s]<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $r = preg_match('/^ITEM\s([^\s]+)\s/', $l, $m);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if ($r != 1) <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return -5;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $a_key = $m[1];<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $a_slab[] = $a_key;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; // close the connection<br />
+&nbsp;&nbsp;&nbsp; @fclose($mem);<br />
+&nbsp;&nbsp;&nbsp; unset($mem);<br />
+<br />
+&nbsp;&nbsp;&nbsp; $keys = [];<br />
+&nbsp;&nbsp;&nbsp; reset($slab);<br />
+&nbsp;&nbsp;&nbsp; foreach ($slab AS &amp;$a_slab)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; reset($a_slab);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach ($a_slab AS &amp;$a_key) <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $keys[] = $a_key;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; unset($slab);<br />
+<br />
+&nbsp;&nbsp;&nbsp; return $keys;<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="120596""></a>
+  <div class="note">
+   <strong class="user">flaviu dot chelaru at gmail dot com</strong>
+   <a href="#120596" class="date">05-Feb-2017 08:58</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+// initiate the memcached instance<br />
+$cache = new \Memcached();<br />
+$cache-&gt;addServer('localhost', '11211');<br />
+<br />
+// get all stored memcached items<br />
+<br />
+$keys = $cache-&gt;getAllKeys();<br />
+$cache-&gt;getDelayed($keys);<br />
+<br />
+$store = $cache-&gt;fetchAll();<br />
+<br />
+// delete by regex keys<br />
+<br />
+$keys = $cache-&gt;getAllKeys();<br />
+$regex = 'product_.*';<br />
+foreach($keys as $item) {<br />
+&nbsp;&nbsp;&nbsp; if(preg_match('/'.$regex.'/', $item)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $cache-&gt;delete($item);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119233""></a>
+  <div class="note">
+   <strong class="user">xiangku7890 at gmail dot com</strong>
+   <a href="#119233" class="date">24-Apr-2016 01:46</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+First I use the lastest memcached version 1.4.25, but unfortunately I found memcached::getAllkeys do not work with it, though i follow the others suggestion to disable Memcached::OPT_BINARY_PROTOCOL. So i try to use history versions, when i use memcached version 1.4.17, it works.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118525""></a>
+  <div class="note">
+   <strong class="user">fykknd at 163 dot com</strong>
+   <a href="#118525" class="date">21-Dec-2015 08:11</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I got this answer..<br />
+My libmemcached version is 1.0.18. php-memcached version is 2.2.0<br />
+In Libmemcached at memcache.h line 84:<br />
+&nbsp;#define MAX_NUMBER_OF_SLAB_CLASSES (63 + 1)<br />
+Modify it to 201, compile again. It's ok.<br />
+主要还是版本不兼容造成的。libmemchaed里的一个bug，<br />
+memcached_return_t这个方法里的for循环，最大数是200，和上面的常量64定义不一致造成的。</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116552""></a>
+  <div class="note">
+   <strong class="user">Cuchac</strong>
+   <a href="#116552" class="date">21-Jan-2015 07:27</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+This command returns always FALSE when binary protocol in use (Memcached::OPT_BINARY_PROTOCOL = true). Without binary protocol it works.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

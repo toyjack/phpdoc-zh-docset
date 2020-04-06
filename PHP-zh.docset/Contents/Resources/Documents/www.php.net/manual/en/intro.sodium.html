@@ -1,0 +1,587 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>简介</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="book.sodium.html">? Sodium</a></li>
+      <li style="float: right;"><a href="sodium.setup.html">安装／配置 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="book.sodium.html">Sodium</a></li>
+    <li>简介</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="intro.sodium" class="preface">
+  <h1 class="title">简介</h1>
+  <p class="para">
+
+  </p>
+ </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="123099""></a>
+  <div class="note">
+   <strong class="user">Sander</strong>
+   <a href="#123099" class="date">03-Sep-2018 01:30</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+When using the stream_get_meta_data() function, the manual states not to use the value of 'unread_bytes' in a script, which lead to a non functioning script in my environment. I guess you'd rather use the value of 'eof'. Or, even better, use the feof() function.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="122685""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#122685" class="date">01-May-2018 12:30</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Clearly there isn't much support or documentation for this yet.&nbsp; <br />
+<br />
+Based off the same safeEncrypt implementation here and elsewhere, I updated it to work for me (I'm running libsodium 1.0.8).<br />
+<br />
+I added these methods to a utility class.<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="comment">// simple example<br />
+</span><span class="default">$message </span><span class="keyword">= </span><span class="string">'My ultra-sensitive information'</span><span class="keyword">;<br />
+<br />
+</span><span class="default">$secret_key </span><span class="keyword">= </span><span class="default">Util</span><span class="keyword">::</span><span class="default">generateSecretKey</span><span class="keyword">();<br />
+</span><span class="default">$encrypted </span><span class="keyword">= </span><span class="default">Util</span><span class="keyword">::</span><span class="default">encrypt</span><span class="keyword">(</span><span class="default">$message</span><span class="keyword">, </span><span class="default">$secret_key</span><span class="keyword">, </span><span class="default">64</span><span class="keyword">);<br />
+</span><span class="default">$decrypted </span><span class="keyword">= </span><span class="default">Util</span><span class="keyword">::</span><span class="default">decrypt</span><span class="keyword">(</span><span class="default">$encrypted</span><span class="keyword">, </span><span class="default">$secret_key</span><span class="keyword">, </span><span class="default">64</span><span class="keyword">);<br />
+<br />
+print </span><span class="default">$decrypted</span><span class="keyword">;<br />
+<br />
+</span><span class="comment">// outputs 'My ultra-sensitive information'<br />
+// encrypted data is padded to 64-byte chunks to obfuscate actual data length<br />
+<br />
+</span><span class="keyword">class </span><span class="default">Util<br />
+</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">/**<br />
+&nbsp;&nbsp; &nbsp; * Get a secret key for encrypt/decrypt<br />
+&nbsp;&nbsp; &nbsp; *<br />
+&nbsp;&nbsp; &nbsp; * Use libsodium to generate a secret key.&nbsp; This should be kept secure.<br />
+&nbsp;&nbsp; &nbsp; *<br />
+&nbsp;&nbsp; &nbsp; * @return string<br />
+&nbsp;&nbsp; &nbsp; * @see encrypt(), decrypt()<br />
+&nbsp;&nbsp; &nbsp; */<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">public static function </span><span class="default">generateSecretKey</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">sodium_crypto_secretbox_keygen</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">/**<br />
+&nbsp;&nbsp; &nbsp; * Encrypt a message<br />
+&nbsp;&nbsp; &nbsp; *<br />
+&nbsp;&nbsp; &nbsp; * Use libsodium to encrypt a string<br />
+&nbsp;&nbsp; &nbsp; *<br />
+&nbsp;&nbsp; &nbsp; * @param string $message - message to encrypt<br />
+&nbsp;&nbsp; &nbsp; * @param string $secret_key - encryption key<br />
+&nbsp;&nbsp; &nbsp; * @param int $block_size - pad the message by $block_size byte chunks to conceal encrypted data size. must match between encrypt/decrypt!<br />
+&nbsp;&nbsp; &nbsp; * @return string<br />
+&nbsp;&nbsp; &nbsp; * @see decrypt()<br />
+&nbsp;&nbsp; &nbsp; * @see https://github.com/jedisct1/libsodium/issues/392<br />
+&nbsp;&nbsp; &nbsp; */<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">public static function </span><span class="default">encrypt</span><span class="keyword">(</span><span class="default">$message</span><span class="keyword">, </span><span class="default">$secret_key</span><span class="keyword">, </span><span class="default">$block_size </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// create a nonce for this operation. it will be stored and recovered in the message itself<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$nonce </span><span class="keyword">= </span><span class="default">random_bytes</span><span class="keyword">(</span><span class="default">SODIUM_CRYPTO_SECRETBOX_NONCEBYTES</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// pad to $block_size byte chunks (enforce 512 byte limit)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$padded_message </span><span class="keyword">= </span><span class="default">sodium_pad</span><span class="keyword">(</span><span class="default">$message</span><span class="keyword">, </span><span class="default">$block_size </span><span class="keyword">&lt;= </span><span class="default">512 </span><span class="keyword">? </span><span class="default">$block_size </span><span class="keyword">: </span><span class="default">512</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// encrypt message and combine with nonce<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$cipher </span><span class="keyword">= </span><span class="default">base64_encode</span><span class="keyword">(</span><span class="default">$nonce </span><span class="keyword">. </span><span class="default">sodium_crypto_secretbox</span><span class="keyword">(</span><span class="default">$padded_message</span><span class="keyword">, </span><span class="default">$nonce</span><span class="keyword">, </span><span class="default">$secret_key</span><span class="keyword">));<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// cleanup<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">sodium_memzero</span><span class="keyword">(</span><span class="default">$message</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">sodium_memzero</span><span class="keyword">(</span><span class="default">$secret_key</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$cipher</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">/**<br />
+&nbsp;&nbsp; &nbsp; * Decrypt a message<br />
+&nbsp;&nbsp; &nbsp; *<br />
+&nbsp;&nbsp; &nbsp; * Use libsodium to decrypt an encrypted string<br />
+&nbsp;&nbsp; &nbsp; *<br />
+&nbsp;&nbsp; &nbsp; * @param string $encrypted - the encrypted message<br />
+&nbsp;&nbsp; &nbsp; * @param string $key - encryption key<br />
+&nbsp;&nbsp; &nbsp; * @param int $block_size - pad the message by $block_size byte chunks to conceal encrypted data size. must match between encrypt/decrypt!<br />
+&nbsp;&nbsp; &nbsp; * @return string<br />
+&nbsp;&nbsp; &nbsp; * @see encrypt()<br />
+&nbsp;&nbsp; &nbsp; * @see https://github.com/jedisct1/libsodium/issues/392<br />
+&nbsp;&nbsp; &nbsp; */<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">public static function </span><span class="default">decrypt</span><span class="keyword">(</span><span class="default">$encrypted</span><span class="keyword">, </span><span class="default">$secret_key</span><span class="keyword">, </span><span class="default">$block_size </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// unpack base64 message<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$decoded </span><span class="keyword">= </span><span class="default">base64_decode</span><span class="keyword">(</span><span class="default">$encrypted</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// check for general failures<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if (</span><span class="default">$decoded </span><span class="keyword">=== </span><span class="default">false</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; throw new \</span><span class="default">Exception</span><span class="keyword">(</span><span class="string">'The encoding failed'</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// check for incomplete message. CRYPTO_SECRETBOX_MACBYTES doesn't seem to exist in this version...<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if (!</span><span class="default">defined</span><span class="keyword">(</span><span class="string">'CRYPTO_SECRETBOX_MACBYTES'</span><span class="keyword">)) </span><span class="default">define</span><span class="keyword">(</span><span class="string">'CRYPTO_SECRETBOX_MACBYTES'</span><span class="keyword">, </span><span class="default">16</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">mb_strlen</span><span class="keyword">(</span><span class="default">$decoded</span><span class="keyword">, </span><span class="string">'8bit'</span><span class="keyword">) &lt; (</span><span class="default">SODIUM_CRYPTO_SECRETBOX_NONCEBYTES </span><span class="keyword">+ </span><span class="default">CRYPTO_SECRETBOX_MACBYTES</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; throw new \</span><span class="default">Exception</span><span class="keyword">(</span><span class="string">'The message was truncated'</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// pull nonce and ciphertext out of unpacked message<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$nonce </span><span class="keyword">= </span><span class="default">mb_substr</span><span class="keyword">(</span><span class="default">$decoded</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">, </span><span class="default">SODIUM_CRYPTO_SECRETBOX_NONCEBYTES</span><span class="keyword">, </span><span class="string">'8bit'</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$ciphertext </span><span class="keyword">= </span><span class="default">mb_substr</span><span class="keyword">(</span><span class="default">$decoded</span><span class="keyword">, </span><span class="default">SODIUM_CRYPTO_SECRETBOX_NONCEBYTES</span><span class="keyword">, </span><span class="default">null</span><span class="keyword">, </span><span class="string">'8bit'</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// decrypt it and account for extra padding from $block_size (enforce 512 byte limit)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$decrypted_padded_message </span><span class="keyword">= </span><span class="default">sodium_crypto_secretbox_open</span><span class="keyword">(</span><span class="default">$ciphertext</span><span class="keyword">, </span><span class="default">$nonce</span><span class="keyword">, </span><span class="default">$secret_key</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$message </span><span class="keyword">= </span><span class="default">sodium_unpad</span><span class="keyword">(</span><span class="default">$decrypted_padded_message</span><span class="keyword">, </span><span class="default">$block_size </span><span class="keyword">&lt;= </span><span class="default">512 </span><span class="keyword">? </span><span class="default">$block_size </span><span class="keyword">: </span><span class="default">512</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// check for encrpytion failures<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if (</span><span class="default">$message </span><span class="keyword">=== </span><span class="default">false</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; throw new \</span><span class="default">Exception</span><span class="keyword">(</span><span class="string">'The message was tampered with in transit'</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// cleanup<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">sodium_memzero</span><span class="keyword">(</span><span class="default">$ciphertext</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">sodium_memzero</span><span class="keyword">(</span><span class="default">$secret_key</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$message</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+}<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="122172""></a>
+  <div class="note">
+   <strong class="user">jedisct1 at php dot net</strong>
+   <a href="#122172" class="date">22-Dec-2017 09:37</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+You may want to use `feof($fd_in)` instead of `stream_get_meta_data($fd_in)['unread_bytes'] &lt;= 0` in the examples above.<br />
+<br />
+Or just read the documentation of the PHP extension here: https://github.com/jedisct1/libsodium-php -- it is always more up to date.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="122027""></a>
+  <div class="note">
+   <strong class="user">jedisct1 at php dot net</strong>
+   <a href="#122027" class="date">15-Dec-2017 08:53</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+With sensitive data, use `sodium_bin2base64()` and `sodium_base642bin()` than `base64_encode()` and `base64_decode()`.<br />
+<br />
+The sodium functions provide better protection against side channels, are more flexible, and perform stricter validation.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="122026""></a>
+  <div class="note">
+   <strong class="user">jedisct1 at php dot net</strong>
+   <a href="#122026" class="date">15-Dec-2017 08:47</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+## Encrypt a file using a key derived from a password:<br />
+<br />
+<span class="default">&lt;?php<br />
+$password </span><span class="keyword">= </span><span class="string">'password'</span><span class="keyword">;<br />
+</span><span class="default">$input_file </span><span class="keyword">= </span><span class="string">'/tmp/example.original'</span><span class="keyword">;<br />
+</span><span class="default">$encrypted_file </span><span class="keyword">= </span><span class="string">'/tmp/example.enc'</span><span class="keyword">;<br />
+</span><span class="default">$chunk_size </span><span class="keyword">= </span><span class="default">4096</span><span class="keyword">;<br />
+<br />
+</span><span class="default">$alg </span><span class="keyword">= </span><span class="default">SODIUM_CRYPTO_PWHASH_ALG_DEFAULT</span><span class="keyword">;<br />
+</span><span class="default">$opslimit </span><span class="keyword">= </span><span class="default">SODIUM_CRYPTO_PWHASH_OPSLIMIT_MODERATE</span><span class="keyword">;<br />
+</span><span class="default">$memlimit </span><span class="keyword">= </span><span class="default">SODIUM_CRYPTO_PWHASH_MEMLIMIT_MODERATE</span><span class="keyword">;<br />
+</span><span class="default">$salt </span><span class="keyword">= </span><span class="default">random_bytes</span><span class="keyword">(</span><span class="default">SODIUM_CRYPTO_PWHASH_SALTBYTES</span><span class="keyword">);<br />
+<br />
+</span><span class="default">$secret_key </span><span class="keyword">= </span><span class="default">sodium_crypto_pwhash</span><span class="keyword">(</span><span class="default">SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_KEYBYTES</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="default">$password</span><span class="keyword">, </span><span class="default">$salt</span><span class="keyword">, </span><span class="default">$opslimit</span><span class="keyword">, </span><span class="default">$memlimit</span><span class="keyword">, </span><span class="default">$alg</span><span class="keyword">);<br />
+<br />
+</span><span class="default">$fd_in </span><span class="keyword">= </span><span class="default">fopen</span><span class="keyword">(</span><span class="default">$input_file</span><span class="keyword">, </span><span class="string">'rb'</span><span class="keyword">);<br />
+</span><span class="default">$fd_out </span><span class="keyword">= </span><span class="default">fopen</span><span class="keyword">(</span><span class="default">$encrypted_file</span><span class="keyword">, </span><span class="string">'wb'</span><span class="keyword">);<br />
+<br />
+</span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$fd_out</span><span class="keyword">, </span><span class="default">pack</span><span class="keyword">(</span><span class="string">'C'</span><span class="keyword">, </span><span class="default">$alg</span><span class="keyword">));<br />
+</span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$fd_out</span><span class="keyword">, </span><span class="default">pack</span><span class="keyword">(</span><span class="string">'P'</span><span class="keyword">, </span><span class="default">$opslimit</span><span class="keyword">));<br />
+</span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$fd_out</span><span class="keyword">, </span><span class="default">pack</span><span class="keyword">(</span><span class="string">'P'</span><span class="keyword">, </span><span class="default">$memlimit</span><span class="keyword">));<br />
+</span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$fd_out</span><span class="keyword">, </span><span class="default">$salt</span><span class="keyword">);<br />
+<br />
+list(</span><span class="default">$stream</span><span class="keyword">, </span><span class="default">$header</span><span class="keyword">) = </span><span class="default">sodium_crypto_secretstream_xchacha20poly1305_init_push</span><span class="keyword">(</span><span class="default">$secret_key</span><span class="keyword">);<br />
+<br />
+</span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$fd_out</span><span class="keyword">, </span><span class="default">$header</span><span class="keyword">);<br />
+<br />
+</span><span class="default">$tag </span><span class="keyword">= </span><span class="default">SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_TAG_MESSAGE</span><span class="keyword">;<br />
+do {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$chunk </span><span class="keyword">= </span><span class="default">fread</span><span class="keyword">(</span><span class="default">$fd_in</span><span class="keyword">, </span><span class="default">$chunk_size</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">stream_get_meta_data</span><span class="keyword">(</span><span class="default">$fd_in</span><span class="keyword">)[</span><span class="string">'unread_bytes'</span><span class="keyword">] &lt;= </span><span class="default">0</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$tag </span><span class="keyword">= </span><span class="default">SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_TAG_FINAL</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$encrypted_chunk </span><span class="keyword">= </span><span class="default">sodium_crypto_secretstream_xchacha20poly1305_push</span><span class="keyword">(</span><span class="default">$stream</span><span class="keyword">, </span><span class="default">$chunk</span><span class="keyword">, </span><span class="string">''</span><span class="keyword">, </span><span class="default">$tag</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$fd_out</span><span class="keyword">, </span><span class="default">$encrypted_chunk</span><span class="keyword">);<br />
+} while (</span><span class="default">$tag </span><span class="keyword">!== </span><span class="default">SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_TAG_FINAL</span><span class="keyword">);<br />
+<br />
+</span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$fd_out</span><span class="keyword">);<br />
+</span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$fd_in</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Read the stored parameters and decrypt the file:<br />
+<br />
+<span class="default">&lt;?php<br />
+$decrypted_file </span><span class="keyword">= </span><span class="string">'/tmp/example.dec'</span><span class="keyword">;<br />
+<br />
+</span><span class="default">$fd_in </span><span class="keyword">= </span><span class="default">fopen</span><span class="keyword">(</span><span class="default">$encrypted_file</span><span class="keyword">, </span><span class="string">'rb'</span><span class="keyword">);<br />
+</span><span class="default">$fd_out </span><span class="keyword">= </span><span class="default">fopen</span><span class="keyword">(</span><span class="default">$decrypted_file</span><span class="keyword">, </span><span class="string">'wb'</span><span class="keyword">);<br />
+<br />
+</span><span class="default">$alg </span><span class="keyword">= </span><span class="default">unpack</span><span class="keyword">(</span><span class="string">'C'</span><span class="keyword">, </span><span class="default">fread</span><span class="keyword">(</span><span class="default">$fd_in</span><span class="keyword">, </span><span class="default">1</span><span class="keyword">))[</span><span class="default">1</span><span class="keyword">];<br />
+</span><span class="default">$opslimit </span><span class="keyword">= </span><span class="default">unpack</span><span class="keyword">(</span><span class="string">'P'</span><span class="keyword">, </span><span class="default">fread</span><span class="keyword">(</span><span class="default">$fd_in</span><span class="keyword">, </span><span class="default">8</span><span class="keyword">))[</span><span class="default">1</span><span class="keyword">];<br />
+</span><span class="default">$memlimit </span><span class="keyword">= </span><span class="default">unpack</span><span class="keyword">(</span><span class="string">'P'</span><span class="keyword">, </span><span class="default">fread</span><span class="keyword">(</span><span class="default">$fd_in</span><span class="keyword">, </span><span class="default">8</span><span class="keyword">))[</span><span class="default">1</span><span class="keyword">];<br />
+</span><span class="default">$salt </span><span class="keyword">= </span><span class="default">fread</span><span class="keyword">(</span><span class="default">$fd_in</span><span class="keyword">, </span><span class="default">SODIUM_CRYPTO_PWHASH_SALTBYTES</span><span class="keyword">);<br />
+<br />
+</span><span class="default">$header </span><span class="keyword">= </span><span class="default">fread</span><span class="keyword">(</span><span class="default">$fd_in</span><span class="keyword">, </span><span class="default">SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_HEADERBYTES</span><span class="keyword">);<br />
+<br />
+</span><span class="default">$secret_key </span><span class="keyword">= </span><span class="default">sodium_crypto_pwhash</span><span class="keyword">(</span><span class="default">SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_KEYBYTES</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="default">$password</span><span class="keyword">, </span><span class="default">$salt</span><span class="keyword">, </span><span class="default">$opslimit</span><span class="keyword">, </span><span class="default">$memlimit</span><span class="keyword">, </span><span class="default">$alg</span><span class="keyword">);<br />
+<br />
+</span><span class="default">$stream </span><span class="keyword">= </span><span class="default">sodium_crypto_secretstream_xchacha20poly1305_init_pull</span><span class="keyword">(</span><span class="default">$header</span><span class="keyword">, </span><span class="default">$secret_key</span><span class="keyword">);<br />
+<br />
+</span><span class="default">$tag </span><span class="keyword">= </span><span class="default">SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_TAG_MESSAGE</span><span class="keyword">;<br />
+while (</span><span class="default">stream_get_meta_data</span><span class="keyword">(</span><span class="default">$fd_in</span><span class="keyword">)[</span><span class="string">'unread_bytes'</span><span class="keyword">] &gt; </span><span class="default">0 </span><span class="keyword">&amp;&amp;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; </span><span class="default">$tag </span><span class="keyword">!== </span><span class="default">SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_TAG_FINAL</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$chunk </span><span class="keyword">= </span><span class="default">fread</span><span class="keyword">(</span><span class="default">$fd_in</span><span class="keyword">, </span><span class="default">$chunk_size </span><span class="keyword">+ </span><span class="default">SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_ABYTES</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$res </span><span class="keyword">= </span><span class="default">sodium_crypto_secretstream_xchacha20poly1305_pull</span><span class="keyword">(</span><span class="default">$stream</span><span class="keyword">, </span><span class="default">$chunk</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">$res </span><span class="keyword">=== </span><span class="default">FALSE</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; break;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; list(</span><span class="default">$decrypted_chunk</span><span class="keyword">, </span><span class="default">$tag</span><span class="keyword">) = </span><span class="default">$res</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$fd_out</span><span class="keyword">, </span><span class="default">$decrypted_chunk</span><span class="keyword">);<br />
+}<br />
+</span><span class="default">$ok </span><span class="keyword">= </span><span class="default">stream_get_meta_data</span><span class="keyword">(</span><span class="default">$fd_in</span><span class="keyword">)[</span><span class="string">'unread_bytes'</span><span class="keyword">] &lt;= </span><span class="default">0</span><span class="keyword">;<br />
+<br />
+</span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$fd_out</span><span class="keyword">);<br />
+</span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$fd_in</span><span class="keyword">);<br />
+<br />
+if (!</span><span class="default">$ok</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; die(</span><span class="string">'Invalid/corrupted input'</span><span class="keyword">);<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+How it works:<br />
+<br />
+A password cannot be directly used as a secret key. Passwords are<br />
+short, must be typable on a keyboard, and people who don't use a<br />
+password manager should be able to remember them.<br />
+<br />
+A 8 characters password is thus way weaker than a 8 bytes key.<br />
+<br />
+The `sodium_crypto_pwhash()` function perform a computationally<br />
+intensive operation on a password in order to derive a secret key.<br />
+<br />
+By doing do, brute-forcing all possible passwords in order to find the<br />
+secret key used to encrypt the data becomes an expensive operation.<br />
+<br />
+Multiple algorithms can be used to derive a key from a password, and<br />
+for each of them, different parameters can be chosen. It is important<br />
+to store all of these along with encrypted data. Using the same<br />
+algorithm and the same parameters, the same secret key can be<br />
+deterministically recomputed.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="122025""></a>
+  <div class="note">
+   <strong class="user">jedisct1 at php dot net</strong>
+   <a href="#122025" class="date">15-Dec-2017 08:46</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+## Encrypt a file using a secret key<br />
+<br />
+<span class="default">&lt;?php<br />
+$secret_key </span><span class="keyword">= </span><span class="default">sodium_crypto_secretstream_xchacha20poly1305_keygen</span><span class="keyword">();<br />
+</span><span class="default">$input_file </span><span class="keyword">= </span><span class="string">'/tmp/example.original'</span><span class="keyword">;<br />
+</span><span class="default">$encrypted_file </span><span class="keyword">= </span><span class="string">'/tmp/example.enc'</span><span class="keyword">;<br />
+</span><span class="default">$chunk_size </span><span class="keyword">= </span><span class="default">4096</span><span class="keyword">;<br />
+<br />
+</span><span class="default">$fd_in </span><span class="keyword">= </span><span class="default">fopen</span><span class="keyword">(</span><span class="default">$input_file</span><span class="keyword">, </span><span class="string">'rb'</span><span class="keyword">);<br />
+</span><span class="default">$fd_out </span><span class="keyword">= </span><span class="default">fopen</span><span class="keyword">(</span><span class="default">$encrypted_file</span><span class="keyword">, </span><span class="string">'wb'</span><span class="keyword">);<br />
+<br />
+list(</span><span class="default">$stream</span><span class="keyword">, </span><span class="default">$header</span><span class="keyword">) = </span><span class="default">sodium_crypto_secretstream_xchacha20poly1305_init_push</span><span class="keyword">(</span><span class="default">$secret_key</span><span class="keyword">);<br />
+<br />
+</span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$fd_out</span><span class="keyword">, </span><span class="default">$header</span><span class="keyword">);<br />
+<br />
+</span><span class="default">$tag </span><span class="keyword">= </span><span class="default">SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_TAG_MESSAGE</span><span class="keyword">;<br />
+do {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$chunk </span><span class="keyword">= </span><span class="default">fread</span><span class="keyword">(</span><span class="default">$fd_in</span><span class="keyword">, </span><span class="default">$chunk_size</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">stream_get_meta_data</span><span class="keyword">(</span><span class="default">$fd_in</span><span class="keyword">)[</span><span class="string">'unread_bytes'</span><span class="keyword">] &lt;= </span><span class="default">0</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$tag </span><span class="keyword">= </span><span class="default">SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_TAG_FINAL</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$encrypted_chunk </span><span class="keyword">= </span><span class="default">sodium_crypto_secretstream_xchacha20poly1305_push</span><span class="keyword">(</span><span class="default">$stream</span><span class="keyword">, </span><span class="default">$chunk</span><span class="keyword">, </span><span class="string">''</span><span class="keyword">, </span><span class="default">$tag</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$fd_out</span><span class="keyword">, </span><span class="default">$encrypted_chunk</span><span class="keyword">);<br />
+} while (</span><span class="default">$tag </span><span class="keyword">!== </span><span class="default">SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_TAG_FINAL</span><span class="keyword">);<br />
+<br />
+</span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$fd_out</span><span class="keyword">);<br />
+</span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$fd_in</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Decrypt the file:<br />
+<br />
+<span class="default">&lt;?php<br />
+$decrypted_file </span><span class="keyword">= </span><span class="string">'/tmp/example.dec'</span><span class="keyword">;<br />
+<br />
+</span><span class="default">$fd_in </span><span class="keyword">= </span><span class="default">fopen</span><span class="keyword">(</span><span class="default">$encrypted_file</span><span class="keyword">, </span><span class="string">'rb'</span><span class="keyword">);<br />
+</span><span class="default">$fd_out </span><span class="keyword">= </span><span class="default">fopen</span><span class="keyword">(</span><span class="default">$decrypted_file</span><span class="keyword">, </span><span class="string">'wb'</span><span class="keyword">);<br />
+<br />
+</span><span class="default">$header </span><span class="keyword">= </span><span class="default">fread</span><span class="keyword">(</span><span class="default">$fd_in</span><span class="keyword">, </span><span class="default">SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_HEADERBYTES</span><span class="keyword">);<br />
+<br />
+</span><span class="default">$stream </span><span class="keyword">= </span><span class="default">sodium_crypto_secretstream_xchacha20poly1305_init_pull</span><span class="keyword">(</span><span class="default">$header</span><span class="keyword">, </span><span class="default">$secret_key</span><span class="keyword">);<br />
+<br />
+</span><span class="default">$tag </span><span class="keyword">= </span><span class="default">SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_TAG_MESSAGE</span><span class="keyword">;<br />
+while (</span><span class="default">stream_get_meta_data</span><span class="keyword">(</span><span class="default">$fd_in</span><span class="keyword">)[</span><span class="string">'unread_bytes'</span><span class="keyword">] &gt; </span><span class="default">0 </span><span class="keyword">&amp;&amp;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; </span><span class="default">$tag </span><span class="keyword">!== </span><span class="default">SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_TAG_FINAL</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$chunk </span><span class="keyword">= </span><span class="default">fread</span><span class="keyword">(</span><span class="default">$fd_in</span><span class="keyword">, </span><span class="default">$chunk_size </span><span class="keyword">+ </span><span class="default">SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_ABYTES</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; list(</span><span class="default">$decrypted_chunk</span><span class="keyword">, </span><span class="default">$tag</span><span class="keyword">) = </span><span class="default">sodium_crypto_secretstream_xchacha20poly1305_pull</span><span class="keyword">(</span><span class="default">$stream</span><span class="keyword">, </span><span class="default">$chunk</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$fd_out</span><span class="keyword">, </span><span class="default">$decrypted_chunk</span><span class="keyword">);<br />
+}<br />
+</span><span class="default">$ok </span><span class="keyword">= </span><span class="default">stream_get_meta_data</span><span class="keyword">(</span><span class="default">$fd_in</span><span class="keyword">)[</span><span class="string">'unread_bytes'</span><span class="keyword">] &lt;= </span><span class="default">0</span><span class="keyword">;<br />
+<br />
+</span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$fd_out</span><span class="keyword">);<br />
+</span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$fd_in</span><span class="keyword">);<br />
+<br />
+if (!</span><span class="default">$ok</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; die(</span><span class="string">'Invalid/corrupted input'</span><span class="keyword">);<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+How it works:<br />
+<br />
+There's a little bit more code than in the previous examples.<br />
+<br />
+In fact, `crypto_secretbox()` would work to encrypt as file, but only<br />
+if that file is pretty small. Since we have to provide the entire<br />
+content as a string, it has to fit in memory.<br />
+<br />
+If the file is large, we can split it into small chunks, and encrypt<br />
+chunks individually.<br />
+<br />
+By doing do, we can encrypt arbitrary large files. But we need to make<br />
+sure that chunks cannot be deleted, truncated, duplicated and<br />
+reordered. In other words, we don't have a single "message", but a<br />
+stream of messages, and during the decryption process, we need a way<br />
+to check that the whole stream matches what we encrypted.<br />
+<br />
+So we create a new stream (`init_push`) and push a sequence of messages<br />
+into it (`push`). Each individual message has a tag attached to it, by<br />
+default `TAG_MESSAGE`. In order for the decryption process to know<br />
+where the end of the stream is, we tag the last message with the<br />
+`TAG_FINAL` tag.<br />
+<br />
+When we consume the stream (`init_pull`, then `pull` for each<br />
+message), we check that they can be properly decrypted, and retrieve<br />
+both the decrypted chunks and the attached tags. If we read the last<br />
+chunk (`TAG_FINAL`) and we are at the end of the file, we know that we<br />
+completely recovered the original stream.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="122024""></a>
+  <div class="note">
+   <strong class="user">jedisct1 at php dot net</strong>
+   <a href="#122024" class="date">15-Dec-2017 08:44</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+## Encrypt a single message using a secret key<br />
+<br />
+Encryption:<br />
+<br />
+```php<br />
+$secret_key = sodium_crypto_secretbox_keygen();<br />
+$message = 'Sensitive information';<br />
+<br />
+$nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);<br />
+$encrypted_message = sodium_crypto_secretbox($message, $nonce, $secret_key);<br />
+```<br />
+<br />
+Decryption:<br />
+<br />
+```php<br />
+$decrypted_message = sodium_crypto_secretbox_open($encrypted_message, $nonce, $secret_key);<br />
+```<br />
+<br />
+How it works:<br />
+<br />
+`$secret_key` is a secret key. Not a password. It's binary data, not<br />
+something designed to be human readable, but rather to have a key<br />
+space as large as possible for a given length.<br />
+The `keygen()` function creates such a key. That has to remain secret,<br />
+as it is used both to encrypt and decrypt data.<br />
+<br />
+`$nonce` is a unique value. Like the secret, its length is fixed. But<br />
+it doesn't have to be secret, and can be sent along with the encrypted<br />
+message. The nonce doesn't have to be unpredicable either. It just has<br />
+to be unique for a given key. With the `secretbox()` API, using<br />
+`random_bytes()` is a totally fine way to generate nonces.<br />
+<br />
+Encrypted messages are slightly larger than unencrypted messages,<br />
+because they include an authenticator, used by the decryption function<br />
+to check that the content was not altered.<br />
+<br />
+## Encrypt a single message using a secret key, and hide its length<br />
+<br />
+Encryption:<br />
+<br />
+```php<br />
+$secret_key = sodium_crypto_secretbox_keygen();<br />
+$message = 'Sensitive information';<br />
+$block_size = 16;<br />
+<br />
+$nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);<br />
+$padded_message = sodium_pad($padded_message, $block_size);<br />
+$encrypted_message = sodium_crypto_secretbox($padded_message, $nonce, $secret_key);<br />
+```<br />
+<br />
+Decryption:<br />
+<br />
+```php<br />
+$decrypted_padded_message = sodium_crypto_secretbox_open($encrypted_message, $nonce, $secret_key);<br />
+$decrypted_message = sodium_unpad($decrypted_padded_message, $block_size);<br />
+```<br />
+<br />
+How it works:<br />
+<br />
+Sometimes, the length of a message may provide a lot of information<br />
+about its nature. If a message is one of "yes", "no" and "maybe",<br />
+encrypting the message doesn't help: knowing the length is enough to<br />
+know what the message is.<br />
+<br />
+Padding is a technique to mitigate this, by making the length a<br />
+multiple of a given block size.<br />
+<br />
+Messages must be padded prior to encryption, and unpadded after<br />
+decryption.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="122003""></a>
+  <div class="note">
+   <strong class="user">rafayhingoro at hotmail dot com</strong>
+   <a href="#122003" class="date">10-Dec-2017 06:26</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+<span class="default">&lt;?php <br />
+</span><span class="comment">//Simple Usage<br />
+<br />
+/**<br />
+&nbsp;* Encrypt a message<br />
+&nbsp;* <br />
+&nbsp;* @param string $message - message to encrypt<br />
+&nbsp;* @param string $key - encryption key<br />
+&nbsp;* @return string<br />
+&nbsp;*/<br />
+</span><span class="keyword">function </span><span class="default">safeEncrypt</span><span class="keyword">(</span><span class="default">$message</span><span class="keyword">, </span><span class="default">$key</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$nonce </span><span class="keyword">= </span><span class="default">random_bytes</span><span class="keyword">(<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">SODIUM_CRYPTO_SECRETBOX_NONCEBYTES<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$cipher </span><span class="keyword">= </span><span class="default">base64_encode</span><span class="keyword">(<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$nonce</span><span class="keyword">.<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">sodium_crypto_secretbox</span><span class="keyword">(<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$message</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$nonce</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$key<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; );<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">sodium_memzero</span><span class="keyword">(</span><span class="default">$message</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">sodium_memzero</span><span class="keyword">(</span><span class="default">$key</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$cipher</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="comment">/**<br />
+&nbsp;* Decrypt a message<br />
+&nbsp;* <br />
+&nbsp;* @param string $encrypted - message encrypted with safeEncrypt()<br />
+&nbsp;* @param string $key - encryption key<br />
+&nbsp;* @return string<br />
+&nbsp;*/<br />
+</span><span class="keyword">function </span><span class="default">safeDecrypt</span><span class="keyword">(</span><span class="default">$encrypted</span><span class="keyword">, </span><span class="default">$key</span><span class="keyword">)<br />
+{&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$decoded </span><span class="keyword">= </span><span class="default">base64_decode</span><span class="keyword">(</span><span class="default">$encrypted</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">$decoded </span><span class="keyword">=== </span><span class="default">false</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; throw new </span><span class="default">Exception</span><span class="keyword">(</span><span class="string">'Scream bloody murder, the encoding failed'</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">mb_strlen</span><span class="keyword">(</span><span class="default">$decoded</span><span class="keyword">, </span><span class="string">'8bit'</span><span class="keyword">) &lt; (</span><span class="default">SODIUM_CRYPTO_SECRETBOX_NONCEBYTES </span><span class="keyword">+ </span><span class="default">SODIUM_CRYPTO_SECRETBOX_MACBYTES</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; throw new </span><span class="default">Exception</span><span class="keyword">(</span><span class="string">'Scream bloody murder, the message was truncated'</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$nonce </span><span class="keyword">= </span><span class="default">mb_substr</span><span class="keyword">(</span><span class="default">$decoded</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">, </span><span class="default">SODIUM_CRYPTO_SECRETBOX_NONCEBYTES</span><span class="keyword">, </span><span class="string">'8bit'</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$ciphertext </span><span class="keyword">= </span><span class="default">mb_substr</span><span class="keyword">(</span><span class="default">$decoded</span><span class="keyword">, </span><span class="default">SODIUM_CRYPTO_SECRETBOX_NONCEBYTES</span><span class="keyword">, </span><span class="default">null</span><span class="keyword">, </span><span class="string">'8bit'</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$plain </span><span class="keyword">= </span><span class="default">sodium_crypto_secretbox_open</span><span class="keyword">(<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$ciphertext</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$nonce</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$key<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">$plain </span><span class="keyword">=== </span><span class="default">false</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; throw new </span><span class="default">Exception</span><span class="keyword">(</span><span class="string">'the message was tampered with in transit'</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">sodium_memzero</span><span class="keyword">(</span><span class="default">$ciphertext</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">sodium_memzero</span><span class="keyword">(</span><span class="default">$key</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$plain</span><span class="keyword">;<br />
+}<br />
+</span><span class="comment">//Encrypt &amp; Decrypt your message<br />
+</span><span class="default">$key </span><span class="keyword">= </span><span class="default">sodium_crypto_secretbox_keygen</span><span class="keyword">();<br />
+</span><span class="default">$enc </span><span class="keyword">= </span><span class="default">safeEncrypt</span><span class="keyword">(</span><span class="string">'Abdul Rafay Hingoro'</span><span class="keyword">, </span><span class="default">$key</span><span class="keyword">); </span><span class="comment">//generates random&nbsp; encrypted string (Base64 related)<br />
+</span><span class="keyword">echo </span><span class="default">$enc</span><span class="keyword">;<br />
+echo </span><span class="string">'&lt;br&gt;'</span><span class="keyword">;<br />
+</span><span class="default">$dec </span><span class="keyword">= </span><span class="default">safeDecrypt</span><span class="keyword">(</span><span class="default">$enc</span><span class="keyword">, </span><span class="default">$key</span><span class="keyword">); </span><span class="comment">//decrypts encoded string generated via safeEncrypt function <br />
+</span><span class="keyword">echo </span><span class="default">$dec</span><span class="keyword">;<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+//Output<br />
+DEx9ATXEg/eRq8GWD3NT5BatB3m31WEDEYLK2V4L0Am5GZGoa2rvYWUpoUeCrm7W/pdgLJrNoE6AA8U=<br />
+Abdul Rafay Hingoro</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

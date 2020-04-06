@@ -1,0 +1,612 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>declare</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="control-structures.switch.html">? switch</a></li>
+      <li style="float: right;"><a href="function.return.html">return ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="language.control-structures.html">流程控制</a></li>
+    <li>declare</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="control-structures.declare" class="sect1">
+ <h2 class="title"><em>declare</em></h2>
+ <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p>
+ <p class="para">
+  <em>declare</em> 结构用来设定一段代码的执行指令。<em>declare</em>
+  的语法和其它流程控制结构相似：
+  <div class="informalexample">
+   <div class="example-contents">
+<div class="cdata"><pre>
+declare (directive)
+    statement
+</pre></div>
+   </div>
+
+  </div>
+ </p>
+ <p class="para">
+  <em>directive</em> 部分允许设定 <em>declare</em>
+  代码段的行为。目前只认识两个指令：<em>ticks</em>（更多信息见下面
+  <a href="control-structures.declare.html#control-structures.declare.ticks" class="link">ticks</a> 指令）以及 
+  <em>encoding</em>（更多信息见下面 <a href="control-structures.declare.html#control-structures.declare.encoding" class="link">encoding</a> 指令）。
+ </p>
+ <blockquote class="note"><p><strong class="note">Note</strong>: 
+  <span class="simpara">
+   encoding 是 PHP 5.3.0 新增指令。
+  </span>
+ </p></blockquote> 
+ <p class="para">
+  <em>declare</em> 代码段中的 <em>statement</em>
+  部分将被执行&mdash;&mdash;怎样执行以及执行中有什么副作用出现取决于
+  <em>directive</em> 中设定的指令。
+ </p>
+ <p class="para">
+  <em>declare</em> 结构也可用于全局范围，影响到其后的所有代码（但如果有
+  <em>declare</em> 结构的文件被其它文件包含，则对包含它的父文件不起作用）。
+  <div class="informalexample">
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">//&nbsp;these&nbsp;are&nbsp;the&nbsp;same:<br /><br />//&nbsp;you&nbsp;can&nbsp;use&nbsp;this:<br /></span><span style="color: #007700">declare(</span><span style="color: #0000BB">ticks</span><span style="color: #007700">=</span><span style="color: #0000BB">1</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;entire&nbsp;script&nbsp;here<br /></span><span style="color: #007700">}<br /><br /></span><span style="color: #FF8000">//&nbsp;or&nbsp;you&nbsp;can&nbsp;use&nbsp;this:<br /></span><span style="color: #007700">declare(</span><span style="color: #0000BB">ticks</span><span style="color: #007700">=</span><span style="color: #0000BB">1</span><span style="color: #007700">);<br /></span><span style="color: #FF8000">//&nbsp;entire&nbsp;script&nbsp;here<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+ </p>
+ 
+ <div class="sect2" id="control-structures.declare.ticks">
+  <h3 class="title">Ticks</h3>
+  <p class="para">
+   Tick（时钟周期）是一个在 <em>declare</em> 代码段中解释器每执行
+   <var class="varname"><var class="varname">N</var></var> 条可计时的低级语句就会发生的事件。<var class="varname"><var class="varname">N</var></var>
+   的值是在 <em>declare</em> 中的 <em>directive</em> 部分用
+   <code class="code">ticks=<var class="varname"><var class="varname">N</var></var></code> 来指定的。
+  </p>
+  <p class="para">
+   不是所有语句都可计时。通常条件表达式和参数表达式都不可计时。
+  </p>
+  <p class="para">
+   在每个 tick 中出现的事件是由 <span class="function"><a href="function.register-tick-function.html" class="function">register_tick_function()</a></span>
+   来指定的。更多细节见下面的例子。注意每个 tick 中可以出现多个事件。
+  </p>
+  <p class="para">
+   <div class="example" id="example-128">
+    <p><strong>Example #1 Tick 的用法示例</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /><br /></span><span style="color: #007700">declare(</span><span style="color: #0000BB">ticks</span><span style="color: #007700">=</span><span style="color: #0000BB">1</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">//&nbsp;A&nbsp;function&nbsp;called&nbsp;on&nbsp;each&nbsp;tick&nbsp;event<br /></span><span style="color: #007700">function&nbsp;</span><span style="color: #0000BB">tick_handler</span><span style="color: #007700">()<br />{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"tick_handler()&nbsp;called\n"</span><span style="color: #007700">;<br />}<br /><br /></span><span style="color: #0000BB">register_tick_function</span><span style="color: #007700">(</span><span style="color: #DD0000">'tick_handler'</span><span style="color: #007700">);<br /><br /></span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">;<br /><br />if&nbsp;(</span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">&gt;&nbsp;</span><span style="color: #0000BB">0</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">+=&nbsp;</span><span style="color: #0000BB">2</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;print(</span><span style="color: #0000BB">$a</span><span style="color: #007700">);<br />}<br /><br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+  </p>
+  <p class="para">
+   <div class="example" id="example-129">
+    <p><strong>Example #2 Ticks 的用法示例</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /><br /></span><span style="color: #007700">function&nbsp;</span><span style="color: #0000BB">tick_handler</span><span style="color: #007700">()<br />{<br />&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"tick_handler()&nbsp;called\n"</span><span style="color: #007700">;<br />}<br /><br /></span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">tick_handler</span><span style="color: #007700">();<br /><br />if&nbsp;(</span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">&gt;&nbsp;</span><span style="color: #0000BB">0</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">+=&nbsp;</span><span style="color: #0000BB">2</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">tick_handler</span><span style="color: #007700">();<br />&nbsp;&nbsp;&nbsp;&nbsp;print(</span><span style="color: #0000BB">$a</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">tick_handler</span><span style="color: #007700">();<br />}<br /></span><span style="color: #0000BB">tick_handler</span><span style="color: #007700">();<br /><br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+  </p>
+  <p class="simpara">
+   参见 <span class="function"><a href="function.register-tick-function.html" class="function">register_tick_function()</a></span> 和
+   <span class="function"><a href="function.unregister-tick-function.html" class="function">unregister_tick_function()</a></span>。
+  </p>
+ </div>
+ 
+ <div class="sect2" id="control-structures.declare.encoding">
+  <h3 class="title">Encoding</h3>
+  <p class="para">
+   可以用 encoding 指令来对每段脚本指定其编码方式。
+   <div class="example" id="example-130">
+    <p><strong>Example #3 对脚本指定编码方式</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">declare(</span><span style="color: #0000BB">encoding</span><span style="color: #007700">=</span><span style="color: #DD0000">'ISO-8859-1'</span><span style="color: #007700">);<br /></span><span style="color: #FF8000">//&nbsp;code&nbsp;here<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+   </div>
+  </p>
+  
+  <div class="caution"><strong class="caution">Caution</strong>
+   <p class="simpara">
+    当和命名空间结合起来时 declare 的唯一合法语法是
+    <em>declare(encoding=&#039;...&#039;);</em>，其中 <em>...</em>
+    是编码的值。而 <em>declare(encoding=&#039;...&#039;) {}</em>
+    将在与命名空间结合时产生解析错误。
+   </p>
+  </div>
+  <p class="para">
+   在 PHP 5.3 中除非在编译时指定了
+   <em>--enable-zend-multibyte</em>，否则 declare 中的 encoding 值会被忽略。
+  </p>
+  <p class="para">
+   注意除非用 <span class="function"><a href="function.phpinfo.html" class="function">phpinfo()</a></span>，否则 PHP
+   不会显示出是否在编译时指定了 <em>--enable-zend-multibyte</em>。
+  </p>
+  <p class="para">
+   参见 <a href="ini.core.html#ini.zend.script-encoding" class="link">zend.script_encoding</a>。
+  </p>
+  
+ </div>
+</div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="124553""></a>
+  <div class="note">
+   <strong class="user">ohcc at 163 dot com</strong>
+   <a href="#124553" class="date">30-Dec-2019 04:59</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+It's possible to set directives at one time if every directive is supported.<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">declare(</span><span class="default">strict_types</span><span class="keyword">=</span><span class="default">1</span><span class="keyword">, </span><span class="default">encoding</span><span class="keyword">=</span><span class="string">'UTF-8'</span><span class="keyword">);<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="123676""></a>
+  <div class="note">
+   <strong class="user">digitalaudiorock at gmail dot com</strong>
+   <a href="#123676" class="date">10-Mar-2019 09:10</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Regarding my previous comment as to the change in scope of declare(ticks=1) between 5.6 and 7.x, I intended to mention another example of the affect this can have on signal handlers:<br />
+<br />
+If your script uses declare(ticks=1) and assigns handlers, in 5.6 signals will get caught and call the handler even when the code that is running is in an included file (where the included file doesn't have the declaration). However in 7.x the signal wouldn't get caught until the code returns to the main script.<br />
+<br />
+The best solution to that is to use pcntl_async_signals(true) when it's available, which will allow the signals to get caught regardless of what file the code happens to be in.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="123674""></a>
+  <div class="note">
+   <strong class="user">digitalaudiorock at gmail dot com</strong>
+   <a href="#123674" class="date">09-Mar-2019 09:14</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+A few important things to note for anyone using this in conjunction with signal handlers:<br />
+<br />
+If anyone is trying to optionally use either pcntl_async_signals() when available (PHP &gt;= 7.1) or ticks for older versions, this is not possible...at least not in a way that does NOT enable ticks for newer PHP versions. This is because there is simply no way to conditionally declare ticks. For example, the following will "work" but not in the way you might expect:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">if (</span><span class="default">function_exists</span><span class="keyword">(</span><span class="string">'pcntl_async_signals'</span><span class="keyword">)) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">pcntl_async_signals</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">);<br />
+} else {<br />
+&nbsp;&nbsp;&nbsp; declare(</span><span class="default">ticks</span><span class="keyword">=</span><span class="default">1</span><span class="keyword">);<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+While signal handlers will work with this for old and new version, ticks WILL be enabled even in the case where pcntl_async_signals exists, simply because the declare statement exists. So the above is functionally equivalent to:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">if (</span><span class="default">function_exists</span><span class="keyword">(</span><span class="string">'pcntl_async_signals'</span><span class="keyword">)) </span><span class="default">pcntl_async_signals</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">);<br />
+declare(</span><span class="default">ticks</span><span class="keyword">=</span><span class="default">1</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Another thing to be aware of is that the scoping of this declaration changed a bit from PHP 5.6 to 7.x...actually it was corrected apparently as noted here:<br />
+<br />
+<a href="http://php.net/manual/en/function.register-tick-function.php#121204" rel="nofollow" target="_blank">http://php.net/manual/en/function.register-tick-function.php#121204</a><br />
+<br />
+This can cause some very confusing behavior. One example is with the pear/System_Daemon module. With PHP 5.6 that will work with a SIGTERM handler even if the script using it doesn't itself use declare(ticks=1), but does not work in PHP 7 unless the script itself has the declaration. Not only does the handler not get called, but the signal does nothing at all, and the script doesn't exit.<br />
+<br />
+A side note regarding ticks that's annoyed me for some time: As if there wasn't enough confusion around all this, the Internet is full of false rumors that ticks were deprecated and are being removed, and I believe they all started here:<br />
+<br />
+<a href="http://www.hackingwithphp.com/4/21/0/the-declare-function-and-ticks" rel="nofollow" target="_blank">http://www.hackingwithphp.com/4/21/0/the-declare-function-and-ticks</a><br />
+<br />
+Despite a very obscure author's note at the very end of the page saying he got that wrong (that even I just noticed), the first very prominent sentence of the article still says this, and that page is near the top of any Google search.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="122770""></a>
+  <div class="note">
+   <strong class="user">ohcc at 163 dot com</strong>
+   <a href="#122770" class="date">27-May-2018 02:54</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Using a directive that is not supported by current version of PHP will generate a warning like:<br />
+<br />
+Warning: Unsupported declare 'strict_types' in D:\Server\wuxiancheng.cn\index.php on line 2<br />
+<br />
+You CAN'T prepend an @ sign to the declare construct to supress that error message.<br />
+<br />
+@declare(strict_types=1);<br />
+<br />
+The above code will lead to a Parse error like:<br />
+<br />
+Parse error: syntax error, unexpected 'declare' (T_DECLARE) in D:\Server\wuxiancheng.cn\index.php on line 2</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="121570""></a>
+  <div class="note">
+   <strong class="user">ja2016 at wir dot pl</strong>
+   <a href="#121570" class="date">27-Aug-2017 04:38</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Don't use uft-8 encoding with BOM. Then fatal error occurs ALWAYS. Substitute it with utf-8 without BOM.<br />
+<br />
+---<br />
+<br />
+*BOM*<br />
+<span class="default">&lt;?php <br />
+</span><span class="keyword">declare(</span><span class="default">strict_types</span><span class="keyword">=</span><span class="default">1</span><span class="keyword">);<br />
+</span><span class="comment">//Fatal error: strict_types declaration must be the very first statement in the script</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="121465""></a>
+  <div class="note">
+   <strong class="user">wapmorgan at gmail dot com</strong>
+   <a href="#121465" class="date">01-Aug-2017 08:49</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you fork'ed (with pcntl_fork) after you've used `declare`, you need to do it again in child thread.<br />
+<br />
+declare(ticks=1);<br />
+$pid = pcntl_fork();<br />
+if ($pid === 0) {<br />
+&nbsp;&nbsp;&nbsp; declare(ticks=1);<br />
+} else {<br />
+&nbsp;&nbsp;&nbsp; // code ..<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="120628""></a>
+  <div class="note">
+   <strong class="user">Ionut</strong>
+   <a href="#120628" class="date">10-Feb-2017 06:36</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I haven't found this written in the doc: when using declare in the global context, it has to be the first statement in the script, before any other output.<br />
+<br />
+This works:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">declare(</span><span class="default">strict_types</span><span class="keyword">=</span><span class="default">1</span><span class="keyword">);<br />
+function </span><span class="default">sum</span><span class="keyword">(</span><span class="default">int $a</span><span class="keyword">, </span><span class="default">int $b</span><span class="keyword">): </span><span class="default">int </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">5.78</span><span class="keyword">;<br />
+}<br />
+</span><span class="comment"># ... but fails when calling the function<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+This doesn't work:<br />
+<br />
+&lt;html&gt;<br />
+&lt;body&gt;<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">declare(</span><span class="default">strict_types</span><span class="keyword">=</span><span class="default">1</span><span class="keyword">);<br />
+function </span><span class="default">sum</span><span class="keyword">(</span><span class="default">int $a</span><span class="keyword">, </span><span class="default">int $b</span><span class="keyword">): </span><span class="default">int </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">5.78</span><span class="keyword">;<br />
+}<br />
+</span><span class="comment"># PHP Fatal error:&nbsp; strict_types declaration must be the very first statement in the script [...]<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117039""></a>
+  <div class="note">
+   <strong class="user">Kubo2</strong>
+   <a href="#117039" class="date">06-Apr-2015 05:13</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Note that in PHP 7 <span class="default">&lt;?php </span><span class="keyword">declare(</span><span class="default">encoding</span><span class="keyword">=</span><span class="string">'...'</span><span class="keyword">); </span><span class="default">?&gt;</span> throws an E_WARNING if Zend Multibyte is turned off.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="114418""></a>
+  <div class="note">
+   <strong class="user">php at niekbosch dot nl</strong>
+   <a href="#114418" class="date">18-Feb-2014 04:17</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Basically 'declare( encoding = .... );' overrides the zend.script_encoding configuration option (as set in php.ini). However, keep in mind that:<br />
+<br />
+* the file encoding must be compatible (at least in the ASCII range of characters) to the zend.script_encoding setting. If you set 'zend.script_encoding' to UTF-8 and save the file in UTF-16, PHP will not be able to interpret the file, let alone the declare statement. As long as you use ASCII compatible encodings (i.e. ISO-8859-1(5), UTF-8 etc) for both the file encoding as the zend.script_encoding, you should be fine. (However, I have not experimented with adding non-ascii characters in comments above the declare statement).<br />
+<br />
+* PHP string literals are converted from your source code encoding (either set with the declare statement or else according to zend.script_encoding) to the mbstring.internal_encoding as set in your php.ini (even if you change the setting using mb_internal_encoding). As an example:<br />
+<br />
+php.ini:<br />
+mbstring.internal_encoding = UTF-8<br />
+<br />
+test.php:<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">declare(</span><span class="default">encoding </span><span class="keyword">= </span><span class="string">'ISO-8859-15'</span><span class="keyword">);<br />
+</span><span class="default">mb_internal_encoding</span><span class="keyword">( </span><span class="string">'ISO-8859-15' </span><span class="keyword">);<br />
+echo </span><span class="string">'a?a?' </span><span class="keyword">. </span><span class="string">"\n"</span><span class="keyword">;<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+This will still output the string UTF-8 encoded; in a terminal/browser with encoding 'ISO-8859-15' the string will look (something) like this: a?�a??</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="113482""></a>
+  <div class="note">
+   <strong class="user">php dot net at e-z dot name</strong>
+   <a href="#113482" class="date">17-Oct-2013 06:34</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+you can register multiple tick functions:<br />
+<br />
+<span class="default">&lt;?PHP<br />
+</span><span class="keyword">function </span><span class="default">a</span><span class="keyword">() { echo </span><span class="string">"a\n"</span><span class="keyword">; }<br />
+function </span><span class="default">b</span><span class="keyword">() { echo </span><span class="string">"b\n"</span><span class="keyword">; }<br />
+<br />
+</span><span class="default">register_tick_function</span><span class="keyword">(</span><span class="string">'a'</span><span class="keyword">);<br />
+</span><span class="default">register_tick_function</span><span class="keyword">(</span><span class="string">'b'</span><span class="keyword">);<br />
+</span><span class="default">register_tick_function</span><span class="keyword">(</span><span class="string">'b'</span><span class="keyword">);<br />
+</span><span class="default">register_tick_function</span><span class="keyword">(</span><span class="string">'b'</span><span class="keyword">);<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+will output on every tick:<br />
+a<br />
+b<br />
+b<br />
+b</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="112939""></a>
+  <div class="note">
+   <strong class="user">sawyerrken at gmail dot com</strong>
+   <a href="#112939" class="date">09-Aug-2013 06:31</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+In the following example:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">handler</span><span class="keyword">(){<br />
+&nbsp;&nbsp;&nbsp; print </span><span class="string">"hello &lt;br /&gt;"</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="default">register_tick_function</span><span class="keyword">(</span><span class="string">"handler"</span><span class="keyword">);<br />
+<br />
+declare(</span><span class="default">ticks </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$b </span><span class="keyword">= </span><span class="default">2</span><span class="keyword">;<br />
+} </span><span class="comment">//closing curly bracket tickable<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+"Hello" will be displayed twice because the closing curly bracket is also tickable. <br />
+<br />
+One may wonder why the opening curly bracket is not tickable if the closing is tickable. This is because the instruction for PHP to start ticking is given by the opening curly bracket so the ticking starts immediately after it.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="100137""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#100137" class="date">27-Sep-2010 02:10</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+It's amazing how many people didn't grasp the concept here. Note the wording in the documentation. It states that the tick handler is called every n native execution cycles. That means native instructions, not including system calls (i'm guessing). This can give you a very good idea if you need to optimize a particular part of your script, since you can measure quite effectively how many native instructions are in your actual code.<br />
+<br />
+A good profiler would take that into account, and force you, the developer, to include calls to the profiler as you're entering and leaving every function. That way you'd be able to keep an eye on how many cycles it took each function to complete. Independent of time.<br />
+<br />
+That is extremely powerful, and not to be underestimated. A good solution would allow aggregate stats, so the total time in a function would be counted, including inside called functions.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="88929""></a>
+  <div class="note">
+   <strong class="user">markandrewslade at dontspamemeat dot gmail</strong>
+   <a href="#88929" class="date">13-Feb-2009 09:06</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Note that the two methods for calling declare are not identical.<br />
+<br />
+Method 1:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">// Print "tick" with a timestamp and optional suffix.<br />
+</span><span class="keyword">function </span><span class="default">do_tick</span><span class="keyword">(</span><span class="default">$str </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; list(</span><span class="default">$sec</span><span class="keyword">, </span><span class="default">$usec</span><span class="keyword">) = </span><span class="default">explode</span><span class="keyword">(</span><span class="string">' '</span><span class="keyword">, </span><span class="default">microtime</span><span class="keyword">());<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">printf</span><span class="keyword">(</span><span class="string">"[%.4f] Tick.%s\n"</span><span class="keyword">, </span><span class="default">$sec </span><span class="keyword">+ </span><span class="default">$usec</span><span class="keyword">, </span><span class="default">$str</span><span class="keyword">);<br />
+}<br />
+</span><span class="default">register_tick_function</span><span class="keyword">(</span><span class="string">'do_tick'</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// Tick once before declaring so we have a point of reference.<br />
+</span><span class="default">do_tick</span><span class="keyword">(</span><span class="string">'--start--'</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// Method 1<br />
+</span><span class="keyword">declare(</span><span class="default">ticks</span><span class="keyword">=</span><span class="default">1</span><span class="keyword">);<br />
+while(</span><span class="default">1</span><span class="keyword">) </span><span class="default">sleep</span><span class="keyword">(</span><span class="default">1</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">/* Output:<br />
+[1234544435.7160] Tick.--start--<br />
+[1234544435.7161] Tick.<br />
+[1234544435.7162] Tick.<br />
+[1234544436.7163] Tick.<br />
+[1234544437.7166] Tick.<br />
+*/<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Method 2:<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">// Print "tick" with a timestamp and optional suffix.<br />
+</span><span class="keyword">function </span><span class="default">do_tick</span><span class="keyword">(</span><span class="default">$str </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; list(</span><span class="default">$sec</span><span class="keyword">, </span><span class="default">$usec</span><span class="keyword">) = </span><span class="default">explode</span><span class="keyword">(</span><span class="string">' '</span><span class="keyword">, </span><span class="default">microtime</span><span class="keyword">());<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">printf</span><span class="keyword">(</span><span class="string">"[%.4f] Tick.%s\n"</span><span class="keyword">, </span><span class="default">$sec </span><span class="keyword">+ </span><span class="default">$usec</span><span class="keyword">, </span><span class="default">$str</span><span class="keyword">);<br />
+}<br />
+</span><span class="default">register_tick_function</span><span class="keyword">(</span><span class="string">'do_tick'</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// Tick once before declaring so we have a point of reference.<br />
+</span><span class="default">do_tick</span><span class="keyword">(</span><span class="string">'--start--'</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// Method 2<br />
+</span><span class="keyword">declare(</span><span class="default">ticks</span><span class="keyword">=</span><span class="default">1</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; while(</span><span class="default">1</span><span class="keyword">) </span><span class="default">sleep</span><span class="keyword">(</span><span class="default">1</span><span class="keyword">);<br />
+}<br />
+<br />
+</span><span class="comment">/* Output: <br />
+[1234544471.6486] Tick.--start--<br />
+[1234544472.6489] Tick.<br />
+[1234544473.6490] Tick.<br />
+[1234544474.6492] Tick.<br />
+[1234544475.6493] Tick.<br />
+*/<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Notice that when using {} after declare, do_tick wasn't auto-called until about 1 second after we entered the declare {} block.&nbsp; However when not using the {}, do_tick was auto-called not once but twice immediately after calling declare();.<br />
+<br />
+I'm assuming this is due to how PHP handles ticking internally.&nbsp; That is, declare() without the {} seems to trigger more low-level instructions which in turn fires tick a few times (if ticks=1) in the act of declaring.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="66812""></a>
+  <div class="note">
+   <strong class="user">aeolianmeson at NOSPAM dot blitzeclipse dot com</strong>
+   <a href="#66812" class="date">30-May-2006 12:06</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The scope of the declare() call if used without a block is a little unpredictable, in my experience. It appears that if placed in a method or function, it may not apply to the calls that ensue, like the following:
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+</span><span class="keyword">function </span><span class="default">a</span><span class="keyword">()
+<br />
+{
+<br />
+&nbsp;&nbsp; declare(</span><span class="default">ticks</span><span class="keyword">=</span><span class="default">2</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; </span><span class="default">b</span><span class="keyword">();
+<br />
+}
+<br />
+
+<br />
+function </span><span class="default">b</span><span class="keyword">()
+<br />
+{
+<br />
+&nbsp;&nbsp; </span><span class="comment">// The declare may not apply here, sometimes.
+<br />
+</span><span class="keyword">}
+<br />
+</span><span class="default">?&gt;
+<br />
+</span>
+<br />
+So, if all of a sudden the signals are getting ignored, check this. At the risk of losing the ability to make a mathematical science out of placing a number of activities at varying durations of ticks like many people have chosen to do, I've found it simple to just put this at the top of the code, and just make it global.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="33788""></a>
+  <div class="note">
+   <strong class="user">fok at nho dot com dot br</strong>
+   <a href="#33788" class="date">07-Jul-2003 06:45</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+This is a very simple example using ticks to execute a external script to show rx/tx data from the server<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">function </span><span class="default">traf</span><span class="keyword">(){<br />
+&nbsp; </span><span class="default">passthru</span><span class="keyword">( </span><span class="string">'./traf.sh' </span><span class="keyword">);<br />
+&nbsp; echo </span><span class="string">"&lt;br /&gt;\n"</span><span class="keyword">;<br />
+&nbsp; </span><span class="default">flush</span><span class="keyword">(); </span><span class="comment">// keeps it flowing to the browser...<br />
+&nbsp; </span><span class="default">sleep</span><span class="keyword">( </span><span class="default">1 </span><span class="keyword">);<br />
+}<br />
+<br />
+</span><span class="default">register_tick_function</span><span class="keyword">( </span><span class="string">"traf" </span><span class="keyword">);<br />
+<br />
+declare( </span><span class="default">ticks</span><span class="keyword">=</span><span class="default">1 </span><span class="keyword">){<br />
+&nbsp; while( </span><span class="default">true </span><span class="keyword">){}&nbsp;&nbsp; </span><span class="comment">// to keep it running...<br />
+</span><span class="keyword">}<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+contents of traf.sh:<br />
+# Shows TX/RX for eth0 over 1sec<br />
+#!/bin/bash<br />
+<br />
+TX1=`cat /proc/net/dev | grep "eth0" | cut -d: -f2 | awk '{print $9}'`<br />
+RX1=`cat /proc/net/dev | grep "eth0" | cut -d: -f2 | awk '{print $1}'`<br />
+sleep 1<br />
+TX2=`cat /proc/net/dev | grep "eth0" | cut -d: -f2 | awk '{print $9}'`<br />
+RX2=`cat /proc/net/dev | grep "eth0" | cut -d: -f2 | awk '{print $1}'`<br />
+<br />
+echo -e "TX: $[ $TX2 - $TX1 ] bytes/s \t RX: $[ $RX2 - $RX1 ] bytes/s"<br />
+#--= the end. =--</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

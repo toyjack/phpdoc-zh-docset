@@ -1,0 +1,126 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Manual PHP Installation on Windows</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="install.windows.recommended.html">? Recommended Configuration on Windows systems</a></li>
+      <li style="float: right;"><a href="install.windows.troubleshooting.html">Windows 下 PHP 故障排除 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="install.windows.html">Windows 系统下的安装</a></li>
+    <li>Manual PHP Installation on Windows</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="install.windows.manual" class="sect1">
+ <h2 class="title">Manual PHP Installation on Windows</h2>
+ <div class="sect2">
+  <h3 class="title">Choose Web Server</h3>
+  <p class="para">
+   <ul class="itemizedlist">
+    <li class="listitem">
+     <p class="para">
+      IIS is builtin to Windows.
+
+      On Windows Server, use Server Manager to add the IIS role. Be sure to include the CGI Role Feature.
+
+      On Windows Desktop, use Control Panel&#039;s Add/Remove Programs to add IIS. See: <a href="https://msdn.microsoft.com/en-us/library/ms181052%28v=vs.80%29.aspx?f=255&MSPPError=-2147217396" class="link external" title="Link : https://msdn.microsoft.com/en-us/library/ms181052%28v=vs.80%29.aspx?f=255&MSPPError=-2147217396">&raquo;&nbsp;https://msdn.microsoft.com/en-us/library/ms181052%28v=vs.80%29.aspx?f=255&amp;MSPPError=-2147217396</a>
+
+      For desktop web apps and web-development, you can also use IIS/Express or PHP Desktop
+
+      <div class="example" id="install.unix.nginx.configure.nginx.php">
+       <p><strong>Example #1 Command line to configure IIS and PHP</strong></p>
+       <div class="example-contents">
+<div class="cdata"><pre>
+
+    @echo off
+
+    REM download .ZIP file of PHP build from http://windows.php.net/downloads/
+    REM
+    REM path to directory you decompressed PHP .ZIP file into
+set phpdir=c:\php
+set phppath=php-5.6.19-nts-Win32-VC11-x86
+
+REM Clear current PHP handlers
+%windir%\system32\inetsrv\appcmd clear config /section:system.webServer/fastCGI
+%windir%\system32\inetsrv\appcmd set config /section:system.webServer/handlers /-[name=&#039;PHP_via_FastCGI&#039;]
+
+REM Set up the PHP handler
+%windir%\system32\inetsrv\appcmd set config /section:system.webServer/fastCGI /+[fullPath=&#039;%phpdir%\%phppath%\php-cgi.exe&#039;]
+%windir%\system32\inetsrv\appcmd set config /section:system.webServer/handlers /+[name=&#039;PHP_via_FastCGI&#039;,path=&#039;*.php&#039;,verb=&#039;*&#039;,modules=&#039;FastCgiModule&#039;,scriptProcessor=&#039;%phpdir%\%phppath%\php-cgi.exe&#039;,resourceType=&#039;Unspecified&#039;]
+%windir%\system32\inetsrv\appcmd set config /section:system.webServer/handlers /accessPolicy:Read,Script
+
+REM Configure FastCGI Variables
+%windir%\system32\inetsrv\appcmd set config -section:system.webServer/fastCgi /[fullPath=&#039;%phpdir%\%phppath%\php-cgi.exe&#039;].instanceMaxRequests:10000
+%windir%\system32\inetsrv\appcmd.exe set config -section:system.webServer/fastCgi /+&quot;[fullPath=&#039;%phpdir%\%phppath%\php-cgi.exe&#039;].environmentVariables.[name=&#039;PHP_FCGI_MAX_REQUESTS&#039;,value=&#039;10000&#039;]&quot;
+%windir%\system32\inetsrv\appcmd.exe set config -section:system.webServer/fastCgi /+&quot;[fullPath=&#039;%phpdir%\%phppath%\php-cgi.exe&#039;].environmentVariables.[name=&#039;PHPRC&#039;,value=&#039;%phpdir%\%phppath%\php.ini&#039;]&quot;
+
+</pre></div>
+       </div>
+
+      </div>
+
+      <a href="install.windows.legacy.index.html#install.windows.legacy.iis7" class="link">How to manually configure IIS</a>
+     </p>
+    </li>
+    <li class="listitem">
+     <p class="para">
+
+      There are several builds of Apache2 for Windows.
+
+      We support ApacheLounge, but other options include XAMPP, WampServer and BitNami, which provide automatic installer tools.
+
+      You may use mod_php or mod_fastcgi to load PHP on Apache.
+
+      If you use mod_php, you MUST use a TS build of Apache built with same version of Visual C and same CPU (x86 or x64).
+
+      <a href="install.windows.legacy.index.html#install.windows.legacy.apache2" class="link">How to manually configure Apache2</a>
+     </p>
+    </li>
+   </ul>
+  </p>
+ </div>
+
+ <div class="sect2">
+  <h3 class="title">Choose Build</h3>
+  <p class="para">
+   Download PHP production releases from <a href="http://windows.php.net/download/" class="link external" title="Link : http://windows.php.net/download/">&raquo;&nbsp;http://windows.php.net/download/</a>.
+
+   A lot of testing and optimization is already done on the snapshot and qa releases, but you are welcome to help us do more.
+
+   There are 4 types of PHP builds:
+   <ul class="itemizedlist">
+    <li class="listitem">
+     <p class="para">Thread-Safe(TS) - use for single process web servers, like Apache with mod_php</p>
+    </li>
+    <li class="listitem">
+     <p class="para">Non-Thread-Safe(NTS) - use for IIS and other FastCGI web servers (Apache with mod_fastcgi) and recommended for command-line scripts</p>
+    </li>
+    <li class="listitem">
+     <p class="para">x86 - production use of PHP 5.5 or 5.6 or 7.0.</p>
+    </li>
+    <li class="listitem">
+     <p class="para">x64 - production use of PHP 7.0+ unless its a 32-bit only version of Windows. 5.5 and 5.6 x64 are experimental.</p>
+    </li>
+   </ul>
+  </p>
+ </div>
+</div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+ <div class="note">There are no user contributed notes for this page.</div>
+</div>
+</div></div></body></html>

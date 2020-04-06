@@ -1,0 +1,284 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>关闭由 proc_open 打开的进程并且返回进程退出码</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="function.passthru.html">? passthru</a></li>
+      <li style="float: right;"><a href="function.proc-get-status.html">proc_get_status ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="ref.exec.html">程序执行函数</a></li>
+    <li>关闭由 proc_open 打开的进程并且返回进程退出码</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="function.proc-close" class="refentry">
+ <div class="refnamediv">
+  <h1 class="refname">proc_close</h1>
+  <p class="verinfo">(PHP 4 &gt;= 4.3.0, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">proc_close</span> &mdash; <span class="dc-title">关闭由 <span class="function"><a href="function.proc-open.html" class="function">proc_open()</a></span> 打开的进程并且返回进程退出码</span></p>
+
+ </div>
+
+ <div class="refsect1 description" id="refsect1-function.proc-close-description">
+  <h3 class="title">说明</h3>
+  <div class="methodsynopsis dc-description">
+   <span class="methodname"><strong>proc_close</strong></span>
+    ( <span class="methodparam"><span class="type">resource</span> <code class="parameter">$process</code></span>
+   ) : <span class="type">int</span></div>
+
+  <p class="para rdfs-comment">
+    <span class="function"><strong>proc_close()</strong></span> 同 <span class="function"><a href="function.pclose.html" class="function">pclose()</a></span> 函数类似，
+    只是 <span class="function"><strong>proc_close()</strong></span> 
+    只能用来关闭由 <span class="function"><a href="function.proc-open.html" class="function">proc_open()</a></span> 函数打开的进程。
+    <span class="function"><strong>proc_close()</strong></span> 函数会等待进程终止，
+    并且返回进程的返回值。
+    如果有连接到进程的已经打开的管道，
+    那么需要在调用此函数之前调用 <span class="function"><a href="function.fclose.html" class="function">fclose()</a></span> 函数来关闭管道，
+    否则会引发死锁 - 在管道处于打开状态时，子进程将不能退出。
+  </p>
+ </div>
+
+
+ <div class="refsect1 parameters" id="refsect1-function.proc-close-parameters">
+  <h3 class="title">参数</h3>
+  <p class="para">
+   <dl>
+
+    
+     <dt>
+<code class="parameter">process</code></dt>
+
+     <dd>
+
+      <p class="para">
+       要关闭的由 <span class="function"><a href="function.proc-open.html" class="function">proc_open()</a></span> 打开的 <span class="type"><a href="language.types.resource.html" class="type resource">resource</a></span> 。
+      </p>
+     </dd>
+
+    
+   </dl>
+
+  </p>
+ </div>
+
+
+ <div class="refsect1 returnvalues" id="refsect1-function.proc-close-returnvalues">
+  <h3 class="title">返回值</h3>
+  <p class="para">
+    返回进程的终止状态码。
+    如果发生错误，将返回  <em>-1</em>。
+  </p>
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+ <p class="para">
+  If PHP has been compiled with --enable-sigchild, the return value of this function is undefined.
+ </p>
+</p></blockquote>
+
+ </div>
+
+
+</div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="117934""></a>
+  <div class="note">
+   <strong class="user">Uwe Ohse</strong>
+   <a href="#117934" class="date">03-Sep-2015 11:12</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Regarding: "Returns the termination status of the process that was run. In case of an error then -1 is returned."<br />
+<br />
+This is, at best, misleading. It returns:<br />
+* -1 on error,<br />
+* WEXITSTATUS(status) if WIFEXITED(status) is true, or <br />
+* status if WIFEXITED(status) is false,<br />
+where status is the status parameter of waitpid().<br />
+<br />
+This makes it impossible to differentiate between a relatively normal exit or a termination by signal, and reduces the value of the proc_close return code to a binary one (ok / something broke).<br />
+<br />
+This can be seen in proc_open_rsrc_dtor() in ext/standard/proc_open.c (PHP 5.4.44, 5.6.12).</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="83622""></a>
+  <div class="note">
+   <strong class="user">morrisdavidd at gmail dot com</strong>
+   <a href="#83622" class="date">04-Jun-2008 04:41</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Consider the following pseudo code:<br />
+<br />
+$SOME_PROCESS = proc_open(/* something here */);<br />
+...<br />
+$status = proc_get_status($SOME_PROCESS);<br />
+...<br />
+$exitCode = proc_close($SOME_PROCESS);<br />
+<br />
+If the external program has exited on its own before the call to proc_get_status, then $exitCode == -1<br />
+<br />
+So consider using:<br />
+$actualExitCode = ($status["running"] ? $exitCode : $status["exitcode"] );</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="78306""></a>
+  <div class="note">
+   <strong class="user">ashnazg at php dot net</strong>
+   <a href="#78306" class="date">05-Oct-2007 02:25</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+It seems that if you configured --enable-sigchild when you compiled PHP (which from my reading is required for you to use Oracle stuff), then return codes from proc_close() cannot be trusted.<br />
+<br />
+Using proc_open's Example 1998's code on versions I have of PHP4 (4.4.7) and PHP5 (5.2.4), the return code is always "-1".&nbsp; This is also the only return code I can cause by running other shell commands whether they succeed or fail.<br />
+<br />
+I don't see this caveat mentioned anywhere except on this old bug report -- <a href="http://bugs.php.net/bug.php?id=29123" rel="nofollow" target="_blank">http://bugs.php.net/bug.php?id=29123</a></span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="56798""></a>
+  <div class="note">
+   <strong class="user">oohay251 at yahoo dot com</strong>
+   <a href="#56798" class="date">15-Sep-2005 07:06</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+From various Internet posts and recent experience, I have observed that you cannot rely on proc_close returning the accurate return code of the child process. The return code also depends on wether or not you read from the stdout/stderr pipes, as my example shows. I work around this by writing the exit code to an additional file descriptor.<br />
+<br />
+&lt;?<br />
+$descriptorspec = array(<br />
+&nbsp;&nbsp; &nbsp; &nbsp; 0 =&gt; array('pipe', 'r'),&nbsp; // stdin is a pipe that the child will read from<br />
+&nbsp;&nbsp; &nbsp; &nbsp; 1 =&gt; array('pipe', 'w'),&nbsp; // stdout is a pipe that the child will write to<br />
+&nbsp;&nbsp; &nbsp; &nbsp; 2 =&gt; array('pipe', 'w'), // stderr is a pipe that the child will write to<br />
+&nbsp;&nbsp;&nbsp; );<br />
+&nbsp;&nbsp;&nbsp; $proc = @proc_open("/bin/ls -l /etc/passwd", $descriptorspec, $pipes);<br />
+&nbsp;&nbsp;&nbsp; fclose($pipes[0]);<br />
+&nbsp;&nbsp;&nbsp; $output = array();<br />
+&nbsp;&nbsp;&nbsp; while (!feof($pipes[1])) array_push($output, rtrim(fgets($pipes[1],1024),"\n"));<br />
+&nbsp;&nbsp;&nbsp; fclose($pipes[1]);<br />
+&nbsp;&nbsp;&nbsp; while (!feof($pipes[2])) array_push($output, rtrim(fgets($pipes[2],1024),"\n"));<br />
+&nbsp;&nbsp;&nbsp; fclose($pipes[2]);<br />
+&nbsp;&nbsp;&nbsp; $exit=proc_close($proc);<br />
+&nbsp;&nbsp;&nbsp; print_r($output);<br />
+&nbsp;&nbsp;&nbsp; echo "exitcode $exit\n\n";<br />
+<br />
+$descriptorspec = array(<br />
+&nbsp;&nbsp; &nbsp; &nbsp; 0 =&gt; array('pipe', 'r'),&nbsp; // stdin is a pipe that the child will read from<br />
+&nbsp;&nbsp; &nbsp; &nbsp; 1 =&gt; array('pipe', 'w'),&nbsp; // stdout is a pipe that the child will write to<br />
+&nbsp;&nbsp; &nbsp; &nbsp; 2 =&gt; array('pipe', 'w'), // stderr is a pipe that the child will write to<br />
+&nbsp;&nbsp;&nbsp; );<br />
+&nbsp;&nbsp;&nbsp; $proc = @proc_open("/bin/ls -l /etc/passwd", $descriptorspec, $pipes);<br />
+&nbsp;&nbsp;&nbsp; fclose($pipes[0]);<br />
+&nbsp;&nbsp;&nbsp; fclose($pipes[1]);<br />
+&nbsp;&nbsp;&nbsp; fclose($pipes[2]);<br />
+&nbsp;&nbsp;&nbsp; $exit=proc_close($proc);<br />
+&nbsp;&nbsp;&nbsp; echo "exitcode $exit\n\n";<br />
+<br />
+$descriptorspec = array(<br />
+&nbsp;&nbsp; &nbsp; &nbsp; 0 =&gt; array('pipe', 'r'),&nbsp; // stdin is a pipe that the child will read from<br />
+&nbsp;&nbsp; &nbsp; &nbsp; 1 =&gt; array('pipe', 'w'),&nbsp; // stdout is a pipe that the child will write to<br />
+&nbsp;&nbsp; &nbsp; &nbsp; 2 =&gt; array('pipe', 'w'), // stderr is a pipe that the child will write to<br />
+&nbsp;&nbsp; &nbsp; &nbsp; 3 =&gt; array('pipe', 'w'), // stderr is a pipe that the child will write to<br />
+&nbsp;&nbsp;&nbsp; );<br />
+&nbsp;&nbsp;&nbsp; $proc = @proc_open("/bin/ls -l /etc/passwd;echo $? &gt;&amp;3", $descriptorspec, $pipes);<br />
+&nbsp;&nbsp;&nbsp; fclose($pipes[0]);<br />
+&nbsp;&nbsp;&nbsp; $output = array();<br />
+&nbsp;&nbsp;&nbsp; //comment next line to get correct exicode<br />
+&nbsp;&nbsp;&nbsp; while (!feof($pipes[1])) array_push($output, rtrim(fgets($pipes[1],1024),"\n"));<br />
+&nbsp;&nbsp;&nbsp; fclose($pipes[1]);<br />
+&nbsp;&nbsp;&nbsp; while (!feof($pipes[2])) array_push($output, rtrim(fgets($pipes[2],1024),"\n"));<br />
+&nbsp;&nbsp;&nbsp; fclose($pipes[2]);<br />
+&nbsp;&nbsp;&nbsp; if (!feof($pipes[3])) $output['exitcode']=rtrim(fgets($pipes[3],5),"\n");<br />
+&nbsp;&nbsp;&nbsp; fclose($pipes[3]);<br />
+&nbsp;&nbsp;&nbsp; proc_close($proc);<br />
+&nbsp;&nbsp;&nbsp; print_r($output);<br />
+?&gt;<br />
+<br />
+Outputs on my system:<br />
+<br />
+Array<br />
+(<br />
+&nbsp;&nbsp;&nbsp; [0] =&gt; -rw-r--r--&nbsp; 1 root root 1460 2005-09-02 09:52 /etc/passwd<br />
+&nbsp;&nbsp;&nbsp; [1] =&gt;<br />
+&nbsp;&nbsp;&nbsp; [2] =&gt;<br />
+)<br />
+exitcode -1<br />
+<br />
+exitcode 1<br />
+<br />
+Array<br />
+(<br />
+&nbsp;&nbsp;&nbsp; [0] =&gt; -rw-r--r--&nbsp; 1 root root 1460 2005-09-02 09:52 /etc/passwd<br />
+&nbsp;&nbsp;&nbsp; [1] =&gt;<br />
+&nbsp;&nbsp;&nbsp; [2] =&gt;<br />
+&nbsp;&nbsp;&nbsp; [exitcode] =&gt; 0<br />
+)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="35382""></a>
+  <div class="note">
+   <strong class="user">sergey1369 at narod dot ru</strong>
+   <a href="#35382" class="date">29-Aug-2003 03:16</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Under PHP/4.3.3RC2, in case of two processes <br />
+these function may hangs. Work around is not use <br />
+proc_close, or put it after all fcloses done. <br />
+<br />
+For example, this code hangs.<br />
+<br />
+$ph1 = proc_open("cat",<br />
+&nbsp;array(0=&gt;array("pipe","r"),1=&gt;array("pipe","w")),<br />
+&nbsp;$pipes1);<br />
+$ph2 = proc_open("cat",<br />
+&nbsp;array(0=&gt;array("pipe","r"),1=&gt;array("pipe","w")),<br />
+&nbsp;$pipes2);<br />
+<br />
+fclose($pipes1[0]); fclose($pipes1[1]); proc_close($ph1);<br />
+fclose($pipes2[0]); fclose($pipes2[1]); proc_close($ph2);<br />
+<br />
+This code worked for me:<br />
+<br />
+$ph1 = proc_open("cat",<br />
+&nbsp;array(0=&gt;array("pipe","r"),1=&gt;array("pipe","w")),<br />
+&nbsp;$pipes1);<br />
+$ph2 = proc_open("cat",<br />
+&nbsp;array(0=&gt;array("pipe","r"),1=&gt;array("pipe","w")),<br />
+&nbsp;$pipes2);<br />
+<br />
+fclose($pipes1[0]); fclose($pipes1[1]); <br />
+fclose($pipes2[0]); fclose($pipes2[1]); <br />
+proc_close($ph1); proc_close($ph2);</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

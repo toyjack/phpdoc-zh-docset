@@ -1,0 +1,211 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>获得查询结果的错误信息</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="function.pg-result-error-field.html">? pg_result_error_field</a></li>
+      <li style="float: right;"><a href="function.pg-result-seek.html">pg_result_seek ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="ref.pgsql.html">PostgreSQL 函数</a></li>
+    <li>获得查询结果的错误信息</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="function.pg-result-error" class="refentry">
+   <div class="refnamediv">
+    <h1 class="refname">pg_result_error</h1>
+    <p class="verinfo">(PHP 4 &gt;= 4.2.0, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">pg_result_error</span> &mdash; <span class="dc-title">
+     获得查询结果的错误信息
+    </span></p>
+
+   </div>
+   <div class="refsect1 unknown-seealsp" id="refsect1-function.pg-result-error-unknown-seealsp">
+    <h3 class="title">说明</h3>
+     <div class="methodsynopsis dc-description">
+      <span class="methodname"><strong>pg_result_error</strong></span>
+       ( <span class="methodparam"><span class="type">resource</span> <code class="parameter">$result</code></span>
+      ) : <span class="type">string</span></div>
+
+    <p class="para rdfs-comment">
+     <span class="function"><strong>pg_result_error()</strong></span> 返回和 <code class="parameter">result</code> 资源关联的错误信息。因此用户更有机会可以得到比 <span class="function"><a href="function.pg-last-error.html" class="function">pg_last_error()</a></span> 更好的错误信息。
+    </p>
+    <p class="para">
+     参见 <span class="function"><a href="function.pg-query.html" class="function">pg_query()</a></span>，<span class="function"><a href="function.pg-send-query.html" class="function">pg_send_query()</a></span>，<span class="function"><a href="function.pg-get-result.html" class="function">pg_get_result()</a></span>，<span class="function"><a href="function.pg-last-error.html" class="function">pg_last_error()</a></span> 和 <span class="function"><a href="function.pg-last-notice.html" class="function">pg_last_notice()</a></span>。
+    </p>    
+   </div>
+
+  </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="123531""></a>
+  <div class="note">
+   <strong class="user">VLroyrenn</strong>
+   <a href="#123531" class="date">18-Jan-2019 07:19</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+So considering pg_query and pg_query_params don't return results on error, and that this would be an extremely handy thing to have, I just ended up writing my own functions wrapping the pg_send_* ones to work like the aforementionned two &lt;em&gt;should&lt;/em&gt;. There's not a whole lot of code to them, the comments are mostly references from the libPQ and PHP doc, to explain the behavior.<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">class </span><span class="default">PostgresConnectionError </span><span class="keyword">extends </span><span class="default">Exception </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__construct</span><span class="keyword">(</span><span class="default">$last_error</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">parent</span><span class="keyword">::</span><span class="default">__construct</span><span class="keyword">(</span><span class="default">$message</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+function </span><span class="default">pg_send_query_sync</span><span class="keyword">(</span><span class="default">$connection</span><span class="keyword">, </span><span class="default">string $query</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// This function cannot work if any query is already running for that connection because the results may then get mixed up.<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">assert</span><span class="keyword">(</span><span class="default">pg_get_result</span><span class="keyword">(</span><span class="default">$connection</span><span class="keyword">) === </span><span class="default">false</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$dispatch_ok </span><span class="keyword">= </span><span class="default">pg_send_query</span><span class="keyword">(</span><span class="default">$connection</span><span class="keyword">, </span><span class="default">$query</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// The *only* case where nothing can be returned, when the connection fails to dispatch the initial query.<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">if (!</span><span class="default">$dispatch_ok</span><span class="keyword">) throw new </span><span class="default">PostgresConnectionError</span><span class="keyword">(</span><span class="default">pg_?last_?error</span><span class="keyword">(</span><span class="default">$connection</span><span class="keyword">));<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// From the libPQ doc : "PQgetResult must be called repeatedly until it returns a null pointer, indicating that the command is done."<br />
+<br />
+&nbsp;&nbsp;&nbsp; // In the case of pg_query/PQExec, which we're trying to emulate:<br />
+&nbsp;&nbsp;&nbsp; // "Note however that the returned PGresult structure describes only the result of the last command executed from the string."<br />
+&nbsp;&nbsp;&nbsp; // "Should one of the commands fail, processing of the string stops with it and the returned PGresult describes the error condition."<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">while (</span><span class="default">$result </span><span class="keyword">= </span><span class="default">pg_get_result</span><span class="keyword">(</span><span class="default">$connection</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Drain all results on the connection and only return the last one.<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if (</span><span class="default">$last_result</span><span class="keyword">) </span><span class="default">pg_free_result</span><span class="keyword">(</span><span class="default">$last_result</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$last_result </span><span class="keyword">= </span><span class="default">$result</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">assert</span><span class="keyword">(</span><span class="default">is_resource</span><span class="keyword">(</span><span class="default">$result</span><span class="keyword">) &amp;&amp; </span><span class="default">get_resource_type</span><span class="keyword">(</span><span class="default">$result</span><span class="keyword">) === </span><span class="string">"pgsql result"</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$last_result</span><span class="keyword">;<br />
+}<br />
+<br />
+function </span><span class="default">pg_send_query_params_sync</span><span class="keyword">(</span><span class="default">$connection</span><span class="keyword">, </span><span class="default">string $query</span><span class="keyword">, array </span><span class="default">$params</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// This function cannot work if any query is already running for that connection because the results may then get mixed up.<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">assert</span><span class="keyword">(</span><span class="default">pg_get_result</span><span class="keyword">(</span><span class="default">$connection</span><span class="keyword">) === </span><span class="default">false</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$dispatch_ok </span><span class="keyword">= </span><span class="default">pg_send_query_params</span><span class="keyword">(</span><span class="default">$connection</span><span class="keyword">, </span><span class="default">$query</span><span class="keyword">, </span><span class="default">$params</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// The *only* case where nothing can be returned, when the connection fails to dispatch the initial query.<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">if (!</span><span class="default">$dispatch_ok</span><span class="keyword">) throw new </span><span class="default">PostgresConnectionError</span><span class="keyword">(</span><span class="default">pg_?last_?error</span><span class="keyword">(</span><span class="default">$connection</span><span class="keyword">));<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// From the libPQ doc : "PQgetResult must be called repeatedly until it returns a null pointer, indicating that the command is done."<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; // In the case of pg_query_params/PQExecParams, which we're trying to emulate:<br />
+&nbsp;&nbsp;&nbsp; // "Unlike PQexec, PQexecParams allows at most one SQL command in the given string. (There can be semicolons in it, but not more than one nonempty command.)"<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">while (</span><span class="default">$result </span><span class="keyword">= </span><span class="default">pg_get_result</span><span class="keyword">(</span><span class="default">$connection</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Drain all results on the connection, although there should only be one.<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if (</span><span class="default">$last_result</span><span class="keyword">) </span><span class="default">pg_free_result</span><span class="keyword">(</span><span class="default">$last_result</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$last_result </span><span class="keyword">= </span><span class="default">$result</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">assert</span><span class="keyword">(</span><span class="default">is_resource</span><span class="keyword">(</span><span class="default">$result</span><span class="keyword">) &amp;&amp; </span><span class="default">get_resource_type</span><span class="keyword">(</span><span class="default">$result</span><span class="keyword">) === </span><span class="string">"pgsql result"</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$last_result</span><span class="keyword">;<br />
+}</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="102956""></a>
+  <div class="note">
+   <strong class="user">spamuser at test dot com</strong>
+   <a href="#102956" class="date">16-Mar-2011 01:14</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+pg_result_error does NOT work with prepared statements.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="62546""></a>
+  <div class="note">
+   <strong class="user">axon dot wp at wp dot pl</strong>
+   <a href="#62546" class="date">02-Mar-2006 04:20</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+You can&nbsp; use pg_set_error_verbosity() to retrieve SQLSTATUS from pg_last_error().</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="40816""></a>
+  <div class="note">
+   
+   <a href="#40816" class="date">15-Mar-2004 04:12</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Because pg_query() returns FALSE if the query fails, you must must use pg_send_query() and pg_get_result() to get the result handle.<br />
+<br />
+PostgreSQL 7.4 introduced a new function called PQresultErrorField() that can be used to get SQLSTATE code from a query, which is far more useful than the error string returned from pg_result_error().<br />
+<a href="http://www.postgresql.org/docs/7.4/static/libpq-exec.html" rel="nofollow" target="_blank">http://www.postgresql.org/docs/7.4/static/libpq-exec.html</a><br />
+<a href="http://www.postgresql.org/docs/7.4/static/errcodes-appendix.html" rel="nofollow" target="_blank">http://www.postgresql.org/docs/7.4/static/errcodes-appendix.html</a><br />
+<br />
+Here's a patch that adds the pg_result_error_field() function to PHP:<br />
+<a href="http://collapsed.net/patches/php-4.3.5RC3-pg_result_error_field.diff" rel="nofollow" target="_blank">http://collapsed.net/patches/php-4.3.5RC3-pg_result_error_field.diff</a><br />
+(To apply the patch cd into your php-4.3.5RC directory and type: patch -p1 &lt;/path/to/php-4.3.5RC3-pg_result_error_field.diff)<br />
+<br />
+Example code:<br />
+<span class="default">&lt;?php<br />
+&nbsp; </span><span class="keyword">if(!(</span><span class="default">$db </span><span class="keyword">= </span><span class="default">pg_connect</span><span class="keyword">(</span><span class="string">"user=foo password=bar dbname=foobar"</span><span class="keyword">)))<br />
+&nbsp;&nbsp;&nbsp; die(</span><span class="string">"pg_connect"</span><span class="keyword">);<br />
+<br />
+&nbsp; if(!</span><span class="default">pg_send_query</span><span class="keyword">(</span><span class="default">$db</span><span class="keyword">, </span><span class="string">"SELECT foo FROM bar"</span><span class="keyword">))<br />
+&nbsp;&nbsp;&nbsp; die(</span><span class="string">"pg_send_query"</span><span class="keyword">);<br />
+<br />
+&nbsp; if(!(</span><span class="default">$result </span><span class="keyword">= </span><span class="default">pg_get_result</span><span class="keyword">(</span><span class="default">$db</span><span class="keyword">)))<br />
+&nbsp;&nbsp;&nbsp; die(</span><span class="string">"pg_get_result"</span><span class="keyword">);<br />
+<br />
+&nbsp; echo(</span><span class="default">pg_result_error</span><span class="keyword">(</span><span class="default">$result</span><span class="keyword">) . </span><span class="string">"&lt;br /&gt;\n"</span><span class="keyword">);<br />
+<br />
+&nbsp; </span><span class="comment">/* only available if you have patched php */<br />
+&nbsp; </span><span class="keyword">if(</span><span class="default">function_exists</span><span class="keyword">(</span><span class="string">"pg_result_error_field"</span><span class="keyword">))<br />
+&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$fieldcode </span><span class="keyword">= array(<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="string">"PGSQL_DIAG_SEVERITY"</span><span class="keyword">,&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="string">"PGSQL_DIAG_SQLSTATE"</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="string">"PGSQL_DIAG_MESSAGE_PRIMARY"</span><span class="keyword">, </span><span class="string">"PGSQL_DIAG_MESSAGE_DETAIL"</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="string">"PGSQL_DIAG_MESSAGE_HINT"</span><span class="keyword">,&nbsp; &nbsp; </span><span class="string">"PGSQL_DIAG_STATEMENT_POSITION"</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="string">"PGSQL_DIAG_CONTEXT"</span><span class="keyword">,&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">"PGSQL_DIAG_SOURCE_FILE"</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="string">"PGSQL_DIAG_SOURCE_LINE"</span><span class="keyword">,&nbsp; &nbsp;&nbsp; </span><span class="string">"PGSQL_DIAG_SOURCE_FUNCTION"</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp;&nbsp; foreach(</span><span class="default">$fieldcode </span><span class="keyword">as </span><span class="default">$fcode</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">printf</span><span class="keyword">(</span><span class="string">"%s: %s&lt;br /&gt;\n"</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$fcode</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">pg_result_error_field</span><span class="keyword">(</span><span class="default">$result</span><span class="keyword">, </span><span class="default">constant</span><span class="keyword">(</span><span class="default">$fcode</span><span class="keyword">)));<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">pg_free_result</span><span class="keyword">(</span><span class="default">$result</span><span class="keyword">);<br />
+&nbsp; }<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+<span class="default">&lt;?php pg_result_error_field</span><span class="keyword">(</span><span class="default">$result</span><span class="keyword">, </span><span class="default">PGSQL_DIAG_SQLSTATE</span><span class="keyword">); </span><span class="default">?&gt;<br />
+</span>Returns the SQLSTATE code.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

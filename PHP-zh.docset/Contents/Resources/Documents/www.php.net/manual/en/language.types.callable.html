@@ -1,0 +1,821 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Callback / Callable 类型</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="language.types.null.html">? NULL</a></li>
+      <li style="float: right;"><a href="language.pseudo-types.html">本文档中使用的伪类型与变量 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="language.types.html">类型</a></li>
+    <li>Callback / Callable 类型</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="language.types.callable" class="sect1">
+ <h2 class="title">Callback / Callable 类型</h2>
+ 
+ <p class="para">
+  自 PHP 5.4 起可用 <span class="type"><a href="language.types.callable.html" class="type callable">callable</a></span> 类型指定回调类型
+  callback。本文档基于同样理由使用 <span class="type"><a href="language.pseudo-types.html#language.types.callback" class="type callback">callback</a></span> 类型信息。
+ </p>
+
+ <p class="para">
+  一些函数如 <span class="function"><a href="function.call-user-func.html" class="function">call_user_func()</a></span> 或
+  <span class="function"><a href="function.usort.html" class="function">usort()</a></span> 可以接受用户自定义的回调函数作为参数。回调函数不止可以是简单函数，还可以是对象的方法，包括静态类方法。
+ </p>
+
+ <div class="sect2" id="language.types.callable.passing">
+  <h3 class="title">传递</h3>
+
+  <p class="para">
+   PHP是将函数以<span class="type"><a href="language.types.string.html" class="type string">string</a></span>形式传递的。
+   可以使用任何内置或用户自定义函数，但除了语言结构例如：<span class="function"><a href="function.array.html" class="function">array()</a></span>，<span class="function"><a href="function.echo.html" class="function">echo</a></span>，<span class="function"><a href="function.empty.html" class="function">empty()</a></span>，<span class="function"><a href="function.eval.html" class="function">eval()</a></span>，<span class="function"><a href="function.exit.html" class="function">exit()</a></span>，<span class="function"><a href="function.isset.html" class="function">isset()</a></span>，<span class="function"><a href="function.list.html" class="function">list()</a></span>，<span class="function"><a href="function.print.html" class="function">print</a></span>
+   或 <span class="function"><a href="function.unset.html" class="function">unset()</a></span>。
+  </p>
+
+  <p class="para">
+   一个已实例化的 <span class="type"><a href="language.types.object.html" class="type object">object</a></span> 的方法被作为 <span class="type"><a href="language.types.array.html" class="type array">array</a></span> 传递，下标 0 包含该 <span class="type"><a href="language.types.object.html" class="type object">object</a></span>，下标 1 包含方法名。
+   在同一个类里可以访问 protected 和 private 方法。
+  </p>
+
+  <p class="para">
+   静态类方法也可不经实例化该类的对象而传递，只要在下标 0 中包含类名而不是对象。自
+   PHP 5.2.3 起，也可以传递 <em>&#039;ClassName::methodName&#039;</em>。
+  </p>
+
+  <p class="para">
+   除了普通的用户自定义函数外，也可传递
+   <a href="functions.anonymous.html" class="link">匿名函数</a> 给回调参数。
+  </p>
+
+  <p class="para">
+   <div class="example" id="example-85">
+    <p><strong>Example #1 回调函数示例</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&nbsp;<br /><br /></span><span style="color: #FF8000">//&nbsp;An&nbsp;example&nbsp;callback&nbsp;function<br /></span><span style="color: #007700">function&nbsp;</span><span style="color: #0000BB">my_callback_function</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'hello&nbsp;world!'</span><span style="color: #007700">;<br />}<br /><br /></span><span style="color: #FF8000">//&nbsp;An&nbsp;example&nbsp;callback&nbsp;method<br /></span><span style="color: #007700">class&nbsp;</span><span style="color: #0000BB">MyClass&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;static&nbsp;function&nbsp;</span><span style="color: #0000BB">myCallbackMethod</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'Hello&nbsp;World!'</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br /></span><span style="color: #FF8000">//&nbsp;Type&nbsp;1:&nbsp;Simple&nbsp;callback<br /></span><span style="color: #0000BB">call_user_func</span><span style="color: #007700">(</span><span style="color: #DD0000">'my_callback_function'</span><span style="color: #007700">);&nbsp;<br /><br /></span><span style="color: #FF8000">//&nbsp;Type&nbsp;2:&nbsp;Static&nbsp;class&nbsp;method&nbsp;call<br /></span><span style="color: #0000BB">call_user_func</span><span style="color: #007700">(array(</span><span style="color: #DD0000">'MyClass'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'myCallbackMethod'</span><span style="color: #007700">));&nbsp;<br /><br /></span><span style="color: #FF8000">//&nbsp;Type&nbsp;3:&nbsp;Object&nbsp;method&nbsp;call<br /></span><span style="color: #0000BB">$obj&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">MyClass</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">call_user_func</span><span style="color: #007700">(array(</span><span style="color: #0000BB">$obj</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'myCallbackMethod'</span><span style="color: #007700">));<br /><br /></span><span style="color: #FF8000">//&nbsp;Type&nbsp;4:&nbsp;Static&nbsp;class&nbsp;method&nbsp;call&nbsp;(As&nbsp;of&nbsp;PHP&nbsp;5.2.3)<br /></span><span style="color: #0000BB">call_user_func</span><span style="color: #007700">(</span><span style="color: #DD0000">'MyClass::myCallbackMethod'</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">//&nbsp;Type&nbsp;5:&nbsp;Relative&nbsp;static&nbsp;class&nbsp;method&nbsp;call&nbsp;(As&nbsp;of&nbsp;PHP&nbsp;5.3.0)<br /></span><span style="color: #007700">class&nbsp;</span><span style="color: #0000BB">A&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;static&nbsp;function&nbsp;</span><span style="color: #0000BB">who</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"A\n"</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br />class&nbsp;</span><span style="color: #0000BB">B&nbsp;</span><span style="color: #007700">extends&nbsp;</span><span style="color: #0000BB">A&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;static&nbsp;function&nbsp;</span><span style="color: #0000BB">who</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"B\n"</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br /></span><span style="color: #0000BB">call_user_func</span><span style="color: #007700">(array(</span><span style="color: #DD0000">'B'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'parent::who'</span><span style="color: #007700">));&nbsp;</span><span style="color: #FF8000">//&nbsp;A<br /><br />//&nbsp;Type&nbsp;6:&nbsp;Objects&nbsp;implementing&nbsp;__invoke&nbsp;can&nbsp;be&nbsp;used&nbsp;as&nbsp;callables&nbsp;(since&nbsp;PHP&nbsp;5.3)<br /></span><span style="color: #007700">class&nbsp;</span><span style="color: #0000BB">C&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">__invoke</span><span style="color: #007700">(</span><span style="color: #0000BB">$name</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'Hello&nbsp;'</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$name</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"\n"</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br /></span><span style="color: #0000BB">$c&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">C</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">call_user_func</span><span style="color: #007700">(</span><span style="color: #0000BB">$c</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'PHP!'</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+   </div>
+  </p>
+  <p class="para">
+   <div class="example" id="example-86">
+    <p><strong>Example #2 使用 Closure 的示例</strong></p>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">//&nbsp;Our&nbsp;closure<br /></span><span style="color: #0000BB">$double&nbsp;</span><span style="color: #007700">=&nbsp;function(</span><span style="color: #0000BB">$a</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;</span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">*&nbsp;</span><span style="color: #0000BB">2</span><span style="color: #007700">;<br />};<br /><br /></span><span style="color: #FF8000">//&nbsp;This&nbsp;is&nbsp;our&nbsp;range&nbsp;of&nbsp;numbers<br /></span><span style="color: #0000BB">$numbers&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">range</span><span style="color: #007700">(</span><span style="color: #0000BB">1</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">5</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">//&nbsp;Use&nbsp;the&nbsp;closure&nbsp;as&nbsp;a&nbsp;callback&nbsp;here&nbsp;to&nbsp;<br />//&nbsp;double&nbsp;the&nbsp;size&nbsp;of&nbsp;each&nbsp;element&nbsp;in&nbsp;our&nbsp;<br />//&nbsp;range<br /></span><span style="color: #0000BB">$new_numbers&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">array_map</span><span style="color: #007700">(</span><span style="color: #0000BB">$double</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$numbers</span><span style="color: #007700">);<br /><br />print&nbsp;</span><span style="color: #0000BB">implode</span><span style="color: #007700">(</span><span style="color: #DD0000">'&nbsp;'</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$new_numbers</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+    <div class="example-contents"><p>以上例程会输出：</p></div>
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+2 4 6 8 10
+</pre></div>
+    </div>
+   </div>
+  </p>
+
+  <blockquote class="note"><p><strong class="note">Note</strong>: <p class="para">在函数中注册有多个回调内容时(如使用
+<span class="function"><a href="function.call-user-func.html" class="function">call_user_func()</a></span> 与 <span class="function"><a href="function.call-user-func-array.html" class="function">call_user_func_array()</a></span>)，如在前一个回调中有未捕获的异常，其后的将不再被调用。</p></p></blockquote>
+ </div>
+
+</div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="124054""></a>
+  <div class="note">
+   <strong class="user">gulaschsuppe2 at gmail dot com</strong>
+   <a href="#124054" class="date">21-Jul-2019 01:53</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I tried many possible ways of calling functions by function name directly and assigned to a variable on 3v4l. Not mentioned yet, it is possible to use an array as a caller, at least since PHP 7.1.25. The following script contains all the information I gained:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="comment">// Call function via function name:<br />
+&nbsp;&nbsp;&nbsp; // Basics:<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; // A function can also be called by using its string name:<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">function </span><span class="default">callbackFunc</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">'Hello World'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'callbackFunc'</span><span class="keyword">(); </span><span class="comment">// Hello World<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; // A function can also be called if its name is assigned to a variable:<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">function </span><span class="default">callbackFunc</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">'Hello World'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$funcName </span><span class="keyword">= </span><span class="string">'callbackFunc'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$funcName</span><span class="keyword">(); </span><span class="comment">// Hello World<br />
+<br />
+&nbsp;&nbsp;&nbsp; // Static class method:<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; // It is also possible to call a public static class method via 'ClassName::functioName' notation:<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">class </span><span class="default">A </span><span class="keyword">{<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; public static function </span><span class="default">callbackMethod</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"Hello World\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'A::callbackMethod'</span><span class="keyword">(); </span><span class="comment">// Hello World<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$funcName </span><span class="keyword">= </span><span class="string">'A::callbackMethod'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$funcName</span><span class="keyword">(); </span><span class="comment">// Hello World<br />
+<br />
+&nbsp;&nbsp;&nbsp; // Non static class method:<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; // It is also possible to call non static class methods by creating an array which first element is the object the method should be called on and the second element is the non static method to be called. The array can directly be used as a caller:<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">class </span><span class="default">A </span><span class="keyword">{<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; private </span><span class="default">$prop </span><span class="keyword">= </span><span class="string">"Hello World\n"</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; public function </span><span class="default">callbackMethod</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">prop</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$a </span><span class="keyword">= new </span><span class="default">A</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [</span><span class="default">$a</span><span class="keyword">, </span><span class="string">'callbackMethod'</span><span class="keyword">]();<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$funcCallArr </span><span class="keyword">= [</span><span class="default">$a</span><span class="keyword">, </span><span class="string">'callbackMethod'</span><span class="keyword">];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$funcCallArr</span><span class="keyword">();<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Of course this also works inside the class with '$this':<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">class </span><span class="default">A </span><span class="keyword">{<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; private function </span><span class="default">privCallback</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">'Private'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; public function </span><span class="default">privCallbackCaller</span><span class="keyword">(</span><span class="default">$funcName</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [</span><span class="default">$this</span><span class="keyword">, </span><span class="default">$funcName</span><span class="keyword">]();<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; (new </span><span class="default">A</span><span class="keyword">)-&gt;</span><span class="default">privCallbackCaller</span><span class="keyword">(</span><span class="string">'privCallback'</span><span class="keyword">); </span><span class="comment">// Private<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="123449""></a>
+  <div class="note">
+   <strong class="user">chris dot rutledge at gmail dot com</strong>
+   <a href="#123449" class="date">18-Dec-2018 10:12</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Having read this line in the manual above, <br />
+<br />
+"A method of an instantiated object is passed as an array containing an object at index 0 and the method name at index 1. Accessing protected and private methods from within a class is allowed."<br />
+<br />
+I decided to do some testing to see if I could access private methods using the call_user_func methods. Thankfully not, but for completeness here is my test which also covers using static and object contexts<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">foo </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public static </span><span class="default">$isInstance </span><span class="keyword">= </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__construct</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">self</span><span class="keyword">::</span><span class="default">$isInstance </span><span class="keyword">= </span><span class="default">true</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">bar</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">self</span><span class="keyword">::</span><span class="default">$isInstance</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="default">__METHOD__</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; private function </span><span class="default">baz</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">self</span><span class="keyword">::</span><span class="default">$isInstance</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="default">__METHOD__</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">qux</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">baz</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">quux</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">self</span><span class="keyword">::</span><span class="default">baz</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">call_user_func</span><span class="keyword">([</span><span class="string">'foo'</span><span class="keyword">,</span><span class="string">'bar'</span><span class="keyword">]);&nbsp; &nbsp; </span><span class="comment">//fase, foo:bar<br />
+<br />
+</span><span class="default">call_user_func</span><span class="keyword">([</span><span class="string">'foo'</span><span class="keyword">,</span><span class="string">'baz'</span><span class="keyword">]);&nbsp; </span><span class="comment">//warning, cannot access private method<br />
+<br />
+</span><span class="default">call_user_func</span><span class="keyword">([</span><span class="string">'foo'</span><span class="keyword">,</span><span class="string">'quux'</span><span class="keyword">]); </span><span class="comment">//false, foo::baz<br />
+<br />
+</span><span class="default">call_user_func</span><span class="keyword">([</span><span class="string">'foo'</span><span class="keyword">,</span><span class="string">'qux'</span><span class="keyword">]);&nbsp; </span><span class="comment">//fatal, Using $this when not in object context <br />
+<br />
+</span><span class="default">$foo </span><span class="keyword">= new </span><span class="default">foo</span><span class="keyword">;<br />
+<br />
+</span><span class="default">call_user_func</span><span class="keyword">([</span><span class="default">$foo</span><span class="keyword">,</span><span class="string">'bar'</span><span class="keyword">]);&nbsp; &nbsp; </span><span class="comment">//true, foo::bar<br />
+</span><span class="default">call_user_func</span><span class="keyword">([</span><span class="default">$foo</span><span class="keyword">,</span><span class="string">'baz'</span><span class="keyword">]);&nbsp; &nbsp; </span><span class="comment">//warning, cannot access private method<br />
+</span><span class="default">call_user_func</span><span class="keyword">([</span><span class="default">$foo</span><span class="keyword">,</span><span class="string">'qux'</span><span class="keyword">]);&nbsp; &nbsp; </span><span class="comment">//true, foo::baz<br />
+<br />
+</span><span class="default">call_user_func</span><span class="keyword">([</span><span class="string">'foo'</span><span class="keyword">,</span><span class="string">'bar'</span><span class="keyword">]);&nbsp; </span><span class="comment">//true, foo::bar (static call, yet $isInstance is true)<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="122414""></a>
+  <div class="note">
+   <strong class="user">Dan J</strong>
+   <a href="#122414" class="date">20-Feb-2018 05:59</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+You can avoid repeating a long namespace for classes in callable arrays by making use of the "use" operator and the special "::class" constant.<br />
+<br />
+Documentation of use operator:<br />
+<a href="http://php.net/manual/en/language.namespaces.importing.php" rel="nofollow" target="_blank">http://php.net/manual/en/language.namespaces.importing.php</a><br />
+<br />
+Documentation of ::class constant:<br />
+<a href="http://php.net/manual/en/language.oop5.constants.php" rel="nofollow" target="_blank">http://php.net/manual/en/language.oop5.constants.php</a><br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">// Library file with namespace My\Library\Namespace<br />
+</span><span class="keyword">require </span><span class="string">'MyLibrary.php'</span><span class="keyword">;<br />
+<br />
+</span><span class="comment">// Alias for SortingClass<br />
+</span><span class="keyword">use \</span><span class="default">My</span><span class="keyword">\</span><span class="default">Library</span><span class="keyword">\Namespace\</span><span class="default">SortingClass</span><span class="keyword">;<br />
+<br />
+</span><span class="comment">// Callable array referring to SortingClass::SortFunction<br />
+</span><span class="default">$callable </span><span class="keyword">= [</span><span class="default">SortingClass</span><span class="keyword">::class, </span><span class="string">'SortFunction'</span><span class="keyword">];<br />
+<br />
+</span><span class="default">$values </span><span class="keyword">= [</span><span class="default">3</span><span class="keyword">, </span><span class="default">1</span><span class="keyword">, </span><span class="default">2</span><span class="keyword">];<br />
+</span><span class="default">usort</span><span class="keyword">(</span><span class="default">$values</span><span class="keyword">, </span><span class="default">$callable</span><span class="keyword">);</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="121634""></a>
+  <div class="note">
+   <strong class="user">Daniel Klein</strong>
+   <a href="#121634" class="date">13-Sep-2017 07:26</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+You can use "self::method_name", "static::method_name" and "parent::method_name" in callables:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">StaticCallable </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public static function </span><span class="default">foo</span><span class="keyword">(</span><span class="default">$values</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">array_map</span><span class="keyword">(</span><span class="string">'self::bar'</span><span class="keyword">, </span><span class="default">$values</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public static function </span><span class="default">bar</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="string">"</span><span class="keyword">{</span><span class="default">$value</span><span class="keyword">}</span><span class="string">: 42"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public static function </span><span class="default">baz</span><span class="keyword">(</span><span class="default">$values</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">array_map</span><span class="keyword">(</span><span class="string">'static::qux'</span><span class="keyword">, </span><span class="default">$values</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public static function </span><span class="default">qux</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="string">"</span><span class="keyword">{</span><span class="default">$value</span><span class="keyword">}</span><span class="string">: 123"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+class </span><span class="default">StaticExtension </span><span class="keyword">extends </span><span class="default">StaticCallable </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public static function </span><span class="default">bar</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="string">"</span><span class="keyword">{</span><span class="default">$value</span><span class="keyword">}</span><span class="string">: Marvin the Paranoid Android"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public static function </span><span class="default">qux</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="string">"</span><span class="keyword">{</span><span class="default">$value</span><span class="keyword">}</span><span class="string">: Zaphod Beeblebrox"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">print_r</span><span class="keyword">(</span><span class="default">StaticCallable</span><span class="keyword">::</span><span class="default">foo</span><span class="keyword">([</span><span class="default">1</span><span class="keyword">, </span><span class="default">2</span><span class="keyword">, </span><span class="default">3</span><span class="keyword">]));<br />
+</span><span class="default">print_r</span><span class="keyword">(</span><span class="default">StaticExtension</span><span class="keyword">::</span><span class="default">foo</span><span class="keyword">([</span><span class="default">1</span><span class="keyword">, </span><span class="default">2</span><span class="keyword">, </span><span class="default">3</span><span class="keyword">]));<br />
+<br />
+</span><span class="default">print_r</span><span class="keyword">(</span><span class="default">StaticCallable</span><span class="keyword">::</span><span class="default">baz</span><span class="keyword">([</span><span class="default">1</span><span class="keyword">, </span><span class="default">2</span><span class="keyword">, </span><span class="default">3</span><span class="keyword">]));<br />
+</span><span class="default">print_r</span><span class="keyword">(</span><span class="default">StaticExtension</span><span class="keyword">::</span><span class="default">baz</span><span class="keyword">([</span><span class="default">1</span><span class="keyword">, </span><span class="default">2</span><span class="keyword">, </span><span class="default">3</span><span class="keyword">]));<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Results:<br />
+Array<br />
+(<br />
+&nbsp;&nbsp;&nbsp; [0] =&gt; 1: 42<br />
+&nbsp;&nbsp;&nbsp; [1] =&gt; 2: 42<br />
+&nbsp;&nbsp;&nbsp; [2] =&gt; 3: 42<br />
+)<br />
+Array<br />
+(<br />
+&nbsp;&nbsp;&nbsp; [0] =&gt; 1: 42<br />
+&nbsp;&nbsp;&nbsp; [1] =&gt; 2: 42<br />
+&nbsp;&nbsp;&nbsp; [2] =&gt; 3: 42<br />
+)<br />
+Array<br />
+(<br />
+&nbsp;&nbsp;&nbsp; [0] =&gt; 1: 123<br />
+&nbsp;&nbsp;&nbsp; [1] =&gt; 2: 123<br />
+&nbsp;&nbsp;&nbsp; [2] =&gt; 3: 123<br />
+)<br />
+Array<br />
+(<br />
+&nbsp;&nbsp;&nbsp; [0] =&gt; 1: Zaphod Beeblebrox<br />
+&nbsp;&nbsp;&nbsp; [1] =&gt; 2: Zaphod Beeblebrox<br />
+&nbsp;&nbsp;&nbsp; [2] =&gt; 3: Zaphod Beeblebrox<br />
+)<br />
+<br />
+"self::" uses the same class as the called method, "static::" uses the same class as the called class, and "parent::" (not shown) uses the parent class, or generates a warning if there is no parent.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="120990""></a>
+  <div class="note">
+   <strong class="user">whysteepy at gmail dot com</strong>
+   <a href="#120990" class="date">18-Apr-2017 06:34</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Another Appearance of Callbacks! Here is one way of them - methods of an instantiated object can be callable and implemented as variable functions without php's default functions that can call user-defined callback functions.<br />
+<br />
+class Test {<br />
+&nbsp;&nbsp;&nbsp; protected $items = array();<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function __construct() <br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;items[] = array($this, 'callBackOne');<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;items[] = array($this, 'callBackTwo');<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function callBackOne()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo __METHOD__ . ' has been called as a callback.';<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function callBackTwo()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo __METHOD__ . ' has been called as a callback.';<br />
+&nbsp;&nbsp;&nbsp; }&nbsp; &nbsp; <br />
+<br />
+&nbsp;&nbsp;&nbsp; public function getItems()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return $this-&gt;items;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+$o = new Test();<br />
+$itemLists = $o-&gt;getItems();<br />
+<br />
+foreach ($itemLists as $itemList) {<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; // call each one as a variable function<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo '&lt;pre&gt;';<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; print_r($itemList());<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo '&lt;/pre&gt;';<br />
+}<br />
+<br />
+// Outputs the following<br />
+// Test::callBackOne has been called as a callback.<br />
+<br />
+// Test::callBackTwo has been called as a callback.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119166""></a>
+  <div class="note">
+   <strong class="user">bradyn at NOSPAM dot bradynpoulsen dot com</strong>
+   <a href="#119166" class="date">14-Apr-2016 01:22</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+When trying to make a callable from a function name located in a namespace, you MUST give the fully qualified function name (regardless of the current namespace or use statements).<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">namespace </span><span class="default">MyNamespace</span><span class="keyword">;<br />
+<br />
+function </span><span class="default">doSomethingFancy</span><span class="keyword">(</span><span class="default">$arg1</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// do something...<br />
+</span><span class="keyword">}<br />
+<br />
+</span><span class="default">$values </span><span class="keyword">= [</span><span class="default">1</span><span class="keyword">, </span><span class="default">2</span><span class="keyword">, </span><span class="default">3</span><span class="keyword">];<br />
+<br />
+</span><span class="default">array_map</span><span class="keyword">(</span><span class="string">'doSomethingFancy'</span><span class="keyword">, </span><span class="default">$values</span><span class="keyword">);<br />
+</span><span class="comment">// array_map() expects parameter 1 to be a valid callback, function 'doSomethingFancy' not found or invalid function name<br />
+<br />
+</span><span class="default">array_map</span><span class="keyword">(</span><span class="string">'MyNamespace\doSomethingFancy'</span><span class="keyword">, </span><span class="default">$values</span><span class="keyword">);<br />
+</span><span class="comment">// =&gt; [..., ..., ...]</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119159""></a>
+  <div class="note">
+   <strong class="user">pawel dot tadeusz dot niedzielski at gmail dot com</strong>
+   <a href="#119159" class="date">12-Apr-2016 02:11</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+@edanschwartz at gmail dot com<br />
+<br />
+You can use ::class property to always indicate the class you're in when using static methods:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">Foo </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public static function </span><span class="default">doAwesomeThings</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">FunctionCaller</span><span class="keyword">::</span><span class="default">callIt</span><span class="keyword">(</span><span class="default">self</span><span class="keyword">::class . </span><span class="string">'::someAwesomeMethod'</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public static function </span><span class="default">someAwesomeMethod</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// fantastic code goes here.<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">}<br />
+}<br />
+<br />
+class </span><span class="default">FunctionCaller </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public static function </span><span class="default">callIt</span><span class="keyword">(callable </span><span class="default">$func</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">call_user_func</span><span class="keyword">(</span><span class="default">$func</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">Foo</span><span class="keyword">::</span><span class="default">doAwesomeThings</span><span class="keyword">();<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118032""></a>
+  <div class="note">
+   <strong class="user">mariano dot REMOVE dot perez dot rodriguez at gmail dot com</strong>
+   <a href="#118032" class="date">21-Sep-2015 07:45</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I needed a function that would determine the type of callable being passed, and, eventually,<br />
+normalized it to some extent. Here's what I came up with:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="comment">/**<br />
+&nbsp;* The callable types and normalizations are given in the table below:<br />
+&nbsp;*<br />
+&nbsp;*&nbsp; Callable&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | Normalization&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; | Type<br />
+&nbsp;* ---------------------------------+---------------------------------+--------------<br />
+&nbsp;*&nbsp; function (...) use (...) {...}&nbsp; | function (...) use (...) {...}&nbsp; | 'closure'<br />
+&nbsp;*&nbsp; $object&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; | $object&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; | 'invocable'<br />
+&nbsp;*&nbsp; "function"&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | "function"&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | 'function'<br />
+&nbsp;*&nbsp; "class::method"&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; | ["class", "method"]&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; | 'static'<br />
+&nbsp;*&nbsp; ["class", "parent::method"]&nbsp; &nbsp;&nbsp; | ["parent of class", "method"]&nbsp;&nbsp; | 'static'<br />
+&nbsp;*&nbsp; ["class", "self::method"]&nbsp; &nbsp; &nbsp;&nbsp; | ["class", "method"]&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; | 'static'<br />
+&nbsp;*&nbsp; ["class", "method"]&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; | ["class", "method"]&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; | 'static'<br />
+&nbsp;*&nbsp; [$object, "parent::method"]&nbsp; &nbsp;&nbsp; | [$object, "parent::method"]&nbsp; &nbsp;&nbsp; | 'object'<br />
+&nbsp;*&nbsp; [$object, "self::method"]&nbsp; &nbsp; &nbsp;&nbsp; | [$object, "method"]&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; | 'object'<br />
+&nbsp;*&nbsp; [$object, "method"]&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; | [$object, "method"]&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; | 'object'<br />
+&nbsp;* ---------------------------------+---------------------------------+--------------<br />
+&nbsp;*&nbsp; other callable&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | idem&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | 'unknown'<br />
+&nbsp;* ---------------------------------+---------------------------------+--------------<br />
+&nbsp;*&nbsp; not a callable&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | null&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | false<br />
+&nbsp;*<br />
+&nbsp;* If the "strict" parameter is set to true, additional checks are<br />
+&nbsp;* performed, in particular:<br />
+&nbsp;*&nbsp; - when a callable string of the form "class::method" or a callable array<br />
+&nbsp;*&nbsp; &nbsp; of the form ["class", "method"] is given, the method must be a static one,<br />
+&nbsp;*&nbsp; - when a callable array of the form [$object, "method"] is given, the<br />
+&nbsp;*&nbsp; &nbsp; method must be a non-static one.<br />
+&nbsp;*<br />
+&nbsp;*/<br />
+</span><span class="keyword">function </span><span class="default">callableType</span><span class="keyword">(</span><span class="default">$callable</span><span class="keyword">, </span><span class="default">$strict </span><span class="keyword">= </span><span class="default">true</span><span class="keyword">, callable&amp; </span><span class="default">$norm </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">) {<br />
+&nbsp; if (!</span><span class="default">is_callable</span><span class="keyword">(</span><span class="default">$callable</span><span class="keyword">)) {<br />
+&nbsp;&nbsp;&nbsp; switch (</span><span class="default">true</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; case </span><span class="default">is_object</span><span class="keyword">(</span><span class="default">$callable</span><span class="keyword">):<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$norm </span><span class="keyword">= </span><span class="default">$callable</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="string">'Closure' </span><span class="keyword">=== </span><span class="default">get_class</span><span class="keyword">(</span><span class="default">$callable</span><span class="keyword">) ? </span><span class="string">'closure' </span><span class="keyword">: </span><span class="string">'invocable'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp;&nbsp; case </span><span class="default">is_string</span><span class="keyword">(</span><span class="default">$callable</span><span class="keyword">):<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$m&nbsp; &nbsp; </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">preg_match</span><span class="keyword">(</span><span class="string">'~^(?&lt;class&gt;[a-z_][a-z0-9_]*)::(?&lt;method&gt;[a-z_][a-z0-9_]*)$~i'</span><span class="keyword">, </span><span class="default">$callable</span><span class="keyword">, </span><span class="default">$m</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; list(</span><span class="default">$left</span><span class="keyword">, </span><span class="default">$right</span><span class="keyword">) = [</span><span class="default">$m</span><span class="keyword">[</span><span class="string">'class'</span><span class="keyword">], </span><span class="default">$m</span><span class="keyword">[</span><span class="string">'method'</span><span class="keyword">]];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (!</span><span class="default">$strict </span><span class="keyword">|| (new \</span><span class="default">ReflectionMethod</span><span class="keyword">(</span><span class="default">$left</span><span class="keyword">, </span><span class="default">$right</span><span class="keyword">))-&gt;</span><span class="default">isStatic</span><span class="keyword">()) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$norm </span><span class="keyword">= [</span><span class="default">$left</span><span class="keyword">, </span><span class="default">$right</span><span class="keyword">];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="string">'static'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$norm </span><span class="keyword">= </span><span class="default">$callable</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="string">'function'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+&nbsp;&nbsp; &nbsp;&nbsp; case </span><span class="default">is_array</span><span class="keyword">(</span><span class="default">$callable</span><span class="keyword">):<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$m </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">preg_match</span><span class="keyword">(</span><span class="string">'~^(:?(?&lt;reference&gt;self|parent)::)?(?&lt;method&gt;[a-z_][a-z0-9_]*)$~i'</span><span class="keyword">, </span><span class="default">$callable</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="default">$m</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">is_string</span><span class="keyword">(</span><span class="default">$callable</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">])) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="string">'parent' </span><span class="keyword">=== </span><span class="default">strtolower</span><span class="keyword">(</span><span class="default">$m</span><span class="keyword">[</span><span class="string">'reference'</span><span class="keyword">])) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; list(</span><span class="default">$left</span><span class="keyword">, </span><span class="default">$right</span><span class="keyword">) = [</span><span class="default">get_parent_class</span><span class="keyword">(</span><span class="default">$callable</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">]), </span><span class="default">$m</span><span class="keyword">[</span><span class="string">'method'</span><span class="keyword">]];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; list(</span><span class="default">$left</span><span class="keyword">, </span><span class="default">$right</span><span class="keyword">) = [</span><span class="default">$callable</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">], </span><span class="default">$m</span><span class="keyword">[</span><span class="string">'method'</span><span class="keyword">]];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (!</span><span class="default">$strict </span><span class="keyword">|| (new \</span><span class="default">ReflectionMethod</span><span class="keyword">(</span><span class="default">$left</span><span class="keyword">, </span><span class="default">$right</span><span class="keyword">))-&gt;</span><span class="default">isStatic</span><span class="keyword">()) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$norm </span><span class="keyword">= [</span><span class="default">$left</span><span class="keyword">, </span><span class="default">$right</span><span class="keyword">];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="string">'static'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="string">'self' </span><span class="keyword">=== </span><span class="default">strtolower</span><span class="keyword">(</span><span class="default">$m</span><span class="keyword">[</span><span class="string">'reference'</span><span class="keyword">])) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; list(</span><span class="default">$left</span><span class="keyword">, </span><span class="default">$right</span><span class="keyword">) = [</span><span class="default">$callable</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">], </span><span class="default">$m</span><span class="keyword">[</span><span class="string">'method'</span><span class="keyword">]];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; list(</span><span class="default">$left</span><span class="keyword">, </span><span class="default">$right</span><span class="keyword">) = </span><span class="default">$callable</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (!</span><span class="default">$strict </span><span class="keyword">|| !(new \</span><span class="default">ReflectionMethod</span><span class="keyword">(</span><span class="default">$left</span><span class="keyword">, </span><span class="default">$right</span><span class="keyword">))-&gt;</span><span class="default">isStatic</span><span class="keyword">()) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$norm </span><span class="keyword">= [</span><span class="default">$left</span><span class="keyword">, </span><span class="default">$right</span><span class="keyword">];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="string">'object'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$norm </span><span class="keyword">= </span><span class="default">$callable</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="string">'unknown'</span><span class="keyword">;<br />
+&nbsp; }<br />
+&nbsp; </span><span class="default">$norm </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">;<br />
+&nbsp; return </span><span class="default">false</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Hope someone else finds it useful.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117260""></a>
+  <div class="note">
+   <strong class="user">Riikka K</strong>
+   <a href="#117260" class="date">11-May-2015 01:36</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+A note on differences when calling callbacks as "variable functions" without the use of call_user_func() (e.g. "<span class="default">&lt;?php $callback </span><span class="keyword">= </span><span class="string">'printf'</span><span class="keyword">; </span><span class="default">$callback</span><span class="keyword">(</span><span class="string">'Hello World!'</span><span class="keyword">) </span><span class="default">?&gt;</span>"):<br />
+<br />
+- Using the name of a function as string has worked since at least 4.3.0<br />
+- Calling anonymous functions and invokable objects has worked since 5.3.0<br />
+- Using the array structure [$object, 'method'] has worked since 5.4.0<br />
+<br />
+Note, however, that the following are not supported when calling callbacks as variable functions, even though they are supported by call_user_func():<br />
+<br />
+- Calling static class methods via strings such as 'foo::doStuff'<br />
+- Calling parent method using the [$object, 'parent::method'] array structure<br />
+<br />
+All of these cases are correctly recognized as callbacks by the 'callable' type hint, however. Thus, the following code will produce an error "Fatal error: Call to undefined function foo::doStuff() in /tmp/code.php on line 4":<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">foo </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; static function </span><span class="default">callIt</span><span class="keyword">(callable </span><span class="default">$callback</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$callback</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; static function </span><span class="default">doStuff</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"Hello World!"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">foo</span><span class="keyword">::</span><span class="default">callIt</span><span class="keyword">(</span><span class="string">'foo::doStuff'</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+The code would work fine, if we replaced the '$callback()' with 'call_user_func($callback)' or if we used the array ['foo', 'doStuff'] as the callback instead.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116640""></a>
+  <div class="note">
+   <strong class="user">edanschwartz at gmail dot com</strong>
+   <a href="#116640" class="date">02-Feb-2015 06:13</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+You can use 'self::methodName' as a callable, but this is dangerous. Consider this example:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">Foo </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public static function </span><span class="default">doAwesomeThings</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">FunctionCaller</span><span class="keyword">::</span><span class="default">callIt</span><span class="keyword">(</span><span class="string">'self::someAwesomeMethod'</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public static function </span><span class="default">someAwesomeMethod</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// fantastic code goes here.<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">}<br />
+}<br />
+<br />
+class </span><span class="default">FunctionCaller </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public static function </span><span class="default">callIt</span><span class="keyword">(callable </span><span class="default">$func</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">call_user_func</span><span class="keyword">(</span><span class="default">$func</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">Foo</span><span class="keyword">::</span><span class="default">doAwesomeThings</span><span class="keyword">();<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+This results in an error:<br />
+Warning: class 'FunctionCaller' does not have a method 'someAwesomeMethod'.<br />
+<br />
+For this reason you should always use the full class name:<br />
+<span class="default">&lt;?php<br />
+FunctionCaller</span><span class="keyword">::</span><span class="default">callIt</span><span class="keyword">(</span><span class="string">'Foo::someAwesomeMethod'</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+I believe this is because there is no way for FunctionCaller to know that the string 'self' at one point referred to to `Foo`.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="114861""></a>
+  <div class="note">
+   <strong class="user">Yzmir Ramirez</strong>
+   <a href="#114861" class="date">15-Apr-2014 11:40</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+&gt; As of PHP 5.2.3, it is also possible to pass 'ClassName::methodName'<br />
+<br />
+You can also use 'self::methodName'.&nbsp; This works in PHP 5.2.12 for me.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="113447""></a>
+  <div class="note">
+   <strong class="user">computrius at gmail dot com</strong>
+   <a href="#113447" class="date">11-Oct-2013 04:38</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+When specifying a call back in array notation (ie. array($this, "myfunc") ) the method can be private if called from inside the class, but if you call it from outside you'll get a warning:
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+
+<br />
+</span><span class="keyword">class </span><span class="default">mc </span><span class="keyword">{
+<br />
+&nbsp;&nbsp; public function </span><span class="default">go</span><span class="keyword">(array </span><span class="default">$arr</span><span class="keyword">) {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; </span><span class="default">array_walk</span><span class="keyword">(</span><span class="default">$arr</span><span class="keyword">, array(</span><span class="default">$this</span><span class="keyword">, </span><span class="string">"walkIt"</span><span class="keyword">));
+<br />
+&nbsp;&nbsp; }
+<br />
+
+<br />
+&nbsp;&nbsp; private function </span><span class="default">walkIt</span><span class="keyword">(</span><span class="default">$val</span><span class="keyword">) {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; echo </span><span class="default">$val </span><span class="keyword">. </span><span class="string">"&lt;br /&gt;"</span><span class="keyword">;
+<br />
+&nbsp;&nbsp; }
+<br />
+
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">export</span><span class="keyword">() {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return array(</span><span class="default">$this</span><span class="keyword">, </span><span class="string">'walkIt'</span><span class="keyword">);
+<br />
+&nbsp;&nbsp;&nbsp; }
+<br />
+}
+<br />
+
+<br />
+</span><span class="default">$data </span><span class="keyword">= array(</span><span class="default">1</span><span class="keyword">,</span><span class="default">2</span><span class="keyword">,</span><span class="default">3</span><span class="keyword">,</span><span class="default">4</span><span class="keyword">);
+<br />
+
+<br />
+</span><span class="default">$m </span><span class="keyword">= new </span><span class="default">mc</span><span class="keyword">;
+<br />
+</span><span class="default">$m</span><span class="keyword">-&gt;</span><span class="default">go</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">); </span><span class="comment">// valid
+<br />
+
+<br />
+</span><span class="default">array_walk</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">, </span><span class="default">$m</span><span class="keyword">-&gt;</span><span class="default">export</span><span class="keyword">()); </span><span class="comment">// will generate warning
+<br />
+
+<br />
+</span><span class="default">?&gt;
+<br />
+</span>
+<br />
+Output:
+<br />
+1&lt;br /&gt;2&lt;br /&gt;3&lt;br /&gt;4&lt;br /&gt;
+<br />
+Warning: array_walk() expects parameter 2 to be a valid callback, cannot access private method mc::walkIt() in /in/tfh7f on line 22</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="112341""></a>
+  <div class="note">
+   <strong class="user">metamarkers at gmail dot com</strong>
+   <a href="#112341" class="date">03-Jun-2013 07:34</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+you can pass an object as a callable if its class defines the __invoke() magic method..</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="110084""></a>
+  <div class="note">
+   <strong class="user">steve at mrclay dot org</strong>
+   <a href="#110084" class="date">17-Sep-2012 09:00</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Performance note: The callable type hint, like is_callable(), will trigger an autoload of the class if the value looks like a static method callback.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="109073""></a>
+  <div class="note">
+   <strong class="user">andrewbessa at gmail dot com</strong>
+   <a href="#109073" class="date">19-Jun-2012 03:16</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+You can also use the $this variable to specify a callback:
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+</span><span class="keyword">class </span><span class="default">MyClass </span><span class="keyword">{
+<br />
+
+<br />
+&nbsp;&nbsp;&nbsp; public </span><span class="default">$property </span><span class="keyword">= </span><span class="string">'Hello World!'</span><span class="keyword">;
+<br />
+
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">MyMethod</span><span class="keyword">()
+<br />
+&nbsp;&nbsp;&nbsp; {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">call_user_func</span><span class="keyword">(array(</span><span class="default">$this</span><span class="keyword">, </span><span class="string">'myCallbackMethod'</span><span class="keyword">));
+<br />
+&nbsp;&nbsp;&nbsp; }
+<br />
+
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">MyCallbackMethod</span><span class="keyword">()
+<br />
+&nbsp;&nbsp;&nbsp; {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">property</span><span class="keyword">;
+<br />
+&nbsp;&nbsp;&nbsp; }
+<br />
+
+<br />
+}
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

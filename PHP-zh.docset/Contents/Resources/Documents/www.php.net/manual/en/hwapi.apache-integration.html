@@ -1,0 +1,140 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Integration with Apache</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="hwapi.constants.html">? 预定义常量</a></li>
+      <li style="float: right;"><a href="ref.hwapi.html">Hyperwave API 函数 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="book.hwapi.html">Hyperwave API</a></li>
+    <li>Integration with Apache</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="hwapi.apache-integration" class="chapter">
+ <h1>Integration with Apache</h1>
+
+ <p class="para">
+  The Hyperwave extension is best used when PHP is compiled as an
+  Apache module. In such a case the underlying Hyperwave server can
+  be hidden from users almost completely if Apache uses its rewriting
+  engine. The following instructions will explain this.
+ </p>
+ <p class="para">
+  Since PHP with Hyperwave support built into Apache is intended
+  to replace the native Hyperwave solution based on Wavemaster, we
+  will assume that the Apache server will only serve as a Hyperwave
+  web interface for these examples. This is not necessary but it simplifies
+  the configuration. The concept is quite simple. First of all you
+  need a PHP script which evaluates the <var class="varname"><var class="varname"><a href="reserved.variables.environment.html" class="classname">$_ENV['PATH_INFO']</a></var></var>
+  variable and treats its value as the name of a Hyperwave
+  object. Let&#039;s call this script <em>&#039;Hyperwave&#039;</em>. The URL
+  <em>http://your.hostname/Hyperwave/name_of_object</em>
+  would than return the Hyperwave object with the name
+  <em>&#039;name_of_object&#039;</em>. Depending on the type of the object
+  the script has to react accordingly. If it is a collection, it will probably
+  return a list of children. If it is a document it will return the
+  mime type and the content. A slight improvement can be achieved
+  if the Apache rewriting engine is used. From the users point of
+  view it would be more straight forward if the URL
+  <em>http://your.hostname/name_of_object</em> would
+  return the object. The rewriting rule is quite easy:
+
+  <div class="informalexample">
+   <div class="example-contents">
+<div class="apache-confcode"><pre class="apache-confcode">RewriteRule ^/(.*) /usr/local/apache/htdocs/HyperWave/$1 [L]</pre>
+</div>
+   </div>
+
+  </div>
+
+  Now every URL relates to an object in the Hyperwave server. This
+  causes a simple to solve problem. There is no way to execute a
+  different script, e.g. for searching, than the &#039;Hyperwave&#039;
+  script. This can be fixed with another rewriting rule like the
+  following:
+
+  <div class="informalexample">
+   <div class="example-contents">
+<div class="apache-confcode"><pre class="apache-confcode">RewriteRule ^/hw/(.*) /usr/local/apache/htdocs/hw/$1 [L]</pre>
+</div>
+   </div>
+
+  </div>
+
+  This will reserve the directory <var class="filename">/usr/local/apache/htdocs/hw</var>
+  for additional scripts and other files. Just make sure this rule is
+  evaluated before the one above. There is just a little drawback:
+  all Hyperwave objects whose name starts with <em>&#039;hw/&#039;</em>
+  will be shadowed. So, make sure you don&#039;t use such names. If you need
+  more directories, e.g. for images just add more rules or place
+  them all in one directory. Before you put those instructions, don&#039;t
+  forget to turn on the rewriting engine with
+
+  <div class="informalexample">
+   <div class="example-contents">
+<div class="apache-confcode"><pre class="apache-confcode">RewriteEngine on</pre>
+</div>
+   </div>
+
+  </div>
+
+  You will need scripts:
+
+  <ul class="itemizedlist">
+    <li class="listitem">
+     <span class="simpara">
+     to return the object itself
+     </span>
+    </li>
+    <li class="listitem">
+     <span class="simpara">
+     to allow searching
+     </span>
+    </li>
+    <li class="listitem">
+     <span class="simpara">
+     to identify yourself
+     </span>
+    </li>
+    <li class="listitem">
+     <span class="simpara">
+     to set your profile
+     </span>
+    </li>
+    <li class="listitem">
+     <span class="simpara">
+     one for each additional function like to show
+     the object attributes, to show information about users,
+     to show the status of the server, etc.
+     </span>
+    </li>
+  </ul>
+ </p>
+ <p class="para">
+  As an alternative to the Rewrite Engine, you can also consider using
+  the Apache <em>ErrorDocument</em> directive, but be aware,
+  that <em>ErrorDocument</em> redirected pages cannot receive
+  POST data.
+ </p>
+</div>
+<div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+ <div class="note">There are no user contributed notes for this page.</div>
+</div>
+</div></div></body></html>

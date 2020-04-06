@@ -1,0 +1,2334 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>匿名函数</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="functions.internal.html">? 内部（内置）函数</a></li>
+      <li style="float: right;"><a href="language.oop5.html">类与对象 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="language.functions.html">函数</a></li>
+    <li>匿名函数</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="functions.anonymous" class="sect1">
+   <h2 class="title">匿名函数</h2>
+
+   <p class="simpara">
+    匿名函数（Anonymous functions），也叫闭包函数（<em>closures</em>），允许
+    临时创建一个没有指定名称的函数。最经常用作回调函数（<a href="language.pseudo-types.html#language.types.callback" class="link">callback</a>）参数的值。当然，也有其它应用的情况。
+   </p>
+     
+   <p class="simpara">
+    匿名函数目前是通过
+    <a href="class.closure.html" class="link"><a href="class.closure.html" class="classname">Closure</a></a> 类来实现的。
+   </p>
+
+   <div class="example" id="example-172">
+    <p><strong>Example #1 匿名函数示例</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">echo&nbsp;</span><span style="color: #0000BB">preg_replace_callback</span><span style="color: #007700">(</span><span style="color: #DD0000">'~-([a-z])~'</span><span style="color: #007700">,&nbsp;function&nbsp;(</span><span style="color: #0000BB">$match</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;</span><span style="color: #0000BB">strtoupper</span><span style="color: #007700">(</span><span style="color: #0000BB">$match</span><span style="color: #007700">[</span><span style="color: #0000BB">1</span><span style="color: #007700">]);<br />},&nbsp;</span><span style="color: #DD0000">'hello-world'</span><span style="color: #007700">);<br /></span><span style="color: #FF8000">//&nbsp;输出&nbsp;helloWorld<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+   </div>
+
+   <p class="simpara">
+    闭包函数也可以作为变量的值来使用。PHP 会自动把此种表达式转换成内置类
+    <a href="class.closure.html" class="classname">Closure</a> 的对象实例。把一个 closure
+    对象赋值给一个变量的方式与普通变量赋值的语法是一样的，最后也要加上分号：
+   </p>
+
+   <div class="example" id="example-173">
+    <p><strong>Example #2 匿名函数变量赋值示例</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$greet&nbsp;</span><span style="color: #007700">=&nbsp;function(</span><span style="color: #0000BB">$name</span><span style="color: #007700">)<br />{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">printf</span><span style="color: #007700">(</span><span style="color: #DD0000">"Hello&nbsp;%s\r\n"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$name</span><span style="color: #007700">);<br />};<br /><br /></span><span style="color: #0000BB">$greet</span><span style="color: #007700">(</span><span style="color: #DD0000">'World'</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$greet</span><span style="color: #007700">(</span><span style="color: #DD0000">'PHP'</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+   </div>
+   
+   <p class="simpara">
+    闭包可以从父作用域中继承变量。
+   任何此类变量都应该用 <em>use</em> 语言结构传递进去。 
+    PHP 7.1 起，不能传入此类变量：  <a href="language.variables.predefined.html" class="link">superglobals</a>、 <var class="varname"><var class="varname">$this</var></var> 或者和参数重名。
+   </p>
+
+   <div class="example" id="example-174">
+    <p><strong>Example #3 从父作用域继承变量</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$message&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'hello'</span><span style="color: #007700">;<br /><br /></span><span style="color: #FF8000">//&nbsp;没有&nbsp;"use"<br /></span><span style="color: #0000BB">$example&nbsp;</span><span style="color: #007700">=&nbsp;function&nbsp;()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$message</span><span style="color: #007700">);<br />};<br />echo&nbsp;</span><span style="color: #0000BB">$example</span><span style="color: #007700">();<br /><br /></span><span style="color: #FF8000">//&nbsp;继承&nbsp;$message<br /></span><span style="color: #0000BB">$example&nbsp;</span><span style="color: #007700">=&nbsp;function&nbsp;()&nbsp;use&nbsp;(</span><span style="color: #0000BB">$message</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$message</span><span style="color: #007700">);<br />};<br />echo&nbsp;</span><span style="color: #0000BB">$example</span><span style="color: #007700">();<br /><br /></span><span style="color: #FF8000">//&nbsp;Inherited&nbsp;variable's&nbsp;value&nbsp;is&nbsp;from&nbsp;when&nbsp;the&nbsp;function<br />//&nbsp;is&nbsp;defined,&nbsp;not&nbsp;when&nbsp;called<br /></span><span style="color: #0000BB">$message&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'world'</span><span style="color: #007700">;<br />echo&nbsp;</span><span style="color: #0000BB">$example</span><span style="color: #007700">();<br /><br /></span><span style="color: #FF8000">//&nbsp;Reset&nbsp;message<br /></span><span style="color: #0000BB">$message&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'hello'</span><span style="color: #007700">;<br /><br /></span><span style="color: #FF8000">//&nbsp;Inherit&nbsp;by-reference<br /></span><span style="color: #0000BB">$example&nbsp;</span><span style="color: #007700">=&nbsp;function&nbsp;()&nbsp;use&nbsp;(&amp;</span><span style="color: #0000BB">$message</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$message</span><span style="color: #007700">);<br />};<br />echo&nbsp;</span><span style="color: #0000BB">$example</span><span style="color: #007700">();<br /><br /></span><span style="color: #FF8000">//&nbsp;The&nbsp;changed&nbsp;value&nbsp;in&nbsp;the&nbsp;parent&nbsp;scope<br />//&nbsp;is&nbsp;reflected&nbsp;inside&nbsp;the&nbsp;function&nbsp;call<br /></span><span style="color: #0000BB">$message&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'world'</span><span style="color: #007700">;<br />echo&nbsp;</span><span style="color: #0000BB">$example</span><span style="color: #007700">();<br /><br /></span><span style="color: #FF8000">//&nbsp;Closures&nbsp;can&nbsp;also&nbsp;accept&nbsp;regular&nbsp;arguments<br /></span><span style="color: #0000BB">$example&nbsp;</span><span style="color: #007700">=&nbsp;function&nbsp;(</span><span style="color: #0000BB">$arg</span><span style="color: #007700">)&nbsp;use&nbsp;(</span><span style="color: #0000BB">$message</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$arg&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">'&nbsp;'&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$message</span><span style="color: #007700">);<br />};<br /></span><span style="color: #0000BB">$example</span><span style="color: #007700">(</span><span style="color: #DD0000">"hello"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+    <div class="example-contents"><p>以上例程的输出类似于：</p></div>
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+Notice: Undefined variable: message in /example.php on line 6
+NULL
+string(5) &quot;hello&quot;
+string(5) &quot;hello&quot;
+string(5) &quot;hello&quot;
+string(5) &quot;world&quot;
+string(11) &quot;hello world&quot;
+</pre></div>
+    </div>
+   </div>
+
+     <p class="simpara">
+    这些变量都必须在函数或类的头部声明。
+    
+    从父作用域中继承变量与使用全局变量是<em class="emphasis">不同</em>的。全局变量存在于一个全局的范围，无论当前在执行的是哪个函数。而
+    闭包的父作用域是定义该闭包的函数（不一定是调用它的函数）。示例如下：
+   </p>
+
+   <div class="example" id="example-175">
+    <p><strong>Example #4 Closures 和作用域</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">//&nbsp;一个基本的购物车，包括一些已经添加的商品和每种商品的数量。<br />//&nbsp;其中有一个方法用来计算购物车中所有商品的总价格，该方法使<br />//&nbsp;用了一个&nbsp;closure&nbsp;作为回调函数。<br /></span><span style="color: #007700">class&nbsp;</span><span style="color: #0000BB">Cart<br /></span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;const&nbsp;</span><span style="color: #0000BB">PRICE_BUTTER&nbsp;&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">1.00</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;const&nbsp;</span><span style="color: #0000BB">PRICE_MILK&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">3.00</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;const&nbsp;</span><span style="color: #0000BB">PRICE_EGGS&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">6.95</span><span style="color: #007700">;<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;protected&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$products&nbsp;</span><span style="color: #007700">=&nbsp;array();<br />&nbsp;&nbsp;&nbsp;&nbsp;<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">add</span><span style="color: #007700">(</span><span style="color: #0000BB">$product</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$quantity</span><span style="color: #007700">)<br />&nbsp;&nbsp;&nbsp;&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$this</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">products</span><span style="color: #007700">[</span><span style="color: #0000BB">$product</span><span style="color: #007700">]&nbsp;=&nbsp;</span><span style="color: #0000BB">$quantity</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;&nbsp;<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">getQuantity</span><span style="color: #007700">(</span><span style="color: #0000BB">$product</span><span style="color: #007700">)<br />&nbsp;&nbsp;&nbsp;&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;isset(</span><span style="color: #0000BB">$this</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">products</span><span style="color: #007700">[</span><span style="color: #0000BB">$product</span><span style="color: #007700">])&nbsp;?&nbsp;</span><span style="color: #0000BB">$this</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">products</span><span style="color: #007700">[</span><span style="color: #0000BB">$product</span><span style="color: #007700">]&nbsp;:<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">FALSE</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;&nbsp;<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">getTotal</span><span style="color: #007700">(</span><span style="color: #0000BB">$tax</span><span style="color: #007700">)<br />&nbsp;&nbsp;&nbsp;&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$total&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">0.00</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$callback&nbsp;</span><span style="color: #007700">=<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function&nbsp;(</span><span style="color: #0000BB">$quantity</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$product</span><span style="color: #007700">)&nbsp;use&nbsp;(</span><span style="color: #0000BB">$tax</span><span style="color: #007700">,&nbsp;&amp;</span><span style="color: #0000BB">$total</span><span style="color: #007700">)<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$pricePerItem&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">constant</span><span style="color: #007700">(</span><span style="color: #0000BB">__CLASS__&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">"::PRICE_"&nbsp;</span><span style="color: #007700">.<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">strtoupper</span><span style="color: #007700">(</span><span style="color: #0000BB">$product</span><span style="color: #007700">));<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$total&nbsp;</span><span style="color: #007700">+=&nbsp;(</span><span style="color: #0000BB">$pricePerItem&nbsp;</span><span style="color: #007700">*&nbsp;</span><span style="color: #0000BB">$quantity</span><span style="color: #007700">)&nbsp;*&nbsp;(</span><span style="color: #0000BB">$tax&nbsp;</span><span style="color: #007700">+&nbsp;</span><span style="color: #0000BB">1.0</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;};<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">array_walk</span><span style="color: #007700">(</span><span style="color: #0000BB">$this</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">products</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$callback</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;</span><span style="color: #0000BB">round</span><span style="color: #007700">(</span><span style="color: #0000BB">$total</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">2</span><span style="color: #007700">);;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br /></span><span style="color: #0000BB">$my_cart&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">Cart</span><span style="color: #007700">;<br /><br /></span><span style="color: #FF8000">//&nbsp;往购物车里添加条目<br /></span><span style="color: #0000BB">$my_cart</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">add</span><span style="color: #007700">(</span><span style="color: #DD0000">'butter'</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$my_cart</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">add</span><span style="color: #007700">(</span><span style="color: #DD0000">'milk'</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">3</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$my_cart</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">add</span><span style="color: #007700">(</span><span style="color: #DD0000">'eggs'</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">6</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">//&nbsp;打出出总价格，其中有&nbsp;5%&nbsp;的销售税.<br /></span><span style="color: #007700">print&nbsp;</span><span style="color: #0000BB">$my_cart</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">getTotal</span><span style="color: #007700">(</span><span style="color: #0000BB">0.05</span><span style="color: #007700">)&nbsp;.&nbsp;</span><span style="color: #DD0000">"\n"</span><span style="color: #007700">;<br /></span><span style="color: #FF8000">//&nbsp;最后结果是&nbsp;54.29<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+   </div>
+     
+     
+   <div class="example" id="example-176">
+    <p><strong>Example #5 Automatic binding of <em>$this</em></strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /><br /></span><span style="color: #007700">class&nbsp;</span><span style="color: #0000BB">Test<br /></span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">testing</span><span style="color: #007700">()<br />&nbsp;&nbsp;&nbsp;&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;function()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$this</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;};<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br /></span><span style="color: #0000BB">$object&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">Test</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$function&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$object</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">testing</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">$function</span><span style="color: #007700">();<br />&nbsp;&nbsp;&nbsp;&nbsp;<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+    <div class="example-contents"><p>以上例程会输出：</p></div>
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+object(Test)#1 (0) {
+}
+</pre></div>
+    </div>
+    <div class="example-contents"><p>以上例程在PHP 5.3中的输出：</p></div>
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+Notice: Undefined variable: this in script.php on line 8
+NULL</pre></div>
+    </div>
+   </div>
+   
+   <p class="para">
+    As of PHP 5.4.0, when declared in the context of a class, the current class is
+    automatically bound to it, making <em>$this</em> available
+    inside of the function&#039;s scope. If this automatic binding of the current
+    class is not wanted, then
+    <a href="functions.anonymous.html#functions.anonymous-functions.static" class="link">static anonymous
+    functions</a> may be used instead.
+   </p>
+     <div class="sect2" id="functions.anonymous-functions.static">
+    <h3 class="title">Static anonymous functions</h3>
+    <p class="para">
+     As of PHP 5.4, anonymous functions may be declared statically. This
+     prevents them from having the current class automatically bound to
+     them. Objects may also not be bound to them at runtime.
+    </p>
+    <p class="para">
+     <div class="example" id="example-177">
+      <p><strong>Example #6 Attempting to use <em>$this</em> inside a static anonymous function</strong></p>
+      <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /><br /></span><span style="color: #007700">class&nbsp;</span><span style="color: #0000BB">Foo<br /></span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;function&nbsp;</span><span style="color: #0000BB">__construct</span><span style="color: #007700">()<br />&nbsp;&nbsp;&nbsp;&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$func&nbsp;</span><span style="color: #007700">=&nbsp;static&nbsp;function()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$this</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;};<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$func</span><span style="color: #007700">();<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />};<br />new&nbsp;</span><span style="color: #0000BB">Foo</span><span style="color: #007700">();<br /><br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+      </div>
+
+      <div class="example-contents"><p>以上例程会输出：</p></div>
+      <div class="example-contents screen">
+<div class="cdata"><pre>
+Notice: Undefined variable: this in %s on line %d
+NULL
+</pre></div>
+      </div>
+     </div>
+    </p>
+
+    <p class="para">
+     <div class="example" id="example-178">
+      <p><strong>Example #7 Attempting to bind an object to a static anonymous function</strong></p>
+      <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /><br />$func&nbsp;</span><span style="color: #007700">=&nbsp;static&nbsp;function()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;function&nbsp;body<br /></span><span style="color: #007700">};<br /></span><span style="color: #0000BB">$func&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$func</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">bindTo</span><span style="color: #007700">(new&nbsp;</span><span style="color: #0000BB">StdClass</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$func</span><span style="color: #007700">();<br /><br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+      </div>
+
+      <div class="example-contents"><p>以上例程会输出：</p></div>
+      <div class="example-contents screen">
+<div class="cdata"><pre>
+Warning: Cannot bind an instance to a static closure in %s on line %d
+</pre></div>
+      </div>
+     </div>
+    </p>
+   </div>
+     
+   <div class="sect2">
+    <h3 class="title">更新日志</h3>
+    <p class="para">
+     <table class="doctable informaltable">
+      
+       <thead>
+        <tr>
+         <th>版本</th>
+         <th>说明</th>
+        </tr>
+
+       </thead>
+
+       <tbody class="tbody">
+        <tr>
+         <td>7.1.0</td>
+         <td>
+          Anonymous functions may not close over <a href="language.variables.predefined.html" class="link">superglobals</a>,
+          <var class="varname"><var class="varname">$this</var></var>, or any variable with the same name as a
+          parameter.
+         </td>
+        </tr>
+
+        <tr>
+         <td>5.4.0</td>
+         <td>
+          <var class="varname"><var class="varname">$this</var></var> 可用于匿名函数。
+         </td>
+        </tr>
+
+        <tr>
+         <td>5.3.0</td>
+         <td>
+          可以使用匿名函数。
+         </td>
+        </tr>
+
+       </tbody>
+      
+     </table>
+
+    </p>
+   </div>
+
+   <div class="sect2">
+    <h3 class="title">注释</h3>
+    <blockquote class="note"><p><strong class="note">Note</strong>: 
+     <span class="simpara">
+      可以在闭包中使用
+      <span class="function"><a href="function.func-num-args.html" class="function">func_num_args()</a></span>，<span class="function"><a href="function.func-get-arg.html" class="function">func_get_arg()</a></span>
+      和 <span class="function"><a href="function.func-get-args.html" class="function">func_get_args()</a></span>。
+     </span>
+    </p></blockquote>
+   </div>
+
+  </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="124792""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#124792" class="date">04-Mar-2020 04:58</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+IIFE(Immediately-invoked function expression):<br />
+<br />
+Before PHP 7.0, you can use it by wrapping your anonymous function with call_user_func().<br />
+<br />
+<span class="default">&lt;?php<br />
+$type </span><span class="keyword">= </span><span class="string">'number'</span><span class="keyword">;<br />
+</span><span class="default">var_dump</span><span class="keyword">( </span><span class="default">call_user_func</span><span class="keyword">( function() use (</span><span class="default">$type</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">$type</span><span class="keyword">==</span><span class="string">'number'</span><span class="keyword">) return [</span><span class="default">1</span><span class="keyword">,</span><span class="default">2</span><span class="keyword">,</span><span class="default">3</span><span class="keyword">];<br />
+&nbsp;&nbsp;&nbsp; else if (</span><span class="default">$type</span><span class="keyword">==</span><span class="string">'alphabet'</span><span class="keyword">) return [</span><span class="string">'a'</span><span class="keyword">,</span><span class="string">'b'</span><span class="keyword">,</span><span class="string">'c'</span><span class="keyword">];<br />
+} ) );<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Starting from PHP 7.0, you can use it by wrapping your anonymous function with ()().<br />
+<br />
+<span class="default">&lt;?php<br />
+$type </span><span class="keyword">= </span><span class="string">'number'</span><span class="keyword">;<br />
+</span><span class="default">var_dump</span><span class="keyword">( ( function() use (</span><span class="default">$type</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">$type</span><span class="keyword">==</span><span class="string">'number'</span><span class="keyword">) return [</span><span class="default">1</span><span class="keyword">,</span><span class="default">2</span><span class="keyword">,</span><span class="default">3</span><span class="keyword">];<br />
+&nbsp;&nbsp;&nbsp; else if (</span><span class="default">$type</span><span class="keyword">==</span><span class="string">'alphabet'</span><span class="keyword">) return [</span><span class="string">'a'</span><span class="keyword">,</span><span class="string">'b'</span><span class="keyword">,</span><span class="string">'c'</span><span class="keyword">];<br />
+} )() );<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="124627""></a>
+  <div class="note">
+   <strong class="user">lincoln dot du dot j at gmail dot com</strong>
+   <a href="#124627" class="date">20-Jan-2020 01:10</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Recursive anonymous function with reference in use keyword <br />
+<br />
+$r=function()use(&amp;$r){static $i=10;echo $i.PHP_EOL;($i--)?$r():$i;};$r();</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="123498""></a>
+  <div class="note">
+   <strong class="user">jake dot tunaley at berkeleyit dot com</strong>
+   <a href="#123498" class="date">07-Jan-2019 05:04</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Beware of using $this in anonymous functions assigned to a static variable.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">Foo </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">bar</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; static </span><span class="default">$anonymous </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$anonymous </span><span class="keyword">=== </span><span class="default">null</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Expression is not allowed as static initializer workaround<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$anonymous </span><span class="keyword">= function () {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$this</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; };<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$anonymous</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">$a </span><span class="keyword">= new </span><span class="default">Foo</span><span class="keyword">();<br />
+</span><span class="default">$b </span><span class="keyword">= new </span><span class="default">Foo</span><span class="keyword">();<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">-&gt;</span><span class="default">bar</span><span class="keyword">() === </span><span class="default">$a</span><span class="keyword">); </span><span class="comment">// True<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$b</span><span class="keyword">-&gt;</span><span class="default">bar</span><span class="keyword">() === </span><span class="default">$a</span><span class="keyword">); </span><span class="comment">// Also true<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+In a static anonymous function, $this will be the value of whatever object instance that method was called on first.<br />
+<br />
+To get the behaviour you're probably expecting, you need to pass the $this context into the function.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">Foo </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">bar</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; static </span><span class="default">$anonymous </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$anonymous </span><span class="keyword">=== </span><span class="default">null</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Expression is not allowed as static initializer workaround<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$anonymous </span><span class="keyword">= function (</span><span class="default">self $thisObj</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$thisObj</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; };<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$anonymous</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">$a </span><span class="keyword">= new </span><span class="default">Foo</span><span class="keyword">();<br />
+</span><span class="default">$b </span><span class="keyword">= new </span><span class="default">Foo</span><span class="keyword">();<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">-&gt;</span><span class="default">bar</span><span class="keyword">() === </span><span class="default">$a</span><span class="keyword">); </span><span class="comment">// True<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$b</span><span class="keyword">-&gt;</span><span class="default">bar</span><span class="keyword">() === </span><span class="default">$a</span><span class="keyword">); </span><span class="comment">// False<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="122809""></a>
+  <div class="note">
+   <strong class="user">dexen dot devries at gmail dot com</strong>
+   <a href="#122809" class="date">07-Jun-2018 09:54</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Every instance of a lambda has own instance of static variables. This provides for great event handlers, accumulators, etc., etc.<br />
+<br />
+Creating new lambda with function() { ... }; expression creates new instance of its static variables. Assigning a lambda to a variable does not create a new instance. A lambda is object of class Closure, and assigning lambdas to variables has the same semantics as assigning object instance to variables.<br />
+<br />
+Example script: $a and $b have separate instances of static variables, thus produce different output. However $b and $c share their instance of static variables - because $c is refers to the same object of class Closure as $b - thus produce the same output.<br />
+<br />
+#!/usr/bin/env php<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">function </span><span class="default">generate_lambda</span><span class="keyword">() : </span><span class="default">Closure<br />
+</span><span class="keyword">{<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment"># creates new instance of lambda<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">return function(</span><span class="default">$v </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; static </span><span class="default">$stored</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$v </span><span class="keyword">!== </span><span class="default">null</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$stored </span><span class="keyword">= </span><span class="default">$v</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$stored</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; };<br />
+}<br />
+<br />
+</span><span class="default">$a </span><span class="keyword">= </span><span class="default">generate_lambda</span><span class="keyword">();&nbsp; </span><span class="comment"># creates new instance of statics<br />
+</span><span class="default">$b </span><span class="keyword">= </span><span class="default">generate_lambda</span><span class="keyword">();&nbsp; </span><span class="comment"># creates new instance of statics<br />
+</span><span class="default">$c </span><span class="keyword">= </span><span class="default">$b</span><span class="keyword">;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment"># uses the same instance of statics as $b<br />
+<br />
+</span><span class="default">$a</span><span class="keyword">(</span><span class="string">'test AAA'</span><span class="keyword">);<br />
+</span><span class="default">$b</span><span class="keyword">(</span><span class="string">'test BBB'</span><span class="keyword">);<br />
+</span><span class="default">$c</span><span class="keyword">(</span><span class="string">'test CCC'</span><span class="keyword">);&nbsp; </span><span class="comment"># this overwrites content held by $b, because it refers to the same object<br />
+<br />
+</span><span class="default">var_dump</span><span class="keyword">([ </span><span class="default">$a</span><span class="keyword">(), </span><span class="default">$b</span><span class="keyword">(), </span><span class="default">$c</span><span class="keyword">() ]);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+This test script outputs:<br />
+array(3) {<br />
+&nbsp; [0]=&gt;<br />
+&nbsp; string(8) "test AAA"<br />
+&nbsp; [1]=&gt;<br />
+&nbsp; string(8) "test CCC"<br />
+&nbsp; [2]=&gt;<br />
+&nbsp; string(8) "test CCC"<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="122182""></a>
+  <div class="note">
+   <strong class="user">toonitw at gmail dot com</strong>
+   <a href="#122182" class="date">27-Dec-2017 05:40</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+As of PHP 7.0, you can use IIFE(Immediately-invoked function expression) by wrapping your anonymous function with ().<br />
+<br />
+<span class="default">&lt;?php<br />
+$type </span><span class="keyword">= </span><span class="string">'number'</span><span class="keyword">;<br />
+</span><span class="default">var_dump</span><span class="keyword">( ...( function() use (</span><span class="default">$type</span><span class="keyword">) { <br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">$type</span><span class="keyword">==</span><span class="string">'number'</span><span class="keyword">) return [</span><span class="default">1</span><span class="keyword">,</span><span class="default">2</span><span class="keyword">,</span><span class="default">3</span><span class="keyword">]; <br />
+&nbsp;&nbsp;&nbsp; else if (</span><span class="default">$type</span><span class="keyword">==</span><span class="string">'alphabet'</span><span class="keyword">) return [</span><span class="string">'a'</span><span class="keyword">,</span><span class="string">'b'</span><span class="keyword">,</span><span class="string">'c'</span><span class="keyword">];<br />
+} )() );<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="121034""></a>
+  <div class="note">
+   <strong class="user">ayon at hyurl dot com</strong>
+   <a href="#121034" class="date">29-Apr-2017 05:35</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+One way to call a anonymous function recursively is to use the USE keyword and pass a reference to the function itself:<br />
+<br />
+<span class="default">&lt;?php<br />
+$count </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">;<br />
+</span><span class="default">$add </span><span class="keyword">= function(</span><span class="default">$count</span><span class="keyword">) use (&amp;</span><span class="default">$add</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$count </span><span class="keyword">+= </span><span class="default">1</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; if(</span><span class="default">$count </span><span class="keyword">&lt; </span><span class="default">10</span><span class="keyword">) </span><span class="default">$count </span><span class="keyword">= </span><span class="default">$add</span><span class="keyword">(</span><span class="default">$count</span><span class="keyword">); </span><span class="comment">//recursive calling<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">return </span><span class="default">$count</span><span class="keyword">;<br />
+};<br />
+echo </span><span class="default">$add</span><span class="keyword">(</span><span class="default">$count</span><span class="keyword">); </span><span class="comment">//Will output 10 as expected<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="120612""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#120612" class="date">07-Feb-2017 07:48</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you want to create and then immediately call a closure directly, in-line, and immediately get its return value (instead of the closure reference itself), then the proper syntax is as follows:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+$a </span><span class="keyword">= </span><span class="string">'foo'</span><span class="keyword">; </span><span class="default">$b </span><span class="keyword">= </span><span class="string">'bar'</span><span class="keyword">;<br />
+</span><span class="default">$test </span><span class="keyword">= (function() use(</span><span class="default">$a</span><span class="keyword">,</span><span class="default">$b</span><span class="keyword">) { return </span><span class="default">$a </span><span class="keyword">. </span><span class="default">$b</span><span class="keyword">; })();<br />
+echo </span><span class="default">$test</span><span class="keyword">;<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+As for why you would want to do that? Well, that's up to you. I'm sure there are some legitimate reasons. It's a pretty common pattern in some other famous scripting languages. But if you're doing this in PHP, you should think carefully and ask yourself if you really have a good reason for it, or if you should just go and re-structure your code instead. ;-)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="120611""></a>
+  <div class="note">
+   <strong class="user">john at binkmail dot com</strong>
+   <a href="#120611" class="date">07-Feb-2017 07:36</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+PERFORMANCE BENCHMARK 2017!<br />
+<br />
+I decided to compare a single, saved closure against constantly creating the same anonymous closure on every loop iteration. And I tried 10 million loop iterations, in PHP 7.0.14 from Dec 2016. Result:<br />
+<br />
+a single saved closure kept in a variable and re-used (10000000 iterations): 1.3874590396881 seconds<br />
+<br />
+new anonymous closure created each time (10000000 iterations): 2.8460240364075 seconds<br />
+<br />
+In other words, over the course of 10 million iterations, creating the closure again during every iteration only added a total of "1.459 seconds" to the runtime. So that means that every creation of a new anonymous closure takes about 146 nanoseconds on my 7 years old dual-core laptop. I guess PHP keeps a cached "template" for the anonymous function and therefore doesn't need much time to create a new instance of the closure!<br />
+<br />
+So you do NOT have to worry about constantly re-creating your anonymous closures over and over again in tight loops! At least not as of PHP 7! There is absolutely NO need to save an instance in a variable and re-use it. And not being restricted by that is a great thing, because it means you can feel free to use anonymous functions exactly where they matter, as opposed to defining them somewhere else in the code. :-)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119902""></a>
+  <div class="note">
+   <strong class="user">ohcc at 163 dot com</strong>
+   <a href="#119902" class="date">17-Sep-2016 10:36</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Supported by PHP 7.0+ only.<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">(function(</span><span class="default">$name</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">'My name is ' </span><span class="keyword">. </span><span class="default">$name</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; })(</span><span class="string">'Wu Xiancheng'</span><span class="keyword">);<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119388""></a>
+  <div class="note">
+   <strong class="user">jigar</strong>
+   <a href="#119388" class="date">25-May-2016 07:46</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Will result in a "Parse error: syntax error, unexpected '[', expecting ',' or ')' ... "<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+$fruits </span><span class="keyword">= [</span><span class="string">'apples'</span><span class="keyword">, </span><span class="string">'oranges'</span><span class="keyword">];<br />
+</span><span class="default">$example </span><span class="keyword">= function () use (</span><span class="default">$fruits</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">]) {<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="default">$fruits</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">]; <br />
+};<br />
+</span><span class="default">$example</span><span class="keyword">();<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Would have to do this:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+$fruits </span><span class="keyword">= [</span><span class="string">'apples'</span><span class="keyword">, </span><span class="string">'oranges'</span><span class="keyword">];<br />
+</span><span class="default">$example </span><span class="keyword">= function () use (</span><span class="default">$fruits</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="default">$fruits</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">]; </span><span class="comment">// will echo 'apples'<br />
+</span><span class="keyword">};<br />
+</span><span class="default">$example</span><span class="keyword">();<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Or this instead:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+$fruits </span><span class="keyword">= [</span><span class="string">'apples'</span><span class="keyword">, </span><span class="string">'oranges'</span><span class="keyword">];<br />
+</span><span class="default">$fruit </span><span class="keyword">= </span><span class="default">$fruits</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">];<br />
+</span><span class="default">$example </span><span class="keyword">= function () use (</span><span class="default">$fruit</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="default">$fruit</span><span class="keyword">; </span><span class="comment">// will echo 'apples'<br />
+</span><span class="keyword">};<br />
+</span><span class="default">$example</span><span class="keyword">();</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118567""></a>
+  <div class="note">
+   <strong class="user">varuninorbit at yahoo dot co dot in</strong>
+   <a href="#118567" class="date">29-Dec-2015 07:29</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Here is a simple example to use clousers<br />
+<span class="default">&lt;?php <br />
+<br />
+</span><span class="keyword">function </span><span class="default">add</span><span class="keyword">(</span><span class="default">$x</span><span class="keyword">,</span><span class="default">$y</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$x</span><span class="keyword">+</span><span class="default">$y</span><span class="keyword">();&nbsp; &nbsp; <br />
+}<br />
+<br />
+echo </span><span class="default">add</span><span class="keyword">(</span><span class="default">3</span><span class="keyword">,function(){<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">5</span><span class="keyword">;<br />
+});<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+prints 8</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117504""></a>
+  <div class="note">
+   <strong class="user">erolmon dot kskn at gmail dot com</strong>
+   <a href="#117504" class="date">19-Jun-2015 09:48</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">/*<br />
+&nbsp;&nbsp;&nbsp; (string) $name Name of the function that you will add to class.<br />
+&nbsp;&nbsp;&nbsp; Usage : $Foo-&gt;add(function(){},$name);<br />
+&nbsp;&nbsp;&nbsp; This will add a public function in Foo Class.<br />
+&nbsp;&nbsp;&nbsp; */<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">class </span><span class="default">Foo<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">{<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; public function </span><span class="default">add</span><span class="keyword">(</span><span class="default">$func</span><span class="keyword">,</span><span class="default">$name</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;{</span><span class="default">$name</span><span class="keyword">} = </span><span class="default">$func</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; public function </span><span class="default">__call</span><span class="keyword">(</span><span class="default">$func</span><span class="keyword">,</span><span class="default">$arguments</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">call_user_func_array</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;{</span><span class="default">$func</span><span class="keyword">}, </span><span class="default">$arguments</span><span class="keyword">); <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$Foo </span><span class="keyword">= new </span><span class="default">Foo</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$Foo</span><span class="keyword">-&gt;</span><span class="default">add</span><span class="keyword">(function(){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"Hello World"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; },</span><span class="string">"helloWorldFunction"</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$Foo</span><span class="keyword">-&gt;</span><span class="default">add</span><span class="keyword">(function(</span><span class="default">$parameterone</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="default">$parameterone</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; },</span><span class="string">"exampleFunction"</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$Foo</span><span class="keyword">-&gt;</span><span class="default">helloWorldFunction</span><span class="keyword">(); </span><span class="comment">/*Output : Hello World*/<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$Foo</span><span class="keyword">-&gt;</span><span class="default">exampleFunction</span><span class="keyword">(</span><span class="string">"Hello PHP"</span><span class="keyword">); </span><span class="comment">/*Output : Hello PHP*/<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="114546""></a>
+  <div class="note">
+   <strong class="user">andris at codeaid dot net</strong>
+   <a href="#114546" class="date">05-Mar-2014 12:33</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Haven't seen it documented anywhere but PHP 5.4 now allows accessing private and protected members of an object if it's passed into a lambda function:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">Scope<br />
+</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; protected </span><span class="default">$property </span><span class="keyword">= </span><span class="string">'default'</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// or even<br />
+&nbsp;&nbsp;&nbsp; // private $property = 'default';<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">public function </span><span class="default">run</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$self </span><span class="keyword">= </span><span class="default">$this</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$func </span><span class="keyword">= function() use (</span><span class="default">$self</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$self</span><span class="keyword">-&gt;</span><span class="default">property </span><span class="keyword">= </span><span class="string">'changed'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; };<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$func</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">property</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">$scope </span><span class="keyword">= new </span><span class="default">Scope</span><span class="keyword">();<br />
+</span><span class="default">$scope</span><span class="keyword">-&gt;</span><span class="default">run</span><span class="keyword">();<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+When running the file under PHP 5.3 you get the following error message:<br />
+&nbsp;* Fatal error: Cannot access protected property Scope::$property in ./file.php on line 11<br />
+<br />
+PHP 5.4, however, does not complain and outputs "changed" as expected. <br />
+<br />
+Not sure why it's like that but I suspect it has something to do with 5.4 supporting passing $this into lambda functions.<br />
+<br />
+Speaking of which, something to remember is that the following won't work:<br />
+<span class="default">&lt;?php<br />
+$func </span><span class="keyword">= function() use (</span><span class="default">$this</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">property </span><span class="keyword">= </span><span class="string">'changed'</span><span class="keyword">;<br />
+};<br />
+</span><span class="default">?&gt;<br />
+</span>The error you'll get is:<br />
+&nbsp;* PHP Fatal error:&nbsp; Cannot use $this as lexical variable in ./file.php on line 9<br />
+<br />
+You have to totally omit the use statement for it to work:<br />
+<span class="default">&lt;?php<br />
+$func </span><span class="keyword">= function() {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">property </span><span class="keyword">= </span><span class="string">'changed'</span><span class="keyword">;<br />
+};<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="114433""></a>
+  <div class="note">
+   <strong class="user">mail at mkharitonov dot net</strong>
+   <a href="#114433" class="date">20-Feb-2014 11:20</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Some comparisons of PHP and JavaScript closures.<br />
+<br />
+=== Example 1 (passing by value) ===<br />
+PHP code:<br />
+<span class="default">&lt;?php<br />
+$aaa </span><span class="keyword">= </span><span class="default">111</span><span class="keyword">;<br />
+</span><span class="default">$func </span><span class="keyword">= function() use(</span><span class="default">$aaa</span><span class="keyword">){ print </span><span class="default">$aaa</span><span class="keyword">; };<br />
+</span><span class="default">$aaa </span><span class="keyword">= </span><span class="default">222</span><span class="keyword">;<br />
+</span><span class="default">$func</span><span class="keyword">(); </span><span class="comment">// Outputs "111"<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Similar JavaScript code:<br />
+&lt;script type="text/javascript"&gt;<br />
+var aaa = 111;<br />
+var func = (function(aaa){ return function(){ alert(aaa); } })(aaa);<br />
+aaa = 222;<br />
+func(); // Outputs "111"<br />
+&lt;/script&gt;<br />
+<br />
+Be careful, following code is not similar to previous code:<br />
+&lt;script type="text/javascript"&gt;<br />
+var aaa = 111;<br />
+var bbb = aaa;<br />
+var func = function(){ alert(bbb); };<br />
+aaa = 222;<br />
+func(); // Outputs "111", but only while "bbb" is not changed after function declaration<br />
+<br />
+// And this technique is not working in loops:<br />
+var functions = [];<br />
+for (var i = 0; i &lt; 2; i++)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; var i2 = i;<br />
+&nbsp;&nbsp;&nbsp; functions.push(function(){ alert(i2); });<br />
+}<br />
+functions[0](); // Outputs "1", wrong!<br />
+functions[1](); // Outputs "1", ok<br />
+&lt;/script&gt;<br />
+<br />
+=== Example 2 (passing by reference) ===<br />
+PHP code:<br />
+<span class="default">&lt;?php<br />
+$aaa </span><span class="keyword">= </span><span class="default">111</span><span class="keyword">;<br />
+</span><span class="default">$func </span><span class="keyword">= function() use(&amp;</span><span class="default">$aaa</span><span class="keyword">){ print </span><span class="default">$aaa</span><span class="keyword">; };<br />
+</span><span class="default">$aaa </span><span class="keyword">= </span><span class="default">222</span><span class="keyword">;<br />
+</span><span class="default">$func</span><span class="keyword">(); </span><span class="comment">// Outputs "222"<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Similar JavaScript code:<br />
+&lt;script type="text/javascript"&gt;<br />
+var aaa = 111;<br />
+var func = function(){ alert(aaa); };<br />
+aaa = 222; // Outputs "222"<br />
+func();<br />
+&lt;/script&gt;</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="114079""></a>
+  <div class="note">
+   <strong class="user">derkontrollfreak+9hy5l at gmail dot com</strong>
+   <a href="#114079" class="date">09-Jan-2014 04:41</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Beware that since PHP 5.4 registering a Closure as an object property that has been instantiated in the same object scope will create a circular reference which prevents immediate object destruction:<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">class </span><span class="default">Test<br />
+</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; private </span><span class="default">$closure</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__construct</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">closure </span><span class="keyword">= function () {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; };<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__destruct</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"destructed\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+new </span><span class="default">Test</span><span class="keyword">;<br />
+echo </span><span class="string">"finished\n"</span><span class="keyword">;<br />
+<br />
+</span><span class="comment">/*<br />
+&nbsp;* Result in PHP 5.3:<br />
+&nbsp;* ------------------<br />
+&nbsp;* destructed<br />
+&nbsp;* finished<br />
+&nbsp;*<br />
+&nbsp;* Result since PHP 5.4:<br />
+&nbsp;* ---------------------<br />
+&nbsp;* finished<br />
+&nbsp;* destructed<br />
+&nbsp;*/<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+To circumvent this, you can instantiate the Closure in a static method:<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">public function </span><span class="default">__construct</span><span class="keyword">()<br />
+{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">closure </span><span class="keyword">= </span><span class="default">self</span><span class="keyword">::</span><span class="default">createClosure</span><span class="keyword">();<br />
+}<br />
+<br />
+public static function </span><span class="default">createClosure</span><span class="keyword">()<br />
+{<br />
+&nbsp;&nbsp;&nbsp; return function () {<br />
+&nbsp;&nbsp;&nbsp; };<br />
+}<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="113896""></a>
+  <div class="note">
+   <strong class="user">cHao</strong>
+   <a href="#113896" class="date">13-Dec-2013 11:42</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+In case you were wondering (cause i was), anonymous functions can return references just like named functions can.&nbsp; Simply use the &amp; the same way you would for a named function...right after the `function` keyword (and right before the nonexistent name).<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; $value </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$fn </span><span class="keyword">= function &amp;() use (&amp;</span><span class="default">$value</span><span class="keyword">) { return </span><span class="default">$value</span><span class="keyword">; };<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$x </span><span class="keyword">=&amp; </span><span class="default">$fn</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$x</span><span class="keyword">, </span><span class="default">$value</span><span class="keyword">);&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="comment">// 'int(0)', 'int(0)'<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">++</span><span class="default">$x</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$x</span><span class="keyword">, </span><span class="default">$value</span><span class="keyword">);&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="comment">// 'int(1)', 'int(1)'</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="113637""></a>
+  <div class="note">
+   <strong class="user">assarte dot draven at gmail dot com</strong>
+   <a href="#113637" class="date">08-Nov-2013 08:51</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+You cannot use closures as a class variable member in its declaration like this:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">class </span><span class="default">foo<br />
+</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public </span><span class="default">$bar </span><span class="keyword">= function() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"baz"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; };<br />
+}<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+I don't know why but this will raise a<br />
+Parse error: syntax error, unexpected 'function' (T_FUNCTION)<br />
+<br />
+(used PHP 5.4)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="113422""></a>
+  <div class="note">
+   <strong class="user">rmckay at webaware dot com dot au</strong>
+   <a href="#113422" class="date">08-Oct-2013 11:10</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Some hosts are installing the eAccelerator opcode cache with PHP 5.4, and current production versions of this opcode cache break closures. If you find that your nice, working closures break when you load your code to a hosted website, check for eAccelerator (e.g. by calling phpinfo() and checking the output).<br />
+<br />
+Simple fixes include:<br />
+<br />
+* disabling eAccelerator and opcode caching<br />
+* replacing eAccelerator with Zend's opcache<br />
+* reverting to PHP 5.3<br />
+<br />
+Apparently, the eAccelerator project has solved this issue, but hosts move slowly so I recommend removing eAccelerator from the equation for now.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="110962""></a>
+  <div class="note">
+   <strong class="user">marcellorvalle at gmail dot com</strong>
+   <a href="#110962" class="date">29-Dec-2012 10:05</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I fell uncomfortable with php's way to pass callbacks ahead. It's just a personal opinion but i think the structure array($object, 'method') a little bit ugly. In some special cases i would like to do something more verbose, like that:<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; $sortedArray </span><span class="keyword">= </span><span class="default">ArrayServices</span><span class="keyword">::</span><span class="default">sort</span><span class="keyword">(</span><span class="default">$arrayOfPerson</span><span class="keyword">, </span><span class="default">$sortPerson</span><span class="keyword">-&gt;</span><span class="default">byName</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Here, "$sortPerson-&gt;byName" is a pointer to a function that receives 2 instances of Person and return true if the name of the first is "bigger" than the second. "ArrayServices::sort" is a function that can sort any kind of array using different criterias, it uses the function passed on the second parameter to compare two items on the array<br />
+<br />
+I am able do that defining a simple abstract class which gives the ability to it's children to expose their methods as closures using __get() magic funtion.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">abstract class </span><span class="default">ClosureExposerObject<br />
+</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__get</span><span class="keyword">(</span><span class="default">$methodName</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">is_callable</span><span class="keyword">(<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; array(</span><span class="default">$this</span><span class="keyword">, </span><span class="default">$methodName</span><span class="keyword">)))<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return function() use (</span><span class="default">$methodName</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$args </span><span class="keyword">= </span><span class="default">func_get_args</span><span class="keyword">(); <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">call_user_func_array</span><span class="keyword">(array(</span><span class="default">$this</span><span class="keyword">, </span><span class="default">$methodName</span><span class="keyword">), </span><span class="default">$args</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; };<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; else<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$className </span><span class="keyword">= </span><span class="default">get_class</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; throw new \</span><span class="default">BadMethodCallException</span><span class="keyword">(</span><span class="string">"</span><span class="default">$method</span><span class="string"> is not a callable at </span><span class="default">$className</span><span class="string"> class."</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Now it is possible to define a class SortPerson so that i could use it like in the first code snippet.<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">class </span><span class="default">SortPerson </span><span class="keyword">extends </span><span class="default">ClosureExposerObject<br />
+</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">byName</span><span class="keyword">(</span><span class="default">Person p1</span><span class="keyword">, </span><span class="default">Person p2</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">p1</span><span class="keyword">-&gt;</span><span class="default">getName</span><span class="keyword">() &gt; </span><span class="default">p2</span><span class="keyword">-&gt;</span><span class="default">getName</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">byAge</span><span class="keyword">(</span><span class="default">Person p1</span><span class="keyword">, </span><span class="default">Person p2</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">p1</span><span class="keyword">-&gt;</span><span class="default">getAge</span><span class="keyword">() &gt; </span><span class="default">p2</span><span class="keyword">-&gt;</span><span class="default">getAge</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">bySurName</span><span class="keyword">(</span><span class="default">Person p1</span><span class="keyword">, </span><span class="default">Person p2</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; (...)<br />
+}<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+I just needed to extend ClosureExposerObject and do nothing more. <br />
+<br />
+Some observations: SortPerson is a service class but i decided not to implement it with static methods. It is a personal matter but i really dont like to implement such small classes with statics. Also i have inverted some naming conventions (class names as substantives and methods as verbs) but in some very special cases i thing that it actually helps readability.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="107245""></a>
+  <div class="note">
+   <strong class="user">mike at borft dot student dot utwente dot nl</strong>
+   <a href="#107245" class="date">24-Jan-2012 02:46</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Since it is possible to assign closures to class variables, it is a shame it is not possible to call them directly. ie. the following does not work:<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">foo </span><span class="keyword">{<br />
+<br />
+&nbsp; public </span><span class="default">test</span><span class="keyword">;<br />
+<br />
+&nbsp; public function </span><span class="default">__construct</span><span class="keyword">(){<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">test </span><span class="keyword">= function(</span><span class="default">$a</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; print </span><span class="string">"</span><span class="default">$a</span><span class="string">\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; };<br />
+&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">$f </span><span class="keyword">= new </span><span class="default">foo</span><span class="keyword">();<br />
+<br />
+</span><span class="default">$f</span><span class="keyword">-&gt;</span><span class="default">test</span><span class="keyword">();<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+However, it is possible using the magic __call function:<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">foo </span><span class="keyword">{<br />
+<br />
+&nbsp; public </span><span class="default">test</span><span class="keyword">;<br />
+<br />
+&nbsp; public function </span><span class="default">__construct</span><span class="keyword">(){<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">test </span><span class="keyword">= function(</span><span class="default">$a</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; print </span><span class="string">"</span><span class="default">$a</span><span class="string">\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; };<br />
+&nbsp; }<br />
+<br />
+&nbsp; public function </span><span class="default">__call</span><span class="keyword">(</span><span class="default">$method</span><span class="keyword">, </span><span class="default">$args</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; if ( </span><span class="default">$this</span><span class="keyword">-&gt;{</span><span class="default">$method</span><span class="keyword">} instanceof </span><span class="default">Closure </span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; return </span><span class="default">call_user_func_array</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;{</span><span class="default">$method</span><span class="keyword">},</span><span class="default">$args</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; return </span><span class="default">parent</span><span class="keyword">::</span><span class="default">__call</span><span class="keyword">(</span><span class="default">$method</span><span class="keyword">, </span><span class="default">$args</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp; }<br />
+}<br />
+</span><span class="default">$f </span><span class="keyword">= new </span><span class="default">foo</span><span class="keyword">();<br />
+</span><span class="default">$f</span><span class="keyword">-&gt;</span><span class="default">test</span><span class="keyword">();<br />
+</span><span class="default">?&gt;<br />
+</span>it <br />
+Hope it helps someone ;)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="105564""></a>
+  <div class="note">
+   <strong class="user">reinaldorock at yahoo dot com dot br</strong>
+   <a href="#105564" class="date">27-Aug-2011 08:15</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Using closure to encapsulate environment<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; $fib </span><span class="keyword">= function(</span><span class="default">$n</span><span class="keyword">) use(&amp;</span><span class="default">$fib</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">$n </span><span class="keyword">== </span><span class="default">0 </span><span class="keyword">|| </span><span class="default">$n </span><span class="keyword">== </span><span class="default">1</span><span class="keyword">) return </span><span class="default">1</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$fib</span><span class="keyword">(</span><span class="default">$n </span><span class="keyword">- </span><span class="default">1</span><span class="keyword">) + </span><span class="default">$fib</span><span class="keyword">(</span><span class="default">$n </span><span class="keyword">- </span><span class="default">2</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; };<br />
+<br />
+&nbsp;&nbsp; echo </span><span class="default">$fib</span><span class="keyword">(</span><span class="default">2</span><span class="keyword">) . </span><span class="string">"\n"</span><span class="keyword">; </span><span class="comment">// 2<br />
+&nbsp;&nbsp; </span><span class="default">$lie </span><span class="keyword">= </span><span class="default">$fib</span><span class="keyword">;<br />
+&nbsp;&nbsp; </span><span class="default">$fib </span><span class="keyword">= function(){die(</span><span class="string">'error'</span><span class="keyword">);};</span><span class="comment">//rewrite $fib variable <br />
+&nbsp;&nbsp; </span><span class="keyword">echo </span><span class="default">$lie</span><span class="keyword">(</span><span class="default">5</span><span class="keyword">); </span><span class="comment">// error&nbsp;&nbsp; because $fib is referenced by closure<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Alternative Fibonacci implementation using a self called function like javascript to encapsulate references variables.<br />
+<br />
+<span class="default">&lt;?php<br />
+$fib </span><span class="keyword">= </span><span class="default">call_user_func</span><span class="keyword">(function(){<br />
+&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$fib </span><span class="keyword">= function(</span><span class="default">$n</span><span class="keyword">) use(&amp;</span><span class="default">$fib</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">$n </span><span class="keyword">== </span><span class="default">0 </span><span class="keyword">|| </span><span class="default">$n </span><span class="keyword">== </span><span class="default">1</span><span class="keyword">) return </span><span class="default">1</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$fib</span><span class="keyword">(</span><span class="default">$n </span><span class="keyword">- </span><span class="default">1</span><span class="keyword">) + </span><span class="default">$fib</span><span class="keyword">(</span><span class="default">$n </span><span class="keyword">- </span><span class="default">2</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; };<br />
+<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$fib</span><span class="keyword">;<br />
+});<br />
+<br />
+echo </span><span class="default">$fib</span><span class="keyword">(</span><span class="default">2</span><span class="keyword">) . </span><span class="string">"\n"</span><span class="keyword">;</span><span class="comment">//2<br />
+</span><span class="default">$ok </span><span class="keyword">= </span><span class="default">$fib</span><span class="keyword">;<br />
+<br />
+</span><span class="default">$fib </span><span class="keyword">= function(){die(</span><span class="string">'error'</span><span class="keyword">)};</span><span class="comment">//rewrite $fib variable but don't referenced $fib used by closure<br />
+</span><span class="keyword">echo </span><span class="default">$ok</span><span class="keyword">(</span><span class="default">5</span><span class="keyword">);</span><span class="comment">//result ok <br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="105385""></a>
+  <div class="note">
+   <strong class="user">ldrut</strong>
+   <a href="#105385" class="date">13-Aug-2011 01:24</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+A common way to avoid contaminating Javascript global space with unneeded variables is to move the code into an immediately called anonymous closure.<br />
+<br />
+(function(){ ... })()<br />
+<br />
+The equivalent way to do that in PHP 5.3+ is<br />
+<br />
+call_user_func(function() use(closure-vars){ ... });</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="105261""></a>
+  <div class="note">
+   <strong class="user">simon at generalflows dot com</strong>
+   <a href="#105261" class="date">05-Aug-2011 08:23</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="comment">/* <br />
+&nbsp;* An example showing how to use closures to implement a Python-like decorator <br />
+&nbsp;* pattern.<br />
+&nbsp;*<br />
+&nbsp;* My goal was that you should be able to decorate a function with any<br />
+&nbsp;* other function, then call the decorated function directly: <br />
+&nbsp;*<br />
+&nbsp;* Define function:&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $foo = function($a, $b, $c, ...) {...}<br />
+&nbsp;* Define decorator:&nbsp; &nbsp; &nbsp; &nbsp; $decorator = function($func) {...}<br />
+&nbsp;* Decorate it:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $foo = $decorator($foo)<br />
+&nbsp;* Call it:&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $foo($a, $b, $c, ...)<br />
+&nbsp;*<br />
+&nbsp;* This example show an authentication decorator for a service, using a simple<br />
+&nbsp;* mock session and mock service. <br />
+&nbsp;*/<br />
+&nbsp;<br />
+</span><span class="default">session_start</span><span class="keyword">();<br />
+<br />
+</span><span class="comment">/* <br />
+&nbsp;* Define an example decorator. A decorator function should take the form:<br />
+&nbsp;* $decorator = function($func) {<br />
+&nbsp;*&nbsp; &nbsp;&nbsp; return function() use $func) {<br />
+&nbsp;*&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; // Do something, then call the decorated function when needed:<br />
+&nbsp;*&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $args = func_get_args($func);<br />
+&nbsp;*&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; call_user_func_array($func, $args);<br />
+&nbsp;*&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; // Do something else.<br />
+&nbsp;*&nbsp; &nbsp;&nbsp; };<br />
+&nbsp;* };<br />
+&nbsp;*/<br />
+</span><span class="default">$authorise </span><span class="keyword">= function(</span><span class="default">$func</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; return function() use (</span><span class="default">$func</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'is_authorised'</span><span class="keyword">] == </span><span class="default">true</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$args </span><span class="keyword">= </span><span class="default">func_get_args</span><span class="keyword">(</span><span class="default">$func</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">call_user_func_array</span><span class="keyword">(</span><span class="default">$func</span><span class="keyword">, </span><span class="default">$args</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"Access Denied"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; };<br />
+};<br />
+<br />
+</span><span class="comment">/* <br />
+&nbsp;* Define a function to be decorated, in this example a mock service that<br />
+&nbsp;* need to be authorised. <br />
+&nbsp;*/ <br />
+</span><span class="default">$service </span><span class="keyword">= function(</span><span class="default">$foo</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"Service returns: </span><span class="default">$foo</span><span class="string">"</span><span class="keyword">;<br />
+};<br />
+<br />
+</span><span class="comment">/* <br />
+&nbsp;* Decorate it. Ensure you replace the origin function reference with the<br />
+&nbsp;* decorated function; ie just $authorise($service) won't work, so do<br />
+&nbsp;* $service = $authorise($service)<br />
+&nbsp;*/<br />
+</span><span class="default">$service </span><span class="keyword">= </span><span class="default">$authorise</span><span class="keyword">(</span><span class="default">$service</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">/* <br />
+&nbsp;* Establish mock authorisation, call the service; should get <br />
+&nbsp;* 'Service returns: test 1'. <br />
+&nbsp;*/<br />
+</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'is_authorised'</span><span class="keyword">] = </span><span class="default">true</span><span class="keyword">;<br />
+</span><span class="default">$service</span><span class="keyword">(</span><span class="string">'test 1'</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">/* <br />
+&nbsp;* Remove mock authorisation, call the service; should get 'Access Denied'. <br />
+&nbsp;*/<br />
+</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'is_authorised'</span><span class="keyword">] = </span><span class="default">false</span><span class="keyword">;<br />
+</span><span class="default">$service</span><span class="keyword">(</span><span class="string">'test 2'</span><span class="keyword">);<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="102615""></a>
+  <div class="note">
+   <strong class="user">fabiolimasouto at gmail dot com</strong>
+   <a href="#102615" class="date">24-Feb-2011 07:51</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+You may have been disapointed if you tried to call a closure stored in an instance variable as you would regularly do with methods:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+$obj </span><span class="keyword">= new </span><span class="default">StdClass</span><span class="keyword">();<br />
+<br />
+</span><span class="default">$obj</span><span class="keyword">-&gt;</span><span class="default">func </span><span class="keyword">= function(){<br />
+&nbsp;echo </span><span class="string">"hello"</span><span class="keyword">;<br />
+};<br />
+<br />
+</span><span class="comment">//$obj-&gt;func(); // doesn't work! php tries to match an instance method called "func" that is not defined in the original class' signature<br />
+<br />
+// you have to do this instead:<br />
+</span><span class="default">$func </span><span class="keyword">= </span><span class="default">$obj</span><span class="keyword">-&gt;</span><span class="default">func</span><span class="keyword">;<br />
+</span><span class="default">$func</span><span class="keyword">();<br />
+<br />
+</span><span class="comment">// or:<br />
+</span><span class="default">call_user_func</span><span class="keyword">(</span><span class="default">$obj</span><span class="keyword">-&gt;</span><span class="default">func</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// however, you might wanna check this out:<br />
+</span><span class="default">$array</span><span class="keyword">[</span><span class="string">'func'</span><span class="keyword">] = function(){<br />
+&nbsp;echo </span><span class="string">"hello"</span><span class="keyword">;<br />
+};<br />
+<br />
+</span><span class="default">$array</span><span class="keyword">[</span><span class="string">'func'</span><span class="keyword">](); </span><span class="comment">// it works! i discovered that just recently ;)<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Now, coming back to the problem of assigning functions/methods "on the fly" to an object and being able to call them as if they were regular methods, you could trick php with this lawbreaker-code:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">test</span><span class="keyword">{<br />
+&nbsp;private </span><span class="default">$functions </span><span class="keyword">= array();<br />
+&nbsp;private </span><span class="default">$vars </span><span class="keyword">= array();<br />
+&nbsp;<br />
+&nbsp;function </span><span class="default">__set</span><span class="keyword">(</span><span class="default">$name</span><span class="keyword">,</span><span class="default">$data</span><span class="keyword">)<br />
+&nbsp;{<br />
+&nbsp; if(</span><span class="default">is_callable</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">))<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">functions</span><span class="keyword">[</span><span class="default">$name</span><span class="keyword">] = </span><span class="default">$data</span><span class="keyword">;<br />
+&nbsp; else<br />
+&nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">vars</span><span class="keyword">[</span><span class="default">$name</span><span class="keyword">] = </span><span class="default">$data</span><span class="keyword">;<br />
+&nbsp;}<br />
+&nbsp;<br />
+&nbsp;function </span><span class="default">__get</span><span class="keyword">(</span><span class="default">$name</span><span class="keyword">)<br />
+&nbsp;{<br />
+&nbsp; if(isset(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">vars</span><span class="keyword">[</span><span class="default">$name</span><span class="keyword">]))<br />
+&nbsp;&nbsp; return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">vars</span><span class="keyword">[</span><span class="default">$name</span><span class="keyword">];<br />
+&nbsp;}<br />
+&nbsp;<br />
+&nbsp;function </span><span class="default">__call</span><span class="keyword">(</span><span class="default">$method</span><span class="keyword">,</span><span class="default">$args</span><span class="keyword">)<br />
+&nbsp;{<br />
+&nbsp; if(isset(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">functions</span><span class="keyword">[</span><span class="default">$method</span><span class="keyword">]))<br />
+&nbsp; {<br />
+&nbsp;&nbsp; </span><span class="default">call_user_func_array</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">functions</span><span class="keyword">[</span><span class="default">$method</span><span class="keyword">],</span><span class="default">$args</span><span class="keyword">);<br />
+&nbsp; } else {<br />
+&nbsp;&nbsp; </span><span class="comment">// error out<br />
+&nbsp; </span><span class="keyword">}<br />
+&nbsp;}<br />
+}<br />
+<br />
+</span><span class="comment">// LET'S BREAK SOME LAW NOW!<br />
+</span><span class="default">$obj </span><span class="keyword">= new </span><span class="default">test</span><span class="keyword">;<br />
+<br />
+</span><span class="default">$obj</span><span class="keyword">-&gt;</span><span class="default">sayHelloWithMyName </span><span class="keyword">= function(</span><span class="default">$name</span><span class="keyword">){<br />
+&nbsp;echo </span><span class="string">"Hello </span><span class="default">$name</span><span class="string">!"</span><span class="keyword">;<br />
+};<br />
+<br />
+</span><span class="default">$obj</span><span class="keyword">-&gt;</span><span class="default">sayHelloWithMyName</span><span class="keyword">(</span><span class="string">'Fabio'</span><span class="keyword">); </span><span class="comment">// Hello Fabio!<br />
+<br />
+// THE OLD WAY (NON-CLOSURE) ALSO WORKS:<br />
+<br />
+</span><span class="keyword">function </span><span class="default">sayHello</span><span class="keyword">()<br />
+{<br />
+&nbsp;echo </span><span class="string">"Hello!"</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="default">$obj</span><span class="keyword">-&gt;</span><span class="default">justSayHello </span><span class="keyword">= </span><span class="string">'sayHello'</span><span class="keyword">;<br />
+</span><span class="default">$obj</span><span class="keyword">-&gt;</span><span class="default">justSayHello</span><span class="keyword">(); </span><span class="comment">// Hello!<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+NOTICE: of course this is very bad practice since you cannot refere to protected or private fields/methods inside these pseudo "methods" as they are not instance methods at all but rather ordinary functions/closures assigned to the object's instance variables "on the fly". But I hope you've enjoyed the jurney ;)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="100649""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#100649" class="date">28-Oct-2010 12:54</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+use() parameters are early binding - they use the variable's value at the point where the lambda function is declared, rather than the point where the lambda function is called (late binding).<br />
+<br />
+If you want late binding put &amp; before the variable inside use()<br />
+<span class="default">&lt;?php<br />
+$fn </span><span class="keyword">= function () use (&amp;</span><span class="default">$var</span><span class="keyword">) { echo </span><span class="default">$var</span><span class="keyword">; };<br />
+</span><span class="default">?&gt;<br />
+</span>Examples:<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">// problem 1: this should echo "Canada", not a php notice<br />
+</span><span class="default">$fn </span><span class="keyword">= function () use (</span><span class="default">$country</span><span class="keyword">) { echo </span><span class="default">$country </span><span class="keyword">. </span><span class="string">"\n"</span><span class="keyword">; };<br />
+</span><span class="default">$country </span><span class="keyword">= </span><span class="string">'Canada'</span><span class="keyword">;<br />
+</span><span class="default">$fn</span><span class="keyword">();<br />
+<br />
+</span><span class="comment">// problem 2: this should echo "Canada", not "UnitedStates"<br />
+</span><span class="default">$country </span><span class="keyword">= </span><span class="string">'UnitedStates'</span><span class="keyword">;<br />
+</span><span class="default">$fn </span><span class="keyword">= function () use (</span><span class="default">$country</span><span class="keyword">) { echo </span><span class="default">$country </span><span class="keyword">. </span><span class="string">"\n"</span><span class="keyword">; };<br />
+</span><span class="default">$country </span><span class="keyword">= </span><span class="string">'Canada'</span><span class="keyword">;<br />
+</span><span class="default">$fn</span><span class="keyword">();<br />
+<br />
+</span><span class="comment">// problem 3: this should echo "Canada", not "UnitedStates"<br />
+</span><span class="default">$country </span><span class="keyword">= (object)array(</span><span class="string">'name' </span><span class="keyword">=&gt; </span><span class="string">'UnitedStates'</span><span class="keyword">);<br />
+</span><span class="default">$fn </span><span class="keyword">= function () use (</span><span class="default">$country</span><span class="keyword">) { echo </span><span class="default">$country</span><span class="keyword">-&gt;</span><span class="default">name </span><span class="keyword">. </span><span class="string">"\n"</span><span class="keyword">; };<br />
+</span><span class="default">$country </span><span class="keyword">= (object)array(</span><span class="string">'name' </span><span class="keyword">=&gt; </span><span class="string">'Canada'</span><span class="keyword">);<br />
+</span><span class="default">$fn</span><span class="keyword">();<br />
+<br />
+</span><span class="comment">// problem 4: this outputs "Canada". if this outputs "Canada",<br />
+// then so should problem 2 above. otherwise this should be<br />
+// just as broken as problem 2 and be outputting "UnitedStates"<br />
+</span><span class="default">$country </span><span class="keyword">= (object)array(</span><span class="string">'name' </span><span class="keyword">=&gt; </span><span class="string">'UnitedStates'</span><span class="keyword">);<br />
+</span><span class="default">$fn </span><span class="keyword">= function () use (</span><span class="default">$country</span><span class="keyword">) { echo </span><span class="default">$country</span><span class="keyword">-&gt;</span><span class="default">name </span><span class="keyword">. </span><span class="string">"\n"</span><span class="keyword">; };<br />
+</span><span class="default">$country</span><span class="keyword">-&gt;</span><span class="default">name </span><span class="keyword">= </span><span class="string">'Canada'</span><span class="keyword">;<br />
+</span><span class="default">$fn</span><span class="keyword">();<br />
+</span><span class="default">?&gt;<br />
+</span>see <a href="http://bugs.php.net/bug.php?id=50980" rel="nofollow" target="_blank">http://bugs.php.net/bug.php?id=50980</a><br />
+(I've just quoted from there, but if you want you can read there the whole feature request)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="100545""></a>
+  <div class="note">
+   <strong class="user">Hayley Watson</strong>
+   <a href="#100545" class="date">22-Oct-2010 07:00</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+As an alternative to gabriel's recursive construction, you may instead assign the recursive function to a variable, and use it by reference, thus:<br />
+<br />
+<span class="default">&lt;?php<br />
+$fib </span><span class="keyword">= function(</span><span class="default">$n</span><span class="keyword">)use(&amp;</span><span class="default">$fib</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; if(</span><span class="default">$n </span><span class="keyword">== </span><span class="default">0 </span><span class="keyword">|| </span><span class="default">$n </span><span class="keyword">== </span><span class="default">1</span><span class="keyword">) return </span><span class="default">1</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$fib</span><span class="keyword">(</span><span class="default">$n </span><span class="keyword">- </span><span class="default">1</span><span class="keyword">) + </span><span class="default">$fib</span><span class="keyword">(</span><span class="default">$n </span><span class="keyword">- </span><span class="default">2</span><span class="keyword">);<br />
+};<br />
+<br />
+echo </span><span class="default">$fib</span><span class="keyword">(</span><span class="default">10</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span>Hardly a sensible implementation of the Fibonacci sequence, but that's not the point! The point is that the variable needs to be used by reference, not value.<br />
+<br />
+Without the '&amp;', the anonymous function gets the value of $fib at the time the function is being created. But until the function has been created, $fib can't have it as a value! It's not until AFTER the function has been assigned to $fib that $fib can be used to call the function - but by then it's too late to pass its value to the function being created!<br />
+<br />
+Using a reference resolves the dilemma: when called, the anonymous function will use $fib's current value, which will be the anonymous function itself.<br />
+<br />
+At least, it will be if you don't reassign $fib to anything else between creating the function and calling it:<br />
+<br />
+<span class="default">&lt;?php<br />
+$fib </span><span class="keyword">= function(</span><span class="default">$n</span><span class="keyword">)use(&amp;</span><span class="default">$fib</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; if(</span><span class="default">$n </span><span class="keyword">== </span><span class="default">0 </span><span class="keyword">|| </span><span class="default">$n </span><span class="keyword">== </span><span class="default">1</span><span class="keyword">) return </span><span class="default">1</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$fib</span><span class="keyword">(</span><span class="default">$n </span><span class="keyword">- </span><span class="default">1</span><span class="keyword">) + </span><span class="default">$fib</span><span class="keyword">(</span><span class="default">$n </span><span class="keyword">- </span><span class="default">2</span><span class="keyword">);<br />
+};<br />
+<br />
+</span><span class="default">$lie </span><span class="keyword">= </span><span class="default">$fib</span><span class="keyword">;<br />
+<br />
+</span><span class="default">$fib </span><span class="keyword">= function(</span><span class="default">$n</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">100</span><span class="keyword">;<br />
+};<br />
+<br />
+echo </span><span class="default">$lie</span><span class="keyword">(</span><span class="default">10</span><span class="keyword">); </span><span class="comment">// 200, because $fib(10 - 1) and $fib(10 - 2) both return 100.<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Of course, that's true of any variable: if you don't want its value to change, don't change its value.<br />
+<br />
+All the usual scoping rules for variables still apply: a local variable in a function is a different variable from another one with the same name in another function:<br />
+<br />
+<span class="default">&lt;?php<br />
+$fib </span><span class="keyword">= function(</span><span class="default">$n</span><span class="keyword">)use(&amp;</span><span class="default">$fib</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; if(</span><span class="default">$n </span><span class="keyword">== </span><span class="default">0 </span><span class="keyword">|| </span><span class="default">$n </span><span class="keyword">== </span><span class="default">1</span><span class="keyword">) return </span><span class="default">1</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$fib</span><span class="keyword">(</span><span class="default">$n </span><span class="keyword">- </span><span class="default">1</span><span class="keyword">) + </span><span class="default">$fib</span><span class="keyword">(</span><span class="default">$n </span><span class="keyword">- </span><span class="default">2</span><span class="keyword">);<br />
+};<br />
+<br />
+</span><span class="default">$bark </span><span class="keyword">= function(</span><span class="default">$f</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$fib </span><span class="keyword">= </span><span class="string">'cake'</span><span class="keyword">;&nbsp; &nbsp; </span><span class="comment">// A totally different variable from the $fib above.<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">return </span><span class="default">2 </span><span class="keyword">* </span><span class="default">$f</span><span class="keyword">(</span><span class="default">5</span><span class="keyword">);<br />
+};<br />
+<br />
+echo </span><span class="default">$bark</span><span class="keyword">(</span><span class="default">$fib</span><span class="keyword">); </span><span class="comment">// 16, twice the fifth Fibonacci number<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="99477""></a>
+  <div class="note">
+   <strong class="user">anonymous</strong>
+   <a href="#99477" class="date">19-Aug-2010 03:21</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Base dao class illustrating the usefulness of closures.<br />
+* Handles opening and closing of connections.<br />
+* Adds slashes sql<br />
+* Type checking of sql parameters and casts as appropriate<br />
+* Provides hook for processing of result set and emitting one or more objects.<br />
+* Provides hook for accessing underlying link and result objects.<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+define</span><span class="keyword">(</span><span class="string">"userName"</span><span class="keyword">,</span><span class="string">"root"</span><span class="keyword">);<br />
+</span><span class="default">define</span><span class="keyword">(</span><span class="string">"password"</span><span class="keyword">,</span><span class="string">"root"</span><span class="keyword">);<br />
+</span><span class="default">define</span><span class="keyword">(</span><span class="string">"dbName"</span><span class="keyword">,</span><span class="string">"ahcdb"</span><span class="keyword">);<br />
+</span><span class="default">define</span><span class="keyword">(</span><span class="string">"hostName"</span><span class="keyword">,</span><span class="string">"localhost"</span><span class="keyword">);<br />
+<br />
+class </span><span class="default">BaseDao </span><span class="keyword">{<br />
+<br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">getConnection</span><span class="keyword">()&nbsp; &nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$link </span><span class="keyword">= </span><span class="default">mysql_connect</span><span class="keyword">(</span><span class="default">hostName</span><span class="keyword">, </span><span class="default">userName</span><span class="keyword">, </span><span class="default">password</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (!</span><span class="default">$link</span><span class="keyword">) <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; die(</span><span class="string">"Could not connect: " </span><span class="keyword">. </span><span class="default">mysql_error</span><span class="keyword">());<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (!</span><span class="default">mysql_select_db</span><span class="keyword">(</span><span class="default">dbName</span><span class="keyword">))<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; die(</span><span class="string">"Could not select database: " </span><span class="keyword">. </span><span class="default">mysql_error</span><span class="keyword">());<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$link</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">setParams</span><span class="keyword">(&amp; </span><span class="default">$sql</span><span class="keyword">, </span><span class="default">$params</span><span class="keyword">)&nbsp; &nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">$params </span><span class="keyword">!= </span><span class="default">null</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$sql </span><span class="keyword">= </span><span class="default">vsprintf</span><span class="keyword">(</span><span class="default">$sql</span><span class="keyword">, </span><span class="default">array_map</span><span class="keyword">(function(</span><span class="default">$n</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">is_int</span><span class="keyword">(</span><span class="default">$n</span><span class="keyword">))<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return (int)</span><span class="default">$n</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">is_float</span><span class="keyword">(</span><span class="default">$n</span><span class="keyword">))<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return (float)</span><span class="default">$n</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">is_string</span><span class="keyword">(</span><span class="default">$n</span><span class="keyword">))<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="string">"'"</span><span class="keyword">.</span><span class="default">mysql_real_escape_string</span><span class="keyword">(</span><span class="default">$n</span><span class="keyword">).</span><span class="string">"'"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">mysql_real_escape_string</span><span class="keyword">(</span><span class="default">$n</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }, </span><span class="default">$params</span><span class="keyword">));<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">executeQuery</span><span class="keyword">(</span><span class="default">$sql</span><span class="keyword">, </span><span class="default">$params</span><span class="keyword">, </span><span class="default">$callback </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">)&nbsp; &nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$link&nbsp; </span><span class="keyword">= </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">getConnection</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">setParams</span><span class="keyword">(</span><span class="default">$sql</span><span class="keyword">, </span><span class="default">$params</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$return </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if((</span><span class="default">$result </span><span class="keyword">= </span><span class="default">mysql_query</span><span class="keyword">(</span><span class="default">$sql</span><span class="keyword">, </span><span class="default">$link</span><span class="keyword">)) != </span><span class="default">null</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">$callback </span><span class="keyword">!= </span><span class="default">null</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$return </span><span class="keyword">= </span><span class="default">$callback</span><span class="keyword">(</span><span class="default">$result</span><span class="keyword">, </span><span class="default">$link</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">$link </span><span class="keyword">!= </span><span class="default">null</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">mysql_close</span><span class="keyword">(</span><span class="default">$link</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(!</span><span class="default">$result</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; die(</span><span class="string">"Fatal Error: Invalid query '</span><span class="default">$sql</span><span class="string">' : " </span><span class="keyword">. </span><span class="default">mysql_error</span><span class="keyword">());<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$return</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;<br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">getList</span><span class="keyword">(</span><span class="default">$sql</span><span class="keyword">, </span><span class="default">$params</span><span class="keyword">, </span><span class="default">$callback</span><span class="keyword">)&nbsp; &nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">executeQuery</span><span class="keyword">(</span><span class="default">$sql</span><span class="keyword">, </span><span class="default">$params</span><span class="keyword">, function(</span><span class="default">$result</span><span class="keyword">, </span><span class="default">$link</span><span class="keyword">) use (</span><span class="default">$callback</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$idx </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$list </span><span class="keyword">= array();<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; while (</span><span class="default">$row </span><span class="keyword">= </span><span class="default">mysql_fetch_assoc</span><span class="keyword">(</span><span class="default">$result</span><span class="keyword">))<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">$callback </span><span class="keyword">!= </span><span class="default">null</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$list</span><span class="keyword">[</span><span class="default">$idx</span><span class="keyword">] = </span><span class="default">$callback</span><span class="keyword">(</span><span class="default">$idx</span><span class="keyword">++, </span><span class="default">$row</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$list</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; });<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">getSingle</span><span class="keyword">(</span><span class="default">$sql</span><span class="keyword">, </span><span class="default">$params</span><span class="keyword">, </span><span class="default">$callback</span><span class="keyword">)&nbsp; &nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">executeQuery</span><span class="keyword">(</span><span class="default">$sql</span><span class="keyword">, </span><span class="default">$params</span><span class="keyword">, function(</span><span class="default">$result</span><span class="keyword">, </span><span class="default">$link</span><span class="keyword">) use (</span><span class="default">$callback</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$row </span><span class="keyword">= </span><span class="default">mysql_fetch_assoc</span><span class="keyword">(</span><span class="default">$result</span><span class="keyword">))<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$obj </span><span class="keyword">= </span><span class="default">$callback</span><span class="keyword">(</span><span class="default">$row</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$obj</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; });<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+class </span><span class="default">Example&nbsp; &nbsp; </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; var </span><span class="default">$id</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; var </span><span class="default">$name</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">Example</span><span class="keyword">(</span><span class="default">$id</span><span class="keyword">, </span><span class="default">$name</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">id </span><span class="keyword">= </span><span class="default">$id</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">name </span><span class="keyword">= </span><span class="default">$name</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">setId</span><span class="keyword">(</span><span class="default">$id</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">id </span><span class="keyword">= </span><span class="default">$id</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+class </span><span class="default">ExampleDao </span><span class="keyword">extends </span><span class="default">BaseDao&nbsp; &nbsp; </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">getAll</span><span class="keyword">(){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">parent</span><span class="keyword">::</span><span class="default">getList</span><span class="keyword">(</span><span class="string">"select * from nodes"</span><span class="keyword">, </span><span class="default">null</span><span class="keyword">, function(</span><span class="default">$idx</span><span class="keyword">, </span><span class="default">$row</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return new </span><span class="default">Example</span><span class="keyword">(</span><span class="default">$row</span><span class="keyword">[</span><span class="string">"id"</span><span class="keyword">], </span><span class="default">$row</span><span class="keyword">[</span><span class="string">"name"</span><span class="keyword">]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; });<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">load</span><span class="keyword">(</span><span class="default">$id</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">parent</span><span class="keyword">::</span><span class="default">getSingle</span><span class="keyword">(</span><span class="string">"select * from nodes where id = %1\$s"</span><span class="keyword">, array(</span><span class="default">$id</span><span class="keyword">), function(</span><span class="default">$row</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return new </span><span class="default">Example</span><span class="keyword">(</span><span class="default">$row</span><span class="keyword">[</span><span class="string">"id"</span><span class="keyword">], </span><span class="default">$row</span><span class="keyword">[</span><span class="string">"name"</span><span class="keyword">]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; });<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">update</span><span class="keyword">(</span><span class="default">$example</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">parent</span><span class="keyword">::</span><span class="default">executeQuery</span><span class="keyword">(</span><span class="string">"update nodes set name = '' where&nbsp; id = -1"</span><span class="keyword">, </span><span class="default">null</span><span class="keyword">, function(</span><span class="default">$result</span><span class="keyword">, </span><span class="default">$link</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$result</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; });<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">insert</span><span class="keyword">(&amp; </span><span class="default">$example</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">parent</span><span class="keyword">::</span><span class="default">executeQuery</span><span class="keyword">(</span><span class="string">"insert into nodes"</span><span class="keyword">, </span><span class="default">null</span><span class="keyword">, function(</span><span class="default">$result</span><span class="keyword">, </span><span class="default">$link</span><span class="keyword">) use (</span><span class="default">$example</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$id </span><span class="keyword">= </span><span class="default">mysql_insert_id</span><span class="keyword">(</span><span class="default">$link</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$example</span><span class="keyword">-&gt;</span><span class="default">setId</span><span class="keyword">(</span><span class="default">$id</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$result</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; });<br />
+&nbsp;&nbsp;&nbsp; }&nbsp; &nbsp; <br />
+}<br />
+<br />
+</span><span class="default">$exampleDao </span><span class="keyword">= new </span><span class="default">ExampleDao</span><span class="keyword">();<br />
+<br />
+</span><span class="default">$list </span><span class="keyword">= </span><span class="default">$exampleDao</span><span class="keyword">-&gt;</span><span class="default">getAll</span><span class="keyword">());<br />
+<br />
+</span><span class="default">$exampleObject </span><span class="keyword">= </span><span class="default">$exampleDao</span><span class="keyword">-&gt;</span><span class="default">load</span><span class="keyword">(</span><span class="default">1</span><span class="keyword">));<br />
+<br />
+</span><span class="default">$exampleDao</span><span class="keyword">-&gt;</span><span class="default">update</span><span class="keyword">(</span><span class="default">$exampleObject</span><span class="keyword">);<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="99287""></a>
+  <div class="note">
+   <strong class="user">orls</strong>
+   <a href="#99287" class="date">08-Aug-2010 06:53</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Watch out when 'importing' variables to a closure's scope&nbsp; -- it's easy to miss / forget that they are actually being *copied* into the closure's scope, rather than just being made available.<br />
+<br />
+So you will need to explicitly pass them in by reference if your closure cares about their contents over time:<br />
+<br />
+<span class="default">&lt;?php<br />
+$result </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
+<br />
+</span><span class="default">$one </span><span class="keyword">= function()<br />
+{ </span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$result</span><span class="keyword">); };<br />
+<br />
+</span><span class="default">$two </span><span class="keyword">= function() use (</span><span class="default">$result</span><span class="keyword">)<br />
+{ </span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$result</span><span class="keyword">); };<br />
+<br />
+</span><span class="default">$three </span><span class="keyword">= function() use (&amp;</span><span class="default">$result</span><span class="keyword">)<br />
+{ </span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$result</span><span class="keyword">); };<br />
+<br />
+</span><span class="default">$result</span><span class="keyword">++;<br />
+<br />
+</span><span class="default">$one</span><span class="keyword">();&nbsp; &nbsp; </span><span class="comment">// outputs NULL: $result is not in scope<br />
+</span><span class="default">$two</span><span class="keyword">();&nbsp; &nbsp; </span><span class="comment">// outputs int(0): $result was copied<br />
+</span><span class="default">$three</span><span class="keyword">();&nbsp; &nbsp; </span><span class="comment">// outputs int(1)<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Another less trivial example with objects (what I actually tripped up on):<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">//set up variable in advance<br />
+</span><span class="default">$myInstance </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">;<br />
+<br />
+</span><span class="default">$broken </span><span class="keyword">= function() </span><span class="default">uses </span><span class="keyword">(</span><span class="default">$myInstance</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; if(!empty(</span><span class="default">$myInstance</span><span class="keyword">)) </span><span class="default">$myInstance</span><span class="keyword">-&gt;</span><span class="default">doSomething</span><span class="keyword">();<br />
+};<br />
+<br />
+</span><span class="default">$working </span><span class="keyword">= function() </span><span class="default">uses </span><span class="keyword">(&amp;</span><span class="default">$myInstance</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; if(!empty(</span><span class="default">$myInstance</span><span class="keyword">)) </span><span class="default">$myInstance</span><span class="keyword">-&gt;</span><span class="default">doSomething</span><span class="keyword">();<br />
+}<br />
+<br />
+</span><span class="comment">//$myInstance might be instantiated, might not be<br />
+</span><span class="keyword">if(</span><span class="default">SomeBusinessLogic</span><span class="keyword">::</span><span class="default">worked</span><span class="keyword">() == </span><span class="default">true</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$myInstance </span><span class="keyword">= new </span><span class="default">myClass</span><span class="keyword">();<br />
+}<br />
+<br />
+</span><span class="default">$broken</span><span class="keyword">();&nbsp; &nbsp; </span><span class="comment">// will never do anything: $myInstance will ALWAYS be null inside this closure.<br />
+</span><span class="default">$working</span><span class="keyword">();&nbsp; &nbsp; </span><span class="comment">// will call doSomething if $myInstance is instantiated<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="98978""></a>
+  <div class="note">
+   <strong class="user">gabriel dot totoliciu at ddsec dot net</strong>
+   <a href="#98978" class="date">19-Jul-2010 10:56</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you want to make a recursive closure, you will need to write this:<br />
+<br />
+$some_var1="1";<br />
+$some_var2="2";<br />
+<br />
+function($param1, $param2) use ($some_var1, $some_var2)<br />
+{<br />
+<br />
+//some code here<br />
+<br />
+call_user_func(__FUNCTION__, $other_param1, $other_param2);<br />
+<br />
+//some code here<br />
+<br />
+}<br />
+<br />
+If you need to pass values by reference you should check out<br />
+<br />
+<a href="http://www.php.net/manual/en/function.call-user-func.php" rel="nofollow" target="_blank">http://www.php.net/manual/en/function.call-user-func.php</a><br />
+<a href="http://www.php.net/manual/en/function.call-user-func-array.php" rel="nofollow" target="_blank">http://www.php.net/manual/en/function.call-user-func-array.php</a><br />
+<br />
+If you're wondering if $some_var1 and $some_var2 are still visible by using the call_user_func, yes, they are available.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="98384""></a>
+  <div class="note">
+   <strong class="user">martin dot partel at gmail dot com</strong>
+   <a href="#98384" class="date">11-Jun-2010 10:50</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+$this is currently (PHP 5.3.2) not usable directly with closures.
+<br />
+
+<br />
+One can write:
+<br />
+<span class="default">&lt;?php
+<br />
+$self </span><span class="keyword">= </span><span class="default">$this</span><span class="keyword">;
+<br />
+function () use (</span><span class="default">$self</span><span class="keyword">) { ... }
+<br />
+</span><span class="default">?&gt;
+<br />
+</span>but then the private/protected members of $this cannot be used inside the closure. This makes closures much less useful in OO code.
+<br />
+
+<br />
+Until this is fixed, one can cheat using reflection:
+<br />
+<span class="default">&lt;?php
+<br />
+</span><span class="keyword">class </span><span class="default">FullAccessWrapper
+<br />
+</span><span class="keyword">{
+<br />
+&nbsp;&nbsp;&nbsp; protected </span><span class="default">$_self</span><span class="keyword">;
+<br />
+&nbsp;&nbsp;&nbsp; protected </span><span class="default">$_refl</span><span class="keyword">;
+<br />
+&nbsp;&nbsp;&nbsp; 
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__construct</span><span class="keyword">(</span><span class="default">$self</span><span class="keyword">)
+<br />
+&nbsp;&nbsp;&nbsp; {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">_self </span><span class="keyword">= </span><span class="default">$self</span><span class="keyword">;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">_refl </span><span class="keyword">= new </span><span class="default">ReflectionObject</span><span class="keyword">(</span><span class="default">$self</span><span class="keyword">);
+<br />
+&nbsp;&nbsp;&nbsp; }
+<br />
+&nbsp;&nbsp;&nbsp; 
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__call</span><span class="keyword">(</span><span class="default">$method</span><span class="keyword">, </span><span class="default">$args</span><span class="keyword">)
+<br />
+&nbsp;&nbsp;&nbsp; {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$mrefl </span><span class="keyword">= </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">_refl</span><span class="keyword">-&gt;</span><span class="default">getMethod</span><span class="keyword">(</span><span class="default">$method</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$mrefl</span><span class="keyword">-&gt;</span><span class="default">setAccessible</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$mrefl</span><span class="keyword">-&gt;</span><span class="default">invokeArgs</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">_self</span><span class="keyword">, </span><span class="default">$args</span><span class="keyword">);
+<br />
+&nbsp;&nbsp;&nbsp; }
+<br />
+&nbsp;&nbsp;&nbsp; 
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__set</span><span class="keyword">(</span><span class="default">$name</span><span class="keyword">, </span><span class="default">$value</span><span class="keyword">)
+<br />
+&nbsp;&nbsp;&nbsp; {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$prefl </span><span class="keyword">= </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">_refl</span><span class="keyword">-&gt;</span><span class="default">getProperty</span><span class="keyword">(</span><span class="default">$name</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$prefl</span><span class="keyword">-&gt;</span><span class="default">setAccessible</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$prefl</span><span class="keyword">-&gt;</span><span class="default">setValue</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">_self</span><span class="keyword">, </span><span class="default">$value</span><span class="keyword">);
+<br />
+&nbsp;&nbsp;&nbsp; }
+<br />
+&nbsp;&nbsp;&nbsp; 
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__get</span><span class="keyword">(</span><span class="default">$name</span><span class="keyword">)
+<br />
+&nbsp;&nbsp;&nbsp; {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$prefl </span><span class="keyword">= </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">_refl</span><span class="keyword">-&gt;</span><span class="default">getProperty</span><span class="keyword">(</span><span class="default">$name</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$prefl</span><span class="keyword">-&gt;</span><span class="default">setAccessible</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$prefl</span><span class="keyword">-&gt;</span><span class="default">getValue</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">_self</span><span class="keyword">);
+<br />
+&nbsp;&nbsp;&nbsp; }
+<br />
+&nbsp;&nbsp;&nbsp; 
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__isset</span><span class="keyword">(</span><span class="default">$name</span><span class="keyword">)
+<br />
+&nbsp;&nbsp;&nbsp; {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$value </span><span class="keyword">= </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">__get</span><span class="keyword">(</span><span class="default">$name</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return isset(</span><span class="default">$value</span><span class="keyword">);
+<br />
+&nbsp;&nbsp;&nbsp; }
+<br />
+}
+<br />
+
+<br />
+</span><span class="comment">/**
+<br />
+&nbsp;* Usage:
+<br />
+&nbsp;* $self = giveAccess($this);
+<br />
+&nbsp;* function() use ($self) { $self-&gt;privateMember... }
+<br />
+&nbsp;*/
+<br />
+</span><span class="keyword">function </span><span class="default">giveAccess</span><span class="keyword">(</span><span class="default">$obj</span><span class="keyword">)
+<br />
+{
+<br />
+&nbsp;&nbsp;&nbsp; return new </span><span class="default">FullAccessWrapper</span><span class="keyword">(</span><span class="default">$obj</span><span class="keyword">);
+<br />
+}
+<br />
+
+<br />
+</span><span class="comment">// Example:
+<br />
+
+<br />
+</span><span class="keyword">class </span><span class="default">Foo
+<br />
+</span><span class="keyword">{
+<br />
+&nbsp;&nbsp;&nbsp; private </span><span class="default">$x </span><span class="keyword">= </span><span class="default">3</span><span class="keyword">;
+<br />
+&nbsp;&nbsp;&nbsp; private function </span><span class="default">f</span><span class="keyword">()
+<br />
+&nbsp;&nbsp;&nbsp; {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">15</span><span class="keyword">;
+<br />
+&nbsp;&nbsp;&nbsp; }
+<br />
+&nbsp;&nbsp;&nbsp; 
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">getClosureUsingPrivates</span><span class="keyword">()
+<br />
+&nbsp;&nbsp;&nbsp; {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$self </span><span class="keyword">= </span><span class="default">giveAccess</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return function () use (</span><span class="default">$self</span><span class="keyword">) {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$self</span><span class="keyword">-&gt;</span><span class="default">x </span><span class="keyword">* </span><span class="default">$self</span><span class="keyword">-&gt;</span><span class="default">f</span><span class="keyword">();
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; };
+<br />
+&nbsp;&nbsp;&nbsp; }
+<br />
+}
+<br />
+
+<br />
+</span><span class="default">$foo </span><span class="keyword">= new </span><span class="default">Foo</span><span class="keyword">();
+<br />
+</span><span class="default">$closure </span><span class="keyword">= </span><span class="default">$foo</span><span class="keyword">-&gt;</span><span class="default">getClosureUsingPrivates</span><span class="keyword">();
+<br />
+echo </span><span class="default">$closure</span><span class="keyword">() . </span><span class="string">"\n"</span><span class="keyword">; </span><span class="comment">// Prints 45 as expected
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="97906""></a>
+  <div class="note">
+   <strong class="user">kdelux at gmail dot com</strong>
+   <a href="#97906" class="date">14-May-2010 08:55</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Here is an example of one way to define, then use the variable ( $this ) in Closure functions.&nbsp; The code below explores all uses, and shows restrictions.<br />
+<br />
+The most useful tool in this snippet is the requesting_class() function that will tell you which class is responsible for executing the current Closure().&nbsp; <br />
+<br />
+Overview:<br />
+-----------------------<br />
+Successfully find calling object reference.<br />
+Successfully call $this(__invoke);<br />
+Successfully reference $$this-&gt;name;<br />
+Successfully call call_user_func(array($this, 'method'))<br />
+<br />
+Failure: reference anything through $this-&gt;<br />
+Failure: $this-&gt;name = ''; <br />
+Failure: $this-&gt;delfect(); <br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp;<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">function </span><span class="default">requesting_class</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach(</span><span class="default">debug_backtrace</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">) as </span><span class="default">$stack</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(isset(</span><span class="default">$stack</span><span class="keyword">[</span><span class="string">'object'</span><span class="keyword">])){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$stack</span><span class="keyword">[</span><span class="string">'object'</span><span class="keyword">];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; class </span><span class="default">Person<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">{<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; public </span><span class="default">$name </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; public </span><span class="default">$head </span><span class="keyword">= </span><span class="default">true</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; public </span><span class="default">$feet </span><span class="keyword">= </span><span class="default">true</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; public </span><span class="default">$deflected </span><span class="keyword">= </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; function </span><span class="default">__invoke</span><span class="keyword">(</span><span class="default">$p</span><span class="keyword">){ return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">$p</span><span class="keyword">; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; function </span><span class="default">__toString</span><span class="keyword">(){ return </span><span class="string">'this'</span><span class="keyword">; } </span><span class="comment">// test for reference<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">function </span><span class="default">__construct</span><span class="keyword">(</span><span class="default">$name</span><span class="keyword">){ </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">name </span><span class="keyword">= </span><span class="default">$name</span><span class="keyword">; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; function </span><span class="default">deflect</span><span class="keyword">(){ </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">deflected </span><span class="keyword">= </span><span class="default">true</span><span class="keyword">; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; public function </span><span class="default">shoot</span><span class="keyword">()<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; { </span><span class="comment">// If customAttack is defined, use that as the shoot resut.&nbsp; Otherwise shoot feet<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if(</span><span class="default">is_callable</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">customAttack</span><span class="keyword">)){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">call_user_func</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">customAttack</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">feet </span><span class="keyword">= </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$p </span><span class="keyword">= new </span><span class="default">Person</span><span class="keyword">(</span><span class="string">'Bob'</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$p</span><span class="keyword">-&gt;</span><span class="default">customAttack </span><span class="keyword">= <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; function(){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="default">$this</span><span class="keyword">; </span><span class="comment">// Notice: Undefined variable: this<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; #$this = new Class() // FATAL ERROR<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; // Trick to assign the variable '$this'<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">extract</span><span class="keyword">(array(</span><span class="string">'this' </span><span class="keyword">=&gt; </span><span class="default">requesting_class</span><span class="keyword">())); </span><span class="comment">// Determine what class is responsible for making the call to Closure<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">var_dump</span><span class="keyword">( </span><span class="default">$this&nbsp; </span><span class="keyword">);&nbsp; </span><span class="comment">// Passive reference works<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">var_dump</span><span class="keyword">( $</span><span class="default">$this </span><span class="keyword">); </span><span class="comment">// Added to class:&nbsp; function __toString(){ return 'this'; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$name </span><span class="keyword">= </span><span class="default">$this</span><span class="keyword">(</span><span class="string">'name'</span><span class="keyword">); </span><span class="comment">// Success<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">echo </span><span class="default">$name</span><span class="keyword">;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="comment">// Outputs: Bob<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">echo </span><span class="string">'&lt;br /&gt;'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; echo $</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">name</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">call_user_func_array</span><span class="keyword">(array(</span><span class="default">$this</span><span class="keyword">, </span><span class="string">'deflect'</span><span class="keyword">), array()); </span><span class="comment">// SUCCESSFULLY CALLED<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; #$this-&gt;head = 0; //** FATAL ERROR: Using $this when not in object context<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">$</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">head </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;&nbsp; </span><span class="comment">// Successfully sets value<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">};<br />
+&nbsp;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">print_r</span><span class="keyword">(</span><span class="default">$p</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$p</span><span class="keyword">-&gt;</span><span class="default">shoot</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">print_r</span><span class="keyword">(</span><span class="default">$p</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; die();<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="96755""></a>
+  <div class="note">
+   <strong class="user">housni dot yakoob at gmail dot com</strong>
+   <a href="#96755" class="date">14-Mar-2010 09:22</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you want to make sure that one of the parameters of your function is a Closure, you can use Type Hinting.<br />
+see: <a href="http://php.net/manual/en/language.oop5.typehinting.php" rel="nofollow" target="_blank">http://php.net/manual/en/language.oop5.typehinting.php</a><br />
+<br />
+Example:<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">class </span><span class="default">TheRoot<br />
+</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">poidh</span><span class="keyword">(</span><span class="default">$param</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"TheRoot </span><span class="default">$param</span><span class="string">!"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }&nbsp;&nbsp; <br />
+<br />
+}<br />
+<br />
+class </span><span class="default">Internet<br />
+</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment"># here, $my_closure must be of type object Closure<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">public function </span><span class="default">run_my_closure</span><span class="keyword">(</span><span class="default">$bar</span><span class="keyword">, </span><span class="default">Closure $my_closure</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$my_closure</span><span class="keyword">(</span><span class="default">$bar</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }&nbsp;&nbsp; <br />
+}<br />
+<br />
+</span><span class="default">$Internet </span><span class="keyword">= new </span><span class="default">Internet</span><span class="keyword">();<br />
+</span><span class="default">$Root </span><span class="keyword">= new </span><span class="default">TheRoot</span><span class="keyword">();<br />
+<br />
+</span><span class="default">$Internet</span><span class="keyword">-&gt;</span><span class="default">run_my_closure</span><span class="keyword">(</span><span class="default">$Root</span><span class="keyword">, function(</span><span class="default">$Object</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$Object</span><span class="keyword">-&gt;</span><span class="default">poidh</span><span class="keyword">(</span><span class="default">42</span><span class="keyword">);<br />
+});<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span>The above code simply yields:<br />
+"TheRoot 42!"<br />
+<br />
+NOTE: If you are using namespaces, make sure you give a fully qualified namespace.<br />
+<br />
+print_r() of Internet::run_my_closure's $my_closure<br />
+<span class="default">&lt;?php<br />
+Closure Object<br />
+</span><span class="keyword">(<br />
+&nbsp;&nbsp;&nbsp; [</span><span class="default">parameter</span><span class="keyword">] =&gt; Array<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; (<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [</span><span class="default">$Object</span><span class="keyword">] =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; )<br />
+<br />
+)<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+var_dump() of Internet::run_my_closure's $my_closure<br />
+<span class="default">&lt;?php<br />
+object</span><span class="keyword">(</span><span class="default">Closure</span><span class="keyword">)</span><span class="comment">#3 (1) {<br />
+&nbsp; </span><span class="keyword">[</span><span class="string">"parameter"</span><span class="keyword">]=&gt;<br />
+&nbsp; array(</span><span class="default">1</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; [</span><span class="string">"</span><span class="default">$Object</span><span class="string">"</span><span class="keyword">]=&gt;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">string</span><span class="keyword">(</span><span class="default">10</span><span class="keyword">) </span><span class="string">""<br />
+&nbsp; </span><span class="keyword">}<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="96579""></a>
+  <div class="note">
+   <strong class="user">aaron at afloorabove dot com</strong>
+   <a href="#96579" class="date">05-Mar-2010 02:42</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Anonymous functions are great for events!<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">class </span><span class="default">Event </span><span class="keyword">{<br />
+<br />
+&nbsp; public static </span><span class="default">$events </span><span class="keyword">= array();<br />
+&nbsp; <br />
+&nbsp; public static function </span><span class="default">bind</span><span class="keyword">(</span><span class="default">$event</span><span class="keyword">, </span><span class="default">$callback</span><span class="keyword">, </span><span class="default">$obj </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; if (!</span><span class="default">self</span><span class="keyword">::</span><span class="default">$events</span><span class="keyword">[</span><span class="default">$event</span><span class="keyword">]) {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">self</span><span class="keyword">::</span><span class="default">$events</span><span class="keyword">[</span><span class="default">$event</span><span class="keyword">] = array();<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">self</span><span class="keyword">::</span><span class="default">$events</span><span class="keyword">[</span><span class="default">$event</span><span class="keyword">][] = (</span><span class="default">$obj </span><span class="keyword">=== </span><span class="default">null</span><span class="keyword">)&nbsp; ? </span><span class="default">$callback </span><span class="keyword">: array(</span><span class="default">$obj</span><span class="keyword">, </span><span class="default">$callback</span><span class="keyword">);<br />
+&nbsp; }<br />
+&nbsp; <br />
+&nbsp; public static function </span><span class="default">run</span><span class="keyword">(</span><span class="default">$event</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; if (!</span><span class="default">self</span><span class="keyword">::</span><span class="default">$events</span><span class="keyword">[</span><span class="default">$event</span><span class="keyword">]) return;<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; foreach (</span><span class="default">self</span><span class="keyword">::</span><span class="default">$events</span><span class="keyword">[</span><span class="default">$event</span><span class="keyword">] as </span><span class="default">$callback</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; if (</span><span class="default">call_user_func</span><span class="keyword">(</span><span class="default">$callback</span><span class="keyword">) === </span><span class="default">false</span><span class="keyword">) break;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp; }<br />
+<br />
+}<br />
+<br />
+function </span><span class="default">hello</span><span class="keyword">() {<br />
+&nbsp; echo </span><span class="string">"Hello from function hello()\n"</span><span class="keyword">;<br />
+}<br />
+<br />
+class </span><span class="default">Foo </span><span class="keyword">{<br />
+&nbsp; function </span><span class="default">hello</span><span class="keyword">() {<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"Hello from foo-&gt;hello()\n"</span><span class="keyword">;<br />
+&nbsp; }<br />
+}<br />
+<br />
+class </span><span class="default">Bar </span><span class="keyword">{<br />
+&nbsp; function </span><span class="default">hello</span><span class="keyword">() {<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"Hello from Bar::hello()\n"</span><span class="keyword">;<br />
+&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">$foo </span><span class="keyword">= new </span><span class="default">Foo</span><span class="keyword">();<br />
+<br />
+</span><span class="comment">// bind a global function to the 'test' event<br />
+</span><span class="default">Event</span><span class="keyword">::</span><span class="default">bind</span><span class="keyword">(</span><span class="string">"test"</span><span class="keyword">, </span><span class="string">"hello"</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// bind an anonymous function<br />
+</span><span class="default">Event</span><span class="keyword">::</span><span class="default">bind</span><span class="keyword">(</span><span class="string">"test"</span><span class="keyword">, function() { echo </span><span class="string">"Hello from anonymous function\n"</span><span class="keyword">; });<br />
+<br />
+</span><span class="comment">// bind an class function on an instance<br />
+</span><span class="default">Event</span><span class="keyword">::</span><span class="default">bind</span><span class="keyword">(</span><span class="string">"test"</span><span class="keyword">, </span><span class="string">"hello"</span><span class="keyword">, </span><span class="default">$foo</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// bind a static class function<br />
+</span><span class="default">Event</span><span class="keyword">::</span><span class="default">bind</span><span class="keyword">(</span><span class="string">"test"</span><span class="keyword">, </span><span class="string">"Bar::hello"</span><span class="keyword">);<br />
+<br />
+</span><span class="default">Event</span><span class="keyword">::</span><span class="default">run</span><span class="keyword">(</span><span class="string">"test"</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">/* Output<br />
+Hello from function hello()<br />
+Hello from anonymous function<br />
+Hello from foo-&gt;hello()<br />
+Hello from Bar::hello()<br />
+*/<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="96341""></a>
+  <div class="note">
+   <strong class="user">ljackson at jjcons dot com</strong>
+   <a href="#96341" class="date">21-Feb-2010 10:46</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+appears kwilson at shuttlebox dot net that you may have just made unintended side effect. Note that adding the global $variable to your test function make the closure function echo second rather than first So the anonymous function works as expected with respect to globals.<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; $variable </span><span class="keyword">= </span><span class="string">"first"</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$closure </span><span class="keyword">= function() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; global </span><span class="default">$variable</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="default">$variable </span><span class="keyword">. </span><span class="string">"\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; };<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$closure</span><span class="keyword">();<br />
+<br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">test</span><span class="keyword">(</span><span class="default">$closure</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; global </span><span class="default">$variable</span><span class="keyword">; </span><span class="comment">//Note the scope added here <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$variable </span><span class="keyword">= </span><span class="string">"second"</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$closure</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">test</span><span class="keyword">(</span><span class="default">$closure</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+prints:<br />
+first<br />
+second<br />
+<br />
+tested with php 5.3.1</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="94804""></a>
+  <div class="note">
+   <strong class="user">rob at ubrio dot us</strong>
+   <a href="#94804" class="date">25-Nov-2009 10:20</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+You can always call protected members using the __call() method - similar to how you hack around this in Ruby using send.
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+
+<br />
+</span><span class="keyword">class </span><span class="default">Fun
+<br />
+</span><span class="keyword">{
+<br />
+&nbsp;protected function </span><span class="default">debug</span><span class="keyword">(</span><span class="default">$message</span><span class="keyword">)
+<br />
+&nbsp;{
+<br />
+&nbsp;&nbsp; echo </span><span class="string">"DEBUG: </span><span class="default">$message</span><span class="string">\n"</span><span class="keyword">;
+<br />
+&nbsp;}
+<br />
+
+<br />
+&nbsp;public function </span><span class="default">yield_something</span><span class="keyword">(</span><span class="default">$callback</span><span class="keyword">)
+<br />
+&nbsp;{
+<br />
+&nbsp;&nbsp; return </span><span class="default">$callback</span><span class="keyword">(</span><span class="string">"Soemthing!!"</span><span class="keyword">);
+<br />
+&nbsp;}
+<br />
+
+<br />
+&nbsp;public function </span><span class="default">having_fun</span><span class="keyword">()
+<br />
+&nbsp;{
+<br />
+&nbsp;&nbsp; </span><span class="default">$self </span><span class="keyword">=&amp; </span><span class="default">$this</span><span class="keyword">;
+<br />
+&nbsp;&nbsp; return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">yield_something</span><span class="keyword">(function(</span><span class="default">$data</span><span class="keyword">) use (&amp;</span><span class="default">$self</span><span class="keyword">)
+<br />
+&nbsp;&nbsp; {
+<br />
+&nbsp;&nbsp; &nbsp; </span><span class="default">$self</span><span class="keyword">-&gt;</span><span class="default">debug</span><span class="keyword">(</span><span class="string">"Doing stuff to the data"</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; </span><span class="comment">// do something with $data
+<br />
+&nbsp;&nbsp; &nbsp; </span><span class="default">$self</span><span class="keyword">-&gt;</span><span class="default">debug</span><span class="keyword">(</span><span class="string">"Finished doing stuff with the data."</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; });
+<br />
+&nbsp;}
+<br />
+
+<br />
+&nbsp;</span><span class="comment">// Ah-Ha!
+<br />
+&nbsp;</span><span class="keyword">public function </span><span class="default">__call</span><span class="keyword">(</span><span class="default">$method</span><span class="keyword">, </span><span class="default">$args </span><span class="keyword">= array())
+<br />
+&nbsp;{
+<br />
+&nbsp;&nbsp; if(</span><span class="default">is_callable</span><span class="keyword">(array(</span><span class="default">$this</span><span class="keyword">, </span><span class="default">$method</span><span class="keyword">)))
+<br />
+&nbsp;&nbsp; &nbsp; return </span><span class="default">call_user_func_array</span><span class="keyword">(array(</span><span class="default">$this</span><span class="keyword">, </span><span class="default">$method</span><span class="keyword">), </span><span class="default">$args</span><span class="keyword">);
+<br />
+&nbsp;}
+<br />
+}
+<br />
+
+<br />
+</span><span class="default">$fun </span><span class="keyword">= new </span><span class="default">Fun</span><span class="keyword">();
+<br />
+echo </span><span class="default">$fun</span><span class="keyword">-&gt;</span><span class="default">having_fun</span><span class="keyword">();
+<br />
+
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="94313""></a>
+  <div class="note">
+   <strong class="user">mike at blueroot dot co dot uk</strong>
+   <a href="#94313" class="date">28-Oct-2009 08:40</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+To recursively call a closure, use this code.
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+$recursive </span><span class="keyword">= function () use (&amp;</span><span class="default">$recursive</span><span class="keyword">){
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// The function is now available as $recursive
+<br />
+</span><span class="keyword">}
+<br />
+</span><span class="default">?&gt;
+<br />
+</span>
+<br />
+This DOES NOT WORK
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+$recursive </span><span class="keyword">= function () use (</span><span class="default">$recursive</span><span class="keyword">){
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// The function is now available as $recursive
+<br />
+</span><span class="keyword">}
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="94037""></a>
+  <div class="note">
+   <strong class="user">kukoman at pobox dot sk</strong>
+   <a href="#94037" class="date">13-Oct-2009 05:22</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+be aware of&nbsp; Fatal error: Using $this when not in object context when using in closures<br />
+<br />
+<a href="http://wiki.php.net/rfc/closures/removal-of-this" rel="nofollow" target="_blank">http://wiki.php.net/rfc/closures/removal-of-this</a></span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="92664""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#92664" class="date">03-Aug-2009 02:50</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you want to check whether you're dealing with a closure specifically and not a string or array callback you can do this:<br />
+<br />
+<span class="default">&lt;?php<br />
+$isAClosure </span><span class="keyword">= </span><span class="default">is_callable</span><span class="keyword">(</span><span class="default">$thing</span><span class="keyword">) &amp;&amp; </span><span class="default">is_object</span><span class="keyword">(</span><span class="default">$thing</span><span class="keyword">);<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="91871""></a>
+  <div class="note">
+   <strong class="user">mcm dot matt at gmail dot com</strong>
+   <a href="#91871" class="date">30-Jun-2009 05:49</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Example using uasort.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">// Usual method.<br />
+</span><span class="keyword">function </span><span class="default">cmp</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">, </span><span class="default">$b</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; return(</span><span class="default">$a </span><span class="keyword">&gt; </span><span class="default">$b</span><span class="keyword">);<br />
+}<br />
+</span><span class="default">uasort</span><span class="keyword">(</span><span class="default">$array</span><span class="keyword">, </span><span class="string">'cmp'</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// New<br />
+</span><span class="default">uasort</span><span class="keyword">(</span><span class="default">$array</span><span class="keyword">, function(</span><span class="default">$a</span><span class="keyword">, </span><span class="default">$b</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; return(</span><span class="default">$a </span><span class="keyword">&gt; </span><span class="default">$b</span><span class="keyword">);<br />
+});<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="91610""></a>
+  <div class="note">
+   <strong class="user">a dot schaffhirt at sedna-soft dot de</strong>
+   <a href="#91610" class="date">19-Jun-2009 02:55</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+When using anonymous functions as properties in Classes, note that there are three name scopes: one for constants, one for properties and one for methods. That means, you can use the same name for a constant, for a property and for a method at a time.<br />
+<br />
+Since a property can be also an anonymous function as of PHP 5.3.0, an oddity arises when they share the same name, not meaning that there would be any conflict.<br />
+<br />
+Consider the following example:<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">class </span><span class="default">MyClass </span><span class="keyword">{<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; const </span><span class="default">member </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; public </span><span class="default">$member</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; public function </span><span class="default">member </span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="string">"method 'member'"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; public function </span><span class="default">__construct </span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">member </span><span class="keyword">= function () {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="string">"anonymous function 'member'"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; };<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">header</span><span class="keyword">(</span><span class="string">"Content-Type: text/plain"</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$myObj </span><span class="keyword">= new </span><span class="default">MyClass</span><span class="keyword">();<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">MyClass</span><span class="keyword">::</span><span class="default">member</span><span class="keyword">);&nbsp; </span><span class="comment">// int(1)<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$myObj</span><span class="keyword">-&gt;</span><span class="default">member</span><span class="keyword">);&nbsp;&nbsp; </span><span class="comment">// object(Closure)#2 (0) {}<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$myObj</span><span class="keyword">-&gt;</span><span class="default">member</span><span class="keyword">()); </span><span class="comment">// string(15) "method 'member'"<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$myMember </span><span class="keyword">= </span><span class="default">$myObj</span><span class="keyword">-&gt;</span><span class="default">member</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$myMember</span><span class="keyword">());&nbsp; &nbsp; &nbsp; </span><span class="comment">// string(27) "anonymous function 'member'"<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+That means, regular method invocations work like expected and like before. The anonymous function instead, must be retrieved into a variable first (just like a property) and can only then be invoked.<br />
+<br />
+Best regards,</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

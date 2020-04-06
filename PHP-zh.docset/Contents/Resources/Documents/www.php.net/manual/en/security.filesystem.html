@@ -1,0 +1,302 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>文件系统安全</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="security.sessions.html">? 会话（Session）安全</a></li>
+      <li style="float: right;"><a href="security.filesystem.nullbytes.html">Null 字符问题 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="security.html">安全</a></li>
+    <li>文件系统安全</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="security.filesystem" class="chapter">
+   <h1>文件系统安全</h1>
+<h2>Table of Contents</h2><ul class="chunklist chunklist_chapter"><li><a href="security.filesystem.nullbytes.html">Null 字符问题</a></li></ul>
+
+   <p class="simpara">
+    PHP 遵从大多数服务器系统中关于文件和目录权限的安全机制。这就使管理员可以控制哪些文件在文件系统内是可读的。必须特别注意的是全局的可读文件，并确保每一个有权限的用户对这些文件的读取动作都是安全的。
+   </p>
+   <p class="simpara">
+    PHP 被设计为以用户级别来访问文件系统，所以完全有可能通过编写一段
+    PHP 代码来读取系统文件如
+    /etc/passwd，更改网络连接以及发送大量打印任务等等。因此必须确保
+    PHP 代码读取和写入的是合适的文件。
+   </p>
+   <p class="simpara">
+    请看下面的代码，用户想要删除自己主目录中的一个文件。假设此情形是通过
+    web 界面来管理文件系统，因此 Apache 用户有权删除用户目录下的文件。
+   </p>
+   <p class="para">
+    <div class="example" id="wrappers.http.example.basic">
+     <p><strong>Example #1 不对变量进行安全检查会导致......</strong></p>
+     <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">//&nbsp;从用户目录中删除指定的文件<br /></span><span style="color: #0000BB">$username&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$_POST</span><span style="color: #007700">[</span><span style="color: #DD0000">'user_submitted_name'</span><span style="color: #007700">];<br /></span><span style="color: #0000BB">$userfile&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$_POST</span><span style="color: #007700">[</span><span style="color: #DD0000">'user_submitted_filename'</span><span style="color: #007700">];<br /></span><span style="color: #0000BB">$homedir&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">"/home/</span><span style="color: #0000BB">$username</span><span style="color: #DD0000">"</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">unlink&nbsp;</span><span style="color: #007700">(</span><span style="color: #DD0000">"</span><span style="color: #0000BB">$homedir</span><span style="color: #DD0000">/</span><span style="color: #0000BB">$userfile</span><span style="color: #DD0000">"</span><span style="color: #007700">);<br />echo&nbsp;</span><span style="color: #DD0000">"The&nbsp;file&nbsp;has&nbsp;been&nbsp;deleted!"</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+     </div>
+
+    </div>
+    既然 username 和 filename 变量可以通过用户表单来提交，那就可以提交别人的用户名和文件名，甚至可以删掉本来不应该让他们删除的文件。这种情况下，就要考虑其它方式的认证。想想看如果提交的变量是"../etc/"和"passwd"会发生什么。上面的代码就等同于：
+    <div class="example" id="example-344">
+     <p><strong>Example #2 ......文件系统攻击</strong></p>
+     <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">//&nbsp;删除硬盘中任何&nbsp;PHP&nbsp;有访问权限的文件。如果&nbsp;PHP&nbsp;有&nbsp;root&nbsp;权限：<br /></span><span style="color: #0000BB">$username&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$_POST</span><span style="color: #007700">[</span><span style="color: #DD0000">'user_submitted_name'</span><span style="color: #007700">];&nbsp;</span><span style="color: #FF8000">//&nbsp;"../etc"<br /></span><span style="color: #0000BB">$userfile&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$_POST</span><span style="color: #007700">[</span><span style="color: #DD0000">'user_submitted_filename'</span><span style="color: #007700">];&nbsp;</span><span style="color: #FF8000">//&nbsp;"passwd"<br /></span><span style="color: #0000BB">$homedir&nbsp;&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">"/home/</span><span style="color: #0000BB">$username</span><span style="color: #DD0000">"</span><span style="color: #007700">;&nbsp;</span><span style="color: #FF8000">//&nbsp;"/home/../etc"<br /><br /></span><span style="color: #0000BB">unlink</span><span style="color: #007700">(</span><span style="color: #DD0000">"</span><span style="color: #0000BB">$homedir</span><span style="color: #DD0000">/</span><span style="color: #0000BB">$userfile</span><span style="color: #DD0000">"</span><span style="color: #007700">);&nbsp;</span><span style="color: #FF8000">//&nbsp;"/home/../etc/passwd"<br /><br /></span><span style="color: #007700">echo&nbsp;</span><span style="color: #DD0000">"The&nbsp;file&nbsp;has&nbsp;been&nbsp;deleted!"</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+     </div>
+
+    </div>
+    有两个重要措施来防止此类问题。
+    <ul class="itemizedlist">
+     <li class="listitem">
+      <span class="simpara">
+       只给 PHP 的 web 用户很有限的权限。
+      </span>
+     </li>
+     <li class="listitem">
+      <span class="simpara">
+       检查所有提交上来的变量。
+      </span>
+     </li>
+    </ul>
+    下面是改进的脚本：
+    <div class="example" id="example-345">
+     <p><strong>Example #3 更安全的文件名检查</strong></p>
+     <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">//&nbsp;删除硬盘中&nbsp;PHP&nbsp;有权访问的文件<br /></span><span style="color: #0000BB">$username&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$_SERVER</span><span style="color: #007700">[</span><span style="color: #DD0000">'REMOTE_USER'</span><span style="color: #007700">];&nbsp;</span><span style="color: #FF8000">//&nbsp;使用认证机制<br /></span><span style="color: #0000BB">$userfile&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">basename</span><span style="color: #007700">(</span><span style="color: #0000BB">$_POST</span><span style="color: #007700">[</span><span style="color: #DD0000">'user_submitted_filename'</span><span style="color: #007700">]);<br /></span><span style="color: #0000BB">$homedir&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">"/home/</span><span style="color: #0000BB">$username</span><span style="color: #DD0000">"</span><span style="color: #007700">;<br /><br /></span><span style="color: #0000BB">$filepath&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">"</span><span style="color: #0000BB">$homedir</span><span style="color: #DD0000">/</span><span style="color: #0000BB">$userfile</span><span style="color: #DD0000">"</span><span style="color: #007700">;<br /><br /><br />if&nbsp;(</span><span style="color: #0000BB">file_exists</span><span style="color: #007700">(</span><span style="color: #0000BB">$filepath</span><span style="color: #007700">)&nbsp;&amp;&amp;&nbsp;</span><span style="color: #0000BB">unlink</span><span style="color: #007700">(</span><span style="color: #0000BB">$filepath</span><span style="color: #007700">))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$logstring&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">"Deleted&nbsp;</span><span style="color: #0000BB">$filepath</span><span style="color: #DD0000">\n"</span><span style="color: #007700">;<br />}&nbsp;else&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$logstring&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">"Failed&nbsp;to&nbsp;delete&nbsp;</span><span style="color: #0000BB">$filepath</span><span style="color: #DD0000">\n"</span><span style="color: #007700">;<br />}<br /></span><span style="color: #0000BB">$fp&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">fopen</span><span style="color: #007700">(</span><span style="color: #DD0000">"/home/logging/filedelete.log"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"a"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">fwrite&nbsp;</span><span style="color: #007700">(</span><span style="color: #0000BB">$fp</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$logstring</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">fclose</span><span style="color: #007700">(</span><span style="color: #0000BB">$fp</span><span style="color: #007700">);<br /><br />echo&nbsp;</span><span style="color: #0000BB">htmlentities</span><span style="color: #007700">(</span><span style="color: #0000BB">$logstring</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">ENT_QUOTES</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+     </div>
+
+    </div>
+    然而，这样做仍然是有缺陷的。如果认证系统允许用户建立自己的登录用户名，而用户选择用"../etc/"作为用户名，系统又一次沦陷了。所以，需要加强检查：
+    <div class="example" id="example-346">
+     <p><strong>Example #4 更安全的文件名检查</strong></p>
+     <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$username&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$_SERVER</span><span style="color: #007700">[</span><span style="color: #DD0000">'REMOTE_USER'</span><span style="color: #007700">];&nbsp;</span><span style="color: #FF8000">//&nbsp;使用认证机制<br /></span><span style="color: #0000BB">$userfile&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$_POST</span><span style="color: #007700">[</span><span style="color: #DD0000">'user_submitted_filename'</span><span style="color: #007700">];<br /></span><span style="color: #0000BB">$homedir&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">"/home/</span><span style="color: #0000BB">$username</span><span style="color: #DD0000">"</span><span style="color: #007700">;<br /><br /></span><span style="color: #0000BB">$filepath&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">"</span><span style="color: #0000BB">$homedir</span><span style="color: #DD0000">/</span><span style="color: #0000BB">$userfile</span><span style="color: #DD0000">"</span><span style="color: #007700">;<br />if&nbsp;(!</span><span style="color: #0000BB">ctype_alnum</span><span style="color: #007700">(</span><span style="color: #0000BB">$username</span><span style="color: #007700">)&nbsp;||&nbsp;!</span><span style="color: #0000BB">preg_match</span><span style="color: #007700">(</span><span style="color: #DD0000">'/^(?:[a-z0-9_-]|\.(?!\.))+$/iD'</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$userfile</span><span style="color: #007700">))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;die(</span><span style="color: #DD0000">"Bad&nbsp;username/filename"</span><span style="color: #007700">);<br />}<br /></span><span style="color: #FF8000">//后略......<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+     </div>
+
+    </div>
+   </p>
+   <p class="para">
+    根据操作系统的不同，存在着各种各样需要注意的文件，包括联系到系统的设备（/dev/
+    或者 COM1）、配置文件（/ect/ 文件和 .ini文件）、常用的存储区域（/home/ 或者 My
+    Documents）等等。由于此原因，建立一个策略禁止所有权限而只开放明确允许的通常更容易些。
+   </p>
+   
+  </div>
+<div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="89480""></a>
+  <div class="note">
+   <strong class="user">Latchezar Tzvetkoff</strong>
+   <a href="#89480" class="date">10-Mar-2009 03:06</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+A basic filename/directory/symlink checking may be done (and I personally do) via realpath() ...
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+
+<br />
+</span><span class="keyword">if (isset(</span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">'file'</span><span class="keyword">])) {
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$base </span><span class="keyword">= </span><span class="string">'/home/polizei/public_html/'</span><span class="keyword">;&nbsp; </span><span class="comment">// it seems this one is good to be realpath too.. meaning not a symlinked path..
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">if (</span><span class="default">strpos</span><span class="keyword">(</span><span class="default">$file </span><span class="keyword">= </span><span class="default">realpath</span><span class="keyword">(</span><span class="default">$base</span><span class="keyword">.</span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">'file'</span><span class="keyword">]), </span><span class="default">$base</span><span class="keyword">) === </span><span class="default">0 </span><span class="keyword">&amp;&amp; </span><span class="default">is_file</span><span class="keyword">(</span><span class="default">$file</span><span class="keyword">)) {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">unlink</span><span class="keyword">(</span><span class="default">$file</span><span class="keyword">);
+<br />
+&nbsp;&nbsp;&nbsp; } else {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; die(</span><span class="string">'blah!'</span><span class="keyword">);
+<br />
+&nbsp;&nbsp;&nbsp; }
+<br />
+}
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="58832""></a>
+  <div class="note">
+   <strong class="user">anonymous</strong>
+   <a href="#58832" class="date">17-Nov-2005 02:58</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+(A) Better not to create files or folders with user-supplied names. If you do not validate enough, you can have trouble. Instead create files and folders with randomly generated names like fg3754jk3h and store the username and this file or folder name in a table named, say, user_objects. This will ensure that whatever the user may type, the command going to the shell will contain values from a specific set only and no mischief can be done.<br />
+<br />
+(B) The same applies to commands executed based on an operation that the user chooses. Better not to allow any part of the user's input to go to the command that you will execute. Instead, keep a fixed set of commands and based on what the user has input, and run those only. <br />
+<br />
+For example,<br />
+(A) Keep a table named, say, user_objects with values like:<br />
+username|chosen_name&nbsp;&nbsp; |actual_name|file_or_dir<br />
+--------|--------------|-----------|-----------<br />
+jdoe&nbsp; &nbsp; |trekphotos&nbsp; &nbsp; |m5fg767h67 |D<br />
+jdoe&nbsp; &nbsp; |notes.txt&nbsp; &nbsp;&nbsp; |nm4b6jh756 |F<br />
+tim1997 |_imp_ folder&nbsp; |45jkh64j56 |D<br />
+<br />
+and always use the actual_name in the filesystem operations rather than the user supplied names.<br />
+<br />
+(B)<br />
+<span class="default">&lt;?php<br />
+$op </span><span class="keyword">= </span><span class="default">$_POST</span><span class="keyword">[</span><span class="string">'op'</span><span class="keyword">];</span><span class="comment">//after a lot of validations <br />
+</span><span class="default">$dir </span><span class="keyword">= </span><span class="default">$_POST</span><span class="keyword">[</span><span class="string">'dirname'</span><span class="keyword">];</span><span class="comment">//after a lot of validations or maybe you can use technique (A)<br />
+</span><span class="keyword">switch(</span><span class="default">$op</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; case </span><span class="string">"cd"</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">chdir</span><span class="keyword">(</span><span class="default">$dir</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+&nbsp;&nbsp;&nbsp; case </span><span class="string">"rd"</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">rmdir</span><span class="keyword">(</span><span class="default">$dir</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+&nbsp;&nbsp;&nbsp; .....<br />
+&nbsp;&nbsp;&nbsp; default:<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">mail</span><span class="keyword">(</span><span class="string">"webmaster@example.com"</span><span class="keyword">, </span><span class="string">"Mischief"</span><span class="keyword">, </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'REMOTE_ADDR'</span><span class="keyword">].</span><span class="string">" is probably attempting an attack."</span><span class="keyword">);<br />
+}</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="57642""></a>
+  <div class="note">
+   <strong class="user">fmrose at ncsu dot edu</strong>
+   <a href="#57642" class="date">09-Oct-2005 04:31</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+All of the fixes here assume that it is necessary to allow the user to enter system sensitive information to begin with. The proper way to handle this would be to provide something like a numbered list of files to perform an unlink action on and then the chooses the matching number. There is no way for the user to specify a clever attack circumventing whatever pattern matching filename exclusion syntax that you may have.<br />
+<br />
+Anytime you have a security issue, the proper behaviour is to deny all then allow specific instances, not allow all and restrict. For the simple reason that you may not think of every possible restriction.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="54088""></a>
+  <div class="note">
+   <strong class="user">1 at 234 dot cx</strong>
+   <a href="#54088" class="date">23-Jun-2005 05:24</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I don't think the filename validation solution from Jones at partykel is complete.&nbsp; It certainly helps, but it doesn't address the case where the user is able to create a symlink pointing from his home directory to the root.&nbsp; He might then ask to unlink "foo/etc/passwd" which would be in his home directory, except that foo is a symlink pointing to /.<br />
+<br />
+Personally I wouldn't feel confident that any solution to this problem would keep my system secure.&nbsp; Running PHP as root (or some equivalent which can unlink files in all users' home directories) is asking for trouble.<br />
+<br />
+If you have a multi-user system and you are afraid that users may install scripts like this, try security-enhanced Linux.&nbsp; It won't give total protection, but it at least makes sure that an insecure user script can only affect files which the web server is meant to have access to.&nbsp; Whatever script someone installs, outsiders are not going to be able to read your password file---or remove it.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="17978""></a>
+  <div class="note">
+   <strong class="user">cronos586(AT)caramail(DOT)com</strong>
+   <a href="#17978" class="date">05-Jan-2002 03:48</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+when using Apache you might consider a apache_lookup_uri on the path, to discover the real path, regardless of any directory trickery.<br />
+then, look at the prefix, and compare with a list of allowed prefixes.<br />
+for example, my source.php for my website includes:<br />
+if(isset($doc)) {<br />
+&nbsp;&nbsp;&nbsp; $apacheres = apache_lookup_uri($doc);<br />
+&nbsp;&nbsp;&nbsp; $really = realpath($apacheres-&gt;filename);<br />
+&nbsp;&nbsp;&nbsp; if(substr($really, 0, strlen($DOCUMENT_ROOT)) == $DOCUMENT_ROOT) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(is_file($really)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; show_source($really);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+hope this helps<br />
+regards,<br />
+KAT44</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="14915""></a>
+  <div class="note">
+   <strong class="user">devik at cdi dot cz</strong>
+   <a href="#14915" class="date">21-Aug-2001 07:52</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Well, the fact that all users run under the same UID is a big problem. Userspace&nbsp; security hacks (ala safe_mode) should not be substitution for proper kernel level security checks/accounting.
+<br />
+Good news: Apache 2 allows you to assign UIDs for different vhosts.
+<br />
+devik</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="9563""></a>
+  <div class="note">
+   <strong class="user">eLuddite at not dot a dot real dot addressnsky dot ru</strong>
+   <a href="#9563" class="date">11-Nov-2000 09:44</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I think the lesson is clear:
+<br />
+
+<br />
+(1) Forbit path separators in usernames.
+<br />
+(2) map username to a physical home directory - /home/username is fine
+<br />
+(3) read the home directory
+<br />
+(4) present only results of (3) as an option for deletion.
+<br />
+
+<br />
+I have discovered a marvelous method of doing the above in php but this submission box is too small to contain it.
+<br />
+
+<br />
+:-)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

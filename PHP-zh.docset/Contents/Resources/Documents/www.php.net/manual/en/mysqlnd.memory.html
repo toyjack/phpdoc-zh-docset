@@ -1,0 +1,167 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Memory management</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="mysqlnd.notes.html">? Notes</a></li>
+      <li style="float: right;"><a href="mysqlnd.plugin.html">MySQL Native Driver Plugin API ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="book.mysqlnd.html">Mysqlnd</a></li>
+    <li>Memory management</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="mysqlnd.memory" class="chapter">
+ <h1>Memory management</h1>
+
+ <p class="para">
+  <em class="emphasis">Introduction</em>
+ </p>
+ <p class="para">
+  The MySQL Native Driver manages memory different than the MySQL Client Library.
+  The libraries differ in the way memory is allocated and released,
+  how memory is allocated in chunks while reading results from MySQL, which debug
+  and development options exist, and how results read from MySQL are linked to
+  PHP user variables.
+ </p>
+ <p class="para">
+  The following notes are intended as an introduction and summary to users
+  interested at understanding the MySQL Native Driver at the C code level.
+ </p>
+ <p class="para">
+  <em class="emphasis">Memory management functions used</em>
+ </p>
+ <p class="para">
+  All memory allocation and deallocation is done using the PHP memory management
+  functions. Therefore, the memory consumption of mysqlnd can be tracked
+  using PHP API calls, such as <span class="function"><a href="function.memory-get-usage.html" class="function">memory_get_usage()</a></span>. Because memory is
+  allocated and released using the PHP memory management, the changes may not
+  immediately become visible at the operating system level. The PHP
+  memory management acts as a proxy which may delay releasing memory towards
+  the system. Due to this, comparing the memory usage of the MySQL Native Driver
+  and the MySQL Client Library is difficult. The MySQL Client Library
+  is using the operating system memory management calls directly, hence the effects
+  can be observed immediately at the operating system level.
+ </p>
+ <p class="para">
+  Any memory limit enforced by PHP also affects the MySQL Native Driver. This
+  may cause out of memory errors when fetching large result sets that exceed
+  the size of the remaining memory made available by PHP. Because the MySQL
+  Client Library is not using PHP memory management functions, it does not comply
+  to any PHP memory limit set. If using the MySQL Client Library, depending on the
+  deployment model, the memory footprint of the PHP process may grow
+  beyond the PHP memory limit. But also PHP scripts may be able to process larger
+  result sets as parts of the memory allocated to hold the result sets are beyond
+  the control of the PHP engine.
+ </p>
+ <p class="para">
+   PHP memory management functions are invoked by the MySQL Native Driver through
+   a lightweight wrapper. Among others, the wrapper makes debugging easier.
+ </p>
+ <p class="para">
+   <em class="emphasis">Handling of result sets</em>
+ </p>
+ <p class="para">
+  The various MySQL Server and the various client APIs differentiate
+  between <a href="mysqli.quickstart.statements.html" class="link">buffered and unbuffered</a>
+  result sets. Unbuffered result sets are transferred row-by-row from MySQL to the client
+  as the client iterates over the results. Buffered results are fetched
+  in their entirety by the client library before passing them on to the client.
+ </p>
+ <p class="para">
+  The MySQL Native Driver is using PHP Streams for the network communication
+  with the MySQL Server. Results sent by MySQL are fetched from the PHP Streams
+  network buffers into the result buffer of mysqlnd. The result buffer is
+  made of zvals. In a second step the results are made available to the PHP script.
+  This final transfer from the result buffer into PHP variables impacts the memory
+  consumption and is mostly noticible when using buffered result sets.
+ </p>
+ <p class="para">
+  By default the MySQL Native Driver tries to avoid holding
+  buffered results twice in memory. Results are kept only once in the internal
+  result buffers and their zvals. When results are fetched into PHP variables
+  by the PHP script, the variables will reference the internal result buffers.
+  Database query results are not copied and kept in memory only once.
+  Should the user modify the contents of a variable holding the database results a
+  copy-on-write must be performed to avoid changing the referenced internal result
+  buffer. The contents of the buffer must not be modified because the user
+  may decide to read the result set a second time. The copy-on-write
+  mechanism is implemented using an additional reference
+  management list and the use of standard zval reference counters.
+  Copy-on-write must also be done if the user reads a result set into PHP variables and
+  frees a result set before the variables are unset.
+ </p>
+ <p class="para">
+  Generally speaking, this pattern works well for scripts that read a
+  result set once and do not modify variables holding results. Its major drawback
+  is the memory overhead caused by the additional reference management which
+  comes primarily from the fact that user variables holding results
+  cannot be entirely released until the mysqlnd reference management
+  stops referencing them. The MySQL Native driver removes the reference to the
+  user variables when the result set is freed or a copy-on-write is performed.
+  An observer will see the total memory consumption grow until the result set
+  is released. Use the <a href="mysqlnd.stats.html" class="link">statistics</a> to check whether
+  a script does release result sets explicitly or the driver is does implicit
+  releases and thus memory is used for a time longer than necessary. Statistics
+  also help to see how many copy-on-write operations happened.
+ </p>
+ <p class="para">
+  A PHP script reading many small rows of a buffered result set using a code snippet
+  equal or equivalent to <em>while ($row = $res-&gt;fetch_assoc()) { ... }</em>
+  may optimize memory consumption by requesting copies instead of references.
+  Albeit requesting copies means keeping results twice in memory, it allows
+  PHP to free the copy contained in <em>$row</em> as the result set
+  is being iterated and prior to releasing the result set itself. On a loaded server
+  optimizing peak memory usage may help improving the overall system performance
+  although for an individual script the copy approach may be slower due to
+  additional allocations and memory copy operations.
+ </p>
+ <p class="para">
+  The copy mode can be enforced by setting
+  <a href="mysqlnd.config.html#ini.mysqlnd.fetch_data_copy" class="link">mysqlnd.fetch_data_copy</a>=1.
+ </p>
+ <p class="para">
+   <em class="emphasis">Monitoring and debugging</em>
+ </p>
+ <p class="para">
+  There are multiple ways of tracking the memory usage of the MySQL Native Driver.
+  If the goal is to get a quick high level overview or to verify the memory efficiency
+  of PHP scripts, then check the <a href="mysqlnd.stats.html" class="link">statistics</a>
+  collected by the library. The statistics allow you, for example, to catch
+  SQL statements which generate more results than are processed by a PHP script.
+ </p>
+ <p class="para">
+  The <a href="mysqlnd.config.html#ini.mysqlnd.debug" class="link">debug</a> trace log can be configured to
+  record memory management calls. This helps to see when memory is allocated
+  or free&#039;d. However, the size of the requested memory chunks may not be listed.
+ </p>
+ <p class="para">
+  Some, recent versions of the MySQL Native Driver feature the emulation of
+  random out of memory situations. This feature is meant to be used by the
+  C developers of the library or mysqlnd <a href="mysqlnd.plugin.html" class="link">plugin</a>
+  authors only. Please, search the source code for corresponding PHP configuration
+  settings and further details. The feature is considered private and may be
+  modified at any time without prior notice.
+ </p>
+
+</div>
+<div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+ <div class="note">There are no user contributed notes for this page.</div>
+</div>
+</div></div></body></html>

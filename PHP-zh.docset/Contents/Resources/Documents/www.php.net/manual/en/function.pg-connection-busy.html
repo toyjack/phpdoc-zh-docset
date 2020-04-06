@@ -1,0 +1,145 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>获知连接是否为忙</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="function.pg-connect.html">? pg_connect</a></li>
+      <li style="float: right;"><a href="function.pg-connection-reset.html">pg_connection_reset ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="ref.pgsql.html">PostgreSQL 函数</a></li>
+    <li>获知连接是否为忙</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="function.pg-connection-busy" class="refentry">
+   <div class="refnamediv">
+    <h1 class="refname">pg_connection_busy</h1>
+    <p class="verinfo">(PHP 4 &gt;= 4.2.0, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">pg_connection_busy</span> &mdash; <span class="dc-title">
+     获知连接是否为忙
+    </span></p>
+
+   </div>
+   <div class="refsect1 unknown-unknown-returnvalueu" id="refsect1-function.pg-connection-busy-unknown-unknown-returnvalueu">
+    <h3 class="title">说明</h3>
+    <div class="methodsynopsis dc-description">
+     <span class="methodname"><strong>pg_connection_busy</strong></span>
+      ( <span class="methodparam"><span class="type">resource</span> <code class="parameter">$connection</code></span>
+     ) : <span class="type">bool</span></div>
+
+    <p class="para rdfs-comment">
+     <span class="function"><strong>pg_connection_busy()</strong></span> 在此连接状态为忙的时候返回 <strong><code>TRUE</code></strong>。如果连接状态为忙，说明前一个查询仍然在执行。如果调用 <span class="function"><a href="function.pg-get-result.html" class="function">pg_get_result()</a></span> 函数的话，则会被锁死。
+    </p>
+    <p class="para">
+     <div class="example" id="example-2507">
+      <p><strong>Example #1 <span class="function"><strong>pg_connection_busy()</strong></span> 例子</strong></p>
+      <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />&nbsp;&nbsp;&nbsp;&nbsp;$dbconn&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">pg_connect</span><span style="color: #007700">(</span><span style="color: #DD0000">"dbname=publisher"</span><span style="color: #007700">)&nbsp;or&nbsp;die(</span><span style="color: #DD0000">"Could&nbsp;not&nbsp;connect"</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$bs&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">pg_connection_busy</span><span style="color: #007700">(</span><span style="color: #0000BB">$dbconn</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(</span><span style="color: #0000BB">$bs</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'connection&nbsp;is&nbsp;busy'</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;&nbsp;else&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'connection&nbsp;is&nbsp;not&nbsp;busy'</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+      </div>
+
+     </div>
+    </p>
+    <p class="para">
+     参见 <span class="function"><a href="function.pg-connection-status.html" class="function">pg_connection_status()</a></span> 和 <span class="function"><a href="function.pg-get-result.html" class="function">pg_get_result()</a></span>。
+    </p>
+   </div>
+
+  </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="123961""></a>
+  <div class="note">
+   <strong class="user">VLroyrenn</strong>
+   <a href="#123961" class="date">19-Jun-2019 01:35</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+There doesn't seem to be any documented way of using this function here, and I'm sore most people trying this are going to default to using a busy loop if there is nothing else to do while waiting (in which case pg_get_result would be better, since it just blocks until a result is ready) or a sleep loop if trying to cancel the query after a certain time.<br />
+<br />
+The C documentation for libPq reccomends using PQisBusy (the C equivalent of pg_connection_busy) by waiting on a socket instead, which lets you timeout if the state doesn't change after a certain period but immediately react if it changes. If you want to cancel after a timeout, you would have something like this :<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">SomeKindOfTimeoutException </span><span class="keyword">extends </span><span class="default">Exception </span><span class="keyword">{ }<br />
+<br />
+class </span><span class="default">SomeKindOfSQLErrorException </span><span class="keyword">extends </span><span class="default">Exception </span><span class="keyword">{ }<br />
+<br />
+function </span><span class="default">query_with_timeout</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">, </span><span class="default">$query</span><span class="keyword">, </span><span class="default">$timeout_seconds</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">assert</span><span class="keyword">(</span><span class="default">pg_get_result</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">) === </span><span class="default">false</span><span class="keyword">); </span><span class="comment">// Ensure that nothing is running<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$socket </span><span class="keyword">= [</span><span class="default">pg_socket</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">)];<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$null </span><span class="keyword">= [];<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$dispatch_ok </span><span class="keyword">= </span><span class="default">pg_send_query</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">, </span><span class="default">$query</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$still_running </span><span class="keyword">= </span><span class="default">pg_connection_busy</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp;&nbsp; while(</span><span class="default">$still_running</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// https://www.postgresql.org/docs/current/libpq-async.html<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; // "A typical application using these functions will have a main loop that uses select() or poll() to wait for all the conditions that it must respond to."<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; // "One of the conditions will be input available from the server, which in terms of select() means readable data on the file descriptor identified by PQsocket."<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; // PQisBusy is mapped to pg_connection_busy<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">stream_select</span><span class="keyword">(</span><span class="default">$socket</span><span class="keyword">, </span><span class="default">$null</span><span class="keyword">, </span><span class="default">$null</span><span class="keyword">, </span><span class="default">$timeout_seconds</span><span class="keyword">); </span><span class="comment">// Will wait on that socket until that happens or the timeout is reached<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$still_running </span><span class="keyword">= </span><span class="default">pg_connection_busy</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">); </span><span class="comment">// False on timeout, true if complete<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; // You could keep polling like that, this just breaks and throws immediately on first loop<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if (</span><span class="default">$still_running</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$cancel_ok </span><span class="keyword">= </span><span class="default">pg_cancel_query</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; throw new </span><span class="default">SomeKindOfTimeoutException</span><span class="keyword">(</span><span class="string">"TIMEOUT"</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$res </span><span class="keyword">= </span><span class="default">pg_get_result</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp;&nbsp; try {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$error_msg </span><span class="keyword">= </span><span class="default">pg_result_error</span><span class="keyword">(</span><span class="default">$res</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$error_msg</span><span class="keyword">) throw new </span><span class="default">SomeKindOfSQLErrorException</span><span class="keyword">(</span><span class="default">$error_msg</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">pg_fetch_all</span><span class="keyword">(</span><span class="default">$res</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; } finally {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">pg_free_result</span><span class="keyword">(</span><span class="default">$res</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">$conn_string </span><span class="keyword">= </span><span class="string">"host=localhost port=5433 dbname=postgres"</span><span class="keyword">;<br />
+</span><span class="default">$db </span><span class="keyword">= </span><span class="default">pg_connect</span><span class="keyword">(</span><span class="default">$conn_string</span><span class="keyword">);<br />
+<br />
+</span><span class="default">query_with_timeout</span><span class="keyword">(</span><span class="default">$db</span><span class="keyword">, </span><span class="string">"SELECT pg_sleep(10)"</span><span class="keyword">, </span><span class="default">3</span><span class="keyword">); </span><span class="comment">// Will throw<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="94499""></a>
+  <div class="note">
+   <strong class="user">levi at alliancesoftware dot com dot au</strong>
+   <a href="#94499" class="date">08-Nov-2009 05:00</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+pg_connection_busy() returning true does not necessarily mean that there are results waiting for pg_get_result(); it also stays true for some time after a query that causes any sort of postgres error. (See <a href="http://bugs.php.net/bug.php?id=36469" rel="nofollow" target="_blank">http://bugs.php.net/bug.php?id=36469</a>)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

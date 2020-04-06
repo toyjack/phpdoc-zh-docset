@@ -1,0 +1,554 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Convert an 8bit string to a quoted-printable string</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="ref.imap.html">? IMAP 函数</a></li>
+      <li style="float: right;"><a href="function.imap-alerts.html">imap_alerts ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="ref.imap.html">IMAP 函数</a></li>
+    <li>Convert an 8bit string to a quoted-printable string</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="function.imap-8bit" class="refentry">
+ <div class="refnamediv">
+  <h1 class="refname">imap_8bit</h1>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">imap_8bit</span> &mdash; <span class="dc-title">Convert an 8bit string to a quoted-printable string</span></p>
+
+ </div>
+ <div class="refsect1 description" id="refsect1-function.imap-8bit-description">
+  <h3 class="title">说明</h3>
+  <div class="methodsynopsis dc-description">
+   <span class="methodname"><strong>imap_8bit</strong></span>
+    ( <span class="methodparam"><span class="type">string</span> <code class="parameter">$string</code></span>
+   ) : <span class="type">string</span></div>
+
+  <p class="para rdfs-comment">
+   Convert an 8bit string to a quoted-printable string (according to
+   <a href="http://www.faqs.org/rfcs/rfc2045" class="link external" title="Link : http://www.faqs.org/rfcs/rfc2045">&raquo;&nbsp;RFC2045</a>, section 6.7).
+  </p>
+ </div>
+
+ <div class="refsect1 parameters" id="refsect1-function.imap-8bit-parameters">
+  <h3 class="title">参数</h3>
+  <p class="para">
+   <dl>
+
+    
+     <dt>
+<code class="parameter">string</code></dt>
+
+     <dd>
+
+      <p class="para">
+       The 8bit string to convert
+      </p>
+     </dd>
+
+    
+   </dl>
+
+  </p>
+ </div>
+
+ <div class="refsect1 returnvalues" id="refsect1-function.imap-8bit-returnvalues">
+  <h3 class="title">返回值</h3>
+  <p class="para">
+   Returns a quoted-printable string.
+  </p>
+ </div>
+
+ <div class="refsect1 seealso" id="refsect1-function.imap-8bit-seealso">
+  <h3 class="title">参见</h3>
+  <p class="para">
+   <ul class="simplelist">
+    <li class="member"><span class="function"><a href="function.imap-qprint.html" class="function" rel="rdfs-seeAlso">imap_qprint()</a> - Convert a quoted-printable string to an 8 bit string</span></li>
+   </ul>
+  </p>
+ </div>
+
+</div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="117891""></a>
+  <div class="note">
+   <strong class="user">dave at jufer dot info</strong>
+   <a href="#117891" class="date">27-Aug-2015 09:18</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Encode a mail-subject-string to a encoded-word according to RFC2047 with awareness of special characters and total-linelength of 75.<br />
+Example: "Subject Test?" -&gt; "=?ISO-8859-1?Q?Subject_Test=E4?="<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">getSubjectEncoded</span><span class="keyword">(</span><span class="default">$_str</span><span class="keyword">,</span><span class="default">$_charset</span><span class="keyword">=</span><span class="string">'ISO-8859-1'</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// 27.08.2015 david jufer<br />
+&nbsp;&nbsp;&nbsp; // Convert an 8bit string to a encoded-word string (according to RFC2047) www.ietf.org/rfc/rfc2047.txt<br />
+&nbsp;&nbsp;&nbsp; // encoded-word = "=?" charset "?" encoding "?" encoded-text "?="<br />
+&nbsp;&nbsp;&nbsp; // An 'encoded-word' may not be more than 75 characters long, including 'charset', 'encoding', 'encoded-text', and delimiters.<br />
+&nbsp;&nbsp;&nbsp; // The "Q" encoding is similar to the "Quoted-Printable" content-transfer-encoding defined in RFC 2045<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$ret </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$str </span><span class="keyword">= </span><span class="default">imap_8bit</span><span class="keyword">(</span><span class="default">$_str</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$len </span><span class="keyword">= </span><span class="default">7</span><span class="keyword">+</span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$_charset</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// remove linebreaks from imap_8bit, string chunks are too long<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$str </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">"=\r\n"</span><span class="keyword">,</span><span class="string">''</span><span class="keyword">,</span><span class="default">$str</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// insert linebreaks at right position, be aware of special chars ("?" "=E4") do not split them<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$s </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$l </span><span class="keyword">= </span><span class="default">75</span><span class="keyword">-</span><span class="default">$len</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; while(</span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$str</span><span class="keyword">)&gt;</span><span class="default">$s</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$ts </span><span class="keyword">= </span><span class="default">$s</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">substr</span><span class="keyword">(</span><span class="default">$str</span><span class="keyword">,(</span><span class="default">$s</span><span class="keyword">+</span><span class="default">$l</span><span class="keyword">)-</span><span class="default">2</span><span class="keyword">,</span><span class="default">1</span><span class="keyword">)==</span><span class="string">'='</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$s </span><span class="keyword">+= </span><span class="default">$l</span><span class="keyword">-</span><span class="default">2</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }else if(</span><span class="default">substr</span><span class="keyword">(</span><span class="default">$str</span><span class="keyword">,(</span><span class="default">$s</span><span class="keyword">+</span><span class="default">$l</span><span class="keyword">)-</span><span class="default">1</span><span class="keyword">,</span><span class="default">1</span><span class="keyword">)==</span><span class="string">'='</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$s </span><span class="keyword">+= </span><span class="default">$l</span><span class="keyword">-</span><span class="default">1</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }else{<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$s </span><span class="keyword">+= </span><span class="default">$l</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$ret </span><span class="keyword">.= </span><span class="string">"\r\n"</span><span class="keyword">.</span><span class="default">substr</span><span class="keyword">(</span><span class="default">$str</span><span class="keyword">,</span><span class="default">$ts</span><span class="keyword">,</span><span class="default">$s</span><span class="keyword">-</span><span class="default">$ts</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// remove first linebreak, replace SPACES with "_"<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$ret </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">' '</span><span class="keyword">,</span><span class="string">'_'</span><span class="keyword">,</span><span class="default">trim</span><span class="keyword">(</span><span class="default">$ret</span><span class="keyword">));<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// put together encoded-word<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$ret </span><span class="keyword">= </span><span class="string">'=?'</span><span class="keyword">.</span><span class="default">$_charset</span><span class="keyword">.</span><span class="string">'?Q?'</span><span class="keyword">.</span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">"\r\n"</span><span class="keyword">,</span><span class="string">"?=\r\n =?"</span><span class="keyword">.</span><span class="default">$_charset</span><span class="keyword">.</span><span class="string">"?Q?"</span><span class="keyword">,</span><span class="default">$ret</span><span class="keyword">).</span><span class="string">"?="</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// rückgabe<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">return </span><span class="default">$ret</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="104380""></a>
+  <div class="note">
+   <strong class="user">Michael Konecny</strong>
+   <a href="#104380" class="date">12-Jun-2011 09:57</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+There is a bug in MS Exchange server, that improperly handles CRLFs. Seems like it converts both CR and LF into LF, so, instead of getting just a new line, you get TWO new lines.<br />
+The header information is then improperly parsed by the e-mail client, and is usually viewed in the message body.<br />
+<br />
+This can make custom-created headers unusable.<br />
+<br />
+The only way I found to get around this is to go against RFC rules for header formatting, and use only \n for new lines.<br />
+<br />
+Unfortunately I haven't been able to learn the version of Exchange server where this happened, but I have the feeling that it's not just the one I was unlucky to encounter.<br />
+<br />
+Hope this helps someone.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="93323""></a>
+  <div class="note">
+   <strong class="user">esh dot software at energiash dot com</strong>
+   <a href="#93323" class="date">02-Sep-2009 06:45</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+When producing quoted printable emails this is the right way<br />
+<br />
+$subject="Subject: =?iso-8859-1?Q?". imap_8bit("áéíóú"). "?="; <br />
+<br />
+and the following would do the wrong thing, because qprint over "=ED" would produce 8bit data ( í ):<br />
+<br />
+$subject="Subject: =?iso-8859-1?Q?". imap_qprint("=ED"). "?=";</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="83985""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#83985" class="date">22-Jun-2008 05:25</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+umu's code seems to work great. BUT if you are on a Unix system you should replace all chr(13).chr(10) with just chr(10)<br />
+<br />
+Works for me anyway on php5.mail() -&gt; qmail@suse10.1 -&gt; outlook express</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="75081""></a>
+  <div class="note">
+   <strong class="user">roman at REMOVETHIS dot teamnet dot com dot pl</strong>
+   <a href="#75081" class="date">11-May-2007 04:26</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Code based on k dot kozlowski at enter dot pl but for UTF-8<br />
+(the only problem i encounter is SUBJECT_ENCODED_TWICE on SPAM test with very long subject, but the same produce others MUA's)<br />
+&lt;?<br />
+function header_quoted_printable_encode($string, $encoding='UTF-8') {<br />
+&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; $string = str_replace(" ", "_", trim($string)) ;<br />
+&nbsp;&nbsp;&nbsp; // We need to delete "=\r\n" produced by imap_8bit() and replace '?'<br />
+&nbsp;&nbsp;&nbsp; $string = str_replace("?", "=3F", str_replace("=\r\n", "", imap_8bit($string))) ;<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; // Now we split by \r\n - i'm not sure about how many chars (header name counts or not?)<br />
+&nbsp;&nbsp;&nbsp; $string = chunk_split($string, 73);<br />
+&nbsp;&nbsp;&nbsp; // We also have to remove last unneeded \r\n :<br />
+&nbsp;&nbsp;&nbsp; $string = substr($string, 0, strlen($string)-2);<br />
+&nbsp;&nbsp;&nbsp; // replace newlines with encoding text "=?UTF ..."<br />
+&nbsp;&nbsp;&nbsp; $string = str_replace("\r\n", "?=".HEAD_CRLF." =?".$encoding."?Q?", $string) ;<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; return '=?'.$encoding.'?Q?'.$string.'?=';<br />
+}<br />
+?&gt;</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="61216""></a>
+  <div class="note">
+   <strong class="user">umu</strong>
+   <a href="#61216" class="date">28-Jan-2006 05:58</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+...deed.ztinmehc-ut.zrh@umuumu@hrz.tu-chemnitz.deed...<br />
+<br />
+I use the following function instead of imap_8bit <br />
+when using PHP without the IMAP module, <br />
+which is based on code found in <br />
+<a href="http://www.php.net/quoted_printable_decode," rel="nofollow" target="_blank">http://www.php.net/quoted_printable_decode,</a><br />
+and giving (supposedly) exactly the same results as imap_8bit,<br />
+(tested on thousands of random strings containing lots<br />
+of spaces, tabs, crlf, lfcr, lf, cr and so on,<br />
+no counterexample found SO FAR:)<br />
+<br />
+AND you can force a trailing space to be encoded,<br />
+as opposed to what imap_8bit does,<br />
+which I consider is a violation of RFC2045,<br />
+(see <a href="http://bugs.php.net/bug.php?id=35290" rel="nofollow" target="_blank">http://bugs.php.net/bug.php?id=35290</a>) <br />
+by commenting that one central line.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">quoted_printable_encode</span><span class="keyword">(</span><span class="default">$sText</span><span class="keyword">,</span><span class="default">$bEmulate_imap_8bit</span><span class="keyword">=</span><span class="default">true</span><span class="keyword">) {<br />
+&nbsp; </span><span class="comment">// split text into lines<br />
+&nbsp; </span><span class="default">$aLines</span><span class="keyword">=</span><span class="default">explode</span><span class="keyword">(</span><span class="default">chr</span><span class="keyword">(</span><span class="default">13</span><span class="keyword">).</span><span class="default">chr</span><span class="keyword">(</span><span class="default">10</span><span class="keyword">),</span><span class="default">$sText</span><span class="keyword">);<br />
+<br />
+&nbsp; for (</span><span class="default">$i</span><span class="keyword">=</span><span class="default">0</span><span class="keyword">;</span><span class="default">$i</span><span class="keyword">&lt;</span><span class="default">count</span><span class="keyword">(</span><span class="default">$aLines</span><span class="keyword">);</span><span class="default">$i</span><span class="keyword">++) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$sLine </span><span class="keyword">=&amp; </span><span class="default">$aLines</span><span class="keyword">[</span><span class="default">$i</span><span class="keyword">];<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$sLine</span><span class="keyword">)===</span><span class="default">0</span><span class="keyword">) continue; </span><span class="comment">// do nothing, if empty<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$sRegExp </span><span class="keyword">= </span><span class="string">'/[^\x09\x20\x21-\x3C\x3E-\x7E]/e'</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// imap_8bit encodes x09 everywhere, not only at lineends,<br />
+&nbsp;&nbsp;&nbsp; // for EBCDIC safeness encode !"#$@[\]^`{|}~,<br />
+&nbsp;&nbsp;&nbsp; // for complete safeness encode every character :)<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">if (</span><span class="default">$bEmulate_imap_8bit</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$sRegExp </span><span class="keyword">= </span><span class="string">'/[^\x20\x21-\x3C\x3E-\x7E]/e'</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$sReplmt </span><span class="keyword">= </span><span class="string">'sprintf( "=%02X", ord ( "$0" ) ) ;'</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$sLine </span><span class="keyword">= </span><span class="default">preg_replace</span><span class="keyword">( </span><span class="default">$sRegExp</span><span class="keyword">, </span><span class="default">$sReplmt</span><span class="keyword">, </span><span class="default">$sLine </span><span class="keyword">);&nbsp; <br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// encode x09,x20 at lineends<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">{<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$iLength </span><span class="keyword">= </span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$sLine</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$iLastChar </span><span class="keyword">= </span><span class="default">ord</span><span class="keyword">(</span><span class="default">$sLine</span><span class="keyword">{</span><span class="default">$iLength</span><span class="keyword">-</span><span class="default">1</span><span class="keyword">});<br />
+<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="comment">//&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; !!!!!!!!&nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp;&nbsp; // imap_8_bit does not encode x20 at the very end of a text,<br />
+&nbsp;&nbsp; &nbsp;&nbsp; // here is, where I don't agree with imap_8_bit, <br />
+&nbsp;&nbsp; &nbsp;&nbsp; // please correct me, if I'm wrong, <br />
+&nbsp;&nbsp; &nbsp;&nbsp; // or comment next line for RFC2045 conformance, if you like<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="keyword">if (!(</span><span class="default">$bEmulate_imap_8bit </span><span class="keyword">&amp;&amp; (</span><span class="default">$i</span><span class="keyword">==</span><span class="default">count</span><span class="keyword">(</span><span class="default">$aLines</span><span class="keyword">)-</span><span class="default">1</span><span class="keyword">)))<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp;&nbsp; if ((</span><span class="default">$iLastChar</span><span class="keyword">==</span><span class="default">0x09</span><span class="keyword">)||(</span><span class="default">$iLastChar</span><span class="keyword">==</span><span class="default">0x20</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$sLine</span><span class="keyword">{</span><span class="default">$iLength</span><span class="keyword">-</span><span class="default">1</span><span class="keyword">}=</span><span class="string">'='</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$sLine </span><span class="keyword">.= (</span><span class="default">$iLastChar</span><span class="keyword">==</span><span class="default">0x09</span><span class="keyword">)?</span><span class="string">'09'</span><span class="keyword">:</span><span class="string">'20'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }&nbsp; &nbsp; </span><span class="comment">// imap_8bit encodes x20 before chr(13), too<br />
+&nbsp;&nbsp;&nbsp; // although IMHO not requested by RFC2045, why not do it safer :)<br />
+&nbsp;&nbsp;&nbsp; // and why not encode any x20 around chr(10) or chr(13)<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">if (</span><span class="default">$bEmulate_imap_8bit</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$sLine</span><span class="keyword">=</span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">' =0D'</span><span class="keyword">,</span><span class="string">'=20=0D'</span><span class="keyword">,</span><span class="default">$sLine</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="comment">//$sLine=str_replace(' =0A','=20=0A',$sLine);<br />
+&nbsp;&nbsp; &nbsp;&nbsp; //$sLine=str_replace('=0D ','=0D=20',$sLine);<br />
+&nbsp;&nbsp; &nbsp;&nbsp; //$sLine=str_replace('=0A ','=0A=20',$sLine);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">}<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// finally split into softlines no longer than 76 chars,<br />
+&nbsp;&nbsp;&nbsp; // for even more safeness one could encode x09,x20 <br />
+&nbsp;&nbsp;&nbsp; // at the very first character of the line <br />
+&nbsp;&nbsp;&nbsp; // and after soft linebreaks, as well,<br />
+&nbsp;&nbsp;&nbsp; // but this wouldn't be caught by such an easy RegExp&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">preg_match_all</span><span class="keyword">( </span><span class="string">'/.{1,73}([^=]{0,2})?/'</span><span class="keyword">, </span><span class="default">$sLine</span><span class="keyword">, </span><span class="default">$aMatch </span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$sLine </span><span class="keyword">= </span><span class="default">implode</span><span class="keyword">( </span><span class="string">'=' </span><span class="keyword">. </span><span class="default">chr</span><span class="keyword">(</span><span class="default">13</span><span class="keyword">).</span><span class="default">chr</span><span class="keyword">(</span><span class="default">10</span><span class="keyword">), </span><span class="default">$aMatch</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">] ); </span><span class="comment">// add soft crlf's<br />
+&nbsp; </span><span class="keyword">}<br />
+<br />
+&nbsp; </span><span class="comment">// join lines into text<br />
+&nbsp; </span><span class="keyword">return </span><span class="default">implode</span><span class="keyword">(</span><span class="default">chr</span><span class="keyword">(</span><span class="default">13</span><span class="keyword">).</span><span class="default">chr</span><span class="keyword">(</span><span class="default">10</span><span class="keyword">),</span><span class="default">$aLines</span><span class="keyword">);<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="60002""></a>
+  <div class="note">
+   <strong class="user">hans at lintoo dot dk</strong>
+   <a href="#60002" class="date">22-Dec-2005 06:05</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The code below this note gives a lot of trouple with SpamAssasin, to fix it you will need to encode your subject with something like this:<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">/**<br />
+&nbsp;* Function to encode a header if necessary<br />
+&nbsp;* according to RFC2047<br />
+&nbsp;*/<br />
+</span><span class="keyword">private function </span><span class="default">encodeHeader</span><span class="keyword">(</span><span class="default">$input</span><span class="keyword">, </span><span class="default">$charset </span><span class="keyword">= </span><span class="string">'ISO-8859-1'</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">preg_match_all</span><span class="keyword">(</span><span class="string">'/(\s?\w*[\x80-\xFF]+\w*\s?)/'</span><span class="keyword">, </span><span class="default">$input</span><span class="keyword">, </span><span class="default">$matches</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; foreach (</span><span class="default">$matches</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">] as </span><span class="default">$value</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$replacement </span><span class="keyword">= </span><span class="default">preg_replace</span><span class="keyword">(</span><span class="string">'/([\x20\x80-\xFF])/e'</span><span class="keyword">, </span><span class="string">'"=" . strtoupper(dechex(ord("\1")))'</span><span class="keyword">, </span><span class="default">$value</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$input </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">, </span><span class="string">'=?' </span><span class="keyword">. </span><span class="default">$charset </span><span class="keyword">. </span><span class="string">'?Q?' </span><span class="keyword">. </span><span class="default">$replacement </span><span class="keyword">. </span><span class="string">'?='</span><span class="keyword">, </span><span class="default">$input</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">wordwrap</span><span class="keyword">(</span><span class="default">$input</span><span class="keyword">,</span><span class="default">75</span><span class="keyword">,</span><span class="string">"\n\t"</span><span class="keyword">,</span><span class="default">true</span><span class="keyword">);<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="57447""></a>
+  <div class="note">
+   <strong class="user">hans at lintoo dot dk</strong>
+   <a href="#57447" class="date">04-Oct-2005 10:35</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I modified nick at plumdigitalmedia dot com's note so that it may support ISO-8859-1 encoded headers:<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">public function </span><span class="default">encodeSubject</span><span class="keyword">(</span><span class="default">$string</span><span class="keyword">,</span><span class="default">$prefix</span><span class="keyword">=</span><span class="string">"=?ISO-8859-1?Q?"</span><span class="keyword">,</span><span class="default">$postfix</span><span class="keyword">=</span><span class="string">"?="</span><span class="keyword">)&nbsp; &nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$crlf&nbsp; &nbsp; </span><span class="keyword">= </span><span class="string">"\n\t"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$string&nbsp; </span><span class="keyword">= </span><span class="default">preg_replace</span><span class="keyword">(</span><span class="string">'!(\r\n|\r|\n)!'</span><span class="keyword">, </span><span class="default">$crlf</span><span class="keyword">, </span><span class="default">$string</span><span class="keyword">) . </span><span class="default">$crlf </span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$f</span><span class="keyword">[]&nbsp; &nbsp; = </span><span class="string">'/([\000-\010\013\014\016-\037\075\177-\377])/e' </span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$r</span><span class="keyword">[]&nbsp; &nbsp; = </span><span class="string">"'=' . sprintf('%02X', ord('\\1'))" </span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$f</span><span class="keyword">[]&nbsp; &nbsp; = </span><span class="string">'/([\011\040])' </span><span class="keyword">. </span><span class="default">$crlf </span><span class="keyword">. </span><span class="string">'/e' </span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$r</span><span class="keyword">[]&nbsp; &nbsp; = </span><span class="string">"'=' . sprintf('%02X', ord('\\1')) . '" </span><span class="keyword">. </span><span class="default">$crlf </span><span class="keyword">. </span><span class="string">"'" </span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$string&nbsp; </span><span class="keyword">= </span><span class="default">preg_replace</span><span class="keyword">(</span><span class="default">$f</span><span class="keyword">, </span><span class="default">$r</span><span class="keyword">, </span><span class="default">$string</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$prefix</span><span class="keyword">.</span><span class="default">trim</span><span class="keyword">(</span><span class="default">wordwrap</span><span class="keyword">(</span><span class="default">$string</span><span class="keyword">, </span><span class="default">70 </span><span class="keyword">- </span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$prefix</span><span class="keyword">) - </span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$postfix</span><span class="keyword">), </span><span class="string">' ' </span><span class="keyword">. </span><span class="default">$postfix </span><span class="keyword">. </span><span class="default">$crlf </span><span class="keyword">. </span><span class="default">$prefix</span><span class="keyword">, </span><span class="default">true</span><span class="keyword">)).</span><span class="default">$postfix</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+</span><span class="default">?&gt;<br />
+</span>Regards, Hans @ <a href="http://lintoo.dk/" rel="nofollow" target="_blank">http://lintoo.dk/</a></span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="56787""></a>
+  <div class="note">
+   <strong class="user">marco dot manngatter at ecg-leipzig dot de</strong>
+   <a href="#56787" class="date">15-Sep-2005 03:43</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+you can use the following to make a larger subject.<br />
+use the imap_qprint() function, to convert your subject.<br />
+<br />
+example:<br />
+<span class="default">&lt;?php<br />
+<br />
+$subject </span><span class="keyword">.= </span><span class="string">"=?iso-8859-1?Q?" </span><span class="keyword">. </span><span class="default">imap_qprint</span><span class="keyword">(</span><span class="default">$subject</span><span class="keyword">) . </span><span class="string">"?="</span><span class="keyword">;<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="52706""></a>
+  <div class="note">
+   <strong class="user">nick at plumdigitalmedia dot com</strong>
+   <a href="#52706" class="date">10-May-2005 08:15</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+This function appears to wrap lines in the middle of words, not just at whitespace, which upsets some versions of Outlook Express when used to format email body text. We've had more luck with this function:<br />
+<br />
+&lt;?<br />
+<br />
+&nbsp;&nbsp;&nbsp; function quoted_printable($string)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $crlf&nbsp; &nbsp; = "\n" ;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $string&nbsp; = preg_replace('!(\r\n|\r|\n)!', $crlf, $string) . $crlf ;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $f[]&nbsp; &nbsp;&nbsp; = '/([\000-\010\013\014\016-\037\075\177-\377])/e' ;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $r[]&nbsp; &nbsp;&nbsp; = "'=' . sprintf('%02X', ord('\\1'))" ;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $f[]&nbsp; &nbsp;&nbsp; = '/([\011\040])' . $crlf . '/e' ;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $r[]&nbsp; &nbsp;&nbsp; = "'=' . sprintf('%02X', ord('\\1')) . '" . $crlf . "'" ;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $string&nbsp; = preg_replace($f, $r, $string) ; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return trim(wordwrap($string, 70, ' =' . $crlf)) ;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+?&gt;</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="50937""></a>
+  <div class="note">
+   <strong class="user">k dot kozlowski at enter dot pl</strong>
+   <a href="#50937" class="date">14-Mar-2005 06:50</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I had problems with encoding large subjects with polish characters. The problem was that imap_8bit() splits subject (on 75-th char) but when I add "=?ISO-8859-2?Q?" the header is too long.<br />
+<br />
+This is a solution :<br />
+<span class="default">&lt;?php<br />
+$subject </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">" "</span><span class="keyword">, </span><span class="string">"_"</span><span class="keyword">, </span><span class="default">trim</span><span class="keyword">(</span><span class="default">$subject</span><span class="keyword">)) ;<br />
+</span><span class="comment">// We need to delete "=\r\n" produced by imap_8bit() and replace '?'<br />
+</span><span class="default">$subject </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">"?"</span><span class="keyword">, </span><span class="string">"=3F"</span><span class="keyword">, </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">"=\r\n"</span><span class="keyword">, </span><span class="string">""</span><span class="keyword">, </span><span class="default">imap_8bit</span><span class="keyword">(</span><span class="default">$subject</span><span class="keyword">))) ;<br />
+</span><span class="comment">// Now we split by \r\n but with encoding text "=?ISO ..."<br />
+</span><span class="default">$subject </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">"\r\n"</span><span class="keyword">, </span><span class="string">"?=\r\n =?ISO-8859-2?Q?"</span><span class="keyword">, </span><span class="default">chunk_split</span><span class="keyword">(</span><span class="default">$subject</span><span class="keyword">, </span><span class="default">55</span><span class="keyword">)) ;<br />
+</span><span class="comment">// We also have to remove last unneeded encoding text :<br />
+</span><span class="default">$subject </span><span class="keyword">= </span><span class="string">"=?ISO-8859-2?Q?" </span><span class="keyword">. </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$subject</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">, </span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$subject</span><span class="keyword">)-</span><span class="default">20</span><span class="keyword">) . </span><span class="string">"?=" </span><span class="keyword">;<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="43525""></a>
+  <div class="note">
+   <strong class="user">rayFX</strong>
+   <a href="#43525" class="date">24-Jun-2004 09:14</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+imap_8bit seems to have a bug as it doesn't encode "?".<br />
+Had a lot of trouble to encode a mail-subject with<br />
+german umlaute with an ending "?"...<br />
+<br />
+Try this:<br />
+<br />
+$subject = "=?iso-8859-1?Q?" . str_replace("?","=3F",imap_8bit($tsubject_to_encode)) . "?=";</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="38283""></a>
+  <div class="note">
+   <strong class="user">MagicalTux at FF.ST</strong>
+   <a href="#38283" class="date">15-Dec-2003 06:50</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Reading Bully's note :<br />
+you can use the following to make a larger subject:<br />
+&lt;?<br />
+$encoded = str_replace("=\r\n","",imap_8bit($string_to_encode)); <br />
+?&gt;<br />
+It's wrong. The header MAY NOT go over 75 chars per line.<br />
+<br />
+The right solution :<br />
+&lt;?<br />
+$encoded = rtrim( str_replace( "\n","\n\t", imap_8bit ($string_to_encode)))."\r\n";<br />
+?&gt;<br />
+<br />
+It will add \t at the start of the encoded new lines.<br />
+Mailers to see the lines after Subject: as extensions of this header.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="27520""></a>
+  <div class="note">
+   <strong class="user">php dot net at werner-ott dot de</strong>
+   <a href="#27520" class="date">09-Dec-2002 02:45</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+A comment on the "split-after-75-characters" phenomenon:<br />
+<br />
+By splitting lines up after 75 characters, the function's behaviour is complying to RFC2047 (<a href="http://www.ietf.org/rfc/rfc2047.txt" rel="nofollow" target="_blank">http://www.ietf.org/rfc/rfc2047.txt</a>) (which specifies a protocol for the representation of non-ASCII text in message headers), section "2. Syntax of encoded-words".<br />
+<br />
+A so called 'encoded word' has the following format:<br />
+<br />
+&nbsp;&nbsp; encoded-word = "=?" charset "?" encoding "?" encoded-text "?="<br />
+<br />
+An 'encoded-word' may not be more than 75 characters long, including 'charset', 'encoding', 'encoded-text', and delimiters.&nbsp; If it is desirable to encode more text than will fit in an 'encoded-word' of 75 characters, multiple 'encoded-word's (separated by CRLF SPACE) may be used.<br />
+<br />
+hth<br />
+WOT</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="20977""></a>
+  <div class="note">
+   <strong class="user">bully at newearth dot de</strong>
+   <a href="#20977" class="date">24-Apr-2002 07:48</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+you can use the following to make a larger subject:<br />
+<br />
+$encoded = str_replace("=\r\n","",imap_8bit($string_to_encode));</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="8686""></a>
+  <div class="note">
+   <strong class="user">zuffa at isdd dot sk</strong>
+   <a href="#8686" class="date">23-Sep-2000 08:57</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Warning !
+<br />
+This function splits input text into
+<br />
+several lines aligned to 75 characters.
+<br />
+This is critical when you need input
+<br />
+text to be only one striaght line as
+<br />
+e.g. in e-mail header values.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

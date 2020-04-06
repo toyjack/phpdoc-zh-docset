@@ -1,0 +1,134 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>PHP 内部的变化</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="migration55.ini.html">? INI 文件处理的变化</a></li>
+      <li style="float: right;"><a href="migration54.html">从 PHP 5.3.X 迁移到 PHP 5.4.X ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="migration55.html">从 PHP 5.4.x 迁移到 PHP 5.5.x</a></li>
+    <li>PHP 内部的变化</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="migration55.internals" class="sect1">
+  <h2 class="title">PHP 内部的变化</h2>
+
+  <ul class="itemizedlist">
+   <li class="listitem">
+    <span class="simpara">
+     Extensions cannot override <strong class="command">zend_execute()</strong> any more and
+     should override <strong class="command">zend_execute_ex()</strong> instead.
+     <em>EG(current_execute_data)</em> is already initialized in
+     <strong class="command">zend_execute_ex()</strong>, so for compatibility extensions may
+     need to use
+     <em>EG(current_execute_data)-&gt;prev_execute_data</em> instead.
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     移除 <em>EG(arg_types_stack)</em> 、<em>EX(fbc)</em> 、 <em>EX(called_scope)</em> 以及<em>EX(current_object)</em> 。
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     Added <em>op_array-&gt;nested_calls</em>, which is calculated
+     at compile time.
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     Added <em>EX(call_slots)</em>, which is an array to store
+     information about syntaticaly nested calls (e.g.
+     <em>foo(bar())</em>) and is preallocated together with
+     <em>execute_data</em>.
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     Added <em>EX(call)</em>, which is a pointer to a current
+     calling function, and is an element of <em>EX(call_slots)</em>.
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     Opcodes
+     <a href="internals2.opcodes.init-method-call.html" class="link">INIT_METHOD_CALL</a>,
+     <a href="internals2.opcodes.init-static-method-call.html" class="link">ZEND_INIT_STATIC_METHOD_CALL</a>,
+     <a href="internals2.opcodes.init-fcall-by-name.html" class="link">ZEND_INIT_FCALL_BY_NAME</a>
+     and
+     <a href="internals2.opcodes.init-ns-fcall-by-name.html" class="link">ZEND_INIT_NS_FCALL_BY_NAME</a>
+     use <em>result.num</em> as an index in
+     <em>EX(call_slots)</em>.
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     Opcode <a href="internals2.opcodes.new.html" class="link">ZEND_NEW</a> uses
+     <em>extended_value</em> as an index in
+     <em>EX(call_slots)</em>.
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     Opcodes <a href="internals2.opcodes.do-fcall.html" class="link">ZEND_DO_FCALL</a>
+     and
+     <a href="internals2.opcodes.do-fcall-by-name.html" class="link">ZEND_DO_FCALL_BY_NAME</a>
+     use <em>op2.num</em> as an index in
+     <em>EX(call_slots)</em>.
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     Added <em>op_array-&gt;used_stack</em>, which is calculated at
+     compile time; the corresponding stack space is preallocated together with
+     <em>execute_data</em>. As a result, the ZEND_SEND* and
+     ZEND_DO_FCALL* opcodes no longer need to check for stack overflow.
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     Removed <em>execute_data-&gt;Ts</em> field. The VM temporary
+     variables are always allocated immediately before the
+     <em>execute_data</em> structure, and are now accessed by their
+     offset from the <em>execute_data</em> base pointer instead of
+     via <em>execute_data-&gt;Ts</em>.  The compiler stores new
+     offsets in <em>op_array-&gt;opcodes[*].op?.num</em>.  The
+     <strong class="command">EX_TMP_VAR()</strong> and <strong class="command">EX_TMP_VAR_NUM()</strong>
+     macros can be used to access temporary variables by offset or number. You
+     can convert the number to an offset using <strong class="command">EX_TMP_VAR_NUM(0,
+     num)</strong> or offset to number using
+     <strong class="command">(EX_TMP_VAR_NUM(0,0)-EX_TMP_VAR(0,offset))</strong>.
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     移除 <em>execute_data-&gt;CVs</em> 字段。The VM
+     compiled variables are always allocated immediately after the
+     <em>execute_data</em> structure, and are now accessed by the
+     offset from the <em>execute_data</em> base pointer instead of
+     via <em>execute_data-&gt;CVs</em>. You can use the
+     <strong class="command">EX_CV_NUM()</strong> macro to access compiled variables by
+    </span>
+   </li>
+  </ul>
+ </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+ <div class="note">There are no user contributed notes for this page.</div>
+</div>
+</div></div></body></html>

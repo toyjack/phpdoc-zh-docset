@@ -1,0 +1,144 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>回收周期(Collecting Cycles)</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="features.gc.refcounting-basics.html">? 引用计数基本知识</a></li>
+      <li style="float: right;"><a href="features.gc.performance-considerations.html">性能方面考虑的因素 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="features.gc.html">垃圾回收机制</a></li>
+    <li>回收周期(Collecting Cycles)</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="features.gc.collecting-cycles" class="sect1">
+   <h2 class="title">回收周期(Collecting Cycles)</h2>
+   <p class="para">
+    传统上，像以前的 php 用到的引用计数内存机制，无法处理循环的引用内存泄漏。然而 5.3.0 PHP 使用文章<a href="http://researcher.watson.ibm.com/researcher/files/us-bacon/Bacon01Concurrent.pdf" class="link external" title="Link : http://researcher.watson.ibm.com/researcher/files/us-bacon/Bacon01Concurrent.pdf">&raquo;&nbsp;引用计数系统中的同步周期回收(Concurrent Cycle Collection in Reference Counted Systems)</a>中的同步算法，来处理这个内存泄漏问题。  
+   </p>
+   <p class="para">
+    对算法的完全说明有点超出这部分内容的范围，将只介绍其中基础部分。首先，我们先要建立一些基本规则，如果一个引用计数增加，它将继续被使用，当然就不再在垃圾中。如果引用计数减少到零，所在变量容器将被清除(free)。就是说，仅仅在引用计数减少到非零值时，才会产生垃圾周期(garbage cycle)。其次，在一个垃圾周期中，通过检查引用计数是否减1，并且检查哪些变量容器的引用次数是零，来发现哪部分是垃圾。
+   </p>
+   <p class="para">
+     <div class="mediaobject">
+      
+      <div class="imageobject">
+       <img src="images/12f37b1c6963c1c5c18f30495416a197-gc-algorithm.png" alt="垃圾回收算法" width="614" height="814" />
+      </div>
+     </div>
+   </p>
+   <p class="para">
+    为避免不得不检查所有引用计数可能减少的垃圾周期，这个算法把所有可能根(possible roots 都是zval变量容器),放在根缓冲区(root buffer)中(用紫色来标记，称为疑似垃圾)，这样可以同时确保每个可能的垃圾根(possible garbage root)在缓冲区中只出现一次。仅仅在根缓冲区满了时，才对缓冲区内部所有不同的变量容器执行垃圾回收操作。看上图的步骤 A。
+   </p>
+   <p class="para">
+    在步骤 B 中，模拟删除每个紫色变量。模拟删除时可能将不是紫色的普通变量引用数减&quot;1&quot;，如果某个普通变量引用计数变成0了，就对这个普通变量再做一次模拟删除。每个变量只能被模拟删除一次，模拟删除后标记为灰（原文说确保不会对同一个变量容器减两次&quot;1&quot;,不对的吧）。
+   </p>
+   <p class="para">
+    在步骤 C 中，模拟恢复每个紫色变量。恢复是有条件的，当变量的引用计数大于0时才对其做模拟恢复。同样每个变量只能恢复一次，恢复后标记为黑，基本就是步骤 B 的逆运算。这样剩下的一堆没能恢复的就是该删除的蓝色节点了，在步骤 D 中遍历出来真的删除掉。
+   </p>
+   <p class="para">
+    算法中都是模拟删除、模拟恢复、真的删除，都使用简单的遍历即可（最典型的深搜遍历）。复杂度为执行模拟操作的节点数正相关，不只是紫色的那些疑似垃圾变量。
+   </p>
+   <p class="para">
+    现在，你已经对这个算法有了基本了解，我们回头来看这个如何与PHP集成。默认的，PHP的垃圾回收机制是打开的，然后有个 <var class="filename">php.ini</var> 设置允许你修改它：<strong class="option unknown">zend.enable_gc</strong>
+。
+   </p>
+   <p class="para">
+    当垃圾回收机制打开时，每当根缓存区存满时，就会执行上面描述的循环查找算法。根缓存区有固定的大小，可存10,000个可能根,当然你可以通过修改PHP源码文件<em>Zend/zend_gc.c</em>中的常量<em>GC_ROOT_BUFFER_MAX_ENTRIES</em>，然后重新编译PHP，来修改这个10,000值。当垃圾回收机制关闭时，循环查找算法永不执行，然而，可能根将一直存在根缓冲区中，不管在配置中垃圾回收机制是否激活。
+   </p>
+   <p class="para">
+    当垃圾回收机制关闭时，如果根缓冲区存满了可能根，更多的可能根显然不会被记录。那些没被记录的可能根，将不会被这个算法来分析处理。如果他们是循环引用周期的一部分，将永不能被清除进而导致内存泄漏。
+   </p>
+   <p class="para">
+    即使在垃圾回收机制不可用时，可能根也被记录的原因是，相对于每次找到可能根后检查垃圾回收机制是否打开而言，记录可能根的操作更快。不过垃圾回收和分析机制本身要耗不少时间。
+   </p>
+   <p class="para">    
+    除了修改配置<strong class="option unknown">zend.enable_gc</strong>
+，也能通过分别调用<span class="function"><a href="function.gc-enable.html" class="function">gc_enable()</a></span> 和 <span class="function"><a href="function.gc-disable.html" class="function">gc_disable()</a></span>函数来打开和关闭垃圾回收机制。调用这些函数，与修改配置项来打开或关闭垃圾回收机制的效果是一样的。即使在可能根缓冲区还没满时，也能强制执行周期回收。你能调用<span class="function"><a href="function.gc-collect-cycles.html" class="function">gc_collect_cycles()</a></span>函数达到这个目的。这个函数将返回使用这个算法回收的周期数。
+   </p>
+   <p class="para">
+    允许打开和关闭垃圾回收机制并且允许自主的初始化的原因，是由于你的应用程序的某部分可能是高时效性的。在这种情况下，你可能不想使用垃圾回收机制。当然，对你的应用程序的某部分关闭垃圾回收机制，是在冒着可能内存泄漏的风险，因为一些可能根也许存不进有限的根缓冲区。因此，就在你调用<span class="function"><a href="function.gc-disable.html" class="function">gc_disable()</a></span>函数释放内存之前，先调用<span class="function"><a href="function.gc-collect-cycles.html" class="function">gc_collect_cycles()</a></span>函数可能比较明智。因为这将清除已存放在根缓冲区中的所有可能根，然后在垃圾回收机制被关闭时，可留下空缓冲区以有更多空间存储可能根。
+   </p>
+  </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="122544""></a>
+  <div class="note">
+   <strong class="user">Dallas</strong>
+   <a href="#122544" class="date">25-Mar-2018 09:46</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+After testing, breaking up memory intensive code into a separate function allows the garbage collection to work.<br />
+<br />
+For example the original code was like:-<br />
+while(true){<br />
+&nbsp;&nbsp; //do memory intensive code<br />
+}<br />
+<br />
+can be turned into something like:-<br />
+function intensive($parameters){<br />
+&nbsp;&nbsp; //do memory intensive code<br />
+}<br />
+<br />
+while(true){<br />
+&nbsp;&nbsp; intensive($parameters);<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119840""></a>
+  <div class="note">
+   <strong class="user">Yousha dot A at Hotmail dot com</strong>
+   <a href="#119840" class="date">04-Sep-2016 01:01</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+── Unused Objects ─── ─ In use Objects<br />
+↓&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ↓&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; ↓<br />
+&nbsp;_____________________________________<br />
+&nbsp;|□□□□□□□□□□□□□□□□□|██■■■■■■■■■■■■■■■■|<br />
+&nbsp;|□□□□□□□□□□□□□□□□□|██■■■■■■■■■■■■■■■■|<br />
+ˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉˉ<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; ▲&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ▲<br />
+&nbsp;&nbsp; &nbsp; Unreferenced&nbsp; &nbsp; &nbsp; &nbsp; Referenced<br />
+&nbsp;&nbsp; &nbsp; &nbsp; Objects&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; Objects<br />
+<br />
+█ Memory leak</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117165""></a>
+  <div class="note">
+   <strong class="user">Yousha dot A at Hotmail dot com</strong>
+   <a href="#117165" class="date">24-Apr-2015 07:47</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Memory leak: meaning you keep a reference to it thus preventing the GC from collecting it.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

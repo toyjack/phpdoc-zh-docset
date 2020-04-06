@@ -1,0 +1,143 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>条件子组</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="regexp.reference.onlyonce.html">? 一次性子组</a></li>
+      <li style="float: right;"><a href="regexp.reference.comments.html">注释 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="reference.pcre.pattern.syntax.html">PCRE 正则语法</a></li>
+    <li>条件子组</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="regexp.reference.conditional" class="section">
+  <h2 class="title">条件子组</h2>
+  <p class="para">
+  可以使匹配器根据一个断言的结果，
+  或者之前的一个捕获子组是否匹配来条件式的匹配一个子组或者在两个可选子组中选择。
+  条件子组的两种语法如下：
+  </p>
+  
+  <div class="informalexample">
+   <div class="example-contents">
+<div class="cdata"><pre>
+(?(condition)yes-pattern)
+(?(condition)yes-pattern|no-pattern)
+</pre></div>
+   </div>
+
+  </div>
+  <p class="para">
+  如果条件满足，使用 yes-pattern，其他情况使用 no-pattern(如果指定了)。
+  如果有超过 2 个的可选子组，会产生给一个编译期错误。
+  </p>
+  <p class="para">
+  条件一共有两种。如果在(condition)的括号内是数字组成的文本，
+  条件在该数字代表的(之前的)子组得到匹配时满足(即使用 yes-pattern)。
+  考虑下面的模式，
+  为了使其易于阅读其中增加了一些空白字符(查看<a href="reference.pcre.pattern.modifiers.html" class="link">PCRE_EXTENDED</a> 选项)并且将其分为三个部分：
+  <em>( \( )?  [^()]+  (?(1) \) )</em>
+  </p>
+  <p class="para">
+  模式的第一部分匹配一个可选的左括号，并且如果该字符出现，
+  设置其为第一个子组的捕获子串。第二部分匹配一个或多个非括号字符。
+  第三部分是一个条件子组，它会测试第一个子组是否匹配，如果匹配到了，
+  也就是说目标字符串以左括号开始，条件为<strong><code>TRUE</code></strong>，
+  那么使用 yes-pattern 也就是这里需要匹配一个右括号。其他情况下，
+  既然 no-pattern 没有出现，这个子组就不匹配任何东西。换句话说，
+  这个模式匹配一个没有括号的或者闭合括号包裹的字符序列。
+  </p>
+  <p class="para">
+  如果条件式字符串 <em>(R)</em>，它在得到对模式或子模式的递归调用时满足。 在"最上级"，
+  条件总是false。
+  </p>
+  <p class="para">
+  如果条件不是数字序列或(R)，它就必须是一个断言。这里的断言可以使任意的，积极，
+  消极，正向，后向都是可以的。考虑这个模式， 同样为了方便阅读，
+  增加了一些空白字符，并且在第二行有两个可选路径。
+  </p>
+  
+  <div class="informalexample">
+   <div class="example-contents">
+<div class="cdata"><pre>
+(?(?=[^a-z]*[a-z])
+\d{2}-[a-z]{3}-\d{2}  |  \d{2}-\d{2}-\d{2} )
+</pre></div>
+   </div>
+
+  </div>
+  <p class="para">
+  条件式一个正向积极断言，匹配一个可选的非小写字母字符序列紧接着一个小写字母。
+  换一种说法，它测试目标中至少出现一个小写字母，如果小写字母发现，
+  目标匹配第一个可选分支，其他情况下它匹配第二个分支。
+  这个模式匹配两种格式的字符串：dd-aaa-dd 或 dd-dd-dd。aaa 代表小写字母，
+  dd 是数字。
+  </p>
+ </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="102285""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#102285" class="date">06-Feb-2011 09:26</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Repetition of a subpattern will repeat conditionals that are contained inside it, updating subpattern matches with iteration.
+<br />
+
+<br />
+Consider the following code, which scans thru HTML, keeping track of angle brackets "&lt;" "&gt;".&nbsp; If open bracket "&lt;" matches, then closing bracket "&gt;" must follow before repetition can possibly end.&nbsp; That way regex will effectively match only outside of tags. 
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+$pattern</span><span class="keyword">=</span><span class="string">'%(*ANY)(.*?(&lt;)(?(2).*?&gt;)(.*?))*?\'\'%s'</span><span class="keyword">;
+<br />
+</span><span class="default">$replace</span><span class="keyword">=</span><span class="string">'\1Fred'</span><span class="keyword">;
+<br />
+</span><span class="default">$subject</span><span class="keyword">=
+<br />
+</span><span class="string">'&lt;html&gt;&lt;body class=\'\'&gt;\'\' went to '</span><span class="keyword">\</span><span class="string">'\meyer and ran 
+<br />
+into &lt;b&gt;\'\'&lt;/b&gt;.
+<br />
+&lt;/body&gt;&lt;/html&gt;'
+<br />
+</span><span class="keyword">echo </span><span class="default">preg_replace</span><span class="keyword">(</span><span class="string">"%(*ANY)(.*?((&lt;)(?(3).*?&gt;).*?)*?)\'\'%s"</span><span class="keyword">,</span><span class="string">'\1Fred'</span><span class="keyword">,</span><span class="default">$subject</span><span class="keyword">);
+<br />
+</span><span class="default">?&gt;
+<br />
+</span>
+<br />
+Output will be:
+<br />
+'&lt;html&gt;&lt;body class=\'\'&gt;Fred went to Fredmeyer and ran 
+<br />
+into &lt;b&gt;Fred&lt;/b&gt;.
+<br />
+&lt;/body&gt;&lt;/html&gt;'</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

@@ -1,0 +1,163 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>重复/量词</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="regexp.reference.subpatterns.html">? 子组(子模式)</a></li>
+      <li style="float: right;"><a href="regexp.reference.back-references.html">后向引用 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="reference.pcre.pattern.syntax.html">PCRE 正则语法</a></li>
+    <li>重复/量词</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="regexp.reference.repetition" class="section">
+  <h2 class="title">重复/量词</h2>
+  <p class="para">
+  重复次数是通过量词指定的，可以紧跟在下面元素之后：
+   
+   <ul class="itemizedlist">
+    <li class="listitem"><span class="simpara">单独的字符, 可以是经过转义的</span></li>
+    <li class="listitem"><span class="simpara">元字符。</span></li>
+    <li class="listitem"><span class="simpara">字符类</span></li>
+    <li class="listitem"><span class="simpara">后向引用(参加下一部分)</span></li>
+    <li class="listitem"><span class="simpara">子组(除非它是一个断言)</span></li>
+   </ul>
+  </p>
+  <p class="para">
+  一般的重复量词指定了一个最小数值和一个最大数值的匹配次数，
+  通过花括号包裹两个数字，两个数字之间用逗号隔开的语法定义。
+  两个数值都必须小于 65536， 并且第一个数字必须小于等于第二个。 比如：
+  <em>z{2,4}</em> 匹配 "zz"， "zzz"， "zzzz"。 单个的右花括号不是特殊字符。
+  如果第二个数字被省略，但是逗号仍然存在，就代表没有上限；
+  如果第二个数字和逗号都被省略，那么这个量词就限定的是一个确定次数的匹配。
+  比如 <em>[aeiou]{3,}</em> 匹配至少三个连续的元音字母，但是同时也可以匹配更多，
+  而 <em>\d{8}</em> 则只能匹配 8 个数字。
+  左花括号出现在不允许使用量词的位置或者与量词语法不匹配时，
+  被认为是一个普通字符，对它自身进行原文匹配。 比如，{,6}就不是一个量词，
+  会按照原文匹配四个字符 "{,6}"。
+  </p>
+  <p class="para">
+  量词 {0} 是被授权的，它会导致的行为是认为前面的项和量词不存在。
+  </p>
+  <p class="para">
+  为了方便(以及历史的兼容性)，最常用的三个量词都有单字符缩写。
+   <table class="doctable table">
+    <caption><strong>单字符量词</strong></caption>
+    
+     <tbody class="tbody">
+      <tr>
+       <td><em>*</em></td>
+       <td>等价于 <em>{0,}</em></td>
+      </tr>
+
+      <tr>
+       <td><em>+</em></td>
+       <td>等价于 <em>{1,}</em></td>
+      </tr>
+
+      <tr>
+       <td><em>?</em></td>
+       <td>等价于 <em>{0,1}</em></td>
+      </tr>
+
+     </tbody>
+    
+   </table>
+
+  </p>
+  <p class="para">
+  可以通过一个不匹配任何字符的子模式后面紧跟一个匹配 0 或多个字符的量词来构造一个没有上限的无限循环。
+  比如：<em>(a?)*</em>
+  </p>
+  <p class="para">
+  早期版本的 perl 和 pcre 对于这种模式会在编译期得到一个错误。然而，
+  由于这在某些情况下是有用的，因此现在也接受这种模式了，
+  但是如果任何子模式的重复确实匹配不到任何字符，循环会被强制跳出。
+  </p>
+  <p class="para">
+  默认情况下，量词都是"贪婪"的，也就是说，
+  它们会在不导致模式匹配失败的前提下，尽可能多的匹配字符(直到最大允许的匹配次数)。
+  这种问题的典型示例就是尝试匹配C语言的注释。
+  出现在 /* 和 */ 之间的所有内容都被认为是注释， 在注释中间，
+  可以允许出现单独的 * 和 /。
+  对C注释匹配的一个尝试是使用模式 <em>/\*.*\*/</em>，
+  假设将此模式应用在字符串 "<em>/* first comment*/ not comment /*second
+  comment*/</em>" 它会匹配到错误的结果，也就是整个字符串，
+  这是因为量词的贪婪性导致的，它会尝试尽可能多的匹配字符。
+  </p>
+  <p class="para">
+  然而，如果一个量词紧跟着一个 ?(问号) 标记，它就会成为懒惰(非贪婪)模式，
+  它不再尽可能多的匹配，而是尽可能少的匹配。
+  因此模式 <em>/\*.*?\*/</em> 在 C 的注释匹配上将会正确的执行。
+  各个量词自身的意义并不会改变，而是由于加入了 ? 使其首选的匹配次数发生改变。
+  不要将 ? 的这个用法和它作为量词的用法混淆。因为它又两种用法，
+  因此有时它会出现量词，比如 <em>\d??\d</em> 会更倾向于匹配一个数字，
+  但同时如果为了达到整个模式匹配的目的，它也可以接受两个数字的匹配。译注：
+  以模式 \w\d??\d\w 为例，对于字符串 "a33a"，虽然 \d?? 是非贪婪的，
+  但由于如果使用贪婪会导致整个模式不匹配，所以，
+  最终它选择的仍然是匹配到一个数字。
+  </p>
+  <p class="para">
+  如果 <a href="reference.pcre.pattern.modifiers.html" class="link">PCRE_UNGREEDY</a> 选项被设置(一个在 perl 中不可用的选项)，
+  那么量词默认情况下就是非贪婪的了。但是，
+  单个的量词可以通过紧跟一个 ? 来使其成为贪婪的。换句话说，
+  PCRE_UNGREEDY 这个选项逆转了贪婪的默认行为。
+  </p>
+  <p class="para">
+  量词后面紧跟一个 "<em>+</em>" 是"占有"性。它会吃掉尽可能多的字符，
+  并且不关注后面的其他模式，比如 <em>.*abc</em> 匹配 "aabc"，
+  但是 <em>.*+abc</em> 不会匹配，
+  因为 <em>.*+</em> 会吃掉整个字符串，从而导致后面剩余的模式得不到匹配。 自PHP 4.3.3 起，
+  可以使用占有符 (+) 修饰量词来达到提升速度的目的。
+  </p>
+  <p class="para">
+  当一个子组受最小数量大于 1 或有一个最大数量限制的量词修饰时，
+  按照最小或最大的数量的比例需要更多的存储用于编译模式。
+  </p>
+  <p class="para">
+  如果一个模式以 .* 或 .{0,} 开始并且 <a href="reference.pcre.pattern.modifiers.html" class="link">PCRE_DOTALL</a> 选项开启(等价于 perl 的/s)，
+  也就是允许.匹配换行符，那么模式会隐式的紧固，因为不管怎么样，
+  接下来都会对目标字符串中的每个字符位置进行尝试，因此在第一次之后，
+  在任何位置都不会有一个对所有匹配重试的点。 PCRE 会想对待 \A 一样处理这个模式。
+  在我们已知目标字符串没有包含换行符的情况下，
+  当模式以 .* 开始的时候我们为了获得这个优化，值得设置 <a href="reference.pcre.pattern.modifiers.html" class="link">PCRE_DOTALL</a>，
+  或者选择使用 ^ 明确指明锚定。
+  </p>
+  <p class="para">
+  译注：这里的优化指模式不匹配之后，不会回头再来查找下一个位置，
+  比如没有设置 PCRE_DOTALL，并且目标字符串第一个字符时换行符，
+  那么模式尝试第一个字符，发现不匹配，
+  会重新用模式从第二个字符位置开始进行尝试。 而使用了PCRE_DOTALL后，
+  是肯定匹配的....同理，当使用了 ^ 或者 /A的限定是，模式一旦不匹配，都可以直接退出，
+  而不用在目标字符串下一个位置再一次开始整个模式的匹配。
+  </p>
+  <p class="para">
+  当一个捕获子组时重复的时，捕获到的该子组的结果是最后一次迭代捕获的值。比如，
+  <em>(tweedle[dume]{3}\s*)+</em>匹配字符串 "tweedledum tweedledee"，
+  得到的的子组捕获结果是 "tweedledee"。然而，如果是嵌套的捕获子组，
+  相应的捕获值可能会被设置到之前的迭代中。比如，<em>/(a|(b))+/</em> 匹配字符串 "aba"，
+  第二个捕获子组得到的结果会是 "b"。译注：不理解然而之后的部分，以例子说明，
+  b 是第二个子组最后一次捕获到的结果，所以， 第二个子组最后结果是 b，
+  这是符合"然而"之前描述的规则的。
+  </p>
+ </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+ <div class="note">There are no user contributed notes for this page.</div>
+</div>
+</div></div></body></html>

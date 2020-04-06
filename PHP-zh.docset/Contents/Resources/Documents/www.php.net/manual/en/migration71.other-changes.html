@@ -1,0 +1,258 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Other changes</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="migration71.changed-functions.html">? 变动的函数</a></li>
+      <li style="float: right;"><a href="migration71.windows-support.html">Windows支持 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="migration71.html">从PHP 7.0.x 移植到 PHP 7.1.x</a></li>
+    <li>Other changes</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="migration71.other-changes" class="sect1">
+ <h2 class="title">Other changes</h2>
+
+ <div class="sect2" id="migration71.other-changes.apprise-on-arithmetic-with-invalid-strings">
+  <h3 class="title">Notices and warnings on arithmetic with invalid strings</h3>
+
+  <p class="para">
+   New <strong><code>E_WARNING</code></strong> and <strong><code>E_NOTICE</code></strong> errors
+   have been introduced when invalid strings are coerced using operators
+   expecting numbers (<em>+</em> <em>-</em>
+   <em>*</em> <em>/</em> <em>**</em>
+   <em>%</em> <em>&lt;&lt;</em> <em>&gt;&gt;</em>
+   <em>|</em> <em>&amp;</em> <em>^</em>) or their
+   assignment equivalents. An <strong><code>E_NOTICE</code></strong> is emitted when the
+   string begins with a numeric value but contains trailing non-numeric
+   characters, and an <strong><code>E_WARNING</code></strong> is emitted when the string
+   does not contain a numeric value.
+  </p>
+
+  <div class="informalexample">
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #DD0000">'1b'&nbsp;</span><span style="color: #007700">+&nbsp;</span><span style="color: #DD0000">'something'</span><span style="color: #007700">;</span>
+</span>
+</code></div>
+   </div>
+
+   <p class="para">以上例程会输出：</p>
+   <div class="example-contents screen">
+<div class="cdata"><pre>
+Notice: A non well formed numeric value encountered in %s on line %d
+Warning: A non-numeric value encountered in %s on line %d
+</pre></div>
+   </div>
+  </div>
+ </div>
+
+ <div class="sect2" id="migration71.other-changes.warn-on-octal-overflow">
+  <h3 class="title">Warn on octal escape sequence overflow</h3>
+
+  <p class="para">
+   Previously, 3-octet octal string escape sequences would overflow silently.
+   Now, they will still overflow, but <strong><code>E_WARNING</code></strong> will be
+   emitted.
+  </p>
+
+  <div class="informalexample">
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />var_dump</span><span style="color: #007700">(</span><span style="color: #DD0000">"\500"</span><span style="color: #007700">);</span>
+</span>
+</code></div>
+   </div>
+
+   <p class="para">以上例程会输出：</p>
+   <div class="example-contents screen">
+<div class="cdata"><pre>
+Warning: Octal escape sequence overflow \500 is greater than \377 in %s on line %d
+string(1) &quot;@&quot;
+</pre></div>
+   </div>
+  </div>
+ </div>
+
+ <div class="sect2" id="migration71.other-changes.inconsistency-fixes-to-this">
+  <h3 class="title">Inconsistency fixes to <em>$this</em></h3>
+
+  <p class="para">
+   Whilst <em>$this</em> is considered a special variable in PHP, it
+   lacked proper checks to ensure it wasn&#039;t used as a variable name or
+   reassigned. This has now been rectified to ensure that
+   <em>$this</em> cannot be a user-defined variable, reassigned to a
+   different value, or be globalised.
+  </p>
+ </div>
+
+ <div class="sect2" id="migration71.other-changes.session-id-generation-without-hashing">
+  <h3 class="title">Session ID generation without hashing</h3>
+
+  <p class="para">
+   Session IDs will no longer be hashed upon generation. With this change
+   brings about the removal of the following four ini settings:
+  </p>
+
+  <ul class="itemizedlist">
+   <li class="listitem">
+    <span class="simpara">
+     <code class="parameter">session.entropy_file</code>
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     <code class="parameter">session.entropy_length</code>
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     <code class="parameter">session.hash_function</code>
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     <code class="parameter">session.hash_bits_per_character</code>
+    </span>
+   </li>
+  </ul>
+
+  <p class="para">
+   And the addition of the following two ini settings:
+  </p>
+
+  <ul class="itemizedlist">
+   <li class="listitem">
+    <span class="simpara">
+     <code class="parameter">session.sid_length</code> - defines the length of the
+     session ID, defaulting to 32 characters for backwards compatibility)
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     <code class="parameter">session.sid_bits_per_character</code> - defines the number
+     of bits to be stored per character (i.e. increases the range of characters
+     that can be used in the session ID), defaulting to 4 for backwards
+     compatibility
+    </span>
+   </li>
+  </ul>
+ </div>
+
+ <div class="sect2" id="migration71.other-changes.ini-file-handling">
+  <h3 class="title">Changes to INI file handling</h3>
+  <dl>
+
+   
+    <dt>
+<code class="parameter">precision</code></dt>
+
+    <dd>
+
+     <p class="para">
+       If the value is set to -1, then the dtoa mode 0 is used. The default
+       value is still 14.
+     </p>
+    </dd>
+
+   
+   
+    <dt>
+<code class="parameter">serialize_precision</code></dt>
+
+    <dd>
+
+     <p class="para">
+       If the value is set to -1, then the dtoa mode 0 is used. The value -1 is
+       now used by default.
+     </p>
+    </dd>
+
+   
+   
+    <dt>
+<code class="parameter">gd.jpeg_ignore_warning</code></dt>
+
+    <dd>
+
+     <p class="para">
+       The default of this <var class="filename">php.ini</var> setting has been changed to 1, so by
+       default libjpeg warnings are ignored.
+     </p>
+    </dd>
+
+   
+   
+    <dt>
+<code class="parameter">opcache.enable_cli</code></dt>
+
+    <dd>
+
+     <p class="para">
+       The default of this <var class="filename">php.ini</var> setting has been changed to 1
+       (enabled) in PHP 7.1.2, and back to 0 (disabled) in PHP 7.1.7.
+     </p>
+    </dd>
+
+   
+  </dl>
+
+ </div>
+
+ <div class="sect2" id="migration71.other-changes.session-id-csprng-gen">
+  <h3 class="title">Session ID generation with a CSPRNG only</h3>
+
+  <p class="para">
+   Session IDs will now only be generated with a CSPRNG.
+  </p>
+ </div>
+
+ <div class="sect2" id="migration71.other-changes.typeerror-error-messages">
+  <h3 class="title">More informative <strong class="classname">TypeError</strong> messages when <strong><code>NULL</code></strong> is allowed</h3>
+  <p class="para">
+   <strong class="classname">TypeError</strong> exceptions for arg_info type checks will
+   now provide more informative error messages. If the parameter type or return
+   type accepts <strong><code>NULL</code></strong> (by either having a default value of <strong><code>NULL</code></strong> or being a
+   nullable type), then the error message will now mention this with a message
+   of &quot;must be ... or null&quot; or &quot;must ... or be null.&quot;
+  </p>
+ </div>
+</div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="122452""></a>
+  <div class="note">
+   <strong class="user">Ta7To7</strong>
+   <a href="#122452" class="date">27-Feb-2018 05:47</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Note that using Incrementing/Decrementing operators on string is legal <br />
+<span class="default">&lt;?php<br />
+$str </span><span class="keyword">= </span><span class="string">""</span><span class="keyword">;<br />
+echo ++</span><span class="default">$str</span><span class="keyword">; </span><span class="comment">// output: 1<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

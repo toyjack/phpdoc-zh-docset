@@ -1,0 +1,121 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>简介</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="book.parallel.html">? parallel</a></li>
+      <li style="float: right;"><a href="parallel.setup.html">Installation ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="book.parallel.html">parallel</a></li>
+    <li>简介</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="intro.parallel" class="preface">
+  <h1 class="title">简介</h1>
+  <p class="para">
+  parallel is a parallel concurrency extension for PHP 7.2+.
+  </p>
+  <p class="para">
+   A brief description of the concepts core to parallel follows, more detailed information may be found within this section of the manual.
+  </p>
+  <div class="simplesect">
+   <h3 class="title">Runtime</h3>
+   <p class="para">
+     A <a href="class.parallel-runtime.html" class="classname">parallel\Runtime</a> represents a PHP interpreter thread. A <a href="class.parallel-runtime.html" class="classname">parallel\Runtime</a> is configured with an optional bootstrap file passed to <span class="methodname"><a href="parallel-runtime.construct.html" class="methodname">parallel\Runtime::__construct()</a></span>, this is typically an autoloader, 
+    or some other preloading routine: The bootstrap file will be included before any task is executed.
+   </p>
+   <p class="para">
+    After construction the <a href="class.parallel-runtime.html" class="classname">parallel\Runtime</a> remains available until it is closed, killed, or destroyed by the normal scoping rules of PHP objects. 
+    <span class="methodname"><a href="parallel-runtime.run.html" class="methodname">parallel\Runtime::run()</a></span> allows the programmer to schedule tasks for execution in parallel. 
+    A <a href="class.parallel-runtime.html" class="classname">parallel\Runtime</a> has a FIFO schedule, tasks will be executed in the order that they are scheduled.
+   </p>
+  </div>
+  <div class="simplesect">
+   <h3 class="title">Functional API</h3>
+   <p class="para">
+    parallel implements a functional, higher level API on top of <a href="class.parallel-runtime.html" class="classname">parallel\Runtime</a> that provides a single function entry point to executing parallel code 
+    with automatic scheduling: <span class="function"><a href="parallel.run.html" class="function">parallel\run()</a></span>.
+   </p>
+  </div>
+  <div class="simplesect">
+   <h3 class="title">Task</h3>
+   <p class="para">
+    A task is simply a <a href="class.closure.html" class="classname">Closure</a> intended for parallel execution. The <a href="class.closure.html" class="classname">Closure</a> may contain almost any instruction, including nested closures. 
+    However, there are some instructions that are prohibited in tasks:
+    <ul class="itemizedlist">
+     <li class="listitem">
+     <p class="para">yield</p>
+     </li>
+     <li class="listitem">
+     <p class="para">use by-reference</p>
+     </li>
+     <li class="listitem">
+     <p class="para">declare class</p>
+     </li>
+     <li class="listitem">
+     <p class="para">declare named function</p>
+     </li>
+    </ul>
+   </p>
+   <blockquote class="note"><p><strong class="note">Note</strong>: 
+    <p class="para">
+     Nested closures may yield or use by-reference, but must not contain class or named function declarations.
+    </p>
+   </p></blockquote>
+   <blockquote class="note"><p><strong class="note">Note</strong>: 
+    <p class="para">
+     No instructions are prohibited in the files which the task may include.
+    </p>
+   </p></blockquote>
+  </div>
+  <div class="simplesect">
+   <h3 class="title">Future</h3>
+   <p class="para">
+    The <a href="class.parallel-future.html" class="classname">parallel\Future</a> is used to access the return value from the task, and exposes an API for cancellation of the task.
+   </p>
+  </div>
+  <div class="simplesect">
+   <h3 class="title">Channel</h3>
+   <p class="para">
+    A task may be scheduled with arguments, use lexical scope variables (by-value), and return a value (via a <a href="class.parallel-future.html" class="classname">parallel\Future</a>), but these only allow uni-directional communication:
+    They allow the programmer to send data into and retrieve data from a task, but do not allow bi-directional communication between tasks.
+    The <a href="class.parallel-channel.html" class="classname">parallel\Channel</a> API allows bi-directional communication between tasks, a <a href="class.parallel-channel.html" class="classname">parallel\Channel</a> is a socket-like link between tasks that the programmer can use to send and receive data.
+   </p>
+  </div>
+  <div class="simplesect">
+   <h3 class="title">Events</h3>
+   <p class="para">
+    The <a href="class.parallel-events.html" class="classname">parallel\Events</a> API implements a native feel (<strong class="classname">Traversable</strong>) event loop, and <span class="methodname"><a href="parallel-events.poll.html" class="methodname">parallel\Events::poll()</a></span> method. 
+    It allows the programmer to work with sets of channels and or futures.
+    The programmer simply adds channels and futures to the event loop, optionally setting the input for writes with <span class="methodname"><a href="parallel-events.setinput.html" class="methodname">parallel\Events::setInput()</a></span>, 
+    and enters into a foreach: parallel will read from and write to objects as they become available yielding <a href="class.parallel-events-event.html" class="classname">parallel\Events\Event</a> objects 
+    describing the operations that have occurred.
+   </p>
+  </div>
+   <div class="simplesect">
+   <h3 class="title">参见</h3>
+   <ul class="simplelist">
+    <li class="member"><a href="philosophy.parallel.html" class="xref">Philosophy</a></li>
+   </ul>
+  </div>
+ </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+ <div class="note">There are no user contributed notes for this page.</div>
+</div>
+</div></div></body></html>

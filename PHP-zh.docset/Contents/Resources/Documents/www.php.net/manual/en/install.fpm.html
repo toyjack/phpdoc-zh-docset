@@ -1,0 +1,331 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>FastCGI 进程管理器（FPM）</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="install.cloud.ec2.html">? Amazon EC2</a></li>
+      <li style="float: right;"><a href="install.fpm.install.html">安装 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="install.html">安装与配置</a></li>
+    <li>FastCGI 进程管理器（FPM）</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="install.fpm" class="chapter">
+ <h1>FastCGI 进程管理器（FPM）</h1>
+<h2>Table of Contents</h2><ul class="chunklist chunklist_chapter"><li><a href="install.fpm.install.html">安装</a></li><li><a href="install.fpm.configuration.html">配置</a></li></ul>
+
+ <p class="para">
+  FPM（FastCGI 进程管理器）用于替换 PHP FastCGI 的大部分附加功能，对于高负载网站是非常有用的。
+ </p>
+ <p class="para">
+  它的功能包括：
+  <ul class="itemizedlist">
+   <li class="listitem">
+    <p class="para">
+     支持平滑停止/启动的高级进程管理功能；
+    </p>
+   </li>
+   <li class="listitem">
+    <p class="para">
+     可以工作于不同的 uid/gid/chroot 环境下，并监听不同的端口和使用不同的 php.ini 配置文件（可取代 safe_mode 的设置）；
+    </p>
+   </li>
+   <li class="listitem">
+    <p class="para">
+     stdout 和 stderr 日志记录;
+    </p>
+   </li>
+   <li class="listitem">
+    <p class="para">
+     在发生意外情况的时候能够重新启动并缓存被破坏的 opcode;
+    </p>
+   </li>
+   <li class="listitem">
+    <p class="para">
+     文件上传优化支持;
+    </p>
+   </li>
+   <li class="listitem">
+    <p class="para">
+     &quot;慢日志&quot; - 记录脚本（不仅记录文件名，还记录 PHP backtrace 信息，可以使用
+     ptrace或者类似工具读取和分析远程进程的运行数据）运行所导致的异常缓慢;
+    </p>
+   </li>
+   <li class="listitem">
+    <p class="para">
+     <span class="function"><a href="function.fastcgi-finish-request.html" class="function">fastcgi_finish_request()</a></span> - 
+     特殊功能：用于在请求完成和刷新数据后，继续在后台执行耗时的工作（录入视频转换、统计处理等）；
+    </p>
+   </li>
+   <li class="listitem">
+    <p class="para">
+     动态／静态子进程产生；
+    </p>
+   </li>
+   <li class="listitem">
+    <p class="para">
+     基本 SAPI 运行状态信息（类似Apache的 mod_status）；
+    </p>
+   </li>
+   <li class="listitem">
+    <p class="para">
+     基于 php.ini 的配置文件。
+    </p>
+   </li>
+  </ul>
+ </p>
+ 
+ 
+
+
+  
+
+
+
+ 
+
+
+
+
+
+
+
+</div>
+<div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="123758""></a>
+  <div class="note">
+   <strong class="user">info at f1-outsourcing dot eu</strong>
+   <a href="#123758" class="date">08-Apr-2019 10:22</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+It looks like the php-fpm daemon is not able to use its groups it is running with.<br />
+<br />
+https://bugs.php.net/bug.php?id=77837</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="122457""></a>
+  <div class="note">
+   <strong class="user">ikrabbe dot ask at gmail dot com</strong>
+   <a href="#122457" class="date">28-Feb-2018 11:45</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I'm very unhappy with the way php-fpm handles requests.<br />
+There isn't even some SCRIPT_FILENAME in the RFC for CGI, an that's the only standard I found to handle the requests.<br />
+<br />
+Actually what you are doing with PATH_TRANSLATED is supposed to translate to the path, which is broken by media wikis, as they use the PATH_INFO to find the ressource, not some script.<br />
+<br />
+In the original CGI context, the PATH_INFO is passed to the CGI binary to specify some ressource argument. So actually<br />
+<br />
+&nbsp;&nbsp;&nbsp; SCRIPT_NAME&nbsp; ~ argv0<br />
+&nbsp;&nbsp;&nbsp; PATH_INFO&nbsp; &nbsp; &nbsp; ~ argv1<br />
+<br />
+in command context.<br />
+<br />
+Conclusion: We should rewrite php-fpm to obey the rfc3875 CGI standard.<br />
+Having SCRIPT_NAME pointing to /something.php, must translate to <br />
+<br />
+&nbsp;&nbsp;&nbsp; CWD/something.php<br />
+<br />
+CWD is the working directory where php-fpm is started (or configured to change to).<br />
+<br />
+In case of chroot CWD = "".<br />
+<br />
+In any case the SCRIPT_NAME php script can be found with ./SCRIPT_NAME, from the CWD. So the undocumented not standardized SCRIPT_FILENAME should vanish! It breaks the CGI standard.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="121890""></a>
+  <div class="note">
+   <strong class="user">ganlvtech at qq dot com</strong>
+   <a href="#121890" class="date">21-Nov-2017 09:23</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+php-fpm is not avaliable on Windows, but you can use IIS or Apache as the "fastcgi process manager".<br />
+<br />
+If you have to use Nginx, here is a solution. Nginx provides a load balancing module. We can distribute the request to different php-cgi.exe process.<br />
+<br />
+&lt;<a href="http://nginx.org/en/docs/http/load_balancing.html&gt;" rel="nofollow" target="_blank">http://nginx.org/en/docs/http/load_balancing.html&gt;</a><br />
+&lt;<a href="http://nginx.org/en/docs/http/ngx_http_upstream_module.html&gt;" rel="nofollow" target="_blank">http://nginx.org/en/docs/http/ngx_http_upstream_module.html&gt;</a><br />
+<br />
+This is the origin nginx conf.<br />
+```<br />
+location ~ \.php$ {<br />
+&nbsp;&nbsp;&nbsp; try_files&nbsp; $uri = 404;<br />
+&nbsp;&nbsp;&nbsp; fastcgi_pass&nbsp; 127.0.0.1:9000;<br />
+&nbsp;&nbsp;&nbsp; fastcgi_index&nbsp; index.php;<br />
+&nbsp;&nbsp;&nbsp; include&nbsp; fastcgi.conf;<br />
+}<br />
+```<br />
+<br />
+You can replace it by<br />
+```<br />
+upstream php {<br />
+&nbsp;&nbsp;&nbsp; server&nbsp; 127.0.0.1:9000;<br />
+&nbsp;&nbsp;&nbsp; server&nbsp; 127.0.0.1:9001;<br />
+&nbsp;&nbsp;&nbsp; server&nbsp; 127.0.0.1:9002;<br />
+&nbsp;&nbsp;&nbsp; server&nbsp; 127.0.0.1:9003;<br />
+}<br />
+<br />
+location ~ \.php$ {<br />
+&nbsp;&nbsp;&nbsp; try_files&nbsp; $uri = 404;<br />
+&nbsp;&nbsp;&nbsp; fastcgi_pass&nbsp; php;<br />
+&nbsp;&nbsp;&nbsp; fastcgi_index&nbsp; index.php;<br />
+&nbsp;&nbsp;&nbsp; include&nbsp; fastcgi.conf;<br />
+}<br />
+```<br />
+<br />
+CAUTION!!<br />
+<br />
+php-cgi.exe process will die after several requests, so you have to restart the php-cgi.exe manually to keep a process listening the port.<br />
+<br />
+DON'T USE THIS SOLUTION IN PRODUCTION!!</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="121725""></a>
+  <div class="note">
+   <strong class="user">user at NOSPAM dot example dot com</strong>
+   <a href="#121725" class="date">04-Oct-2017 06:15</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+It is important to note that FPM is not built with the windows binaries.&nbsp; Many of the guides you may find online rely on php-cgi.exe.&nbsp; Unfortunately they call it FPM but this is incorrect!<br />
+<br />
+The executable php-cgi.exe that is bundled with the windows binaries is a FastCGI interface but it is *not* FPM (Fastcgi Process Manager).&nbsp; php-cgi.exe does not have multi-threading or concurrent request support, nor support for any of the FPM configuration options.<br />
+<br />
+The only solid information I've gathered into why FPM is not available is a bug report explaining that FPM is built around fork(), which is not natively available on windows (https://bugs.php.net/bug.php?id=62447).</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115045""></a>
+  <div class="note">
+   <strong class="user">dreamcat4 at gmail dot com</strong>
+   <a href="#115045" class="date">16-May-2014 03:17</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Doesn't work? Enable logging!<br />
+<br />
+The php-fpm.log file is a great place to fault-find errors and get to the bottom of a problem. But be sure to enable logging for your specific worker pool. Or you won't see anything!<br />
+<br />
+Example:<br />
+<br />
+To enable error logging for the default [www] worker pool, add this line in the [www] section of your php-fpm.conf:<br />
+<br />
+[www]<br />
+catch_workers_output = yes</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="112045""></a>
+  <div class="note">
+   <strong class="user">kokushibyou at gmail dot com</strong>
+   <a href="#112045" class="date">25-Apr-2013 10:04</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+PHP-FPM is FAST - but be wary of using it while your code base is stored on NFS - under average load your NFS server will feel some serious strain. I have yet to find a work around for this bug: https://bugs.php.net/bug.php?id=52312</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="104691""></a>
+  <div class="note">
+   <strong class="user">joel k</strong>
+   <a href="#104691" class="date">30-Jun-2011 12:56</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+the fpm process supports the USER2 signal, which is used to reload the config file.<br />
+<br />
+kill -USR2 [pid]<br />
+<br />
+should do the trick.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="101366""></a>
+  <div class="note">
+   <strong class="user">robin at robinwinslow dot co dot uk</strong>
+   <a href="#101366" class="date">12-Dec-2010 10:05</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Init script setup<br />
+===<br />
+<br />
+You will probably want to create an init script for your new php-fpm. Fortunately, PHP 5.3.3 provides one for you, which you should copy to your init directory and change permissions:<br />
+<br />
+$ cp &lt;php-5.3.3-source-dir&gt;/sapi/fpm/init.d.php-fpm.in /etc/init.d/php-fpm<br />
+$ chmod 755 /etc/init.d/php-fpm<br />
+<br />
+It requires a certain amount of setup. First of all, make sure your php-fpm.conf file is set up to&nbsp; create a PID file when php-fpm starts. E.g.:<br />
+----<br />
+pid = /var/run/php-fpm.pid<br />
+----<br />
+(also make sure your php-fpm user has permission to create this file).<br />
+<br />
+Now open up your new init script (/etc/init.d/php-fpm) and set the variables at the top to their relevant values. E.g.:<br />
+---<br />
+prefix=<br />
+exec_prefix=<br />
+php_fpm_BIN=/sbin/php-fpm<br />
+php_fpm_CONF=/etc/php-fpm.conf<br />
+php_fpm_PID=/var/run/php-fpm.pid<br />
+---<br />
+<br />
+Your init script is now ready. You should now be able to start, stop and reload php-fpm:<br />
+<br />
+$ /etc/init.d/php-fpm start<br />
+$ /etc/init.d/php-fpm stop<br />
+$ /etc/init.d/php-fpm reload<br />
+<br />
+The one remaining thing you may wish to do is to add your new php-fpm init script to system start-up. E.g. in CentOS:<br />
+<br />
+$ /sbin/chkconfig php-fpm on<br />
+<br />
+===========<br />
+<br />
+Disclaimer: Although I did just do this on my own server about 20 mins ago, everything I've written here is off the top of my head, so it may not be 100% correct. Also, allow for differences in system setup. Some understanding of what you are doing is assumed.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

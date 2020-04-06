@@ -1,0 +1,948 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>The EventBufferEvent class</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="eventbuffer.write.html">? EventBuffer::write</a></li>
+      <li style="float: right;"><a href="eventbufferevent.close.html">EventBufferEvent::close ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="book.event.html">Event</a></li>
+    <li>The EventBufferEvent class</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="class.eventbufferevent" class="reference">
+ <h1 class="title">The EventBufferEvent class</h1>
+ 
+ <div class="partintro"><p class="verinfo">(PECL event &gt;= 1.2.6-beta)</p>
+
+  <div class="section" id="eventbufferevent.intro">
+   <h2 class="title">简介</h2>
+   <p class="para">
+    Represents Libevent&#039;s buffer event.
+   </p>
+   <p class="para">
+    Usually an application wants to perform some amount of data buffering in
+    addition to just responding to events. When we want to write data, for
+    example, the usual pattern looks like:
+   </p>
+   <ol type="1">
+    <li class="listitem">
+     <p class="para">
+      Decide that we want to write some data to a connection; put that data in
+      a buffer.
+     </p>
+    </li>
+    <li class="listitem">
+     <p class="para">
+      Wait for the connection to become writable
+     </p>
+    </li>
+    <li class="listitem">
+     <p class="para">
+      Write as much of the data as we can
+     </p>
+    </li>
+    <li class="listitem">
+     <p class="para">
+      Remember how much we wrote, and if we still have more data to write,
+      wait for the connection to become writable again.
+     </p>
+    </li>
+   </ol>
+   <p class="para">
+    This buffered I/O pattern is common enough that Libevent provides a
+    generic mechanism for it. A &quot;buffer event&quot; consists of an underlying
+    transport (like a socket), a read buffer, and a write buffer. Instead of
+    regular events, which give callbacks when the underlying transport is
+    ready to be read or written, a buffer event invokes its user-supplied
+    callbacks when it has read or written enough data.
+   </p>
+  </div>
+
+  <div class="section" id="eventbufferevent.synopsis">
+   <h2 class="title">类摘要</h2>
+
+
+   <div class="classsynopsis">
+    <div class="ooclass">
+     
+    </div>
+
+    <div class="classsynopsisinfo">
+     <span class="ooclass">
+      <span class="modifier">final</span>
+      <strong class="classname">EventBufferEvent</strong>
+     </span>
+     {</div>
+
+    <div class="classsynopsisinfo classsynopsisinfo_comment">/* Constants */</div>
+    <div class="fieldsynopsis">
+     <span class="modifier">const</span>
+     <span class="type">integer</span>
+      <var class="fieldsynopsis_varname"><a href="class.eventbufferevent.html#eventbufferevent.constants.reading"><var class="varname">READING</var></a></var>
+     <span class="initializer"> = 1</span>
+    ;</div>
+
+    <div class="fieldsynopsis">
+     <span class="modifier">const</span>
+     <span class="type">integer</span>
+      <var class="fieldsynopsis_varname"><a href="class.eventbufferevent.html#eventbufferevent.constants.writing"><var class="varname">WRITING</var></a></var>
+     <span class="initializer"> = 2</span>
+    ;</div>
+
+    <div class="fieldsynopsis">
+     <span class="modifier">const</span>
+     <span class="type">integer</span>
+      <var class="fieldsynopsis_varname"><a href="class.eventbufferevent.html#eventbufferevent.constants.eof"><var class="varname">EOF</var></a></var>
+     <span class="initializer"> = 16</span>
+    ;</div>
+
+    <div class="fieldsynopsis">
+     <span class="modifier">const</span>
+     <span class="type">integer</span>
+      <var class="fieldsynopsis_varname"><a href="class.eventbufferevent.html#eventbufferevent.constants.error"><var class="varname">ERROR</var></a></var>
+     <span class="initializer"> = 32</span>
+    ;</div>
+
+    <div class="fieldsynopsis">
+     <span class="modifier">const</span>
+     <span class="type">integer</span>
+      <var class="fieldsynopsis_varname"><a href="class.eventbufferevent.html#eventbufferevent.constants.timeout"><var class="varname">TIMEOUT</var></a></var>
+     <span class="initializer"> = 64</span>
+    ;</div>
+
+    <div class="fieldsynopsis">
+     <span class="modifier">const</span>
+     <span class="type">integer</span>
+      <var class="fieldsynopsis_varname"><a href="class.eventbufferevent.html#eventbufferevent.constants.connected"><var class="varname">CONNECTED</var></a></var>
+     <span class="initializer"> = 128</span>
+    ;</div>
+
+    <div class="fieldsynopsis">
+     <span class="modifier">const</span>
+     <span class="type">integer</span>
+      <var class="fieldsynopsis_varname"><a href="class.eventbufferevent.html#eventbufferevent.constants.opt-close-on-free"><var class="varname">OPT_CLOSE_ON_FREE</var></a></var>
+     <span class="initializer"> = 1</span>
+    ;</div>
+
+    <div class="fieldsynopsis">
+     <span class="modifier">const</span>
+     <span class="type">integer</span>
+      <var class="fieldsynopsis_varname"><a href="class.eventbufferevent.html#eventbufferevent.constants.opt-threadsafe"><var class="varname">OPT_THREADSAFE</var></a></var>
+     <span class="initializer"> = 2</span>
+    ;</div>
+
+    <div class="fieldsynopsis">
+     <span class="modifier">const</span>
+     <span class="type">integer</span>
+      <var class="fieldsynopsis_varname"><a href="class.eventbufferevent.html#eventbufferevent.constants.opt-defer-callbacks"><var class="varname">OPT_DEFER_CALLBACKS</var></a></var>
+     <span class="initializer"> = 4</span>
+    ;</div>
+
+    <div class="fieldsynopsis">
+     <span class="modifier">const</span>
+     <span class="type">integer</span>
+      <var class="fieldsynopsis_varname"><a href="class.eventbufferevent.html#eventbufferevent.constants.opt-unlock-callbacks"><var class="varname">OPT_UNLOCK_CALLBACKS</var></a></var>
+     <span class="initializer"> = 8</span>
+    ;</div>
+
+    <div class="fieldsynopsis">
+     <span class="modifier">const</span>
+     <span class="type">integer</span>
+      <var class="fieldsynopsis_varname"><a href="class.eventbufferevent.html#eventbufferevent.constants.ssl-open"><var class="varname">SSL_OPEN</var></a></var>
+     <span class="initializer"> = 0</span>
+    ;</div>
+
+    <div class="fieldsynopsis">
+     <span class="modifier">const</span>
+     <span class="type">integer</span>
+      <var class="fieldsynopsis_varname"><a href="class.eventbufferevent.html#eventbufferevent.constants.ssl-connecting"><var class="varname">SSL_CONNECTING</var></a></var>
+     <span class="initializer"> = 1</span>
+    ;</div>
+
+    <div class="fieldsynopsis">
+     <span class="modifier">const</span>
+     <span class="type">integer</span>
+      <var class="fieldsynopsis_varname"><a href="class.eventbufferevent.html#eventbufferevent.constants.ssl-accepting"><var class="varname">SSL_ACCEPTING</var></a></var>
+     <span class="initializer"> = 2</span>
+    ;</div>
+
+    <div class="classsynopsisinfo classsynopsisinfo_comment">/* 属性 */</div>
+    <div class="fieldsynopsis">
+     <span class="modifier">public</span>
+     <span class="type">integer</span>
+      <var class="varname"><a href="class.eventbufferevent.html#eventbufferevent.props.fd">$<var class="varname">fd</var></a></var>
+    ;</div>
+
+    <div class="fieldsynopsis">
+     <span class="modifier">public</span>
+     <span class="type">integer</span>
+      <var class="varname"><a href="class.eventbufferevent.html#eventbufferevent.props.priority">$<var class="varname">priority</var></a></var>
+    ;</div>
+
+    <div class="fieldsynopsis">
+     <span class="modifier">public</span>
+     <span class="modifier">readonly</span>
+     <span class="type"><a href="class.eventbuffer.html" class="type EventBuffer">EventBuffer</a></span>
+      <var class="varname"><a href="class.eventbufferevent.html#eventbufferevent.props.input">$<var class="varname">input</var></a></var>
+    ;</div>
+
+    <div class="fieldsynopsis">
+     <span class="modifier">public</span>
+     <span class="modifier">readonly</span>
+     <span class="type"><a href="class.eventbuffer.html" class="type EventBuffer">EventBuffer</a></span>
+      <var class="varname"><a href="class.eventbufferevent.html#eventbufferevent.props.output">$<var class="varname">output</var></a></var>
+    ;</div>
+
+    <div class="classsynopsisinfo classsynopsisinfo_comment">/* 方法 */</div>
+    <div class="methodsynopsis dc-description">
+   <span class="modifier">public</span>
+   
+   <span class="methodname"><a href="eventbufferevent.close.html" class="methodname">close</a></span>
+    ( <span class="methodparam">void</span>
+   ) : <span class="type"><span class="type void">void</span></span></div>
+<div class="methodsynopsis dc-description">
+   <span class="modifier">public</span>
+   
+   <span class="methodname"><a href="eventbufferevent.connect.html" class="methodname">connect</a></span>
+    ( <span class="methodparam">
+    <span class="type">string</span>
+     <code class="parameter">$addr</code>
+   </span>
+   ) : <span class="type">bool</span></div>
+<div class="methodsynopsis dc-description">
+   <span class="modifier">public</span>
+   
+   <span class="methodname"><a href="eventbufferevent.connecthost.html" class="methodname">connectHost</a></span>
+    ( <span class="methodparam">
+    <span class="type"><a href="class.eventdnsbase.html" class="type EventDnsBase">EventDnsBase</a></span>
+     <code class="parameter">$dns_base</code>
+   </span>
+   , <span class="methodparam">
+    <span class="type">string</span>
+     <code class="parameter">$hostname</code>
+   </span>
+   , <span class="methodparam">
+    <span class="type">int</span>
+     <code class="parameter">$port</code>
+   </span>
+   [, <span class="methodparam">
+    <span class="type">int</span>
+     <code class="parameter">$family</code>
+    <span class="initializer"> = EventUtil::AF_UNSPEC</span>
+   </span>
+  ] ) : <span class="type">bool</span></div>
+<div class="methodsynopsis dc-description">
+   <span class="modifier">public</span>
+   <span class="methodname"><a href="eventbufferevent.construct.html" class="methodname">__construct</a></span>
+    ( <span class="methodparam">
+    <span class="type"><a href="class.eventbase.html" class="type EventBase">EventBase</a></span>
+     <code class="parameter">$base</code>
+   </span>
+   [, <span class="methodparam">
+    <span class="type"><a href="language.pseudo-types.html#language.types.mixed" class="type mixed">mixed</a></span>
+     <code class="parameter">$socket</code>
+    <span class="initializer"> = <strong><code>NULL</code></strong></span>
+   </span>
+   [, <span class="methodparam">
+    <span class="type">int</span>
+     <code class="parameter">$options</code>
+    <span class="initializer"> = 0</span>
+   </span>
+   [, <span class="methodparam">
+    <span class="type"><a href="language.types.callable.html" class="type callable">callable</a></span>
+     <code class="parameter">$readcb</code>
+    <span class="initializer"> = <strong><code>NULL</code></strong></span>
+   </span>
+   [, <span class="methodparam">
+    <span class="type"><a href="language.types.callable.html" class="type callable">callable</a></span>
+     <code class="parameter">$writecb</code>
+    <span class="initializer"> = <strong><code>NULL</code></strong></span>
+   </span>
+   [, <span class="methodparam">
+    <span class="type"><a href="language.types.callable.html" class="type callable">callable</a></span>
+     <code class="parameter">$eventcb</code>
+    <span class="initializer"> = <strong><code>NULL</code></strong></span>
+   </span>
+  ]]]]] )</div>
+<div class="methodsynopsis dc-description">
+   <span class="modifier">public</span>
+   <span class="modifier">static</span>
+   
+   <span class="methodname"><a href="eventbufferevent.createpair.html" class="methodname">createPair</a></span>
+    ( <span class="methodparam">
+    <span class="type"><a href="class.eventbase.html" class="type EventBase">EventBase</a></span>
+     <code class="parameter">$base</code>
+   </span>
+   [, <span class="methodparam">
+    <span class="type">int</span>
+     <code class="parameter">$options</code>
+    <span class="initializer"> = 0</span>
+   </span>
+  ] ) : <span class="type">array</span></div>
+<div class="methodsynopsis dc-description">
+   <span class="modifier">public</span>
+   
+   <span class="methodname"><a href="eventbufferevent.disable.html" class="methodname">disable</a></span>
+    ( <span class="methodparam">
+    <span class="type">int</span>
+     <code class="parameter">$events</code>
+   </span>
+   ) : <span class="type">bool</span></div>
+<div class="methodsynopsis dc-description">
+   <span class="modifier">public</span>
+   
+   <span class="methodname"><a href="eventbufferevent.enable.html" class="methodname">enable</a></span>
+    ( <span class="methodparam">
+    <span class="type">int</span>
+     <code class="parameter">$events</code>
+   </span>
+   ) : <span class="type">bool</span></div>
+<div class="methodsynopsis dc-description">
+   <span class="modifier">public</span>
+   
+   <span class="methodname"><a href="eventbufferevent.free.html" class="methodname">free</a></span>
+    ( <span class="methodparam">void</span>
+   ) : <span class="type"><span class="type void">void</span></span></div>
+<div class="methodsynopsis dc-description">
+   <span class="modifier">public</span>
+   
+   <span class="methodname"><a href="eventbufferevent.getdnserrorstring.html" class="methodname">getDnsErrorString</a></span>
+    ( <span class="methodparam">void</span>
+   ) : <span class="type">string</span></div>
+<div class="methodsynopsis dc-description">
+   <span class="modifier">public</span>
+   
+   <span class="methodname"><a href="eventbufferevent.getenabled.html" class="methodname">getEnabled</a></span>
+    ( <span class="methodparam">void</span>
+   ) : <span class="type">int</span></div>
+<div class="methodsynopsis dc-description">
+   <span class="modifier">public</span>
+   
+   <span class="methodname"><a href="eventbufferevent.getinput.html" class="methodname">getInput</a></span>
+    ( <span class="methodparam">void</span>
+   ) : <span class="type"><a href="class.eventbuffer.html" class="type EventBuffer">EventBuffer</a></span></div>
+<div class="methodsynopsis dc-description">
+   <span class="modifier">public</span>
+   
+   <span class="methodname"><a href="eventbufferevent.getoutput.html" class="methodname">getOutput</a></span>
+    ( <span class="methodparam">void</span>
+   ) : <span class="type"><a href="class.eventbuffer.html" class="type EventBuffer">EventBuffer</a></span></div>
+<div class="methodsynopsis dc-description">
+   <span class="modifier">public</span>
+   
+   <span class="methodname"><a href="eventbufferevent.read.html" class="methodname">read</a></span>
+    ( <span class="methodparam">
+    <span class="type">int</span>
+     <code class="parameter">$size</code>
+   </span>
+   ) : <span class="type">string</span></div>
+<div class="methodsynopsis dc-description">
+   <span class="modifier">public</span>
+   
+   <span class="methodname"><a href="eventbufferevent.readbuffer.html" class="methodname">readBuffer</a></span>
+    ( <span class="methodparam">
+    <span class="type"><a href="class.eventbuffer.html" class="type EventBuffer">EventBuffer</a></span>
+     <code class="parameter">$buf</code>
+   </span>
+   ) : <span class="type">bool</span></div>
+<div class="methodsynopsis dc-description">
+   <span class="modifier">public</span>
+   
+   <span class="methodname"><a href="eventbufferevent.setcallbacks.html" class="methodname">setCallbacks</a></span>
+    ( <span class="methodparam">
+    <span class="type"><a href="language.types.callable.html" class="type callable">callable</a></span>
+     <code class="parameter">$readcb</code>
+   </span>
+   , <span class="methodparam">
+    <span class="type"><a href="language.types.callable.html" class="type callable">callable</a></span>
+     <code class="parameter">$writecb</code>
+   </span>
+   , <span class="methodparam">
+    <span class="type"><a href="language.types.callable.html" class="type callable">callable</a></span>
+     <code class="parameter">$eventcb</code>
+   </span>
+   [, <span class="methodparam">
+    <span class="type">string</span>
+     <code class="parameter">$arg</code>
+   </span>
+  ] ) : <span class="type"><span class="type void">void</span></span></div>
+<div class="methodsynopsis dc-description">
+   <span class="modifier">public</span>
+   
+   <span class="methodname"><a href="eventbufferevent.setpriority.html" class="methodname">setPriority</a></span>
+    ( <span class="methodparam">
+    <span class="type">int</span>
+     <code class="parameter">$priority</code>
+   </span>
+   ) : <span class="type">bool</span></div>
+<div class="methodsynopsis dc-description">
+   <span class="modifier">public</span>
+   
+   <span class="methodname"><a href="eventbufferevent.settimeouts.html" class="methodname">setTimeouts</a></span>
+    ( <span class="methodparam">
+    <span class="type">float</span>
+     <code class="parameter">$timeout_read</code>
+   </span>
+   , <span class="methodparam">
+    <span class="type">float</span>
+     <code class="parameter">$timeout_write</code>
+   </span>
+   ) : <span class="type">bool</span></div>
+<div class="methodsynopsis dc-description">
+   <span class="modifier">public</span>
+   
+   <span class="methodname"><a href="eventbufferevent.setwatermark.html" class="methodname">setWatermark</a></span>
+    ( <span class="methodparam">
+    <span class="type">int</span>
+     <code class="parameter">$events</code>
+   </span>
+   , <span class="methodparam">
+    <span class="type">int</span>
+     <code class="parameter">$lowmark</code>
+   </span>
+   , <span class="methodparam">
+    <span class="type">int</span>
+     <code class="parameter">$highmark</code>
+   </span>
+   ) : <span class="type"><span class="type void">void</span></span></div>
+<div class="methodsynopsis dc-description">
+   <span class="modifier">public</span>
+   
+   <span class="methodname"><a href="eventbufferevent.sslerror.html" class="methodname">sslError</a></span>
+    ( <span class="methodparam">void</span>
+   ) : <span class="type">string</span></div>
+<div class="methodsynopsis dc-description">
+   <span class="modifier">public</span>
+   <span class="modifier">static</span>
+   
+   <span class="methodname"><a href="eventbufferevent.sslfilter.html" class="methodname">sslFilter</a></span>
+    ( <span class="methodparam">
+    <span class="type"><a href="class.eventbase.html" class="type EventBase">EventBase</a></span>
+     <code class="parameter">$base</code>
+   </span>
+   , <span class="methodparam">
+    <span class="type"><a href="class.eventbufferevent.html" class="type EventBufferEvent">EventBufferEvent</a></span>
+     <code class="parameter">$underlying</code>
+   </span>
+   , <span class="methodparam">
+    <span class="type"><a href="class.eventsslcontext.html" class="type EventSslContext">EventSslContext</a></span>
+     <code class="parameter">$ctx</code>
+   </span>
+   , <span class="methodparam">
+    <span class="type">int</span>
+     <code class="parameter">$state</code>
+   </span>
+   [, <span class="methodparam">
+    <span class="type">int</span>
+     <code class="parameter">$options</code>
+    <span class="initializer"> = 0</span>
+   </span>
+  ] ) : <span class="type"><a href="class.eventbufferevent.html" class="type EventBufferEvent">EventBufferEvent</a></span></div>
+<div class="methodsynopsis dc-description">
+   <span class="modifier">public</span>
+   
+   <span class="methodname"><a href="eventbufferevent.sslgetcipherinfo.html" class="methodname">sslGetCipherInfo</a></span>
+    ( <span class="methodparam">void</span>
+   ) : <span class="type">string</span></div>
+<div class="methodsynopsis dc-description">
+   <span class="modifier">public</span>
+   
+   <span class="methodname"><a href="eventbufferevent.sslgetciphername.html" class="methodname">sslGetCipherName</a></span>
+    ( <span class="methodparam">void</span>
+   ) : <span class="type">string</span></div>
+<div class="methodsynopsis dc-description">
+   <span class="modifier">public</span>
+   
+   <span class="methodname"><a href="eventbufferevent.sslgetcipherversion.html" class="methodname">sslGetCipherVersion</a></span>
+    ( <span class="methodparam">void</span>
+   ) : <span class="type">string</span></div>
+<div class="methodsynopsis dc-description">
+   <span class="modifier">public</span>
+   
+   <span class="methodname"><a href="eventbufferevent.sslgetprotocol.html" class="methodname">sslGetProtocol</a></span>
+    ( <span class="methodparam">void</span>
+   ) : <span class="type">string</span></div>
+<div class="methodsynopsis dc-description">
+   <span class="modifier">public</span>
+   
+   <span class="methodname"><a href="eventbufferevent.sslrenegotiate.html" class="methodname">sslRenegotiate</a></span>
+    ( <span class="methodparam">void</span>
+   ) : <span class="type"><span class="type void">void</span></span></div>
+<div class="methodsynopsis dc-description">
+   <span class="modifier">public</span>
+   <span class="modifier">static</span>
+   
+   <span class="methodname"><a href="eventbufferevent.sslsocket.html" class="methodname">sslSocket</a></span>
+    ( <span class="methodparam">
+    <span class="type"><a href="class.eventbase.html" class="type EventBase">EventBase</a></span>
+     <code class="parameter">$base</code>
+   </span>
+   , <span class="methodparam">
+    <span class="type"><a href="language.pseudo-types.html#language.types.mixed" class="type mixed">mixed</a></span>
+     <code class="parameter">$socket</code>
+   </span>
+   , <span class="methodparam">
+    <span class="type"><a href="class.eventsslcontext.html" class="type EventSslContext">EventSslContext</a></span>
+     <code class="parameter">$ctx</code>
+   </span>
+   , <span class="methodparam">
+    <span class="type">int</span>
+     <code class="parameter">$state</code>
+   </span>
+   [, <span class="methodparam">
+    <span class="type">int</span>
+     <code class="parameter">$options</code>
+   </span>
+  ] ) : <span class="type"><a href="class.eventbufferevent.html" class="type EventBufferEvent">EventBufferEvent</a></span></div>
+<div class="methodsynopsis dc-description">
+   <span class="modifier">public</span>
+   
+   <span class="methodname"><a href="eventbufferevent.write.html" class="methodname">write</a></span>
+    ( <span class="methodparam">
+    <span class="type">string</span>
+     <code class="parameter">$data</code>
+   </span>
+   ) : <span class="type">bool</span></div>
+<div class="methodsynopsis dc-description">
+   <span class="modifier">public</span>
+   
+   <span class="methodname"><a href="eventbufferevent.writebuffer.html" class="methodname">writeBuffer</a></span>
+    ( <span class="methodparam">
+    <span class="type"><a href="class.eventbuffer.html" class="type EventBuffer">EventBuffer</a></span>
+     <code class="parameter">$buf</code>
+   </span>
+   ) : <span class="type">bool</span></div>
+
+   }</div>
+
+  </div>
+
+  <div class="section" id="eventbufferevent.props">
+   <h2 class="title">属性</h2>
+   <dl>
+
+    
+     <dt id="eventbufferevent.props.fd">
+      <var class="varname"><var class="varname">fd</var></var>
+     </dt>
+
+     <dd>
+
+      <p class="para">
+       Numeric file descriptor associated with the buffer event. Normally
+       represents a bound socket. Equals to <strong><code>NULL</code></strong>, if there is no file
+       descriptor(socket) associated with the buffer event.
+      </p>
+     </dd>
+
+    
+    
+     <dt id="eventbufferevent.props.priority">
+      <var class="varname"><var class="varname">priority</var></var>
+     </dt>
+
+     <dd>
+
+      <p class="para">
+       The priority of the events used to implement the buffer event.
+      </p>
+     </dd>
+
+    
+    
+     <dt id="eventbufferevent.props.input">
+      <var class="varname"><var class="varname">input</var></var>
+     </dt>
+
+     <dd>
+
+      <p class="para">
+       Underlying input buffer object(
+       <a href="class.eventbuffer.html" class="classname">EventBuffer</a>
+       )
+      </p>
+     </dd>
+
+    
+    
+     <dt id="eventbufferevent.props.output">
+      <var class="varname"><var class="varname">output</var></var>
+     </dt>
+
+     <dd>
+
+      <p class="para">
+       Underlying output buffer object(
+       <a href="class.eventbuffer.html" class="classname">EventBuffer</a>
+       )
+      </p>
+     </dd>
+
+    
+   </dl>
+
+  </div>
+
+
+  <div class="section" id="eventbufferevent.constants">
+   <h2 class="title">预定义常量</h2>
+   <dl>
+
+    
+     <dt id="eventbufferevent.constants.reading">
+      <strong><code>EventBufferEvent::READING</code></strong>
+     </dt>
+
+     <dd>
+
+      <p class="para">
+       An event occurred during a read operation on the bufferevent. See the
+       other flags for which event it was.
+      </p>
+     </dd>
+
+    
+    
+     <dt id="eventbufferevent.constants.writing">
+      <strong><code>EventBufferEvent::WRITING</code></strong>
+     </dt>
+
+     <dd>
+
+      <p class="para">
+       An event occurred during a write operation on the bufferevent. See the
+       other flags for which event it was.
+      </p>
+     </dd>
+
+    
+    
+     <dt id="eventbufferevent.constants.eof">
+      <strong><code>EventBufferEvent::EOF</code></strong>
+     </dt>
+
+     <dd>
+
+      <p class="para">
+       Got an end-of-file indication on the buffer event.
+      </p>
+     </dd>
+
+    
+    
+     <dt id="eventbufferevent.constants.error">
+      <strong><code>EventBufferEvent::ERROR</code></strong>
+     </dt>
+
+     <dd>
+
+      <p class="para">
+       An error occurred during a bufferevent operation. For more information
+       on what the error was, call
+       <span class="methodname"><a href="eventutil.getlastsocketerrno.html" class="methodname">EventUtil::getLastSocketErrno()</a></span>
+       and/or
+       <span class="methodname"><a href="eventutil.getlastsocketerror.html" class="methodname">EventUtil::getLastSocketError()</a></span>
+       .
+      </p>
+     </dd>
+
+    
+    
+     <dt id="eventbufferevent.constants.timeout">
+      <strong><code>EventBufferEvent::TIMEOUT</code></strong>
+     </dt>
+
+     <dd>
+
+      <p class="para"/>
+     </dd>
+
+    
+    
+     <dt id="eventbufferevent.constants.connected">
+      <strong><code>EventBufferEvent::CONNECTED</code></strong>
+     </dt>
+
+     <dd>
+
+      <p class="para">
+       Finished a requested connection on the bufferevent.
+      </p>
+     </dd>
+
+    
+    
+     <dt id="eventbufferevent.constants.opt-close-on-free">
+      <strong><code>EventBufferEvent::OPT_CLOSE_ON_FREE</code></strong>
+     </dt>
+
+     <dd>
+
+      <p class="para">
+       When the buffer event is freed, close the underlying transport. This
+       will close an underlying socket, free an underlying buffer event, etc.
+      </p>
+     </dd>
+
+    
+    
+     <dt id="eventbufferevent.constants.opt-threadsafe">
+      <strong><code>EventBufferEvent::OPT_THREADSAFE</code></strong>
+     </dt>
+
+     <dd>
+
+      <p class="para">
+       Automatically allocate locks for the bufferevent, so that it's safe
+       to use from multiple threads.
+      </p>
+     </dd>
+
+    
+    
+     <dt id="eventbufferevent.constants.opt-defer-callbacks">
+      <strong><code>EventBufferEvent::OPT_DEFER_CALLBACKS</code></strong>
+     </dt>
+
+     <dd>
+
+      <p class="para">
+       When this flag is set, the bufferevent defers all of its callbacks. See
+       <a href="http://www.wangafu.net/~nickm/libevent-book/Ref6_bufferevent.html#_deferred_callbacks" class="link external" title="Link : http://www.wangafu.net/~nickm/libevent-book/Ref6_bufferevent.html#_deferred_callbacks">&raquo;&nbsp;Fast
+      portable non-blocking network programming with Libevent, Deferred callbacks</a>
+       .
+      </p>
+     </dd>
+
+    
+    
+     <dt id="eventbufferevent.constants.opt-unlock-callbacks">
+      <strong><code>EventBufferEvent::OPT_UNLOCK_CALLBACKS</code></strong>
+     </dt>
+
+     <dd>
+
+      <p class="para">
+       By default, when the bufferevent is set up to be threadsafe, the buffer
+       event's locks are held whenever the any user-provided callback is
+       invoked. Setting this option makes Libevent release the buffer
+       event's lock when it's invoking the callbacks.
+      </p>
+     </dd>
+
+    
+    
+     <dt id="eventbufferevent.constants.ssl-open">
+      <strong><code>EventBufferEvent::SSL_OPEN</code></strong>
+     </dt>
+
+     <dd>
+
+      <p class="para">
+       The SSL handshake is done
+      </p>
+     </dd>
+
+    
+    
+     <dt id="eventbufferevent.constants.ssl-connecting">
+      <strong><code>EventBufferEvent::SSL_CONNECTING</code></strong>
+     </dt>
+
+     <dd>
+
+      <p class="para">
+       SSL is currently performing negotiation as a client
+      </p>
+     </dd>
+
+    
+    
+     <dt id="eventbufferevent.constants.ssl-accepting">
+      <strong><code>EventBufferEvent::SSL_ACCEPTING</code></strong>
+     </dt>
+
+     <dd>
+
+      <p class="para">
+       SSL is currently performing negotiation as a server
+      </p>
+     </dd>
+
+    
+   </dl>
+
+  </div>
+
+ </div>
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h2>Table of Contents</h2><ul class="chunklist chunklist_reference"><li><a href="eventbufferevent.close.html">EventBufferEvent::close</a> &mdash; Closes file descriptor associated with the current buffer event</li><li><a href="eventbufferevent.connect.html">EventBufferEvent::connect</a> &mdash; Connect buffer event's file descriptor to given address or
+  UNIX socket</li><li><a href="eventbufferevent.connecthost.html">EventBufferEvent::connectHost</a> &mdash; Connects to a hostname with optionally asyncronous DNS resolving</li><li><a href="eventbufferevent.construct.html">EventBufferEvent::__construct</a> &mdash; Constructs EventBufferEvent object</li><li><a href="eventbufferevent.createpair.html">EventBufferEvent::createPair</a> &mdash; Creates two buffer events connected to each other</li><li><a href="eventbufferevent.disable.html">EventBufferEvent::disable</a> &mdash; Disable events read, write, or both on a buffer event</li><li><a href="eventbufferevent.enable.html">EventBufferEvent::enable</a> &mdash; Enable events read, write, or both on a buffer event</li><li><a href="eventbufferevent.free.html">EventBufferEvent::free</a> &mdash; Free a buffer event</li><li><a href="eventbufferevent.getdnserrorstring.html">EventBufferEvent::getDnsErrorString</a> &mdash; Returns string describing the last failed DNS lookup attempt</li><li><a href="eventbufferevent.getenabled.html">EventBufferEvent::getEnabled</a> &mdash; Returns bitmask of events currently enabled on the buffer event</li><li><a href="eventbufferevent.getinput.html">EventBufferEvent::getInput</a> &mdash; Returns underlying input buffer associated with current buffer
+  event</li><li><a href="eventbufferevent.getoutput.html">EventBufferEvent::getOutput</a> &mdash; Returns underlying output buffer associated with current buffer
+  event</li><li><a href="eventbufferevent.read.html">EventBufferEvent::read</a> &mdash; Read buffer's data</li><li><a href="eventbufferevent.readbuffer.html">EventBufferEvent::readBuffer</a> &mdash; Drains the entire contents of the input buffer and places them into buf</li><li><a href="eventbufferevent.setcallbacks.html">EventBufferEvent::setCallbacks</a> &mdash; Assigns read, write and event(status) callbacks</li><li><a href="eventbufferevent.setpriority.html">EventBufferEvent::setPriority</a> &mdash; Assign a priority to a bufferevent</li><li><a href="eventbufferevent.settimeouts.html">EventBufferEvent::setTimeouts</a> &mdash; Set the read and write timeout for a buffer event</li><li><a href="eventbufferevent.setwatermark.html">EventBufferEvent::setWatermark</a> &mdash; Adjusts read and/or write watermarks</li><li><a href="eventbufferevent.sslerror.html">EventBufferEvent::sslError</a> &mdash; Returns most recent OpenSSL error reported on the buffer event</li><li><a href="eventbufferevent.sslfilter.html">EventBufferEvent::sslFilter</a> &mdash; Create a new SSL buffer event to send its data over another buffer event</li><li><a href="eventbufferevent.sslgetcipherinfo.html">EventBufferEvent::sslGetCipherInfo</a> &mdash; Returns a textual description of the cipher</li><li><a href="eventbufferevent.sslgetciphername.html">EventBufferEvent::sslGetCipherName</a> &mdash; Returns the current cipher name of the SSL connection</li><li><a href="eventbufferevent.sslgetcipherversion.html">EventBufferEvent::sslGetCipherVersion</a> &mdash; Returns version of cipher used by current SSL connection</li><li><a href="eventbufferevent.sslgetprotocol.html">EventBufferEvent::sslGetProtocol</a> &mdash; Returns the name of the protocol used for current SSL connection</li><li><a href="eventbufferevent.sslrenegotiate.html">EventBufferEvent::sslRenegotiate</a> &mdash; Tells a bufferevent to begin SSL renegotiation</li><li><a href="eventbufferevent.sslsocket.html">EventBufferEvent::sslSocket</a> &mdash; Creates a new SSL buffer event to send its data over an SSL on a socket</li><li><a href="eventbufferevent.write.html">EventBufferEvent::write</a> &mdash; Adds data to a buffer event's output buffer</li><li><a href="eventbufferevent.writebuffer.html">EventBufferEvent::writeBuffer</a> &mdash; Adds contents of the entire buffer to a buffer event's output
+  buffer</li></ul>
+</div>
+<div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+ <div class="note">There are no user contributed notes for this page.</div>
+</div>
+</div></div></body></html>

@@ -1,0 +1,147 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Checks if the cursor is exhausted or may have additional results</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="mongodb-driver-cursor.getserver.html">? MongoDB\Driver\Cursor::getServer</a></li>
+      <li style="float: right;"><a href="mongodb-driver-cursor.settypemap.html">MongoDB\Driver\Cursor::setTypeMap ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="class.mongodb-driver-cursor.html">MongoDB\Driver\Cursor</a></li>
+    <li>Checks if the cursor is exhausted or may have additional results</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="mongodb-driver-cursor.isdead" class="refentry">
+ <div class="refnamediv">
+  <h1 class="refname">MongoDB\Driver\Cursor::isDead</h1>
+  <p class="verinfo">(mongodb &gt;=1.0.0)</p><p class="refpurpose"><span class="refname">MongoDB\Driver\Cursor::isDead</span> &mdash; <span class="dc-title">Checks if the cursor is exhausted or may have additional results</span></p>
+
+ </div>
+
+ <div class="refsect1 description" id="refsect1-mongodb-driver-cursor.isdead-description">
+  <h3 class="title">说明</h3>
+  <div class="methodsynopsis dc-description">
+   <span class="modifier">final</span> <span class="modifier">public</span> <span class="methodname"><strong>MongoDB\Driver\Cursor::isDead</strong></span>
+    ( <span class="methodparam">void</span>
+   ) : <span class="type">bool</span></div>
+
+  <p class="para rdfs-comment">
+   Checks whether there are definitely no additional results available on the
+   cursor. This method is similar to the
+   <a href="https://docs.mongodb.com/manual/reference/method/cursor.isExhausted/" class="link external" title="Link : https://docs.mongodb.com/manual/reference/method/cursor.isExhausted/">&raquo;&nbsp;cursor.isExhausted()</a>
+   method in the MongoDB shell and is primarily useful when iterating
+   <a href="https://docs.mongodb.com/manual/core/tailable-cursors/" class="link external" title="Link : https://docs.mongodb.com/manual/core/tailable-cursors/">&raquo;&nbsp;tailable cursors</a>.
+  </p>
+  <p class="para">
+   A cursor has no additional results and is considered &quot;dead&quot; when one of the
+   following is true:
+   <ul class="simplelist">
+    <li class="member">
+     The current batch has been fully iterated <em class="emphasis">and</em> the
+     cursor ID is zero (i.e. a 
+     <a href="https://docs.mongodb.com/manual/reference/command/getMore/" class="link external" title="Link : https://docs.mongodb.com/manual/reference/command/getMore/">&raquo;&nbsp;getMore</a>
+     cannot be issued).
+    </li>
+    <li class="member">An error was encountered while iterating the cursor.</li>
+    <li class="member">The cursor reached its configured limit.</li>
+   </ul>
+  </p>
+  <p class="para">
+   By design, it is not possible to always determine whether a cursor has
+   additional results. The cases where a cursor <em class="emphasis">may</em> have
+   more data available is as follows:
+   <ul class="simplelist">
+    <li class="member">
+     There are additional documents in the current batch, which are buffered on
+     the client side. Iterating will fetch a document from the local buffer.
+    </li>
+    <li class="member">
+     There are no additional documents in the current batch (i.e. local buffer),
+     but the cursor ID is non-zero. Iterating will request more documents from
+     the server via a
+     <a href="https://docs.mongodb.com/manual/reference/command/getMore/" class="link external" title="Link : https://docs.mongodb.com/manual/reference/command/getMore/">&raquo;&nbsp;getMore</a>
+     operation, which may or may not return additional results and/or indicate
+     that the cursor has been closed on the server by returning zero for its ID.
+    </li>
+   </ul>
+  </p>
+ </div>
+
+
+ <div class="refsect1 parameters" id="refsect1-mongodb-driver-cursor.isdead-parameters">
+  <h3 class="title">参数</h3>
+  <p class="para">此函数没有参数。</p>
+ </div>
+
+
+ <div class="refsect1 returnvalues" id="refsect1-mongodb-driver-cursor.isdead-returnvalues">
+  <h3 class="title">返回值</h3>
+  <p class="para">
+   Returns <strong><code>TRUE</code></strong> if there are definitely no additional results available on the
+   cursor, and <strong><code>FALSE</code></strong> otherwise.
+  </p>
+ </div>
+
+
+ <div class="refsect1 errors" id="refsect1-mongodb-driver-cursor.isdead-errors">
+  <h3 class="title">错误／异常</h3>
+  <ul class="simplelist">
+   <li class="member">Throws <a href="class.mongodb-driver-exception-invalidargumentexception.html" class="classname">MongoDB\Driver\Exception\InvalidArgumentException</a> on argument parsing errors.</li>
+  </ul>
+ </div>
+
+
+
+ <div class="refsect1 examples" id="refsect1-mongodb-driver-cursor.isdead-examples">
+  <h3 class="title">范例</h3>
+  <div class="example" id="example-1713">
+   <p><strong>Example #1 <span class="function"><strong>MongoDB\Driver\Cursor::isDead()</strong></span> example</strong></p>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /><br />$manager&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">MongoDB</span><span style="color: #007700">\</span><span style="color: #0000BB">Driver</span><span style="color: #007700">\</span><span style="color: #0000BB">Manager</span><span style="color: #007700">(</span><span style="color: #DD0000">"mongodb://localhost:27017"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$query&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">MongoDB</span><span style="color: #007700">\</span><span style="color: #0000BB">Driver</span><span style="color: #007700">\</span><span style="color: #0000BB">Query</span><span style="color: #007700">([]);<br /><br /></span><span style="color: #0000BB">$bulk&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">MongoDB</span><span style="color: #007700">\</span><span style="color: #0000BB">Driver</span><span style="color: #007700">\</span><span style="color: #0000BB">BulkWrite</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$bulk</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">insert</span><span style="color: #007700">([</span><span style="color: #DD0000">'x'&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">]);<br /></span><span style="color: #0000BB">$bulk</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">insert</span><span style="color: #007700">([</span><span style="color: #DD0000">'x'&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #0000BB">2</span><span style="color: #007700">]);<br /></span><span style="color: #0000BB">$bulk</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">insert</span><span style="color: #007700">([</span><span style="color: #DD0000">'x'&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #0000BB">3</span><span style="color: #007700">]);<br /></span><span style="color: #0000BB">$manager</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">executeBulkWrite</span><span style="color: #007700">(</span><span style="color: #DD0000">'db.collection'</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$bulk</span><span style="color: #007700">);<br /><br /></span><span style="color: #0000BB">$cursor&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$manager</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">executeQuery</span><span style="color: #007700">(</span><span style="color: #DD0000">'db.collection'</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$query</span><span style="color: #007700">);<br /><br /></span><span style="color: #0000BB">$iterator&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">IteratorIterator</span><span style="color: #007700">(</span><span style="color: #0000BB">$cursor</span><span style="color: #007700">);<br /><br /></span><span style="color: #0000BB">$iterator</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">rewind</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$cursor</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">isDead</span><span style="color: #007700">());<br /><br /></span><span style="color: #0000BB">$iterator</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">next</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$cursor</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">isDead</span><span style="color: #007700">());<br /><br /></span><span style="color: #0000BB">$iterator</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">next</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$cursor</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">isDead</span><span style="color: #007700">());<br /><br /></span><span style="color: #0000BB">$iterator</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">next</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$cursor</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">isDead</span><span style="color: #007700">());<br /><br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+   <div class="example-contents"><p>以上例程会输出：</p></div>
+   <div class="example-contents screen">
+<div class="cdata"><pre>
+bool(false)
+bool(false)
+bool(false)
+bool(true)
+</pre></div>
+   </div>
+  </div>
+ </div>
+
+
+ <div class="refsect1 seealso" id="refsect1-mongodb-driver-cursor.isdead-seealso">
+  <h3 class="title">参见</h3>
+  <ul class="simplelist">
+   <li class="member"><a href="https://docs.mongodb.com/manual/core/tailable-cursors/" class="link external" title="Link : https://docs.mongodb.com/manual/core/tailable-cursors/">&raquo;&nbsp;Tailable Cursors</a> in the MongoDB manual</li>
+   <li class="member"><a href="https://docs.mongodb.com/manual/reference/method/cursor.isExhausted/" class="link external" title="Link : https://docs.mongodb.com/manual/reference/method/cursor.isExhausted/">&raquo;&nbsp;cursor.isExhausted()</a> in the MongoDB manual</li>
+  </ul>
+ </div>
+
+
+</div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+ <div class="note">There are no user contributed notes for this page.</div>
+</div>
+</div></div></body></html>

@@ -1,0 +1,483 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>会话管理基础</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="session.security.html">? 会话和安全</a></li>
+      <li style="float: right;"><a href="session.security.ini.html">和会话安全相关的配置项 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="session.security.html">会话和安全</a></li>
+    <li>会话管理基础</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="features.session.security.management" class="sect1">
+  <h2 class="title">会话管理基础</h2>
+  
+  <div class="sect2" id="features.session.security.management.basic">
+    <h3 class="title">会话安全</h3>
+  
+   <p class="para">
+     会话模块无法保证你存储在会话中的信息只能被创建会话的用户本人可见。
+     你需要采取额外的手段来保护会话中的机密信息，
+     至于采取何种方式来保护机密信息，
+     取决于你在会话中存储的数据的机密程度。
+    </p>
+   
+  
+   <p class="para">
+     评估会话中存储的数据的重要性，
+     以及为此增加额外的保护机制，
+     通常需要付出一定的代价，同时会降低便利性。
+     例如，如果你需要保护用户免受社会工程学攻击，
+     你需要启用 <em>session.use_only_cookies</em> 选项。
+     这就要求用户在使用过程中，必须把浏览器设置为接受 cookie，
+     否则就无法正常使用会话功能了。
+    </p>
+  
+    <p class="para">
+     有很多种方式都可以导致会话 ID 被泄露给第三方。
+     例如，JavaScript 注入，URL 中包含会话 ID，数据包侦听，
+     或者直接访问你的物理设备等。
+     如果会话 ID 被泄漏给第三方，
+     那么他们就可以访问这个会话 ID 可以访问的全部资源。
+     首先，如果在 URL 中包含了会话 ID，
+     并且访问了外部的站点，
+     那么你的会话 ID 可能在外部站点的访问日志中被记录（referrer 请求头）。
+     另外，攻击者也可以监听你的网络通信，如果通信未加密，
+     那么会话 ID 将会在网络中以明文的形式进行传输。
+     针对这种情况的解决方案就是在服务端配置 SSL/TLS，
+     另外，使用 HSTS 可以达到更高的安全性。
+   </p>
+   
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+    <span class="simpara">
+     即使使用 HTTPS 协议，也无法百分百保证机密数据不被泄漏。
+     例如，CRIME 和 BEAST 漏洞可以使得攻击者读取到你的数据。
+     另外，出于网络通信审计目的，很多网络中都存在 HTTPS MITM 代理，
+     可以读取 HTTPS 协议下的通信数据。
+     那么攻击者也可以搭建类似的代理服务器，用来窃取 HTTPS 协议下的通信数据。
+    </span>
+   </p></blockquote>
+  
+ </div>
+ 
+   <div class="sect2" id="features.session.security.management.non-adaptive-session">
+   <h3 class="title">严格会话管理</h3>
+
+   <p class="para">
+    目前，默认情况下，PHP 是以自适应的方式来管理会话的，
+    这种方式使用起来很灵活，但是同样也带来了一定的风险。
+   </p>
+
+   <p class="para">
+    从 PHP 5.5.2 开始，新增加了一个配置项：
+    <a href="session.configuration.html#ini.session.use-strict-mode" class="link">session.use_strict_mode</a>。
+    当启用这个配置项，并且你所用的会话存储处理器支持的话，未经初始化的会话 ID 会被拒绝，
+    并为其生成一个全新的会话，这可以避免攻击者使用一个已知的会话 ID 来进行攻击。
+    例如，攻击者可以通过邮件给受害者发送一个包含会话 ID 的链接：
+    http://example.com/page.php?PHPSESSID=123456789。
+    如果启用了 <a href="session.configuration.html#ini.session.use-trans-sid" class="link">session.use_trans_sid</a> 配置项，
+    那么受害者将会使用攻击者所提供的会话 ID 开始一个新的会话。
+    如果启用了 <a href="session.configuration.html#ini.session.use-strict-mode" class="link">session.use_strict_mode</a> 选项，就可以降低风险。
+   </p>
+
+   
+    
+    <div class="warning"><strong class="warning">Warning</strong>
+    <p class="simpara">
+     用户自定义的会话存储器也可以通过实现会话 ID 验证来支持严格会话模式。
+     建议用户在实现自己的会话存储器的时候，
+     一定要对会话 ID 的合法性进行验证。
+    </p>
+   </div>
+
+   <p class="para">
+    在浏览器一侧，可以为用来保存会话 ID 的 cookie 设置域，路径，
+    仅允许 HTTP 访问，必须使用 HTTPS 访问等安全属性。
+    如果使用的是 PHP 7.3. 版本，还可以对 cookie 设置 SameSite 属性。
+    攻击者可以利用浏览器的这些特性来设置永久可用的会话 ID。
+    仅仅设置 <a href="session.configuration.html#ini.session.use-only-cookies" class="link">session.use_only_cookies</a> 配置项
+    无法解决这个问题。而 <a href="session.configuration.html#ini.session.use-strict-mode" class="link">session.use_strict_mode</a> 配置项
+    可以降低这种风险。设置 <a href="session.configuration.html#ini.session.use-strict-mode" class="link">session.use_strict_mode</a>=On，
+    来拒绝未经初始化的会话 ID。
+   </p>
+
+  
+    <blockquote class="note"><p><strong class="note">Note</strong>: 
+    <span class="simpara">
+     虽然使用 <a href="session.configuration.html#ini.session.use-strict-mode" class="link">session.use_strict_mode</a> 配置项
+     可以降低灵活会话管理方式所带来的风险，
+     攻击者还是通过利用 JavaScript 注入等手段，
+     强制用户使用由攻击者创建的并且经过了正常的初始化的会话 ID。
+     如何降低这种风向，可以参考本手册的建议部分。
+    </span>
+
+    <span class="simpara">
+     如果你已经启用了 <a href="session.configuration.html#ini.session.use-strict-mode" class="link">session.use_strict_mode</a> 配置项，
+     同时使用基于时间戳的会话管理，
+     并且通过设置 <span class="function"><a href="function.session-regenerate-id.html" class="function">session_regenerate_id()</a></span> 配置项
+     来重新生成会话 ID，
+     那么，攻击者生成的会话 ID 就可以被删除掉了。
+    </span>
+
+    <span class="simpara">
+     当发生对过期会话访问的时候，
+     你应该保存活跃会话的所有数据，
+     以备后续分析使用。
+     然后让用户退出当前的会话，并且重新登录。
+     防止攻击者继续使用"偷"来的会话。
+    </span>
+   </p></blockquote>
+
+   <div class="warning"><strong class="warning">Warning</strong>
+    <p class="simpara">
+     对过期会话数据的访问并不总是意味着正在遭受攻击。
+     不稳定的网络状况，或者不正确的会话删除行为，
+     都会导致合法的用户产生访问过期会话数据的情况。
+    </p>
+   </div>
+
+   <p class="para">
+    从 PHP 7.1.0 开始，增加了 <span class="function"><a href="function.session-create-id.html" class="function">session_create_id()</a></span> 函数。
+    这个函数允许开发者在会话 ID 中增加用户 ID 作为前缀，
+    以确保用户访问到正确对应的会话数据。
+    要使用这个函数，
+    请确保启用了 <a href="session.configuration.html#ini.session.use-strict-mode" class="link">session.use_strict_mode</a> 配置项，
+    否则恶意用户可能会伪造其他用户的会话 ID。
+   </p>
+
+   <blockquote class="note"><p><strong class="note">Note</strong>: 
+    <span class="simpara">
+     对于 PHP 7.1.0 之前的用户，应该使用 CSPRNG（例如 /dev/urandom）
+     或者 <span class="function"><a href="function.random-bytes.html" class="function">random_bytes()</a></span> 函数以及哈希函数
+     来产生新的会话 ID。
+     <span class="function"><a href="function.session-create-id.html" class="function">session_create_id()</a></span> 函数本身包含碰撞检测的能力，
+     并且根据 INI 文件中和会话相关的配置项来生成会话 ID。
+     所以，建议使用 <span class="function"><a href="function.session-create-id.html" class="function">session_create_id()</a></span> 函数来生成会话 ID。
+    </span>
+   </p></blockquote>
+
+  </div>
+
+  <div class="sect2" id="features.session.security.management.session-id-regeneration">
+   <h3 class="title">重新生成会话 ID</h3>
+
+   <p class="para">
+    虽然 <a href="session.configuration.html#ini.session.use-strict-mode" class="link">session.use_strict_mode</a> 
+    配置项可以降低风险，但是还不够。为了确保会话安全，开发者还需要使用 
+    <span class="function"><a href="function.session-regenerate-id.html" class="function">session_regenerate_id()</a></span> 函数。
+   </p>
+
+   <p class="para">
+    会话 ID 重生机制可以有效的降低会话被窃取的风险，
+    所以，必须周期性的调用 <span class="function"><a href="function.session-regenerate-id.html" class="function">session_regenerate_id()</a></span> 函数
+    来重新生成会话 ID，
+    例如，对于机密内容，每隔 15 分钟就重新生成会话 ID。
+    这样一来，即使会话 ID 被窃取，
+    那么攻击者所得到的会话 ID 也会很快的过期，
+    如果他们进一步访问，就会产生对过期会话数据访问的错误。
+   </p>
+
+   <p class="para">
+    当用户成功通过认证之后，<em class="emphasis">必须</em>为其重新生成会话 ID。
+    并且，必须在向 $_SESSION 中保存用户认证信息之前
+    调用 <span class="function"><a href="function.session-regenerate-id.html" class="function">session_regenerate_id()</a></span> 函数（
+    从 PHP 7.0.0 开始，
+    <span class="function"><a href="function.session-regenerate-id.html" class="function">session_regenerate_id()</a></span> 函数
+    会自动将重生之前的会话数据保存到新生成的会话）。
+    请确保只有新的会话包含用户认证信息。
+   </p>
+
+   <p class="para">
+    开发者<em class="emphasis">不可</em>过分依赖 <a href="session.configuration.html#ini.session.gc-maxlifetime" class="link">session.gc_maxlifetime</a> 配置项。
+    因为攻击者可以在受害者的会话过期之前访问系统，
+    并且维持这个会话的活动，以保证这个会话不会过期。
+   </p>
+
+   <p class="para">
+    实际上，你需要自己实现基于时间戳的会话数据管理机制。
+   </p>
+
+   <div class="warning"><strong class="warning">Warning</strong>
+    <p class="simpara">
+     虽然会话管理器可以透明的管理时间戳，但是这个特性尚未完整的实现。
+     在 GC 发生之前，旧的会话数据还得保存，
+     同时，开发者还得保证过期的会话数据已经被移除。
+     但是，开发者又不能立即移除活跃会话中的数据。
+     所以，不要同时在活跃会话上调用 <em>session_regenerate_id(true);</em> 
+     和 <span class="function"><a href="function.session-destroy.html" class="function">session_destroy()</a></span> 函数。
+     这听起来有点儿自相矛盾，但是事实上必须得这么做。
+    </p>
+   </div>
+
+   <p class="para">
+    默认情况下，<span class="function"><a href="function.session-regenerate-id.html" class="function">session_regenerate_id()</a></span> 函数
+    <em class="emphasis">不会</em>删除旧的会话，
+    所以即使重生了会话 ID，旧的会话可能还是可用的。
+    开发者需要使用时间戳等机制，
+    来确保旧的会话数据不会再次被访问。
+   </p>
+
+   <div class="warning"><strong class="warning">Warning</strong>
+    <p class="simpara">
+     删除活跃会话可能会带来非预期的一些影响。
+     例如，在网络状态不稳定，或者有并发请求到达 Web 服务器的情况下，
+     立即删除活跃会话可能导致个别请求会话失效的问题。
+    </p>
+    <p class="simpara">
+     立即删除活跃会话也无法检测可能存在的恶意访问。
+    </p>
+    <p class="simpara">
+     作为替代方案，
+     你要在 $_SESSION 中设置一个很短的过期时间，
+     然后根据这个时间戳来判断后续的访问是被允许的还是被禁止的。
+    </p>
+    <p class="simpara">
+     在调用 <span class="function"><a href="function.session-regenerate-id.html" class="function">session_regenerate_id()</a></span> 函数之后，
+     不能立即禁止对旧的会话数据的访问，应该再一小段之间之后再禁止访问。
+     例如，在稳定的网络条件下，可以设置为几秒钟，
+     在不稳定的网络条件下，可以设置为几分钟。
+    </p>
+    <p class="simpara">
+     如果用户访问了旧的会话数据（已经过期的），
+     那么应该禁止访问。
+     建议从会话中移除这个用户的认证信息，因为这看起来像是在遭受攻击。
+    </p>
+   </div>
+
+   <p class="para">
+    如果攻击者设置了不可删除的 cookie，那么使用
+    <a href="session.configuration.html#ini.session.use-only-cookies" class="link">session.use_only_cookies</a> 和
+    <span class="function"><a href="function.session-regenerate-id.html" class="function">session_regenerate_id()</a></span> 会导致正常用户遭受拒绝服务的问题。
+    如果发生这种情况，请让用户删除 cookie 并且警告用户他可能面临一些安全问题。
+    攻击者可以通过恶意的 Web 应用、浏览器插件以及对安全性较差的物理设备进行攻击
+    来伪造恶意的 cookie。
+   </p>
+
+   <div class="warning"><strong class="warning">Warning</strong>
+    <p class="simpara">
+     请勿误解这里的拒绝服务攻击风险所指的含义。
+     通常来讲，要保护会话 ID 的安全，<em>use_strict_mode=On</em> 是必须要做的。
+     建议所有的站点都启用 <em>use_strict_mode=On</em>。
+    </p>
+    <p class="simpara">
+     只有当账号处于被攻击的时候，才会发生拒绝服务的问题。
+     通常都是由于应用中被注入了恶意的 JavaScript 才会导致这个问题。
+    </p>
+   </div>
+
+  </div>
+
+  <div class="sect2" id="features.session.security.management.session-data-deletion">
+   <h3 class="title">会话中数据的删除</h3>
+
+   <p class="para">
+    过期的会话中的数据应该是被删除的，并且不可访问。
+    现在的会话模块尚未很好的支持这种特性。
+   </p>
+
+   <p class="para">
+    应该尽可能快的删除过期会话中的数据。
+    但是，活跃会话一定不要立即删除。
+    为了能够同时满足这两点要求，
+    你需要自己来实现基于时间戳的会话数据管理机制。
+   </p>
+
+   <p class="para">
+    在 $_SESSION 中设置会话过期时间戳，并且对其进行管理，
+    以便能够阻止对于过期会话的访问。
+    当发生对于过期会话的访问时，建议从相关用户的所有会话中删除认证信息，
+    并且要求用户重新认证。
+    对于过期会话数据的访问可能是一种攻击行为，
+    为了保护会话数据，你需要追踪每个用户的活跃会话。
+   </p>
+
+   <blockquote class="note"><p><strong class="note">Note</strong>: 
+    <span class="simpara">
+     当用户处于不稳定的网络，或者 web 应用存在并发的请求的时候，
+     也可能发生对于过期会话数据的访问。
+     服务器尝试为用户设置新的会话 ID，
+     但是很可能由于网络原因，导致 Set-Cookie 的数据包无法到达用户的浏览器。
+     当通过 <span class="function"><a href="function.session-regenerate-id.html" class="function">session_regenerate_id()</a></span> 函数
+     为一个连接生成新的会话 ID 之后，其他的并发连接可能尚未得到这个新的会话 ID。
+     因此，不能立即阻止对于过期会话数据的访问，而是要延迟一个很小的时间段，
+     这就是为什么我们需要实现基于时间戳的会话管理。
+    </span>
+   </p></blockquote>
+
+   <p class="para">
+    简而言之，不要在调用 <span class="function"><a href="function.session-regenerate-id.html" class="function">session_regenerate_id()</a></span> 
+    或者 <span class="function"><a href="function.session-destroy.html" class="function">session_destroy()</a></span> 函数的时候立即删除旧的会话数据，
+    而是要通过一个时间戳来控制后续对于这个旧会话数据的访问。
+    从会话存储中删除数据的工作交给 <span class="function"><a href="function.session-gc.html" class="function">session_gc()</a></span> 函数来完成吧。
+   </p>
+
+  </div>
+
+  <div class="sect2" id="features.session.security.management.session-locking">
+   <h3 class="title">会话和锁定</h3>
+
+   <p class="para">
+    默认情况下，为了保证会话数据在多个请求之间的一致性，
+    对于会话数据的访问是加锁进行的。
+   </p>
+
+   <p class="para">
+    但是，这种锁定机制也会导致被攻击者利用，来进行对于用户的拒绝服务攻击。
+    为了降低这种风险，请在访问会话数据的时候，尽可能的缩短锁定的时间。
+    当某个请求不需要更新会话数据的时候，使用只读模式访问会话数据。
+    也就是说，在调用 <span class="function"><a href="function.session-start.html" class="function">session_start()</a></span> 函数的时候，
+    使用 &#039;read_and_close&#039; 选项：<em>session_start([&#039;read_and_close&#039;=&gt;1]);</em>。
+    另外，如果需要更新会话数据，那么在更新完毕之后，
+    马上调用 <span class="function"><a href="function.session-commit.html" class="function">session_commit()</a></span> 函数来释放对于会话数据的锁。
+   </p>
+
+   <p class="para">
+    当会话不活跃的时候，当前的会话模块<em class="emphasis">不会检</em>测对于 
+    $_SESSION 的修改。
+    你需要自己来保证
+    在会话处于不活跃状态的时候，不要去修改它。
+   </p>
+
+  </div>
+
+  <div class="sect2" id="features.session.security.management.active-sessions">
+   <h3 class="title">活跃会话</h3>
+
+   <p class="para">
+    开发者需要自己来追踪每个用户的活跃会话，
+    要知道每个用户创建了多少活跃会话，每个活跃会话来自那个 IP 地址，
+    活跃了多长时间等。
+    PHP 不会自动完成这项工作，需要开发者来完成。
+   </p>
+
+   <p class="para">
+    有很多种方式可以做到追踪用户的活跃会话。
+    你可以通过在数据库中存储会话信息来跟踪用户会话。
+    由于会话是可以被垃圾收集器收集掉的，
+    所以你也需要处理被收集掉的会话数据，
+    以保证数据库中的数据和真实的活跃会话数据的一致性。
+   </p>
+
+   <p class="para">
+    一种很简单的方式就是使用"使用用户 ID 作为会话 ID 前缀"，并且保存必要的信息到 $_SESSION 中。
+    大部分的数据库产品对于字符串前缀查询（译注：也即右模糊查询，可以利用索引）都有很好的性能表现。
+    为了实现这种方式，可以使用
+    <span class="function"><a href="function.session-regenerate-id.html" class="function">session_regenerate_id()</a></span> 和
+    <span class="function"><a href="function.session-create-id.html" class="function">session_create_id()</a></span> 函数。
+   </p>
+
+   <div class="warning"><strong class="warning">Warning</strong>
+    <p class="simpara">
+     永远不要使用机密数据作为会话 ID 前缀！
+     如果用户 ID 属于机密数据，那么可以考虑使用 
+     <span class="function"><a href="function.hash-hmac.html" class="function">hash_hmac()</a></span> 函数对其进行摘要后再使用。
+    </p>
+   </div>
+
+   <div class="warning"><strong class="warning">Warning</strong>
+    <p class="simpara">
+     必须启用 <a href="session.configuration.html#ini.session.use-strict-mode" class="link">session.use_strict_mode</a> 配置项。
+     请确保已经启用，
+     否则活跃会话数据库可能会被入侵。
+    </p>
+   </div>
+
+   <p class="para">
+    要能够检测对于过期会话数据的访问，
+    基于时间戳的会话数据管理机制是必不可少的。
+    当检测到对于过期会话数据的访问时，你应该从相关用户的活跃会话中删除认证信息，
+    避免攻击者持续使用盗取的会话。
+   </p>
+
+  </div>
+
+  <div class="sect2" id="features.session.security.management.session-and-autologin">
+   <h3 class="title">会话和自动登录</h3>
+
+   <p class="para">
+    开发者不应该通过使用长生命周期的会话 ID 来实现自动登录功能，
+    因为这种方式提高了会话被窃取的风险。
+    开发者应该自己实现自动登录的机制。
+   </p>
+
+   <p class="para">
+    在使用 <span class="function"><a href="function.setcookie.html" class="function">setcookie()</a></span> 的时候，传入安全的一次性摘要结果作为自动登录信息。
+    建议使用比 SHA-2 更高强度的摘要算法（例如 SHA-256）
+    对 <span class="function"><a href="function.random-bytes.html" class="function">random_bytes()</a></span> 随机生成的数据
+    （也可以读取 /dev/urandom 设备）进行摘要作为自动登录的信息。
+   </p>
+
+   <p class="para">
+    在用户访问的时候，如果发现用户尚未认证，
+    那么就去检查请求中是否包含了有效的一次性登录信息。
+    如果包含有效的一次性登录信息，那么就去认证用户，并且重新生成新的一次性登录信息。
+    自动登录的关键信息一定是只能使用一次，永远不要重复使用一次性登录信息。
+  </p>
+
+   <p class="para">
+    自动登录信息是长生命周期的认证信息，
+    所以必须要尽可能的妥善保护。
+    可以对于自动登录信息对应的 cookie 设置路径、仅允许 HTTP 访问、仅允许安全访问
+    等属性来加以保护，并且仅在必需的时候才传送这个 cookie。
+   </p>
+
+   <p class="para">
+    开发者也要提供禁用自动登录的机制，
+    以及删除不再需要的自动登录数据的能力。
+   </p>
+
+  </div>
+
+  <div class="sect2" id="features.session.security.management.csrf">
+   <h3 class="title">CSRF（跨站请求伪造）</h3>
+
+   <p class="para">
+    会话和认证无法避免跨站请求伪造攻击。
+    开发者需要自己来实现保护应用不受 CSRF 攻击的功能。
+   </p>
+
+   <p class="para">
+    <span class="function"><a href="function.output-add-rewrite-var.html" class="function">output_add_rewrite_var()</a></span> 函数可以用来
+    保护应用免受 CSRF 攻击。更多信息请参考文档。
+   </p>
+
+   <blockquote class="note"><p><strong class="note">Note</strong>: 
+    <span class="simpara">
+     PHP 7.2.0 之前的版本，这个函数和会话 ID 使用了同样的输出缓冲以及 INI 设置项，
+     所以不建议在 PHP 7.2.0 之前使用
+      <span class="function"><a href="function.output-add-rewrite-var.html" class="function">output_add_rewrite_var()</a></span> 函数。
+    </span>
+   </p></blockquote>
+
+   <p class="para">
+    大部分 Web 应用框架都提供了 CSRF 保护的特性。
+    详细信息请参考你所用的 Web 框架的文档。
+   </p>
+   
+   <p class="para">
+    从 PHP 7.3 开始，对于会话 cookie 增加了 SameSite 属性，
+    这个属性可以有效的降低 CSRF 攻击的风险。
+   </p>
+  </div>
+ </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+ <div class="note">There are no user contributed notes for this page.</div>
+</div>
+</div></div></body></html>

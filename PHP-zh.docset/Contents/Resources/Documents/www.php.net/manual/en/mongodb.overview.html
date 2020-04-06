@@ -1,0 +1,163 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Architecture Overview</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="mongodb.architecture.html">? Driver Architecture and Internals</a></li>
+      <li style="float: right;"><a href="mongodb.connection-handling.html">Connections ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="mongodb.architecture.html">Driver Architecture and Internals</a></li>
+    <li>Architecture Overview</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="mongodb.overview" class="article">
+  
+  <h1>Architecture Overview</h1>
+
+
+  <p class="para">
+   This section explains how all the different parts of the driver fit
+   together. From the different language runtimes, through the extension and
+   to the PHP libraries on top. This new architecture has replaced the old
+   <a href="book.mongo.html" class="link">mongo</a> extension. We refer to the new one
+   as the <em class="emphasis">mongodb</em> extension.
+  </p>
+
+  <p class="para">
+   <div class="mediaobject">
+    
+    <div class="imageobject">
+     <img src="images/f3bc48edf40d5e3e09a166c7fadc7efb-driver_arch.png" alt="Architecture Diagram" width="625" height="450" />
+    </div>
+   </div>
+  </p>
+
+  <p class="para">
+   At the top of this stack sits a pure
+   <a href="https://github.com/mongodb/mongo-php-library" class="link external" title="Link : https://github.com/mongodb/mongo-php-library">&raquo;&nbsp;PHP library</a>, which we will
+   distribute as a Composer package. This library will provide an API similar
+   to what users have come to expect from the old mongo driver (e.g. CRUD methods,
+   database and collection objects, command helpers) and we expect it to be a
+   common dependency for most applications built with MongoDB. This library
+   will also implement common
+   <a href="https://github.com/mongodb/specifications" class="link external" title="Link : https://github.com/mongodb/specifications">&raquo;&nbsp;specifications</a>, in the
+   interest of improving API consistency across all of the
+   <a href="https://docs.mongodb.com/ecosystem/drivers/" class="link external" title="Link : https://docs.mongodb.com/ecosystem/drivers/">&raquo;&nbsp;drivers</a> maintained by
+   MongoDB (and hopefully some community drivers, too).
+  </p>
+
+  <p class="para">
+   Sitting below that library we have the lower level driver.
+   This extension will effectively form the glue between PHP and our
+   system libraries (<a href="https://github.com/mongodb/mongo-c-driver" class="link external" title="Link : https://github.com/mongodb/mongo-c-driver">&raquo;&nbsp;libmongoc</a> and
+   <a href="https://github.com/mongodb/libbson" class="link external" title="Link : https://github.com/mongodb/libbson">&raquo;&nbsp;libbson</a>). This extension
+   will expose an identical public API for the most essential and
+   performance-sensitive functionality:
+
+   <ul class="simplelist">
+    <li class="member">Connection management</li>
+    <li class="member">BSON encoding and decoding</li>
+    <li class="member">Object document serialization (to support ODM libraries)</li>
+    <li class="member">Executing commands and write operations</li>
+    <li class="member">Handling queries and cursors</li>
+   </ul>
+  </p>
+
+  <p class="para">
+   By decoupling the driver internals and a high-level API into an extension and
+   PHP libraries, respectively, we hope to reduce our maintainence burden and
+   allow for faster iteration on new features. As a welcome side effect, this
+   also makes it easier for anyone to contribute to the driver. Additionally,
+   an identical public API will make it that much easier to port an
+   application across PHP runtimes, whether the application uses the low-level
+   driver directly or a higher-level PHP library.
+  </p>
+  <p class="para">
+   <a href="https://docs.mongodb.com/manual/core/gridfs/" class="link external" title="Link : https://docs.mongodb.com/manual/core/gridfs/">&raquo;&nbsp;GridFS</a> is a great example
+   of why we chose this direction.
+   Although we implemented GridFS in C for our old mongo driver, it is actually
+   quite a high-level specification. Its API is just an abstraction for
+   accessing two collections: files (i.e. metadata) and chunks (i.e. blocks of
+   data). Likewise, all of the syntactic sugar found in the old mongo driver,
+   such as processing uploaded files or exposing GridFS files as PHP streams,
+   can be implemented in pure PHP. Provided we have performant methods for
+   reading from and writing to GridFS&#039; collections - and thanks to our low
+   level extensions, we will - shifting this API to PHP is win-win.
+  </p>
+  <p class="para">
+   Earlier I mentioned that we expect the PHP library to be a common
+   dependency for <em class="emphasis">most</em> applications, but not
+   <em class="emphasis">all</em>. Some users may prefer to stick to the no-frills
+   API offered by the extensions, or create their own high-level abstraction
+   (akin to <a href="https://github.com/doctrine/mongodb" class="link external" title="Link : https://github.com/doctrine/mongodb">&raquo;&nbsp;Doctrine MongoDB</a> for
+   the old mongo driver). Future libraries could include a PHP library geared
+   for MongoDB administration, which provides an API for various user
+   management and ops commands. The next major version of
+   <a href="https://github.com/doctrine/mongodb-odm" class="link external" title="Link : https://github.com/doctrine/mongodb-odm">&raquo;&nbsp;Doctrine MongoDB ODM</a> will
+   likely also sit directly atop the extensions.
+  </p>
+  <p class="para">
+   While we will continue to maintain and support the old mongo driver and its
+   users for the foreseeable future, we invite everyone to use the
+   next-generation driver and consider it for any new projects going forward.
+   You can find all of the essential components across GitHub and JIRA:
+
+   <table class="doctable table">
+    <caption><strong>Driver Source Code and JIRA Locations</strong></caption>
+    
+     <thead>
+      <tr>
+       <th>Project</th>
+       <th>GitHub</th>
+       <th>JIRA</th>
+      </tr>
+
+     </thead>
+
+     <tbody class="tbody">
+      <tr>
+       <td>PHP Library</td>
+       <td><a href="https://github.com/mongodb/mongo-php-library" class="link external" title="Link : https://github.com/mongodb/mongo-php-library">&raquo;&nbsp;mongodb/mongo-php-library</a></td>
+       <td><a href="https://jira.mongodb.org/browse/PHPLIB" class="link external" title="Link : https://jira.mongodb.org/browse/PHPLIB">&raquo;&nbsp;PHPLIB</a></td>
+      </tr>
+
+      <tr>
+       <td>PHP 5 and PHP 7 Driver (phongo)</td>
+       <td><a href="https://github.com/mongodb/mongo-php-driver" class="link external" title="Link : https://github.com/mongodb/mongo-php-driver">&raquo;&nbsp;mongodb/mongo-php-driver</a></td>
+       <td><a href="https://jira.mongodb.org/browse/PHPC" class="link external" title="Link : https://jira.mongodb.org/browse/PHPC">&raquo;&nbsp;PHPC</a></td>
+      </tr>
+
+     </tbody>
+    
+   </table>
+
+  </p>
+
+  <p class="para">
+   The existing <a href="https://jira.mongodb.org/browse/PHP" class="link external" title="Link : https://jira.mongodb.org/browse/PHP">&raquo;&nbsp;PHP</a> project in JIRA
+   will remain open for reporting bugs against the old mongo driver, but we
+   would ask that you use the new projects above for anything pertaining to
+   our next-generation drivers.
+  </p>
+ </div>
+<div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+ <div class="note">There are no user contributed notes for this page.</div>
+</div>
+</div></div></body></html>

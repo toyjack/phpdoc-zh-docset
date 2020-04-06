@@ -1,0 +1,217 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>PECL/mysqlnd_ms 1.5 series</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="mysqlnd-ms.changes-one-six.html">? PECL/mysqlnd_ms 1.6 series</a></li>
+      <li style="float: right;"><a href="mysqlnd-ms.changes-one-four.html">PECL/mysqlnd_ms 1.4 series ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="mysqlnd-ms.changes.html">Change History</a></li>
+    <li>PECL/mysqlnd_ms 1.5 series</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="mysqlnd-ms.changes-one-five" class="section">
+  <h2 class="title">PECL/mysqlnd_ms 1.5 series</h2>
+   <p class="para">
+   1.5.1-stable
+   <ul class="itemizedlist">
+    <li class="listitem">
+     <span class="simpara">
+      Release date: 06/2013
+     </span>
+    </li>
+    <li class="listitem">
+     <span class="simpara">
+      Motto/theme: Sharding support, improved transaction support
+     </span>
+    </li>
+   </ul>
+  </p>
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <p class="para">
+     This is the current stable series. Use this version in production environments.
+    </p>
+    <p class="para">
+     The documentation is complete.
+    </p>
+  </p></blockquote>
+  <p class="para">
+   1.5.0-alpha
+   <ul class="itemizedlist">
+    <li class="listitem">
+     <span class="simpara">
+      Release date: 03/2013
+     </span>
+    </li>
+    <li class="listitem">
+     <span class="simpara">
+      Motto/theme: Sharding support, improved transaction support
+     </span>
+    </li>
+   </ul>
+  </p>
+  <p class="para">
+   Bug fixes
+   <ul class="itemizedlist">
+    <li class="listitem">
+     <p class="para">
+      Fixed #60605 PHP segmentation fault when mysqlnd_ms is enabled.
+     </p>
+    </li>
+    <li class="listitem">
+     <p class="para">
+      Setting transaction stickiness disables all load balancing, including
+      automatic failover, for the duration of a transaction. So far
+      connection switches could have happened in the middle of a transaction
+      in multi-master configurations  and during automatic failover although
+      transaction monitoring had detected transaction boundaries properly.
+     </p>
+    </li>
+    <li class="listitem">
+     <p class="para">
+      BC break and bug fix. SQL hints enforcing the use of a specific
+      kind of server (<strong><code>MYSQLND_MS_MASTER_SWITCH</code></strong>,
+      <strong><code>MYSQLND_MS_SLAVE_SWITCH</code></strong>,
+      <strong><code>MYSQLND_MS_LAST_USED_SWITCH</code></strong>) are ignored for the
+      duration of a transaction of transaction stickiness is enabled and
+      transaction boundaries have been detected properly.
+     </p>
+     <p class="para">
+      This is a change in behaviour. However, it is also a bug fix and a step
+      to align behaviour. If, in previous versions, transaction stickiness,
+      one of the above listed SQL hints and the quality of service filtering
+      was combined it could happened that the SQL hints got ignored. In some
+      case the SQL hints did work, in other cases they did not. The new
+      behaviour is more consistent. SQL hints will always be ignore for
+      the duration of a transaction, if
+      <a href="mysqlnd-ms.plugin-ini-json.html#ini.mysqlnd-ms-plugin-config-v2.trx-stickiness" class="link">transaction stickiness</a>
+      is enabled.
+     </p>
+     <p class="para">
+      Please note, transaction boundary detection continues to be based on API
+      call monitoring. SQL commands controlling transactions are not monitored.
+     </p>
+    </li>
+    <li class="listitem">
+     <p class="para">
+      BC break and bug fix. Calls to <span class="function"><a href="function.mysqlnd-ms-set-qos.html" class="function">mysqlnd_ms_set_qos()</a></span>
+      will fail when done in the middle of a transaction if
+      <a href="mysqlnd-ms.plugin-ini-json.html#ini.mysqlnd-ms-plugin-config-v2.trx-stickiness" class="link">transaction stickiness</a>
+      is enabled. Connection switches are not allowed for the duration of a
+      transaction. Changing the quality of service likely results on a different
+      set of servers qualifying for query execution, possibly making it
+      necessary to switch connections. Thus, the call is not allowed in
+      during an active transaction. The quality of server can, however, be
+      changed in between transactions.
+     </p>
+    </li>
+   </ul>
+  </p>
+  <p class="para">
+   Feature changes
+   <ul class="itemizedlist">
+    <li class="listitem">
+    <p class="para">
+      Introduced the <em>node_group</em> filter.
+      The filter lets you organize servers (master and slaves)
+      into groups. Queries can be directed to a certain group of servers
+      by prefixing the query statement with a SQL hint/comment that contains
+      the groups configured name. Grouping can be used for
+      partitioning and sharding, and also to optimize for local caching.
+      In the case of sharding, a group name can be thought of like a shard key.
+      All queries for a given shard key will be executed on the
+      configured shard. Note: both the client and server must support sharding
+      for sharding to function with mysqlnd_ms.
+     </p>
+    </li>
+    <li class="listitem">
+    <p class="para">
+      Extended configuration file validation during PHP startup (RINIT).
+      An <strong><code>E_WARNING</code></strong> level error will be thrown if the configuration
+      file can not be read (permissions), is empty, or the file (JSON) could not be parsed.
+      Warnings may appear in log files, which depending on how PHP is configured.
+    </p>
+    <p class="para">
+      Distributions that aim to provide a pre-configured setup, including a
+      configuration file stub, are asked to put <em>{}</em> into
+      the configuration file to prevent this warning about an invalid
+      configuration file.
+     </p>
+    <p class="para">
+      Further configuration file validation is done when parsing sections
+      upon opening a connection. Please, note that there may still be situations
+      when an invalid plugin configuration file does not lead to proper error messages
+      but a failure to connect.
+    </p>
+    </li>
+    <li class="listitem">
+     <p class="para">
+      As of PHP 5.5.0, improved support for transaction boundaries detection was added for
+      <em>mysqli</em>. The <em>mysqli</em> extension has been
+      modified to use the new C API calls of the <em>mysqlnd</em>
+      library to begin, commit, and rollback a transaction or savepoint.
+      If <a href="mysqlnd-ms.plugin-ini-json.html#ini.mysqlnd-ms-plugin-config-v2.trx-stickiness" class="link">trx_stickiness</a>
+      is used to enable transaction aware load balancing, the <span class="function"><strong>mysqli_begin()</strong></span>,
+      <span class="function"><a href="mysqli.commit.html" class="function">mysqli_commit()</a></span> and <span class="function"><a href="mysqli.rollback.html" class="function">mysqli_rollback()</a></span> functions
+      will now be monitered by the plugin, to go along with the <span class="function"><a href="mysqli.autocommit.html" class="function">mysqli_autocommit()</a></span>
+      function that was already supported. All SQL features to control
+      transactions are also available through the improved <em>mysqli</em>
+      transaction control related functions. This means that it is not required to
+      issue SQL statements instead of using API calls. Applications
+      using the appropriate API calls can be load balanced by PECL/mysqlnd_ms
+      in a completely transaction-aware way.
+     </p>
+     <p class="para">
+      Please note, <em>PDO_MySQL</em> has not been updated
+      yet to utilize the new mysqlnd API calls. Thus, transaction boundary
+      detection with <em>PDO_MySQL</em> continues to be limited to
+      the monitoring by passing in <strong><code>PDO::ATTR_AUTOCOMMIT</code></strong> to
+      <span class="methodname"><a href="pdo.setattribute.html" class="methodname">PDO::setAttribute()</a></span>.
+     </p>
+    </li>
+    <li class="listitem">
+     <p class="para">
+      Introduced <em>trx_stickiness=on</em>. This
+      <a href="mysqlnd-ms.plugin-ini-json.html#ini.mysqlnd-ms-plugin-config-v2.trx-stickiness" class="link">trx_stickiness</a>
+      option differs from <em>trx_stickiness=master</em> as it
+      tries to execute a read-only transaction on a slave, if
+      quality of service (consistency level) allows the use of a slave.
+      Read-only transactions were introduced in MySQL 5.6, and they
+      offer performance gains.
+     </p>
+    </li>
+    <li class="listitem">
+      <p class="para">
+       Query cache support is considered beta if used with the <em>mysqli</em>
+       API. It should work fine with primary copy based clusters. For all other
+       APIs, this feature continues to be called experimental.
+      </p>
+    </li>
+    <li class="listitem">
+     <p class="para">
+      The code examples in the mysqlnd_ms source were updated.
+     </p>
+    </li>
+   </ul>
+  </p>
+ </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+ <div class="note">There are no user contributed notes for this page.</div>
+</div>
+</div></div></body></html>

@@ -1,0 +1,355 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>发送异步查询</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="function.pg-send-query-params.html">? pg_send_query_params</a></li>
+      <li style="float: right;"><a href="function.pg-set-client-encoding.html">pg_set_client_encoding ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="ref.pgsql.html">PostgreSQL 函数</a></li>
+    <li>发送异步查询</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="function.pg-send-query" class="refentry">
+   <div class="refnamediv">
+    <h1 class="refname">pg_send_query</h1>
+    <p class="verinfo">(PHP 4 &gt;= 4.2.0, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">pg_send_query</span> &mdash; <span class="dc-title">
+     发送异步查询
+    </span></p>
+
+   </div>
+   <div class="refsect1 unknown-seealsp" id="refsect1-function.pg-send-query-unknown-seealsp">
+    <h3 class="title">说明</h3>
+     <div class="methodsynopsis dc-description">
+      <span class="methodname"><strong>pg_send_query</strong></span>
+       ( <span class="methodparam"><span class="type">resource</span> <code class="parameter">$connection</code></span>
+      , <span class="methodparam"><span class="type">string</span> <code class="parameter">$query</code></span>
+      ) : <span class="type">bool</span></div>
+
+     <div class="methodsynopsis dc-description">
+      <span class="methodname"><strong>pg_send_query</strong></span>
+       ( <span class="methodparam"><span class="type">string</span> <code class="parameter">$query</code></span>
+      ) : <span class="type">bool</span></div>
+
+    <p class="para rdfs-comment">
+     <span class="function"><strong>pg_send_query()</strong></span> 向 <code class="parameter">connection</code>
+     连接发送异步查询。和 <span class="function"><a href="function.pg-query.html" class="function">pg_query()</a></span> 不同，它可以向 PostgreSQL
+     发送多个查询并用 <span class="function"><a href="function.pg-get-result.html" class="function">pg_get_result()</a></span>
+     依次得到结果。当执行查询时脚本的执行不会被锁定。用
+     <span class="function"><a href="function.pg-connection-busy.html" class="function">pg_connection_busy()</a></span> 来检查连接连接是否为忙（即查询正在执行中）。调用
+     <span class="function"><a href="function.pg-cancel-query.html" class="function">pg_cancel_query()</a></span> 则有可能取消查询。
+    </p>
+    <p class="para">
+     尽管用户可以一次发送多个查询，但用户不能通过正忙的连接发送多个查询。如果向正忙的连接发送了查询，则会等待上一条查询结束并丢弃所有结果。
+    </p>
+    <p class="para">
+     <div class="example" id="example-2550">
+      <p><strong>Example #1 异步查询</strong></p>
+      <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />&nbsp;&nbsp;&nbsp;&nbsp;$dbconn&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">pg_connect</span><span style="color: #007700">(</span><span style="color: #DD0000">"dbname=publisher"</span><span style="color: #007700">)&nbsp;or&nbsp;die(</span><span style="color: #DD0000">"Could&nbsp;not&nbsp;connect"</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(!</span><span style="color: #0000BB">pg_connection_busy</span><span style="color: #007700">(</span><span style="color: #0000BB">$dbconn</span><span style="color: #007700">))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">pg_send_query</span><span style="color: #007700">(</span><span style="color: #0000BB">$dbconn</span><span style="color: #007700">,</span><span style="color: #DD0000">"select&nbsp;*&nbsp;from&nbsp;authors;&nbsp;select&nbsp;count(*)&nbsp;from&nbsp;authors;"</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$res1&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">pg_get_result</span><span style="color: #007700">(</span><span style="color: #0000BB">$dbconn</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"First&nbsp;call&nbsp;to&nbsp;pg_get_result():&nbsp;</span><span style="color: #0000BB">$res1</span><span style="color: #DD0000">\n"</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$rows1&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">pg_num_rows</span><span style="color: #007700">(</span><span style="color: #0000BB">$res1</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"</span><span style="color: #0000BB">$res1</span><span style="color: #DD0000">&nbsp;has&nbsp;</span><span style="color: #0000BB">$rows1</span><span style="color: #DD0000">&nbsp;records\n\n"</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$res2&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">pg_get_result</span><span style="color: #007700">(</span><span style="color: #0000BB">$dbconn</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"second&nbsp;call&nbsp;to&nbsp;pg_get_result():&nbsp;</span><span style="color: #0000BB">$res2</span><span style="color: #DD0000">\n"</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$rows2&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">pg_num_rows</span><span style="color: #007700">(</span><span style="color: #0000BB">$res2</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"</span><span style="color: #0000BB">$res2</span><span style="color: #DD0000">&nbsp;has&nbsp;</span><span style="color: #0000BB">$rows2</span><span style="color: #DD0000">&nbsp;records\n"</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+      </div>
+
+      <div class="example-contents"><p>
+       上例输出如下：
+      </p></div>
+      <div class="example-contents screen">
+<div class="cdata"><pre>
+first call to pg_get_result(): Resource id #3
+Resource id #3 has 3 records
+
+second call to pg_get_result(): Resource id #4
+Resource id #4 has 1 records
+</pre></div>
+      </div>
+     </div>
+    </p>
+    <p class="para">
+     参见 <span class="function"><a href="function.pg-query.html" class="function">pg_query()</a></span>，<span class="function"><a href="function.pg-cancel-query.html" class="function">pg_cancel_query()</a></span>，<span class="function"><a href="function.pg-get-result.html" class="function">pg_get_result()</a></span>
+     和 <span class="function"><a href="function.pg-connection-busy.html" class="function">pg_connection_busy()</a></span>。
+    </p>
+   </div>
+
+  </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="101372""></a>
+  <div class="note">
+   <strong class="user">moodsey211 at gmail dot com</strong>
+   <a href="#101372" class="date">13-Dec-2010 01:48</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+pg_send_query would not stop your script from executing but it would stop the script from exiting. 
+<br />
+
+<br />
+Example:
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+$con </span><span class="keyword">= </span><span class="default">pg_connect</span><span class="keyword">(</span><span class="string">'dbname=payroll'</span><span class="keyword">);
+<br />
+</span><span class="default">pg_send_query</span><span class="keyword">(</span><span class="string">'SELECT process_payroll()'</span><span class="keyword">); </span><span class="comment">// Where process_payroll is a super long process
+<br />
+</span><span class="default">?&gt;
+<br />
+</span>
+<br />
+You would still need to wait for the query to finish before the any display would be sent to the browser. And surprisingly, unlike pg_query this script would not generate the Maximum execution time error.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="92593""></a>
+  <div class="note">
+   <strong class="user">rw burgholzer is name  at  deq dot virginia dot gov</strong>
+   <a href="#92593" class="date">30-Jul-2009 09:36</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Regarding the failure to process them all now, then retrieve the results later, I found that all queries would return successfully if I added a further condition to your while loop in the "stack_query()" method.<br />
+<br />
+By adding:<br />
+&amp;&amp; (pg_transaction_status($conn) === PGSQL_TRANSACTION_IDLE ) )<br />
+<br />
+Every query executed with no errors.<br />
+<br />
+<span class="default">&lt;?php<br />
+$conn </span><span class="keyword">= </span><span class="default">pg_connect</span><span class="keyword">(</span><span class="string">"dbname=dbname host=localhost user=psql "</span><span class="keyword">);<br />
+if (</span><span class="default">$conn </span><span class="keyword">=== </span><span class="default">FALSE</span><span class="keyword">)<br />
+&nbsp; exit(</span><span class="string">"Can't connect to db"</span><span class="keyword">);<br />
+<br />
+</span><span class="default">$q </span><span class="keyword">= array();<br />
+</span><span class="comment">// send some queries<br />
+</span><span class="keyword">foreach (</span><span class="default">range</span><span class="keyword">(</span><span class="default">0</span><span class="keyword">, </span><span class="default">50</span><span class="keyword">) as </span><span class="default">$i</span><span class="keyword">)<br />
+&nbsp; </span><span class="default">stack_query</span><span class="keyword">(</span><span class="default">$q</span><span class="keyword">, </span><span class="default">$conn</span><span class="keyword">, </span><span class="string">"SELECT 'query </span><span class="default">$i</span><span class="string">' AS str;"</span><span class="keyword">);<br />
+</span><span class="comment">// receive them<br />
+</span><span class="keyword">while (</span><span class="default">true</span><span class="keyword">)<br />
+&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$left </span><span class="keyword">= </span><span class="default">stack_query</span><span class="keyword">(</span><span class="default">$q</span><span class="keyword">, </span><span class="default">$conn</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"</span><span class="default">$left</span><span class="string"> left... "</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">= </span><span class="default">pg_get_result</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">$left </span><span class="keyword">== </span><span class="default">0 </span><span class="keyword">&amp;&amp; </span><span class="default">$result </span><span class="keyword">=== </span><span class="default">FALSE</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; break;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$row </span><span class="keyword">= </span><span class="default">pg_fetch_assoc</span><span class="keyword">(</span><span class="default">$result</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// depending on race conditions, you wont get all your original queries here.<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">echo </span><span class="string">"got </span><span class="default">$row</span><span class="keyword">[</span><span class="default">str</span><span class="keyword">]</span><span class="string">\n"</span><span class="keyword">;<br />
+&nbsp; }<br />
+<br />
+function </span><span class="default">stack_query</span><span class="keyword">(&amp;</span><span class="default">$queries</span><span class="keyword">, </span><span class="default">$conn</span><span class="keyword">, </span><span class="default">$sql </span><span class="keyword">= </span><span class="default">FALSE</span><span class="keyword">)<br />
+{<br />
+&nbsp; if (</span><span class="default">$sql </span><span class="keyword">!== </span><span class="default">FALSE</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$queries</span><span class="keyword">[] = </span><span class="default">$sql</span><span class="keyword">;<br />
+&nbsp; while (</span><span class="default">count</span><span class="keyword">(</span><span class="default">$queries</span><span class="keyword">) &amp;&amp; !</span><span class="default">pg_connection_busy</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">)&nbsp; &amp;&amp; (</span><span class="default">pg_transaction_status</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">) === </span><span class="default">PGSQL_TRANSACTION_IDLE </span><span class="keyword">) )<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">pg_send_query</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">, </span><span class="default">array_shift</span><span class="keyword">(</span><span class="default">$queries</span><span class="keyword">));<br />
+&nbsp; return </span><span class="default">count</span><span class="keyword">(</span><span class="default">$queries</span><span class="keyword">) + (</span><span class="default">pg_connection_busy</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">) ? </span><span class="default">1 </span><span class="keyword">: </span><span class="default">0</span><span class="keyword">);<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="59202""></a>
+  <div class="note">
+   <strong class="user">vincentdephily</strong>
+   <a href="#59202" class="date">29-Nov-2005 05:25</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Note that if you send a query without calling pg_get_result() for the previous one (supposing it has finished and the connection is not busy), the previous query will get discarded.<br />
+<br />
+See for yourself (tested on php4.4.0, postgres8.0.4, Linux/FreeBSD) :<br />
+&lt;?<br />
+$conn = pg_connect("dbname=template1 host=localhost user=pgsql");<br />
+if ($conn === FALSE)<br />
+&nbsp; exit("Can't connect to db");<br />
+<br />
+$q = array();<br />
+// send some queries<br />
+foreach (range(0, 500) as $i)<br />
+&nbsp; stack_query($q, $conn, "SELECT 'query $i' AS str;");<br />
+// receive them<br />
+while (true)<br />
+&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; $left = stack_query($q, $conn);<br />
+&nbsp;&nbsp;&nbsp; echo "$left left... ";<br />
+&nbsp;&nbsp;&nbsp; $result = pg_get_result($conn);<br />
+&nbsp;&nbsp;&nbsp; if ($left == 0 &amp;&amp; $result === FALSE)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; break;<br />
+&nbsp;&nbsp;&nbsp; $row = pg_fetch_assoc($result);<br />
+&nbsp;&nbsp;&nbsp; // depending on race conditions, you wont get all your original queries here.<br />
+&nbsp;&nbsp;&nbsp; echo "got $row[str]\n";<br />
+&nbsp; }<br />
+<br />
+function stack_query(&amp;$queries, $conn, $sql = FALSE)<br />
+{<br />
+&nbsp; if ($sql !== FALSE)<br />
+&nbsp;&nbsp;&nbsp; $queries[] = $sql;<br />
+&nbsp; while (count($queries) &amp;&amp; !pg_connection_busy($conn))<br />
+&nbsp;&nbsp;&nbsp; pg_send_query($conn, array_shift($queries));<br />
+&nbsp; return count($queries) + (pg_connection_busy($conn) ? 1 : 0);<br />
+}<br />
+?&gt;<br />
+<br />
+You will have to write a higher level of abstraction if you want a "send all queries now, receive them later" behaviour.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="35488""></a>
+  <div class="note">
+   <strong class="user">Likeyouover others at hotmail dot com</strong>
+   <a href="#35488" class="date">02-Sep-2003 02:29</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+<span class="default">&lt;?php<br />
+</span><span class="comment">// --------- OPEN CONN ---<br />
+<br />
+&nbsp;&nbsp; </span><span class="default">$conn </span><span class="keyword">= </span><span class="default">pg_connect</span><span class="keyword">(</span><span class="string">"host='127.0.0.1' dbname='test' user='usertest' password='passtest'"</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// --------- OPEN FILE ---<br />
+<br />
+&nbsp;&nbsp; </span><span class="default">$fp </span><span class="keyword">= </span><span class="default">fopen</span><span class="keyword">(</span><span class="string">'logo.gif'</span><span class="keyword">, </span><span class="string">"r"</span><span class="keyword">);<br />
+&nbsp;&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">fread</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">, </span><span class="default">filesize</span><span class="keyword">(</span><span class="string">'logo.gif'</span><span class="keyword">));<br />
+&nbsp;&nbsp; </span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// --------- CREATE - INSERT OID ---<br />
+<br />
+&nbsp;&nbsp; </span><span class="default">pg_exec</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">, </span><span class="string">"begin"</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; </span><span class="default">$oid </span><span class="keyword">= </span><span class="default">pg_locreate</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; </span><span class="default">$rs </span><span class="keyword">= </span><span class="default">pg_exec</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">,</span><span class="string">"INSERT INTO test(tipo, images) VALUES('A1', </span><span class="default">$oid</span><span class="string">);"</span><span class="keyword">);<br />
+&nbsp;&nbsp; </span><span class="default">$handle </span><span class="keyword">= </span><span class="default">pg_loopen </span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">, </span><span class="default">$oid</span><span class="keyword">, </span><span class="string">"w"</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; </span><span class="default">pg_lowrite </span><span class="keyword">(</span><span class="default">$handle</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">);<br />
+&nbsp;&nbsp; </span><span class="default">pg_loclose </span><span class="keyword">(</span><span class="default">$handle</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; </span><span class="default">pg_exec</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">, </span><span class="string">"commit"</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// --------- OPEN - INSERT OID ---<br />
+<br />
+&nbsp;&nbsp; </span><span class="default">$rs </span><span class="keyword">= </span><span class="default">pg_exec</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">, </span><span class="string">"SELECT images FROM test WHERE tipo = 'A1';"</span><span class="keyword">);<br />
+&nbsp;&nbsp; </span><span class="default">$row </span><span class="keyword">= </span><span class="default">pg_fetch_row</span><span class="keyword">(</span><span class="default">$rs</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; </span><span class="default">pg_exec</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">, </span><span class="string">"begin"</span><span class="keyword">);<br />
+&nbsp;&nbsp; </span><span class="default">$loid </span><span class="keyword">= </span><span class="default">pg_loopen</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">, </span><span class="default">$row</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">], </span><span class="string">"r"</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; </span><span class="default">header</span><span class="keyword">(</span><span class="string">"Content-type: image/gif"</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; </span><span class="default">pg_loreadall</span><span class="keyword">(</span><span class="default">$loid</span><span class="keyword">);<br />
+&nbsp;&nbsp; </span><span class="default">pg_loclose</span><span class="keyword">(</span><span class="default">$loid</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; </span><span class="default">pg_exec </span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">, </span><span class="string">"commit"</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// --------- UNLINK OID ---<br />
+<br />
+&nbsp;&nbsp; </span><span class="default">pg_exec</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">, </span><span class="string">"begin"</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; </span><span class="default">$loid </span><span class="keyword">= </span><span class="default">$row</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">];<br />
+&nbsp;&nbsp; </span><span class="default">pg_lounlink</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">, </span><span class="default">$loid</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; </span><span class="default">pg_exec </span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">, </span><span class="string">"commit"</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// --------- DELETE OID ---<br />
+<br />
+&nbsp;&nbsp; </span><span class="default">pg_exec</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">, </span><span class="string">"DELETE FROM test WHERE tipo = 'A1';"</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// --------- CLOSE CONN ---<br />
+<br />
+&nbsp;&nbsp; </span><span class="default">pg_close</span><span class="keyword">();<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="35487""></a>
+  <div class="note">
+   <strong class="user">Mikewithme at yahoo dot com</strong>
+   <a href="#35487" class="date">02-Sep-2003 02:28</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Due to a bug, OLD API does not available with PHP 4.2.0 and 4.2.1.<br />
+<br />
+PHP 4.2.2 will support OLD API again and will be kept long enough.<br />
+<br />
+New API will be available PHP 4.2.0 to later versions. <br />
+yohgaki at php dot net<br />
+19-Jun-2002 04:00 <br />
+Due to a bug, PHP 4.2.0 and 4.2.1 does not support pg_lo_import() old API. It's fixed in PHP 4.2.2.<br />
+<br />
+BTW, new API will be always available from PHP 4.2.0 to later versions. Older API will be kept long enough, also. <br />
+ceco at noxis dot net<br />
+15-May-2002 09:08 <br />
+it works for me (php-4.2.1)<br />
+<br />
+not like this<br />
+<br />
+int pg_lo_import ( string pathname [, resource connection])<br />
+<br />
+but <br />
+int pg_lo_import ( resource connection, string pathname )<br />
+<br />
+don't know the reason</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="28182""></a>
+  <div class="note">
+   <strong class="user">Ron Howard</strong>
+   <a href="#28182" class="date">04-Jan-2003 07:20</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If there is an error in one of your queries, the queries following it will not get executed, and there will *not* be an error message displayed. The only way I can think of to determine if an SQL error happened is to use pg_trace.<br />
+<br />
+Example:<br />
+<br />
+pg_send_query($connection,<br />
+&nbsp;&nbsp;&nbsp; "SELECT id FROM users;<br />
+&nbsp;&nbsp;&nbsp; SELECT * FROM customers;<br />
+&nbsp;&nbsp; &nbsp; [INVALID-SQL-STATEMENT];<br />
+&nbsp;&nbsp;&nbsp; SELECT name FROM countries;");<br />
+<br />
+while ($result = pg_get_result($connection))<br />
+&nbsp;&nbsp;&nbsp; $results[] = $result;<br />
+<br />
+The $results array will only have two items in it.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

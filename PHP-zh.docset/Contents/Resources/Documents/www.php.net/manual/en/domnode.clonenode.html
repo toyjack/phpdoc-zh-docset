@@ -1,0 +1,384 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Clones a node</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="domnode.c14nfile.html">? DOMNode::C14NFile</a></li>
+      <li style="float: right;"><a href="domnode.getlineno.html">DOMNode::getLineNo ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="class.domnode.html">DOMNode</a></li>
+    <li>Clones a node</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="domnode.clonenode" class="refentry">
+ <div class="refnamediv">
+  <h1 class="refname">DOMNode::cloneNode</h1>
+  <p class="verinfo">(PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">DOMNode::cloneNode</span> &mdash; <span class="dc-title">
+   Clones a node
+  </span></p>
+
+ </div>
+ <div class="refsect1 description" id="refsect1-domnode.clonenode-description">
+  <h3 class="title">说明</h3>
+  <div class="methodsynopsis dc-description">
+   <span class="modifier">public</span> <span class="methodname"><strong>DOMNode::cloneNode</strong></span>
+    ([ <span class="methodparam"><span class="type">bool</span> <code class="parameter">$deep</code></span>
+  ] ) : <span class="type"><a href="class.domnode.html" class="type DOMNode">DOMNode</a></span></div>
+
+  <p class="para rdfs-comment">
+   Creates a copy of the node. 
+  </p>
+ </div>
+
+ <div class="refsect1 parameters" id="refsect1-domnode.clonenode-parameters">
+  <h3 class="title">参数</h3>
+  <p class="para">
+   <dl>
+
+    
+     <dt>
+<code class="parameter">deep</code></dt>
+
+     <dd>
+
+      <p class="para">
+       Indicates whether to copy all descendant nodes. This parameter is 
+       defaulted to <strong><code>FALSE</code></strong>.
+      </p>
+     </dd>
+
+    
+   </dl>
+
+  </p>
+ </div>
+
+ <div class="refsect1 returnvalues" id="refsect1-domnode.clonenode-returnvalues">
+  <h3 class="title">返回值</h3>
+  <p class="para">
+   The cloned node.
+  </p>
+ </div>
+
+</div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="120173""></a>
+  <div class="note">
+   <strong class="user">cmd at 1xinternet dot de</strong>
+   <a href="#120173" class="date">16-Nov-2016 12:11</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you need to clone node including all child DOMNode elements:<br />
+<br />
+private function cloneNode($node){<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $nd = new DOMNode();<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; for ($i = 0; $i &lt; $node-&gt;childNodes-&gt;length; $i++) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $child = $node-&gt;childNodes-&gt;item($i);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if ($child-&gt;nodeType === XML_TEXT_NODE) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $nd-&gt;appendChild($node-&gt;cloneNode(true));<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; else{<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $nd-&gt;appendChild($this-&gt;cloneNode($child));<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return $nd;<br />
+&nbsp;&nbsp;&nbsp; }</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115836""></a>
+  <div class="note">
+   <strong class="user">h-fate at gmx dot net</strong>
+   <a href="#115836" class="date">01-Oct-2014 07:48</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you have an object that holds a DOMNode, cloning the object won't clone the DOMNode with it. If you simply copy the object or add its DOMNode several times, you will in fact only move the DOMNode in the tree, not multiply it. That might seem obvious, but took me half a day to find out.<br />
+<br />
+The object needs to use __clone and clone the node manually:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">containsNode </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public </span><span class="default">$node</span><span class="keyword">; </span><span class="comment">//set from somewhere<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">public function </span><span class="default">__clone</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">node </span><span class="keyword">= </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">node</span><span class="keyword">-&gt;</span><span class="default">cloneNode</span><span class="keyword">(</span><span class="default">TRUE</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="110753""></a>
+  <div class="note">
+   <strong class="user">frame at dynamiccreated dot de</strong>
+   <a href="#110753" class="date">02-Dec-2012 02:19</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Remeber that DOMNode always needs a reference to a parent node or DOMDocument.<br />
+<br />
+For example, if you try to clone a node - copy all children - and overwrite or delete the variable which holds the cloned node - all children will loose any reference and getting invalid.<br />
+<br />
+This will cause a nice message like "Couldn't... node no longer exists" if you have luck. In most cases PHP only gives you the poor information "Couldn't fetch DOM[...]" which makes hard to find out whats going on, depending on the current operation.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="90559""></a>
+  <div class="note">
+   <strong class="user">cemkalyoncu at gmail dot com</strong>
+   <a href="#90559" class="date">28-Apr-2009 03:04</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you need some function to clone a node without touching namespaces you can use the following.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">private function </span><span class="default">cloneNode</span><span class="keyword">(</span><span class="default">$node</span><span class="keyword">,</span><span class="default">$doc</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$nd</span><span class="keyword">=</span><span class="default">$doc</span><span class="keyword">-&gt;</span><span class="default">createElement</span><span class="keyword">(</span><span class="default">$node</span><span class="keyword">-&gt;</span><span class="default">nodeName</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; foreach(</span><span class="default">$node</span><span class="keyword">-&gt;</span><span class="default">attributes </span><span class="keyword">as </span><span class="default">$value</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$nd</span><span class="keyword">-&gt;</span><span class="default">setAttribute</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">-&gt;</span><span class="default">nodeName</span><span class="keyword">,</span><span class="default">$value</span><span class="keyword">-&gt;</span><span class="default">value</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; if(!</span><span class="default">$node</span><span class="keyword">-&gt;</span><span class="default">childNodes</span><span class="keyword">) <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$nd</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; foreach(</span><span class="default">$node</span><span class="keyword">-&gt;</span><span class="default">childNodes </span><span class="keyword">as </span><span class="default">$child</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">$child</span><span class="keyword">-&gt;</span><span class="default">nodeName</span><span class="keyword">==</span><span class="string">"#text"</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$nd</span><span class="keyword">-&gt;</span><span class="default">appendChild</span><span class="keyword">(</span><span class="default">$doc</span><span class="keyword">-&gt;</span><span class="default">createTextNode</span><span class="keyword">(</span><span class="default">$child</span><span class="keyword">-&gt;</span><span class="default">nodeValue</span><span class="keyword">));<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; else<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$nd</span><span class="keyword">-&gt;</span><span class="default">appendChild</span><span class="keyword">(</span><span class="default">cloneNode</span><span class="keyword">(</span><span class="default">$child</span><span class="keyword">,</span><span class="default">$doc</span><span class="keyword">));<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$nd</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="88969""></a>
+  <div class="note">
+   <strong class="user">[montana] at [percepticon] dot [com]</strong>
+   <a href="#88969" class="date">16-Feb-2009 02:23</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="comment">//@oliver thanks for example source...<br />
+<br />
+/*<br />
+&nbsp;cloneNode(false) does not omit <br />
+&nbsp;Attributes of cloned node, <br />
+&nbsp;to achieve this an iteration is required. <br />
+&nbsp;this is probably less efficient <br />
+&nbsp;than merely creating a new <br />
+&nbsp;node from the desired nodeName <br />
+&nbsp;but in some cases could be useful.<br />
+<br />
+use case: <br />
+<br />
+omit subnodes and attributes of <br />
+secured portions of an xml document <br />
+without altering expected general structure;<br />
+*/<br />
+//xml to use<br />
+<br />
+</span><span class="default">$file</span><span class="keyword">=</span><span class="string">"&lt;?xml version='1.0'?&gt;<br />
+&lt;book type='paperback'&gt;<br />
+&nbsp;&nbsp;&nbsp; &lt;title name='MAP'&gt;Red Nails&lt;/title&gt;<br />
+&nbsp;&nbsp;&nbsp; &lt;price&gt;$12.99&lt;/price&gt;<br />
+&nbsp;&nbsp;&nbsp; &lt;author&gt;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; &lt;name first='Robert' middle='E' last='Howard'/&gt;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; &lt;birthdate disco='false' nirvana='definitely'&gt;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 9/21/1977 <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &lt;month title='september' /&gt;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; &lt;/birthdate&gt;<br />
+&nbsp;&nbsp;&nbsp; &lt;/author&gt;<br />
+&nbsp;&nbsp;&nbsp; &lt;author&gt;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; &lt;name first='Arthur' middle='Mc' last='Kayn'/&gt;<br />
+&nbsp;&nbsp;&nbsp; &lt;/author&gt;<br />
+&lt;/book&gt;"</span><span class="keyword">;<br />
+<br />
+</span><span class="default">$doc </span><span class="keyword">= new </span><span class="default">domDocument</span><span class="keyword">;<br />
+<br />
+</span><span class="default">$doc</span><span class="keyword">-&gt;</span><span class="default">loadXML</span><span class="keyword">(</span><span class="default">$file</span><span class="keyword">);<br />
+<br />
+</span><span class="default">$xpath </span><span class="keyword">= new </span><span class="default">domXPath</span><span class="keyword">(</span><span class="default">$doc</span><span class="keyword">);<br />
+<br />
+</span><span class="default">$query </span><span class="keyword">= </span><span class="string">"//author/birthdate"</span><span class="keyword">;<br />
+</span><span class="default">$xpathQuery </span><span class="keyword">= </span><span class="default">$xpath</span><span class="keyword">-&gt;</span><span class="default">query</span><span class="keyword">(</span><span class="default">$query</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">//would be a loop in production code...<br />
+</span><span class="default">$child </span><span class="keyword">= </span><span class="default">$xpathQuery</span><span class="keyword">-&gt;</span><span class="default">item</span><span class="keyword">(</span><span class="default">0</span><span class="keyword">); <br />
+<br />
+</span><span class="default">$parent </span><span class="keyword">= </span><span class="default">$child</span><span class="keyword">-&gt;</span><span class="default">parentNode</span><span class="keyword">;<br />
+<br />
+</span><span class="default">$doppel </span><span class="keyword">= </span><span class="default">$child</span><span class="keyword">-&gt;</span><span class="default">cloneNode</span><span class="keyword">(</span><span class="default">false</span><span class="keyword">);<br />
+<br />
+</span><span class="default">$limit </span><span class="keyword">= </span><span class="default">$doppel</span><span class="keyword">-&gt;</span><span class="default">attributes</span><span class="keyword">-&gt;</span><span class="default">length</span><span class="keyword">;<br />
+<br />
+for (</span><span class="default">$a</span><span class="keyword">=</span><span class="default">0</span><span class="keyword">;</span><span class="default">$a</span><span class="keyword">&lt;</span><span class="default">$limit</span><span class="keyword">;</span><span class="default">$a</span><span class="keyword">++) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$doppel</span><span class="keyword">-&gt;</span><span class="default">removeAttributeNode</span><span class="keyword">(</span><span class="default">$doppel</span><span class="keyword">-&gt;</span><span class="default">attributes</span><span class="keyword">-&gt;</span><span class="default">item</span><span class="keyword">(</span><span class="default">0</span><span class="keyword">));<br />
+}<br />
+</span><span class="comment">//swap for now empty node<br />
+</span><span class="default">$parent</span><span class="keyword">-&gt;</span><span class="default">replaceChild</span><span class="keyword">( </span><span class="default">$doppel</span><span class="keyword">, </span><span class="default">$child</span><span class="keyword">); <br />
+<br />
+print </span><span class="default">$doc</span><span class="keyword">-&gt;</span><span class="default">saveXML</span><span class="keyword">();<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="47542""></a>
+  <div class="note">
+   <strong class="user">oliver dot christen at camptocamp dot com</strong>
+   <a href="#47542" class="date">19-Nov-2004 08:48</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+simple exemple of node cloning
+<br />
+
+<br />
+&lt;?xml version="1.0"?&gt;
+<br />
+
+<br />
+&lt;book type="paperback"&gt;
+<br />
+&nbsp;&nbsp;&nbsp; &lt;title name='MAP'&gt;Red Nails&lt;/title&gt;
+<br />
+&nbsp;&nbsp;&nbsp; &lt;price&gt;$12.99&lt;/price&gt;
+<br />
+&nbsp;&nbsp;&nbsp; &lt;author&gt;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; &lt;name first="Robert" middle="E" last="Howard"/&gt;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; &lt;birthdate&gt;9/21/1977&lt;/birthdate&gt;
+<br />
+&nbsp;&nbsp;&nbsp; &lt;/author&gt;
+<br />
+&nbsp;&nbsp;&nbsp; &lt;author&gt;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; &lt;name first="Arthur" middle="Mc" last="Kayn"/&gt;
+<br />
+&nbsp;&nbsp;&nbsp; &lt;/author&gt;
+<br />
+&lt;/book&gt;
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+
+<br />
+</span><span class="comment">//filename xml file to use
+<br />
+</span><span class="default">$file </span><span class="keyword">= </span><span class="string">'book.xml'</span><span class="keyword">;
+<br />
+
+<br />
+</span><span class="default">$doc </span><span class="keyword">= new </span><span class="default">domDocument</span><span class="keyword">;
+<br />
+
+<br />
+if (</span><span class="default">file_exists</span><span class="keyword">(</span><span class="default">$file</span><span class="keyword">)) {
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$doc</span><span class="keyword">-&gt;</span><span class="default">load</span><span class="keyword">(</span><span class="default">$file</span><span class="keyword">);
+<br />
+} else {
+<br />
+&nbsp;&nbsp;&nbsp; exit(</span><span class="string">'Erreur !.'</span><span class="keyword">);
+<br />
+}
+<br />
+
+<br />
+</span><span class="default">$xpath </span><span class="keyword">= new </span><span class="default">domXPath</span><span class="keyword">(</span><span class="default">$doc</span><span class="keyword">);
+<br />
+
+<br />
+</span><span class="default">$query </span><span class="keyword">= </span><span class="string">"//author/*"</span><span class="keyword">;
+<br />
+</span><span class="default">$xpathQuery </span><span class="keyword">= </span><span class="default">$xpath</span><span class="keyword">-&gt;</span><span class="default">query</span><span class="keyword">(</span><span class="default">$query</span><span class="keyword">);
+<br />
+
+<br />
+</span><span class="default">$size </span><span class="keyword">= </span><span class="default">$xpathQuery</span><span class="keyword">-&gt;</span><span class="default">length</span><span class="keyword">;
+<br />
+for (</span><span class="default">$i</span><span class="keyword">=</span><span class="default">0</span><span class="keyword">; </span><span class="default">$i</span><span class="keyword">&lt;</span><span class="default">$size</span><span class="keyword">; </span><span class="default">$i</span><span class="keyword">++){
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$node </span><span class="keyword">= </span><span class="default">$xpathQuery</span><span class="keyword">-&gt;</span><span class="default">item</span><span class="keyword">(</span><span class="default">$i</span><span class="keyword">);
+<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">$node</span><span class="keyword">-&gt;</span><span class="default">nodeName </span><span class="keyword">== </span><span class="string">'birthdate' </span><span class="keyword">&amp;&amp; </span><span class="default">$node</span><span class="keyword">-&gt;</span><span class="default">hasChildNodes</span><span class="keyword">() &amp;&amp; </span><span class="default">$node</span><span class="keyword">-&gt;</span><span class="default">firstChild</span><span class="keyword">-&gt;</span><span class="default">textContent </span><span class="keyword">!= </span><span class="string">''</span><span class="keyword">){
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$clonenode </span><span class="keyword">= </span><span class="default">$node</span><span class="keyword">-&gt;</span><span class="default">cloneNode</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$refnode </span><span class="keyword">= </span><span class="default">$node</span><span class="keyword">;
+<br />
+&nbsp;&nbsp;&nbsp; }
+<br />
+}
+<br />
+for (</span><span class="default">$i</span><span class="keyword">=</span><span class="default">0</span><span class="keyword">; </span><span class="default">$i</span><span class="keyword">&lt;</span><span class="default">$size</span><span class="keyword">; </span><span class="default">$i</span><span class="keyword">++){
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$node </span><span class="keyword">= </span><span class="default">$xpathQuery</span><span class="keyword">-&gt;</span><span class="default">item</span><span class="keyword">(</span><span class="default">$i</span><span class="keyword">);
+<br />
+&nbsp;&nbsp;&nbsp; if (!</span><span class="default">$node</span><span class="keyword">-&gt;</span><span class="default">isSameNode</span><span class="keyword">(</span><span class="default">$refnode</span><span class="keyword">)){
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$newnode </span><span class="keyword">= </span><span class="default">$node</span><span class="keyword">-&gt;</span><span class="default">appendChild</span><span class="keyword">(</span><span class="default">$clonenode</span><span class="keyword">);
+<br />
+&nbsp;&nbsp;&nbsp; }
+<br />
+}
+<br />
+
+<br />
+print </span><span class="default">$doc</span><span class="keyword">-&gt;</span><span class="default">saveXML</span><span class="keyword">();
+<br />
+
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

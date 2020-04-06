@@ -1,0 +1,104 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>对象序列化</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="language.oop5.references.html">? 对象和引用</a></li>
+      <li style="float: right;"><a href="language.oop5.changelog.html">OOP 变更日志 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="language.oop5.html">类与对象</a></li>
+    <li>对象序列化</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="language.oop5.serialization" class="sect1">
+  <h2 class="title">对象序列化</h2>
+  <h2 class="title">序列化对象 - 在会话中存放对象</h2>
+
+  <p class="para">
+   所有php里面的值都可以使用函数<span class="function"><a href="function.serialize.html" class="function">serialize()</a></span>来返回一个包含字节流的字符串来表示。<span class="function"><a href="function.unserialize.html" class="function">unserialize()</a></span>函数能够重新把字符串变回php原来的值。
+   序列化一个对象将会保存对象的所有变量，但是不会保存对象的方法，只会保存类的名字。
+  </p>
+  
+  <p class="para">
+   为了能够<span class="function"><a href="function.unserialize.html" class="function">unserialize()</a></span>一个对象，这个对象的类必须已经定义过。如果序列化类A的一个对象，将会返回一个跟类A相关，而且包含了对象所有变量值的字符串。
+   如果要想在另外一个文件中解序列化一个对象，这个对象的类必须在解序列化之前定义，可以通过包含一个定义该类的文件或使用函数<span class="function"><a href="function.spl-autoload-register.html" class="function">spl_autoload_register()</a></span>来实现。
+  </p>
+  
+  <div class="informalexample">
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">//&nbsp;classa.inc:<br />&nbsp;&nbsp;<br />&nbsp;&nbsp;</span><span style="color: #007700">class&nbsp;</span><span style="color: #0000BB">A&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;</span><span style="color: #0000BB">$one&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">show_one</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #0000BB">$this</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">one</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;}<br />&nbsp;&nbsp;<br /></span><span style="color: #FF8000">//&nbsp;page1.php:<br /><br />&nbsp;&nbsp;</span><span style="color: #007700">include(</span><span style="color: #DD0000">"classa.inc"</span><span style="color: #007700">);<br />&nbsp;&nbsp;<br />&nbsp;&nbsp;</span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">A</span><span style="color: #007700">;<br />&nbsp;&nbsp;</span><span style="color: #0000BB">$s&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">serialize</span><span style="color: #007700">(</span><span style="color: #0000BB">$a</span><span style="color: #007700">);<br />&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;把变量$s保存起来以便文件page2.php能够读到<br />&nbsp;&nbsp;</span><span style="color: #0000BB">file_put_contents</span><span style="color: #007700">(</span><span style="color: #DD0000">'store'</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$s</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">//&nbsp;page2.php:<br />&nbsp;&nbsp;<br />&nbsp;&nbsp;//&nbsp;要正确了解序列化，必须包含下面一个文件<br />&nbsp;&nbsp;</span><span style="color: #007700">include(</span><span style="color: #DD0000">"classa.inc"</span><span style="color: #007700">);<br /><br />&nbsp;&nbsp;</span><span style="color: #0000BB">$s&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">file_get_contents</span><span style="color: #007700">(</span><span style="color: #DD0000">'store'</span><span style="color: #007700">);<br />&nbsp;&nbsp;</span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">unserialize</span><span style="color: #007700">(</span><span style="color: #0000BB">$s</span><span style="color: #007700">);<br /><br />&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;现在可以使用对象$a里面的函数&nbsp;show_one()<br />&nbsp;&nbsp;</span><span style="color: #0000BB">$a</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">show_one</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+  
+  <p class="para">
+   当一个应用程序使用函数<span class="function"><a href="function.session-register.html" class="function">session_register()</a></span>来保存对象到会话中时，在每个页面结束的时候这些对象都会自动序列化，而在每个页面开始的时候又自动解序列化。
+   所以一旦对象被保存在会话中，整个应用程序的页面都能使用这些对象。但是，<span class="function"><a href="function.session-register.html" class="function">session_register()</a></span>在php5.4.0之后被移除了。
+  </p>
+  
+  <p class="para">
+   在应用程序中序列化对象以便在之后使用，强烈推荐在整个应用程序都包含对象的类的定义。
+   不然有可能出现在解序列化对象的时候，没有找到该对象的类的定义，从而把没有方法的类<strong class="classname">__PHP_Incomplete_Class_Name</strong>作为该对象的类，导致返回一个没有用的对象。
+  </p>
+  
+  <p class="para">
+   所以在上面的例子中，当运行<em>session_register(&quot;a&quot;)</em>，把变量<var class="varname"><var class="varname">$a</var></var>放在会话里之后，需要在每个页面都包含文件<em>classa.inc</em>，而不是只有文件<var class="filename">page1.php</var>和<var class="filename">page2.php</var>。
+  </p>
+  
+  <p class="para">
+   除了以上建议，可以在对象上使用 
+   <a href="language.oop5.magic.html#object.sleep" class="link">__sleep()</a> 和
+   <a href="language.oop5.magic.html#object.wakeup" class="link">__wakeup()</a> 方法对序列化/反序列化事件挂载钩子。
+   使用
+   <a href="language.oop5.magic.html#object.sleep" class="link">__sleep()</a> 也能够让仅仅序列化对象的某些属性。
+  </p>
+ </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="116756""></a>
+  <div class="note">
+   <strong class="user">michael at smith-li dot com</strong>
+   <a href="#116756" class="date">23-Feb-2015 07:28</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Reading this page you'd be left with the impression that a class's `serialize` and `unserialize` methods are unrelated to the `serialize` and `unserialize` core functions; that only `__sleep` and `__unsleep` allow you to customize an object's serialization interface. But look at <a href="http://php.net/manual/en/class.serializable.php and you" rel="nofollow" target="_blank">http://php.net/manual/en/class.serializable.php and you</a>'ll see that there is a more straightforward way to control how a user-defined object is serialized and unserialized.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="94139""></a>
+  <div class="note">
+   <strong class="user">php at lanar dot com dot au</strong>
+   <a href="#94139" class="date">18-Oct-2009 04:47</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Note that static members of an object are not serialized.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

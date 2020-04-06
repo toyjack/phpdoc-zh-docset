@@ -1,0 +1,491 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Unix 系统下的 Nginx 1.4.x</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="install.unix.apache2.html">? Unix 系统下的 Apache 2.x</a></li>
+      <li style="float: right;"><a href="install.unix.lighttpd-14.html">Unix 平台的 Lighttpd 1.4 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="install.unix.html">Unix 系统下的安装</a></li>
+    <li>Unix 系统下的 Nginx 1.4.x</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="install.unix.nginx" class="sect1">
+ <h2 class="title">Unix 系统下的 Nginx 1.4.x</h2>
+
+ <p class="para">
+  本文档包括使用 PHP-FPM 为 Nginx 1.4.x HTTP 服务器安装和配置 PHP 的说明和提示。
+ </p>
+
+ <p class="para">
+  本指南假定您已经从源代码成功构建 Nginx，并且其二进制文件和配置文件都位于 <em>/usr/local/nginx</em>。
+  如果您使用其他方式获取的 Nginx，请参考 <a href="http://wiki.nginx.org/Main" class="link external" title="Link : http://wiki.nginx.org/Main">&raquo;&nbsp;Nginx Wiki</a> 并对照本文档完成安装。
+ </p>
+
+ <p class="para">
+  本文档仅包含 Nginx 服务器的基本配置，它将通过 80 端口提供 PHP 应用的处理能力。
+  如果您需要超出本文档范围的安装配置指导，建议您查阅 Nginx 和 PHP-FPM 的文档。
+ </p>
+
+ <p class="para">
+  需要注意的是，本文档一律使用 &#039;x&#039; 来表示版本号，请根据实际情况将 &#039;x&#039; 替换为对应的版本号。
+ </p>
+
+ <ol type="1">
+  <li class="listitem">
+   <p class="para">
+    建议您访问 Nginx Wiki
+    <a href="http://wiki.nginx.org/Install" class="link external" title="Link : http://wiki.nginx.org/Install">&raquo;&nbsp;安装</a> 页面以获取并在您的系统上安装 Nginx。 
+   </p>
+  </li>
+
+  <li class="listitem">
+   <p class="para">
+    获取并解压 PHP 源代码:
+   </p>
+
+   <div class="informalexample">
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+tar zxf php-x.x.x
+</pre></div>
+    </div>
+   </div>
+  </li>
+
+  <li class="listitem">
+   <p class="para">
+    配置并构建 PHP。在此步骤您可以使用很多选项自定义 PHP，例如启用某些扩展等。
+    运行 ./configure --help 命令来获得完整的可用选项清单。
+    在本示例中，我们仅进行包含 PHP-FPM 和 MySQL 支持的简单配置。
+   </p>
+
+   <div class="informalexample">
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+cd ../php-x.x.x
+./configure --enable-fpm --with-mysql
+make
+sudo make install
+</pre></div>
+    </div>
+   </div>
+  </li>
+
+  <li class="listitem">
+   <p class="para">
+    创建配置文件，并将其复制到正确的位置。
+   </p>
+
+   <div class="informalexample">
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+cp php.ini-development /usr/local/php/php.ini
+cp /usr/local/etc/php-fpm.d/www.conf.default /usr/local/etc/php-fpm.d/www.conf
+cp sapi/fpm/php-fpm /usr/local/bin
+</pre></div>
+    </div>
+   </div>
+  </li>
+
+  <li class="listitem">
+   <p class="para">
+    需要着重提醒的是，如果文件不存在，则阻止 Nginx 将请求发送到后端的 PHP-FPM 模块，
+    以避免遭受恶意脚本注入的攻击。
+   </p>
+   <p class="para">
+    将 php.ini 文件中的配置项
+    <a href="ini.core.html#ini.cgi.fix-pathinfo" class="link">cgi.fix_pathinfo</a>
+    设置为 <em>0</em> 。
+   </p>
+   <p class="para">
+    打开 php.ini:
+   </p>
+
+   <div class="informalexample">
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+vim /usr/local/php/php.ini
+</pre></div>
+    </div>
+   </div>
+
+   <p class="para">
+    定位到 <em>cgi.fix_pathinfo=</em> 并将其修改为如下所示：
+   </p>
+
+   <div class="informalexample">
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+cgi.fix_pathinfo=0
+</pre></div>
+    </div>
+   </div>
+  </li>
+
+  <li class="listitem">
+   <p class="para">
+    在启动服务之前，需要修改 php-fpm.conf 配置文件，确保 php-fpm 模块使用
+    www-data 用户和 www-data 用户组的身份运行。
+   </p>
+
+   <div class="informalexample">
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+vim /usr/local/etc/php-fpm.d/www.conf
+</pre></div>
+    </div>
+   </div>
+
+   <p class="para">
+    找到以下内容并修改： 
+   </p>
+
+   <div class="informalexample">
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+; Unix user/group of processes
+; Note: The user is mandatory. If the group is not set, the default user&#039;s group
+;       will be used.
+user = www-data
+group = www-data
+</pre></div>
+    </div>
+   </div>
+
+   <p class="para">
+    然后启动 php-fpm 服务：
+   </p>
+
+   <div class="informalexample">
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+/usr/local/bin/php-fpm
+</pre></div>
+    </div>
+   </div>
+
+   <p class="para">
+    本文档未涵盖对 php-fpm 进行进一步配置的信息，如果您需要更多信息，请查阅相关文档。
+   </p>
+  </li>
+
+  <li class="listitem">
+   <p class="para">
+    配置 Nginx 使其支持 PHP 应用：
+   </p>
+
+   <div class="informalexample">
+    <div class="example-contents">
+<div class="cdata"><pre>
+vim /usr/local/nginx/conf/nginx.conf
+</pre></div>
+    </div>
+
+   </div>
+
+   <p class="para">
+    修改默认的 location 块，使其支持 .php 文件：
+   </p>
+
+   <div class="informalexample">
+    <div class="example-contents">
+<div class="nginx-confcode"><pre class="nginx-confcode">location / {
+    root   html;
+    index  index.php index.html index.htm;
+}</pre>
+</div>
+    </div>
+
+   </div>
+
+   <p class="para">
+    下一步配置来保证对于 .php 文件的请求将被传送到后端的 PHP-FPM 模块，
+    取消默认的 PHP 配置块的注释，并修改为下面的内容：
+   </p>
+
+   <div class="informalexample">
+    <div class="example-contents">
+<div class="nginx-confcode"><pre class="nginx-confcode">location ~* \.php$ {
+    fastcgi_index   index.php;
+    fastcgi_pass    127.0.0.1:9000;
+    include         fastcgi_params;
+    fastcgi_param   SCRIPT_FILENAME    $document_root$fastcgi_script_name;
+    fastcgi_param   SCRIPT_NAME        $fastcgi_script_name;
+}</pre>
+</div>
+    </div>
+
+   </div>
+
+   <p class="para">
+    重启 Nginx。
+   </p>
+
+   <div class="informalexample">
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+sudo /usr/local/nginx/sbin/nginx -s stop
+sudo /usr/local/nginx/sbin/nginx
+</pre></div>
+    </div>
+   </div>
+  </li>
+
+  <li class="listitem">
+   <p class="para">
+    创建测试文件。
+   </p>
+
+   <div class="informalexample">
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+rm /usr/local/nginx/html/index.html
+echo &quot;&lt;?php phpinfo(); ?&gt;&quot; &gt;&gt; /usr/local/nginx/html/index.php
+</pre></div>
+    </div>
+   </div>
+
+   <p class="para">
+    打开浏览器，访问 http://localhost，将会显示 phpinfo() 。
+   </p>
+  </li>
+ </ol>
+
+ <p class="para">
+  通过以上步骤的配置，Nginx 服务器现在可以以 <em>SAPI</em> <em>SAPI</em> 模块的方式支持 PHP 应用了。
+  当然，对于 Nginx 和 PHP 的配置，还有很多可用的选项，
+  请在对应的源代码目录执行 <strong class="command">./configure --help</strong> 来查阅更多配置选项。
+ </p>
+
+</div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="124418""></a>
+  <div class="note">
+   <strong class="user">610010559 at qq dot com</strong>
+   <a href="#124418" class="date">21-Nov-2019 12:44</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+in linux system, if you want to add php-fpm service to system service;&nbsp; it is easy to do that, because php offer the relate shell script:<br />
+<br />
+after make and make install;enter the source code package sapi/fpm/init.d.php-fpm ; type the code in the linux system.&nbsp; <br />
+cp sapi/fpm/init.d.php-fpm&nbsp; /etc/init.d/php-fpm<br />
+<br />
+then you can use "php-fpm {start|stop|force-quit|restart|reload|status|configtest} "&nbsp; command&nbsp; to control your php-fpm program more convenient .</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="123579""></a>
+  <div class="note">
+   <strong class="user">uanaoeng at outlook dot com</strong>
+   <a href="#123579" class="date">01-Feb-2019 08:56</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+When I run the following command to start the php-fpm:<br />
+/usr/local/bin/php-fpm<br />
+<br />
+I got the following error information:<br />
+Unable to globalize '/usr/local/NONE/etc/php-fpm.d/*.conf' (ret=2) from /usr/local/etc/php-fpm.conf at line 143.<br />
+<br />
+To fix this error, do:<br />
+change the string "include=NONE/etc/php-fpm.d/*.conf" to "include=etc/php-fpm.d/*.conf" in the file "/usr/local/etc/php-fpm.conf" with text editor.<br />
+<br />
+After that, I try to start the php-fpm again and got error information again:<br />
+Nothing matches the include pattern '/usr/local/etc/php-fpm.d/*.conf' from /usr/local/etc/php-fpm.conf at line 143.<br />
+<br />
+To fix this error, do:<br />
+cp /usr/local/etc/php-fpm.d/www.conf.default /usr/local/etc/php-fpm.d/www.conf</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="123396""></a>
+  <div class="note">
+   <strong class="user">1097625354 at qq dot com</strong>
+   <a href="#123396" class="date">03-Dec-2018 08:31</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+cp php/php.ini-development&nbsp; &nbsp; &nbsp; &nbsp; php/lib/php.ini<br />
+cp php/etc/php-fpm.conf.default&nbsp; &nbsp; &nbsp;&nbsp; php/etc/php-fpm.conf<br />
+cp php/etc/php-fpm.d/www.conf.default&nbsp; &nbsp;&nbsp; php/etc/php-fpm.d/www.conf</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="122475""></a>
+  <div class="note">
+   <strong class="user">sp at rysmax dot com</strong>
+   <a href="#122475" class="date">06-Mar-2018 09:10</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Translate errors:<br />
+<br />
+Теперь перейдите в <a href="http://localhsot" rel="nofollow" target="_blank">http://localhsot</a><br />
+Теперь перейдите в <a href="http://localhost" rel="nofollow" target="_blank">http://localhost</a><br />
+<br />
+В этом разделе описивыется <br />
+В этом разделе описывается <br />
+<br />
+запрещаем Nginx от отправлять<br />
+запрещаем Nginx отправлять</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118875""></a>
+  <div class="note">
+   <strong class="user">Lenny</strong>
+   <a href="#118875" class="date">21-Feb-2016 02:40</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Building from source is not easy if something is a bit different, and I had a hard time with some directory and configuration options. I was floundering around the web until I found this site that translated from Chinese. No one else had the solution.&nbsp; I couldn't get php fpm to start until I changed the directory (Item 2.ERROR: Unable to globalize). I had other issues listed but I was able to solve them. Please don't delete this, it is very useful info.<br />
+<br />
+The original site&nbsp; (it is in Chinese, not my site, but I want to give credit):<br />
+<br />
+(there is some more there, you can goto the site)<br />
+<br />
+blog.dream1987.top/?paged=2<br />
+<br />
+Installation problems:<br />
+<br />
+1. configure: error:. Xml2-config not found Please check your libxml2 installation.<br />
+<br />
+solution:<br />
+<br />
+apt-get install libxml2-dev<br />
+<br />
+&nbsp;<br />
+<br />
+2.Warning: Declaration of PEAR_Installer :: download () should be compatible with &amp; PEAR_Downloader :: download ($ params) in phar: ///root/php-7.0.0alpha1/pear/install-pear-nozlib.phar/PEAR /Installer.php on line 43<br />
+<br />
+Warning: Declaration of PEAR_PackageFile_Parser_v2 :: parse () should be compatible with PEAR_XMLParser :: parse ($ data) in phar: ///root/php-7.0.0alpha1/pear/install-pear-nozlib.phar/PEAR/PackageFile/ Parser / v2.php on line 113 <br />
+[PEAR] Archive_Tar - already installed: 1.3.13 <br />
+[PEAR] Console_Getopt - already installed: 1.3.1 <br />
+[PEAR] Structures_Graph- already installed: 1.0.4<br />
+<br />
+Warning: Declaration of PEAR_Task_Replace :: init () should be compatible with PEAR_Task_Common :: init ($ xml, $ fileAttributes, $ lastVersion) in phar: ///root/php-7.0.0alpha1/pear/install-pear-nozlib. phar / PEAR / Task / Replace.php on line 31 <br />
+[PEAR] XML_Util - already installed: 1.2.3<br />
+<br />
+Warning: Declaration of PEAR_Task_Windowseol :: init () should be compatible with PEAR_Task_Common :: init ($ xml, $ fileAttributes, $ lastVersion) in phar: ///root/php-7.0.0alpha1/pear/install-pear-nozlib. phar / PEAR / Task / Windowseol.php on line 76<br />
+<br />
+Warning: Declaration of PEAR_Task_Unixeol :: init () should be compatible with PEAR_Task_Common :: init ($ xml, $ fileAttributes, $ lastVersion) in phar: ///root/php-7.0.0alpha1/pear/install-pear-nozlib. phar / PEAR / Task / Unixeol.php on line 76 <br />
+[PEAR] PEAR - already installed: 1.9.5<br />
+<br />
+solution:<br />
+<br />
+Workaround not found (<a href="http://pear.php.net/bugs/bug.php?id=20554" rel="nofollow" target="_blank">http://pear.php.net/bugs/bug.php?id=20554</a>)<br />
+<br />
+3. Start php-fpm<br />
+<br />
+1.ERROR: failed to open configuration file '/usr/local/etc/php-fpm.conf': No such file or directory (2) <br />
+ERROR: failed to load configuration file '/usr/local/etc/php-fpm.conf' <br />
+ERROR: FPM initialization failed<br />
+<br />
+solution:<br />
+<br />
+Php-fpm.conf copy files from the source file to that location.<br />
+<br />
+cp /root/php-7.0.0alpha1/sapi/fpm/php-fpm.conf /usr/local/etc/php-fpm.conf<br />
+<br />
+2.ERROR: Unable to globalize '/usr/local/NONE/etc/php-fpm.d/*.conf' (ret = 2) from /usr/local/etc/php-fpm.conf at line 125. <br />
+ERROR: failed to load configuration file '/usr/local/etc/php-fpm.conf' <br />
+ERROR: FPM initialization failed<br />
+<br />
+solution:<br />
+<br />
+Edit /usr/local/etc/php-fpm.conf document introduced * .conf part, change to the correct path include = / usr / local / etc / php-fpm.d / *. Conf<br />
+<br />
+If there is no /usr/local/etc/php-fpm.d directory, create the directory.<br />
+<br />
+3.WARNING: Nothing matches the include pattern '/usr/local/etc/php-fpm.d/*.conf' from /usr/local/etc/php-fpm.conf at line 125. <br />
+ERROR:. No pool defined at least one pool section must be specified in config file <br />
+ERROR: failed to post process the configuration <br />
+ERROR: FPM initialization failed<br />
+<br />
+solution:<br />
+<br />
+cp www.conf.default www.conf<br />
+<br />
+4.ERROR: [pool www] can not get gid for group 'nobody' <br />
+ERROR: FPM initialization failed<br />
+<br />
+solution:<br />
+<br />
+Www.conf open files, user and group users into nginx default settings, usually the default is www-data.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118520""></a>
+  <div class="note">
+   <strong class="user">Akash Kumar Sharma</strong>
+   <a href="#118520" class="date">20-Dec-2015 08:48</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you get "File not found" error then add "root ROOT_DIR_LOCATION" directive to PHP location block i.e. "location ~* \.php$ { }" , where ROOT_DIR_LOCATION is root directory like "/usr/share/nginx/html" .</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118414""></a>
+  <div class="note">
+   <strong class="user">nguyentienlong88 at gmail dot com</strong>
+   <a href="#118414" class="date">03-Dec-2015 03:22</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+at step 3, after command "sudo make install"<br />
+if there is problem with pear.php.net (https). Need to change this line (from https to http) in Makefile<br />
+PEAR_INSTALLER_URL = <a href="http://pear.php.net/install-pear-nozlib.phar" rel="nofollow" target="_blank">http://pear.php.net/install-pear-nozlib.phar</a></span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118408""></a>
+  <div class="note">
+   <strong class="user">nguyentienlong88 at gmail dot com</strong>
+   <a href="#118408" class="date">02-Dec-2015 07:38</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+at step 3, if there is no configure script yet, you need to rebuiding configure script using this command:<br />
+&nbsp;&nbsp; <br />
+./buildconf --force</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

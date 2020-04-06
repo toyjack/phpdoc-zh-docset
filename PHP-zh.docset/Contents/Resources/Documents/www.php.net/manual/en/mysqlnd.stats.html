@@ -1,0 +1,1324 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Statistics</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="mysqlnd.persist.html">? Persistent Connections</a></li>
+      <li style="float: right;"><a href="mysqlnd.notes.html">Notes ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="book.mysqlnd.html">Mysqlnd</a></li>
+    <li>Statistics</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="mysqlnd.stats" class="chapter">
+ <h1>Statistics</h1>
+
+ <p class="para">
+  <em class="emphasis">Using Statistical Data</em>
+ </p>
+ <p class="para">
+  MySQL Native Driver contains support for gathering statistics on the
+  communication between the client and the server. The statistics
+  gathered are of two main types:
+ </p>
+ <ul class="itemizedlist">
+  <li class="listitem">
+   <p class="para">
+    Client statistics
+   </p>
+  </li>
+  <li class="listitem">
+   <p class="para">
+    Connection statistics
+   </p>
+  </li>
+ </ul>
+ <p class="para">
+  If you are using the <em>mysqli</em> extension, these
+  statistics can be obtained through two API calls:
+ </p>
+ <ul class="itemizedlist">
+  <li class="listitem">
+   <p class="para">
+    <span class="function"><a href="function.mysqli-get-client-stats.html" class="function">mysqli_get_client_stats()</a></span>
+   </p>
+  </li>
+  <li class="listitem">
+   <p class="para">
+    <span class="function"><a href="mysqli.get-connection-stats.html" class="function">mysqli_get_connection_stats()</a></span>
+   </p>
+  </li>
+ </ul>
+ <blockquote class="note"><p><strong class="note">Note</strong>: 
+  <p class="para">
+   Statistics are aggregated among all extensions that use MySQL Native
+   Driver. For example, when compiling both <em>ext/mysql</em>
+   and <em>ext/mysqli</em> against MySQL Native Driver, both
+   function calls of <em>ext/mysql</em> and
+   <em>ext/mysqli</em> will change the statistics. There is no
+   way to find out how much a certain API call of any extension that has
+   been compiled against MySQL Native Driver has impacted a certain
+   statistic. You can configure the PDO MySQL Driver,
+   <em>ext/mysql</em> and <em>ext/mysqli</em> to
+   optionally use the MySQL Native Driver. When doing so, all three
+   extensions will change the statistics.
+  </p>
+ </p></blockquote>
+ <p class="para">
+  <em class="emphasis">Accessing Client Statistics</em>
+ </p>
+ <p class="para">
+  To access client statistics, you need to call
+  <span class="function"><a href="function.mysqli-get-client-stats.html" class="function">mysqli_get_client_stats()</a></span>. The function call does
+  not require any parameters.
+ </p>
+ <p class="para">
+  The function returns an associative array that contains the name of
+  the statistic as the key and the statistical data as the value.
+ </p>
+ <p class="para">
+  Client statistics can also be accessed by calling the
+  <span class="function"><a href="function.phpinfo.html" class="function">phpinfo()</a></span> function.
+ </p>
+ <p class="para">
+  <em class="emphasis">Accessing Connection Statistics</em>
+ </p>
+ <p class="para">
+  To access connection statistics call
+  <span class="function"><a href="mysqli.get-connection-stats.html" class="function">mysqli_get_connection_stats()</a></span>. This takes the
+  database connection handle as the parameter.
+ </p>
+ <p class="para">
+  The function returns an associative array that contains the name of
+  the statistic as the key and the statistical data as the value.
+ </p>
+ <p class="para">
+  <em class="emphasis">Buffered and Unbuffered Result Sets</em>
+ </p>
+ <p class="para">
+  Result sets can be buffered or unbuffered. Using default settings,
+  <em>ext/mysql</em> and <em>ext/mysqli</em> work
+  with buffered result sets for normal (non prepared statement) queries.
+  Buffered result sets are cached on the client. After the query
+  execution all results are fetched from the MySQL Server and stored in
+  a cache on the client. The big advantage of buffered result sets is
+  that they allow the server to free all resources allocated to a result
+  set, once the results have been fetched by the client.
+ </p>
+ <p class="para">
+  Unbuffered result sets on the other hand are kept much longer on the
+  server. If you want to reduce memory consumption on the client, but
+  increase load on the server, use unbuffered results. If you experience
+  a high server load and the figures for unbuffered result sets are
+  high, you should consider moving the load to the clients. Clients
+  typically scale better than servers. <q class="quote">Load</q> does not only
+  refer to memory buffers - the server also needs to keep other
+  resources open, for example file handles and threads, before a result
+  set can be freed.
+ </p>
+ <p class="para">
+  Prepared Statements use unbuffered result sets by default. However,
+  you can use <span class="function"><a href="mysqli-stmt.store-result.html" class="function">mysqli_stmt_store_result()</a></span> to enable
+  buffered result sets.
+ </p>
+ <p class="para">
+  <em class="emphasis">Statistics returned by MySQL Native
+  Driver</em>
+ </p>
+ <p class="para">
+  The following tables show a list of statistics returned by the
+  <span class="function"><a href="function.mysqli-get-client-stats.html" class="function">mysqli_get_client_stats()</a></span> and
+  <span class="function"><a href="mysqli.get-connection-stats.html" class="function">mysqli_get_connection_stats()</a></span> functions.
+ </p>
+ <table class="doctable table">
+  <caption><strong>Returned mysqlnd statistics: Network</strong></caption>
+  
+   <col width="10*" />
+   <col width="10*" />
+   <col width="40*" />
+   <col width="40*" />
+   <thead>
+    <tr>
+     <th>Statistic</th>
+     <th>Scope</th>
+     <th>Description</th>
+     <th>Notes</th>
+    </tr>
+
+   </thead>
+
+   <tbody class="tbody">
+    <tr>
+     <td><em>bytes_sent</em></td>
+     <td>Connection</td>
+     <td>Number of bytes sent from PHP to the MySQL server</td>
+     <td>Can be used to check the efficiency of the compression protocol</td>
+    </tr>
+
+    <tr>
+     <td><em>bytes_received</em></td>
+     <td>Connection</td>
+     <td>Number of bytes received from MySQL server</td>
+     <td>Can be used to check the efficiency of the compression protocol</td>
+    </tr>
+
+    <tr>
+     <td><em>packets_sent</em></td>
+     <td>Connection</td>
+     <td>Number of MySQL Client Server protocol packets sent</td>
+     <td>Used for debugging Client Server protocol implementation</td>
+    </tr>
+
+    <tr>
+     <td><em>packets_received</em></td>
+     <td>Connection</td>
+     <td>Number of MySQL Client Server protocol packets received</td>
+     <td>Used for debugging Client Server protocol implementation</td>
+    </tr>
+
+    <tr>
+     <td><em>protocol_overhead_in</em></td>
+     <td>Connection</td>
+     <td>MySQL Client Server protocol overhead in bytes for incoming traffic.
+      Currently only the Packet Header (4 bytes) is considered as
+      overhead. protocol_overhead_in = packets_received * 4</td>
+     <td>Used for debugging Client Server protocol implementation</td>
+    </tr>
+
+    <tr>
+     <td><em>protocol_overhead_out</em></td>
+     <td>Connection</td>
+     <td>MySQL Client Server protocol overhead in bytes for outgoing traffic.
+      Currently only the Packet Header (4 bytes) is considered as
+      overhead. protocol_overhead_out = packets_sent * 4</td>
+     <td>Used for debugging Client Server protocol implementation</td>
+    </tr>
+
+    <tr>
+     <td><em>bytes_received_ok_packet</em></td>
+     <td>Connection</td>
+     <td>Total size of bytes of MySQL Client Server protocol OK packets received.
+      OK packets can contain a status message. The length of the status
+      message can vary and thus the size of an OK packet is not fixed.</td>
+     <td>Used for debugging CS protocol implementation. Note that the total size
+      in bytes includes the size of the header packet (4 bytes, see
+      protocol overhead).</td>
+    </tr>
+
+    <tr>
+     <td><em>packets_received_ok</em></td>
+     <td>Connection</td>
+     <td>Number of MySQL Client Server protocol OK packets received.</td>
+     <td>Used for debugging CS protocol implementation. Note that the total size
+      in bytes includes the size of the header packet (4 bytes, see
+      protocol overhead).</td>
+    </tr>
+
+    <tr>
+     <td><em>bytes_received_eof_packet</em></td>
+     <td>Connection</td>
+     <td>Total size in bytes of MySQL Client Server protocol EOF packets
+      received. EOF can vary in size depending on the server version.
+      Also, EOF can transport an error message.</td>
+     <td>Used for debugging CS protocol implementation. Note that the total size
+      in bytes includes the size of the header packet (4 bytes, see
+      protocol overhead).</td>
+    </tr>
+
+    <tr>
+     <td><em>packets_received_eof</em></td>
+     <td>Connection</td>
+     <td>Number of MySQL Client Server protocol EOF packets. Like with other
+      packet statistics the number of packets will be increased even if
+      PHP does not receive the expected packet but, for example, an
+      error message.</td>
+     <td>Used for debugging CS protocol implementation. Note that the total size
+      in bytes includes the size of the header packet (4 bytes, see
+      protocol overhead).</td>
+    </tr>
+
+    <tr>
+     <td><em>bytes_received_rset_header_packet</em></td>
+     <td>Connection</td>
+     <td>Total size in bytes of MySQL Client Server protocol result set header
+      packets. The size of the packets varies depending on the payload
+      (<em>LOAD LOCAL INFILE</em>, <em>INSERT</em>,
+      <em>UPDATE</em>, <em>SELECT</em>, error
+      message).</td>
+     <td>Used for debugging CS protocol implementation. Note that the total size
+      in bytes includes the size of the header packet (4 bytes, see
+      protocol overhead).</td>
+    </tr>
+
+    <tr>
+     <td><em>packets_received_rset_header</em></td>
+     <td>Connection</td>
+     <td>Number of MySQL Client Server protocol result set header packets.</td>
+     <td>Used for debugging CS protocol implementation. Note that the total size
+      in bytes includes the size of the header packet (4 bytes, see
+      protocol overhead).</td>
+    </tr>
+
+    <tr>
+     <td><em>bytes_received_rset_field_meta_packet</em></td>
+     <td>Connection</td>
+     <td>Total size in bytes of MySQL Client Server protocol result set meta data
+      (field information) packets. Of course the size varies with the
+      fields in the result set. The packet may also transport an error
+      or an EOF packet in case of COM_LIST_FIELDS.</td>
+     <td>Only useful for debugging CS protocol implementation. Note that the
+      total size in bytes includes the size of the header packet (4
+      bytes, see protocol overhead).</td>
+    </tr>
+
+    <tr>
+     <td><em>packets_received_rset_field_meta</em></td>
+     <td>Connection</td>
+     <td>Number of MySQL Client Server protocol result set meta data (field
+      information) packets.</td>
+     <td>Only useful for debugging CS protocol implementation. Note that the
+      total size in bytes includes the size of the header packet (4
+      bytes, see protocol overhead).</td>
+    </tr>
+
+    <tr>
+     <td><em>bytes_received_rset_row_packet</em></td>
+     <td>Connection</td>
+     <td>Total size in bytes of MySQL Client Server protocol result set row data
+      packets. The packet may also transport an error or an EOF packet.
+      You can reverse engineer the number of error and EOF packets by
+      subtracting <em>rows_fetched_from_server_normal</em>
+      and <em>rows_fetched_from_server_ps</em> from
+      <em>bytes_received_rset_row_packet</em>.</td>
+     <td>Only useful for debugging CS protocol implementation. Note that the
+      total size in bytes includes the size of the header packet (4
+      bytes, see protocol overhead).</td>
+    </tr>
+
+    <tr>
+     <td><em>packets_received_rset_row</em></td>
+     <td>Connection</td>
+     <td>Number of MySQL Client Server protocol result set row data packets and
+      their total size in bytes.</td>
+     <td>Only useful for debugging CS protocol implementation. Note that the
+      total size in bytes includes the size of the header packet (4
+      bytes, see protocol overhead).</td>
+    </tr>
+
+    <tr>
+     <td><em>bytes_received_prepare_response_packet</em></td>
+     <td>Connection</td>
+     <td>Total size in bytes of MySQL Client Server protocol OK for Prepared
+      Statement Initialization packets (prepared statement init
+      packets). The packet may also transport an error. The packet size
+      depends on the MySQL version: 9 bytes with MySQL 4.1 and 12 bytes
+      from MySQL 5.0 on. There is no safe way to know how many errors
+      happened. You may be able to guess that an error has occurred if,
+      for example, you always connect to MySQL 5.0 or newer and,
+      <em>bytes_received_prepare_response_packet</em> !=
+      <em>packets_received_prepare_response</em> * 12. See
+      also <em>ps_prepared_never_executed</em>,
+      <em>ps_prepared_once_executed</em>.</td>
+     <td>Only useful for debugging CS protocol implementation. Note that the
+      total size in bytes includes the size of the header packet (4
+      bytes, see protocol overhead).</td>
+    </tr>
+
+    <tr>
+     <td><em>packets_received_prepare_response</em></td>
+     <td>Connection</td>
+     <td>Number of MySQL Client Server protocol OK for Prepared Statement
+      Initialization packets (prepared statement init packets).</td>
+     <td>Only useful for debugging CS protocol implementation. Note that the
+      total size in bytes includes the size of the header packet (4
+      bytes, see protocol overhead).</td>
+    </tr>
+
+    <tr>
+     <td><em>bytes_received_change_user_packet</em></td>
+     <td>Connection</td>
+     <td>Total size in bytes of MySQL Client Server protocol COM_CHANGE_USER
+      packets. The packet may also transport an error or EOF.</td>
+     <td>Only useful for debugging CS protocol implementation. Note that the
+      total size in bytes includes the size of the header packet (4
+      bytes, see protocol overhead).</td>
+    </tr>
+
+    <tr>
+     <td><em>packets_received_change_user</em></td>
+     <td>Connection</td>
+     <td>Number of MySQL Client Server protocol COM_CHANGE_USER packets</td>
+     <td>Only useful for debugging CS protocol implementation. Note that the
+      total size in bytes includes the size of the header packet (4
+      bytes, see protocol overhead).</td>
+    </tr>
+
+    <tr>
+     <td><em>packets_sent_command</em></td>
+     <td>Connection</td>
+     <td>Number of MySQL Client Server protocol commands sent from PHP to MySQL.
+      There is no way to know which specific commands and how many of
+      them have been sent. At its best you can use it to check if PHP
+      has sent any commands to MySQL to know if you can consider to
+      disable MySQL support in your PHP binary. There is also no way to
+      reverse engineer the number of errors that may have occurred while
+      sending data to MySQL. The only error that is recorded is
+      command_buffer_too_small (see below).</td>
+     <td>Only useful for debugging CS protocol implementation.</td>
+    </tr>
+
+    <tr>
+     <td><em>bytes_received_real_data_normal</em></td>
+     <td>Connection</td>
+     <td>Number of bytes of payload fetched by the PHP client from
+      <em>mysqlnd</em> using the text protocol.</td>
+     <td>This is the size of the actual data contained in result sets that do not
+      originate from prepared statements and which have been fetched by
+      the PHP client. Note that although a full result set may have been
+      pulled from MySQL by <em>mysqlnd</em>, this statistic
+      only counts actual data pulled from <em>mysqlnd</em> by
+      the PHP client. An example of a code sequence that will increase
+      the value is as follows:
+<div class="example-contents">
+<div class="cdata"><pre>
+$mysqli = new mysqli();
+$res = $mysqli-&gt;query(&quot;SELECT &#039;abc&#039;&quot;);
+$res-&gt;fetch_assoc();
+$res-&gt;close();
+</pre></div>
+</div>
+
+      <p class="para">
+       Every fetch operation will increase the value.
+      </p>
+
+      <p class="para">
+       The statistic will not be increased if the result set is only
+       buffered on the client, but not fetched, such as in the following
+       example:
+      </p>
+<div class="example-contents">
+<div class="cdata"><pre>
+$mysqli = new mysqli();
+$res = $mysqli-&gt;query(&quot;SELECT &#039;abc&#039;&quot;);
+$res-&gt;close();
+</pre></div>
+</div>
+
+      <p class="para">
+       This statistic is available as of PHP version 5.3.4.
+      </p></td>
+    </tr>
+
+    <tr>
+     <td><em>bytes_received_real_data_ps</em></td>
+     <td>Connection</td>
+     <td>Number of bytes of the payload fetched by the PHP client from
+      <em>mysqlnd</em> using the prepared statement protocol.</td>
+     <td>This is the size of the actual data contained in result sets that
+      originate from prepared statements and which has been fetched by
+      the PHP client. The value will not be increased if the result set
+      is not subsequently read by the PHP client. Note that although a
+      full result set may have been pulled from MySQL by
+      <em>mysqlnd</em>, this statistic only counts actual data
+      pulled from <em>mysqlnd</em> by the PHP client. See also
+      <em>bytes_received_real_data_normal</em>. This statistic
+      is available as of PHP version 5.3.4.</td>
+    </tr>
+
+   </tbody>
+  
+ </table>
+
+ <p class="para">
+  <em class="emphasis">Result Set</em>
+ </p>
+ <table class="doctable table">
+  <caption><strong>Returned mysqlnd statistics: Result Set</strong></caption>
+  
+   <col width="10*" />
+   <col width="10*" />
+   <col width="40*" />
+   <col width="40*" />
+   <thead>
+    <tr>
+     <th>Statistic</th>
+     <th>Scope</th>
+     <th>Description</th>
+     <th>Notes</th>
+    </tr>
+
+   </thead>
+
+   <tbody class="tbody">
+    <tr>
+     <td><em>result_set_queries</em></td>
+     <td>Connection</td>
+     <td>Number of queries that have generated a result set. Examples of queries
+      that generate a result set: <em>SELECT</em>,
+      <em>SHOW</em>. The statistic will not be incremented if
+      there is an error reading the result set header packet from the
+      line.</td>
+     <td>You may use it as an indirect measure for the number of queries PHP has
+      sent to MySQL, for example, to identify a client that causes a
+      high database load.</td>
+    </tr>
+
+    <tr>
+     <td><em>non_result_set_queries</em></td>
+     <td>Connection</td>
+     <td>Number of queries that did not generate a result set. Examples of
+      queries that do not generate a result set:
+      <em>INSERT</em>, <em>UPDATE</em>,
+      <em>LOAD DATA</em>. The
+      statistic will not be incremented if there is an error reading the
+      result set header packet from the line.</td>
+     <td>You may use it as an indirect measure for the number of queries PHP has
+      sent to MySQL, for example, to identify a client that causes a
+      high database load.</td>
+    </tr>
+
+    <tr>
+     <td><em>no_index_used</em></td>
+     <td>Connection</td>
+     <td>Number of queries that have generated a result set but did not use an
+      index (see also mysqld start option
+      -log-queries-not-using-indexes). If you want these queries to be
+      reported you can use mysqli_report(MYSQLI_REPORT_INDEX) to make
+      ext/mysqli throw an exception. If you prefer a warning instead of
+      an exception use mysqli_report(MYSQLI_REPORT_INDEX ^
+      MYSQLI_REPORT_STRICT).</td>
+     <td class="empty">&nbsp;</td>
+    </tr>
+
+    <tr>
+     <td><em>bad_index_used</em></td>
+     <td>Connection</td>
+     <td>Number of queries that have generated a result set and did not use a
+      good index (see also mysqld start option -log-slow-queries).</td>
+     <td>If you want these queries to be reported you can use
+      mysqli_report(MYSQLI_REPORT_INDEX) to make ext/mysqli throw an
+      exception. If you prefer a warning instead of an exception use
+      mysqli_report(MYSQLI_REPORT_INDEX ^ MYSQLI_REPORT_STRICT)</td>
+    </tr>
+
+    <tr>
+     <td><em>slow_queries</em></td>
+     <td>Connection</td>
+     <td>SQL statements that took more than <em>long_query_time</em>
+      seconds to execute and required at least
+      <em>min_examined_row_limit</em> rows to be examined.</td>
+     <td>Not reported through <span class="function"><a href="function.mysqli-report.html" class="function">mysqli_report()</a></span></td>
+    </tr>
+
+    <tr>
+     <td><em>buffered_sets</em></td>
+     <td>Connection</td>
+     <td>Number of buffered result sets returned by <q class="quote">normal</q>
+      queries. <q class="quote">Normal</q> means <q class="quote">not prepared
+      statement</q> in the following notes.</td>
+     <td>Examples of API calls that will buffer result sets on the client:
+      <span class="function"><a href="function.mysql-query.html" class="function">mysql_query()</a></span>,
+      <span class="function"><a href="mysqli.query.html" class="function">mysqli_query()</a></span>,
+      <span class="function"><a href="mysqli.store-result.html" class="function">mysqli_store_result()</a></span>,
+      <span class="function"><a href="mysqli-stmt.get-result.html" class="function">mysqli_stmt_get_result()</a></span>. Buffering result sets
+      on the client ensures that server resources are freed as soon as
+      possible and it makes result set scrolling easier. The downside is
+      the additional memory consumption on the client for buffering
+      data. Note that mysqlnd (unlike the MySQL Client Library) respects
+      the PHP memory limit because it uses PHP internal memory
+      management functions to allocate memory. This is also the reason
+      why <span class="function"><a href="function.memory-get-usage.html" class="function">memory_get_usage()</a></span> reports a higher memory
+      consumption when using mysqlnd instead of the MySQL Client
+      Library. <span class="function"><a href="function.memory-get-usage.html" class="function">memory_get_usage()</a></span> does not measure
+      the memory consumption of the MySQL Client Library at all because
+      the MySQL Client Library does not use PHP internal memory
+      management functions monitored by the function!</td>
+    </tr>
+
+    <tr>
+     <td><em>unbuffered_sets</em></td>
+     <td>Connection</td>
+     <td>Number of unbuffered result sets returned by normal (non prepared
+      statement) queries.</td>
+     <td>Examples of API calls that will not buffer result sets on the client:
+      <span class="function"><a href="mysqli.use-result.html" class="function">mysqli_use_result()</a></span></td>
+    </tr>
+
+    <tr>
+     <td><em>ps_buffered_sets</em></td>
+     <td>Connection</td>
+     <td>Number of buffered result sets returned by prepared statements. By
+      default prepared statements are unbuffered.</td>
+     <td>Examples of API calls that will buffer result sets on the client:
+      <em>mysqli_stmt_store_result</em></td>
+    </tr>
+
+    <tr>
+     <td><em>ps_unbuffered_sets</em></td>
+     <td>Connection</td>
+     <td>Number of unbuffered result sets returned by prepared statements.</td>
+     <td>By default prepared statements are unbuffered.</td>
+    </tr>
+
+    <tr>
+     <td><em>flushed_normal_sets</em></td>
+     <td>Connection</td>
+     <td>Number of result sets from normal (non prepared statement) queries with
+      unread data which have been flushed silently for you. Flushing
+      happens only with unbuffered result sets.</td>
+     <td>Unbuffered result sets must be fetched completely before a new query can
+      be run on the connection otherwise MySQL will throw an error. If
+      the application does not fetch all rows from an unbuffered result
+      set, mysqlnd does implicitly fetch the result set to clear the
+      line. See also <em>rows_skipped_normal</em>,
+      <em>rows_skipped_ps</em>. Some possible causes for an
+      implicit flush:
+      <ul class="itemizedlist">
+       <li class="listitem">
+        <p class="para">
+         Faulty client application
+        </p>
+       </li>
+       <li class="listitem">
+        <p class="para">
+         Client stopped reading after it found what it was looking for
+         but has made MySQL calculate more records than needed
+        </p>
+       </li>
+       <li class="listitem">
+        <p class="para">
+         Client application has stopped unexpectedly
+        </p>
+       </li>
+      </ul></td>
+    </tr>
+
+    <tr>
+     <td><em>flushed_ps_sets</em></td>
+     <td>Connection</td>
+     <td>Number of result sets from prepared statements with unread data which
+      have been flushed silently for you. Flushing happens only with
+      unbuffered result sets.</td>
+     <td>Unbuffered result sets must be fetched completely before a new query can
+      be run on the connection otherwise MySQL will throw an error. If
+      the application does not fetch all rows from an unbuffered result
+      set, mysqlnd does implicitly fetch the result set to clear the
+      line. See also <em>rows_skipped_normal</em>,
+      <em>rows_skipped_ps</em>. Some possible causes for an
+      implicit flush:
+      <ul class="itemizedlist">
+       <li class="listitem">
+        <p class="para">
+         Faulty client application
+        </p>
+       </li>
+       <li class="listitem">
+        <p class="para">
+         Client stopped reading after it found what it was looking for
+         but has made MySQL calculate more records than needed
+        </p>
+       </li>
+       <li class="listitem">
+        <p class="para">
+         Client application has stopped unexpectedly
+        </p>
+       </li>
+      </ul></td>
+    </tr>
+
+    <tr>
+     <td><em>ps_prepared_never_executed</em></td>
+     <td>Connection</td>
+     <td>Number of statements prepared but never executed.</td>
+     <td>Prepared statements occupy server resources. You should not prepare a
+      statement if you do not plan to execute it.</td>
+    </tr>
+
+    <tr>
+     <td><em>ps_prepared_once_executed</em></td>
+     <td>Connection</td>
+     <td>Number of prepared statements executed only one.</td>
+     <td>One of the ideas behind prepared statements is that the same query gets
+      executed over and over again (with different parameters) and some
+      parsing and other preparation work can be saved, if statement
+      execution is split up in separate prepare and execute stages. The
+      idea is to prepare once and <q class="quote">cache</q> results, for
+      example, the parse tree to be reused during multiple statement
+      executions. If you execute a prepared statement only once the two
+      stage processing can be inefficient compared to
+      <q class="quote">normal</q> queries because all the caching means extra
+      work and it takes (limited) server resources to hold the cached
+      information. Consequently, prepared statements that are executed
+      only once may cause performance hurts.</td>
+    </tr>
+
+    <tr>
+     <td><em>rows_fetched_from_server_normal</em>,
+      <em>rows_fetched_from_server_ps</em></td>
+     <td>Connection</td>
+     <td>Total number of result set rows successfully fetched from MySQL
+      regardless if the client application has consumed them or not.
+      Some of the rows may not have been fetched by the client
+      application but have been flushed implicitly.</td>
+     <td>See also <em>packets_received_rset_row</em></td>
+    </tr>
+
+    <tr>
+     <td><em>rows_buffered_from_client_normal</em>,
+      <em>rows_buffered_from_client_ps</em></td>
+     <td>Connection</td>
+     <td>Total number of successfully buffered rows originating from a &quot;normal&quot;
+      query or a prepared statement. This is the number of rows that
+      have been fetched from MySQL and buffered on client. Note that
+      there are two distinct statistics on rows that have been buffered
+      (MySQL to mysqlnd internal buffer) and buffered rows that have
+      been fetched by the client application (mysqlnd internal buffer to
+      client application). If the number of buffered rows is higher than
+      the number of fetched buffered rows it can mean that the client
+      application runs queries that cause larger result sets than needed
+      resulting in rows not read by the client.</td>
+     <td>Examples of queries that will buffer results:
+      <span class="function"><a href="mysqli.query.html" class="function">mysqli_query()</a></span>,
+      <span class="function"><a href="mysqli.store-result.html" class="function">mysqli_store_result()</a></span></td>
+    </tr>
+
+    <tr>
+     <td><em>rows_fetched_from_client_normal_buffered</em>,
+      <em>rows_fetched_from_client_ps_buffered</em></td>
+     <td>Connection</td>
+     <td>Total number of rows fetched by the client from a buffered result set
+      created by a normal query or a prepared statement.</td>
+     <td class="empty">&nbsp;</td>
+    </tr>
+
+    <tr>
+     <td><em>rows_fetched_from_client_normal_unbuffered</em>,
+      <em>rows_fetched_from_client_ps_unbuffered</em></td>
+     <td>Connection</td>
+     <td>Total number of rows fetched by the client from a unbuffered result set
+      created by a &quot;normal&quot; query or a prepared statement.</td>
+     <td class="empty">&nbsp;</td>
+    </tr>
+
+    <tr>
+     <td><em>rows_fetched_from_client_ps_cursor</em></td>
+     <td>Connection</td>
+     <td>Total number of rows fetch by the client from a cursor created by a
+      prepared statement.</td>
+     <td class="empty">&nbsp;</td>
+    </tr>
+
+    <tr>
+     <td><em>rows_skipped_normal</em>,
+      <em>rows_skipped_ps</em></td>
+     <td>Connection</td>
+     <td>Reserved for future use (currently not supported)</td>
+     <td class="empty">&nbsp;</td>
+    </tr>
+
+    <tr>
+     <td><em>copy_on_write_saved</em>,
+      <em>copy_on_write_performed</em></td>
+     <td>Process</td>
+     <td>With mysqlnd, variables returned by the extensions point into mysqlnd
+      internal network result buffers. If you do not change the
+      variables, fetched data will be kept only once in memory. If you
+      change the variables, mysqlnd has to perform a copy-on-write to
+      protect the internal network result buffers from being changed.
+      With the MySQL Client Library you always hold fetched data twice
+      in memory. Once in the internal MySQL Client Library buffers and
+      once in the variables returned by the extensions. In theory
+      mysqlnd can save up to 40% memory. However, note that the memory
+      saving cannot be measured using
+      <span class="function"><a href="function.memory-get-usage.html" class="function">memory_get_usage()</a></span>.</td>
+     <td class="empty">&nbsp;</td>
+    </tr>
+
+    <tr>
+     <td><em>explicit_free_result</em>,
+      <em>implicit_free_result</em></td>
+     <td>Connection, Process (only during prepared statement cleanup)</td>
+     <td>Total number of freed result sets.</td>
+     <td>The free is always considered explicit but for result sets created by an
+      init command, for example,
+      <em>mysqli_options(MYSQLI_INIT_COMMAND , ...)</em></td>
+    </tr>
+
+    <tr>
+     <td><em>proto_text_fetched_null</em>,
+      <em>proto_text_fetched_bit</em>,
+      <em>proto_text_fetched_tinyint</em>
+      <em>proto_text_fetched_short</em>,
+      <em>proto_text_fetched_int24</em>,
+      <em>proto_text_fetched_int</em>
+      <em>proto_text_fetched_bigint</em>,
+      <em>proto_text_fetched_decimal</em>,
+      <em>proto_text_fetched_float</em>
+      <em>proto_text_fetched_double</em>,
+      <em>proto_text_fetched_date</em>,
+      <em>proto_text_fetched_year</em>
+      <em>proto_text_fetched_time</em>,
+      <em>proto_text_fetched_datetime</em>,
+      <em>proto_text_fetched_timestamp</em>
+      <em>proto_text_fetched_string</em>,
+      <em>proto_text_fetched_blob</em>,
+      <em>proto_text_fetched_enum</em>
+      <em>proto_text_fetched_set</em>,
+      <em>proto_text_fetched_geometry</em>,
+      <em>proto_text_fetched_other</em></td>
+     <td>Connection</td>
+     <td>Total number of columns of a certain type fetched from a normal query
+      (MySQL text protocol).</td>
+     <td>Mapping from C API / MySQL meta data type to statistics name:
+      <ul class="itemizedlist">
+       <li class="listitem">
+        <p class="para">
+         <em>MYSQL_TYPE_NULL</em> - proto_text_fetched_null
+        </p>
+       </li>
+       <li class="listitem">
+        <p class="para">
+         <em>MYSQL_TYPE_BIT</em> - proto_text_fetched_bit
+        </p>
+       </li>
+       <li class="listitem">
+        <p class="para">
+         <em>MYSQL_TYPE_TINY</em> - proto_text_fetched_tinyint
+        </p>
+       </li>
+       <li class="listitem">
+        <p class="para">
+         <em>MYSQL_TYPE_SHORT</em> - proto_text_fetched_short
+        </p>
+       </li>
+       <li class="listitem">
+        <p class="para">
+         <em>MYSQL_TYPE_INT24</em> - proto_text_fetched_int24
+        </p>
+       </li>
+       <li class="listitem">
+        <p class="para">
+         <em>MYSQL_TYPE_LONG</em> - proto_text_fetched_int
+        </p>
+       </li>
+       <li class="listitem">
+        <p class="para">
+         <em>MYSQL_TYPE_LONGLONG</em> -
+         proto_text_fetched_bigint
+        </p>
+       </li>
+       <li class="listitem">
+        <p class="para">
+         <em>MYSQL_TYPE_DECIMAL</em>,
+         <em>MYSQL_TYPE_NEWDECIMAL</em> -
+         proto_text_fetched_decimal
+        </p>
+       </li>
+       <li class="listitem">
+        <p class="para">
+         <em>MYSQL_TYPE_FLOAT</em> - proto_text_fetched_float
+        </p>
+       </li>
+       <li class="listitem">
+        <p class="para">
+         <em>MYSQL_TYPE_DOUBLE</em> -
+         proto_text_fetched_double
+        </p>
+       </li>
+       <li class="listitem">
+        <p class="para">
+         <em>MYSQL_TYPE_DATE</em>,
+         <em>MYSQL_TYPE_NEWDATE</em> - proto_text_fetched_date
+        </p>
+       </li>
+       <li class="listitem">
+        <p class="para">
+         <em>MYSQL_TYPE_YEAR</em> - proto_text_fetched_year
+        </p>
+       </li>
+       <li class="listitem">
+        <p class="para">
+         <em>MYSQL_TYPE_TIME</em> - proto_text_fetched_time
+        </p>
+       </li>
+       <li class="listitem">
+        <p class="para">
+         <em>MYSQL_TYPE_DATETIME</em> -
+         proto_text_fetched_datetime
+        </p>
+       </li>
+       <li class="listitem">
+        <p class="para">
+         <em>MYSQL_TYPE_TIMESTAMP</em> -
+         proto_text_fetched_timestamp
+        </p>
+       </li>
+       <li class="listitem">
+        <p class="para">
+         <em>MYSQL_TYPE_STRING</em>,
+         <em>MYSQL_TYPE_VARSTRING</em>,
+         <em>MYSQL_TYPE_VARCHAR</em> -
+         proto_text_fetched_string
+        </p>
+       </li>
+       <li class="listitem">
+        <p class="para">
+         <em>MYSQL_TYPE_TINY_BLOB</em>,
+         <em>MYSQL_TYPE_MEDIUM_BLOB</em>,
+         <em>MYSQL_TYPE_LONG_BLOB</em>,
+         <em>MYSQL_TYPE_BLOB</em> - proto_text_fetched_blob
+        </p>
+       </li>
+       <li class="listitem">
+        <p class="para">
+         <em>MYSQL_TYPE_ENUM</em> - proto_text_fetched_enum
+        </p>
+       </li>
+       <li class="listitem">
+        <p class="para">
+         <em>MYSQL_TYPE_SET</em> - proto_text_fetched_set
+        </p>
+       </li>
+       <li class="listitem">
+        <p class="para">
+         <em>MYSQL_TYPE_GEOMETRY</em> -
+         proto_text_fetched_geometry
+        </p>
+       </li>
+       <li class="listitem">
+        <p class="para">
+         Any <em>MYSQL_TYPE_*</em> not listed before (there
+         should be none) - proto_text_fetched_other
+        </p>
+       </li>
+      </ul>
+      <p class="para">
+       Note that the MYSQL_*-type constants may not be associated with
+       the very same SQL column types in every version of MySQL.
+      </p></td>
+    </tr>
+
+    <tr>
+     <td><em>proto_binary_fetched_null</em>,
+      <em>proto_binary_fetched_bit</em>,
+      <em>proto_binary_fetched_tinyint</em>
+      <em>proto_binary_fetched_short</em>,
+      <em>proto_binary_fetched_int24</em>,
+      <em>proto_binary_fetched_int</em>,
+      <em>proto_binary_fetched_bigint</em>,
+      <em>proto_binary_fetched_decimal</em>,
+      <em>proto_binary_fetched_float</em>,
+      <em>proto_binary_fetched_double</em>,
+      <em>proto_binary_fetched_date</em>,
+      <em>proto_binary_fetched_year</em>,
+      <em>proto_binary_fetched_time</em>,
+      <em>proto_binary_fetched_datetime</em>,
+      <em>proto_binary_fetched_timestamp</em>,
+      <em>proto_binary_fetched_string</em>,
+      <em>proto_binary_fetched_blob</em>,
+      <em>proto_binary_fetched_enum</em>,
+      <em>proto_binary_fetched_set</em>,
+      <em>proto_binary_fetched_geometry</em>,
+      <em>proto_binary_fetched_other</em></td>
+     <td>Connection</td>
+     <td>Total number of columns of a certain type fetched from a prepared
+      statement (MySQL binary protocol).</td>
+     <td>For type mapping see <em>proto_text_*</em> described in the
+      preceding text.</td>
+    </tr>
+
+   </tbody>
+  
+ </table>
+
+ <table class="doctable table">
+  <caption><strong>Returned mysqlnd statistics: Connection</strong></caption>
+  
+   <col width="10*" />
+   <col width="10*" />
+   <col width="40*" />
+   <col width="40*" />
+   <thead>
+    <tr>
+     <th>Statistic</th>
+     <th>Scope</th>
+     <th>Description</th>
+     <th>Notes</th>
+    </tr>
+
+   </thead>
+
+   <tbody class="tbody">
+    <tr>
+     <td><em>connect_success</em>, <em>connect_failure</em></td>
+     <td>Connection</td>
+     <td>Total number of successful / failed connection attempt.</td>
+     <td>Reused connections and all other kinds of connections are included.</td>
+    </tr>
+
+    <tr>
+     <td><em>reconnect</em></td>
+     <td>Process</td>
+     <td>Total number of (real_)connect attempts made on an already opened
+      connection handle.</td>
+     <td>The code sequence <em>$link = new mysqli(...);
+      $link-&gt;real_connect(...)</em> will cause a reconnect. But
+      <em>$link = new mysqli(...); $link-&gt;connect(...)</em>
+      will not because <em>$link-&gt;connect(...)</em> will
+      explicitly close the existing connection before a new connection
+      is established.</td>
+    </tr>
+
+    <tr>
+     <td><em>pconnect_success</em></td>
+     <td>Connection</td>
+     <td>Total number of successful persistent connection attempts.</td>
+     <td>Note that <em>connect_success</em> holds the sum of successful
+      persistent and non-persistent connection attempts. The number of
+      successful non-persistent connection attempts is
+      <em>connect_success</em> -
+      <em>pconnect_success</em>.</td>
+    </tr>
+
+    <tr>
+     <td><em>active_connections</em></td>
+     <td>Connection</td>
+     <td>Total number of active persistent and non-persistent connections.</td>
+     <td class="empty">&nbsp;</td>
+    </tr>
+
+    <tr>
+     <td><em>active_persistent_connections</em></td>
+     <td>Connection</td>
+     <td>Total number of active persistent connections.</td>
+     <td>The total number of active non-persistent connections is
+      <em>active_connections</em> -
+      <em>active_persistent_connections</em>.</td>
+    </tr>
+
+    <tr>
+     <td><em>explicit_close</em></td>
+     <td>Connection</td>
+     <td>Total number of explicitly closed connections (ext/mysqli only).</td>
+     <td>Examples of code snippets that cause an explicit close :
+<div class="example-contents">
+<div class="cdata"><pre>
+$link = new mysqli(...); $link-&gt;close(...)
+$link = new mysqli(...); $link-&gt;connect(...)
+</pre></div>
+</div>
+</td>
+    </tr>
+
+    <tr>
+     <td><em>implicit_close</em></td>
+     <td>Connection</td>
+     <td>Total number of implicitly closed connections (ext/mysqli only).</td>
+     <td>Examples of code snippets that cause an implicit close :
+      <ul class="itemizedlist">
+       <li class="listitem">
+        <p class="para">
+         <em>$link = new mysqli(...);
+         $link-&gt;real_connect(...)</em>
+        </p>
+       </li>
+       <li class="listitem">
+        <p class="para">
+         <em>unset($link)</em>
+        </p>
+       </li>
+       <li class="listitem">
+        <p class="para">
+         Persistent connection: pooled connection has been created with
+         real_connect and there may be unknown options set - close
+         implicitly to avoid returning a connection with unknown options
+        </p>
+       </li>
+       <li class="listitem">
+        <p class="para">
+         Persistent connection: ping/change_user fails and ext/mysqli
+         closes the connection
+        </p>
+       </li>
+       <li class="listitem">
+        <p class="para">
+         end of script execution: close connections that have not been
+         closed by the user
+        </p>
+       </li>
+      </ul></td>
+    </tr>
+
+    <tr>
+     <td><em>disconnect_close</em></td>
+     <td>Connection</td>
+     <td>Connection failures indicated by the C API call
+      <span class="function"><strong>mysql_real_connect()</strong></span> during an attempt to
+      establish a connection.</td>
+     <td>It is called <em>disconnect_close</em> because the connection
+      handle passed to the C API call will be closed.</td>
+    </tr>
+
+    <tr>
+     <td><em>in_middle_of_command_close</em></td>
+     <td>Process</td>
+     <td>A connection has been closed in the middle of a command execution
+      (outstanding result sets not fetched, after sending a query and
+      before retrieving an answer, while fetching data, while
+      transferring data with LOAD DATA).</td>
+     <td>Unless you use asynchronous queries this should only happen if your
+      script stops unexpectedly and PHP shuts down the connections for
+      you.</td>
+    </tr>
+
+    <tr>
+     <td><em>init_command_executed_count</em></td>
+     <td>Connection</td>
+     <td>Total number of init command executions, for example,
+      <em>mysqli_options(MYSQLI_INIT_COMMAND , ...)</em>.</td>
+     <td>The number of successful executions is
+      <em>init_command_executed_count</em> -
+      <em>init_command_failed_count</em>.</td>
+    </tr>
+
+    <tr>
+     <td><em>init_command_failed_count</em></td>
+     <td>Connection</td>
+     <td>Total number of failed init commands.</td>
+     <td class="empty">&nbsp;</td>
+    </tr>
+
+   </tbody>
+  
+ </table>
+
+ <table class="doctable table">
+  <caption><strong>Returned mysqlnd statistics: COM_* Command</strong></caption>
+  
+   <col width="10*" />
+   <col width="10*" />
+   <col width="40*" />
+   <col width="40*" />
+   <thead>
+    <tr>
+     <th>Statistic</th>
+     <th>Scope</th>
+     <th>Description</th>
+     <th>Notes</th>
+    </tr>
+
+   </thead>
+
+   <tbody class="tbody">
+    <tr>
+     <td><em>com_quit</em>, <em>com_init_db</em>,
+      <em>com_query</em>, <em>com_field_list</em>,
+      <em>com_create_db</em>, <em>com_drop_db</em>,
+      <em>com_refresh</em>, <em>com_shutdown</em>,
+      <em>com_statistics</em>,
+      <em>com_process_info</em>,
+      <em>com_connect</em>,
+      <em>com_process_kill</em>, <em>com_debug</em>,
+      <em>com_ping</em>, <em>com_time</em>,
+      <em>com_delayed_insert</em>,
+      <em>com_change_user</em>,
+      <em>com_binlog_dump</em>,
+      <em>com_table_dump</em>,
+      <em>com_connect_out</em>,
+      <em>com_register_slave</em>,
+      <em>com_stmt_prepare</em>,
+      <em>com_stmt_execute</em>,
+      <em>com_stmt_send_long_data</em>,
+      <em>com_stmt_close</em>,
+      <em>com_stmt_reset</em>,
+      <em>com_stmt_set_option</em>,
+      <em>com_stmt_fetch</em>, <em>com_daemon</em></td>
+     <td>Connection</td>
+     <td>Total number of attempts to send a certain COM_* command from PHP to
+      MySQL.</td>
+     <td><p class="para">
+       The statistics are incremented after checking the line and
+       immediately before sending the corresponding MySQL client server
+       protocol packet. If mysqlnd fails to send the packet over the
+       wire the statistics will not be decremented. In case of a failure
+       mysqlnd emits a PHP warning <q class="quote">Error while sending %s packet.
+       PID=%d.</q>
+      </p>
+
+      <p class="para">
+       Usage examples:
+      </p>
+      <ul class="itemizedlist">
+       <li class="listitem">
+        <p class="para">
+         Check if PHP sends certain commands to MySQL, for example,
+         check if a client sends <em>COM_PROCESS_KILL</em>
+        </p>
+       </li>
+       <li class="listitem">
+        <p class="para">
+         Calculate the average number of prepared statement executions
+         by comparing <em>COM_EXECUTE</em> with
+         <em>COM_PREPARE</em>
+        </p>
+       </li>
+       <li class="listitem">
+        <p class="para">
+         Check if PHP has run any non-prepared SQL statements by
+         checking if <em>COM_QUERY</em> is zero
+        </p>
+       </li>
+       <li class="listitem">
+        <p class="para">
+         Identify PHP scripts that run an excessive number of SQL
+         statements by checking <em>COM_QUERY</em> and
+         <em>COM_EXECUTE</em>
+        </p>
+       </li>
+      </ul></td>
+    </tr>
+
+   </tbody>
+  
+ </table>
+
+ <p class="para">
+  <em class="emphasis">Miscellaneous</em>
+ </p>
+ <table class="doctable table">
+  <caption><strong>Returned mysqlnd statistics: Miscellaneous</strong></caption>
+  
+   <col width="10*" />
+   <col width="10*" />
+   <col width="40*" />
+   <col width="40*" />
+   <thead>
+    <tr>
+     <th>Statistic</th>
+     <th>Scope</th>
+     <th>Description</th>
+     <th>Notes</th>
+    </tr>
+
+   </thead>
+
+   <tbody class="tbody">
+    <tr>
+     <td><em>explicit_stmt_close</em>,
+      <em>implicit_stmt_close</em></td>
+     <td>Process</td>
+     <td>Total number of close prepared statements.</td>
+     <td>A close is always considered explicit but for a failed prepare.</td>
+    </tr>
+
+    <tr>
+     <td><em>mem_emalloc_count</em>,
+      <em>mem_emalloc_ammount</em>,
+      <em>mem_ecalloc_count</em>,
+      <em>mem_ecalloc_ammount</em>,
+      <em>mem_erealloc_count</em>,
+      <em>mem_erealloc_ammount</em>,
+      <em>mem_efree_count</em>,
+      <em>mem_malloc_count</em>,
+      <em>mem_malloc_ammount</em>,
+      <em>mem_calloc_count</em>,
+      <em>mem_calloc_ammount</em>,
+      <em>mem_realloc_count</em>,
+      <em>mem_realloc_ammount</em>,
+      <em>mem_free_count</em></td>
+     <td>Process</td>
+     <td>Memory management calls.</td>
+     <td>Development only.</td>
+    </tr>
+
+    <tr>
+     <td><em>command_buffer_too_small</em></td>
+     <td>Connection</td>
+     <td>Number of network command buffer extensions while sending commands from
+      PHP to MySQL.</td>
+     <td><p class="para">
+       mysqlnd allocates an internal command/network buffer of
+       <em>mysqlnd.net_cmd_buffer_size</em>
+       (<var class="filename">php.ini</var>) bytes for every connection. If a
+       MySQL Client Server protocol command, for example,
+       <em>COM_QUERY</em> (normal query), does not fit into
+       the buffer, mysqlnd will grow the buffer to what is needed for
+       sending the command. Whenever the buffer gets extended for one
+       connection <em>command_buffer_too_small</em> will be
+       incremented by one.
+      </p>
+
+      <p class="para">
+       If mysqlnd has to grow the buffer beyond its initial size of
+       <em>mysqlnd.net_cmd_buffer_size</em>
+       (<var class="filename">php.ini</var>) bytes for almost every connection,
+       you should consider to increase the default size to avoid
+       re-allocations.
+      </p>
+
+      <p class="para">
+       The default buffer size is 2048 bytes in PHP 5.3.0. In future
+       versions the default will be 4kB or larger. The default can
+       changed either through the <var class="filename">php.ini</var> setting
+       <em>mysqlnd.net_cmd_buffer_size</em> or using
+       <em>mysqli_options(MYSQLI_OPT_NET_CMD_BUFFER_SIZE, int
+       size)</em>.
+      </p>
+
+      <p class="para">
+       It is recommended to set the buffer size to no less than 4096
+       bytes because mysqlnd also uses it when reading certain
+       communication packet from MySQL. In PHP 5.3.0, mysqlnd will not
+       grow the buffer if MySQL sends a packet that is larger than the
+       current size of the buffer. As a consequence mysqlnd is unable to
+       decode the packet and the client application will get an error.
+       There are only two situations when the packet can be larger than
+       the 2048 bytes default of
+       <em>mysqlnd.net_cmd_buffer_size</em> in PHP 5.3.0: the
+       packet transports a very long error message or the packet holds
+       column meta data from <em>COM_LIST_FIELD</em>
+       (<span class="function"><a href="function.mysql-list-fields.html" class="function">mysql_list_fields()</a></span>) and the meta data comes
+       from a string column with a very long default value (&gt;1900
+       bytes). No bug report on this exists - it should happen rarely.
+      </p>
+
+      <p class="para">
+       As of PHP 5.3.2 mysqlnd does not allow setting buffers smaller
+       than 4096 bytes.
+      </p></td>
+    </tr>
+
+    <tr>
+     <td><em>connection_reused</em></td>
+     <td class="empty">&nbsp;</td>
+     <td class="empty">&nbsp;</td>
+     <td class="empty">&nbsp;</td>
+    </tr>
+
+   </tbody>
+  
+ </table>
+
+</div>
+<div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+ <div class="note">There are no user contributed notes for this page.</div>
+</div>
+</div></div></body></html>

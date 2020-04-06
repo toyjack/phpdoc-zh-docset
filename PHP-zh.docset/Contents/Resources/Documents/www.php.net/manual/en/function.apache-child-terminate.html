@@ -1,0 +1,208 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>在本次请求结束后终止 apache 子进程</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="ref.apache.html">? Apache 函数</a></li>
+      <li style="float: right;"><a href="function.apache-get-modules.html">apache_get_modules ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="ref.apache.html">Apache 函数</a></li>
+    <li>在本次请求结束后终止 apache 子进程</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="function.apache-child-terminate" class="refentry">
+ <div class="refnamediv">
+  <h1 class="refname">apache_child_terminate</h1>
+  <p class="verinfo">(PHP 4 &gt;= 4.0.5, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">apache_child_terminate</span> &mdash; <span class="dc-title">在本次请求结束后终止 apache 子进程</span></p>
+
+ </div>
+
+ <div class="refsect1 description" id="refsect1-function.apache-child-terminate-description">
+  <h3 class="title">说明</h3>
+  <div class="methodsynopsis dc-description">
+   <span class="methodname"><strong>apache_child_terminate</strong></span>
+    ( <span class="methodparam">void</span>
+   ) : <span class="type">bool</span></div>
+
+  <p class="para rdfs-comment">
+   <span class="function"><strong>apache_child_terminate()</strong></span>
+   将把运行当前 PHP 请求的 Apache 子进程注册为终止状态，一旦结束
+   PHP 代码的运行此进程将终止。可以用在占用大量内存的脚本后面来终止该进程，因为通常内存只在内部释放而不会还给操作系统。
+  </p>
+ </div>
+
+
+ <div class="refsect1 returnvalues" id="refsect1-function.apache-child-terminate-returnvalues">
+  <h3 class="title">返回值</h3>
+  <p class="para">
+   如果 PHP 以 Apache 1 模块方式运行，且 Apache
+   的版本是非多线程的，以及激活了 PHP 指令.
+   <a href="apache.configuration.html#ini.child-terminate" class="link">child_terminate</a>，则返回
+   <strong><code>TRUE</code></strong>。如果不满足上述条件则返回 <strong><code>FALSE</code></strong> 并生成一条
+   <strong><code>E_WARNING</code></strong> 级的错误信息。
+  </p>
+ </div>
+
+
+ <div class="refsect1 changelog" id="refsect1-function.apache-child-terminate-changelog">
+  <h3 class="title">更新日志</h3>
+  <p class="para">
+   <table class="doctable informaltable">
+    
+     <thead>
+      <tr>
+       <th>版本</th>
+       <th>说明</th>
+      </tr>
+
+     </thead>
+
+     <tbody class="tbody">
+      <tr>
+       <td>5.4.0</td>
+       <td>
+        该函数目前也可以用于FastCGI模式了。以前，它仅在PHP作为Apapche的模块安装时支持。
+       </td>
+      </tr>
+
+     </tbody>
+    
+   </table>
+
+  </p>
+ </div>
+
+ 
+ <div class="refsect1 notes" id="refsect1-function.apache-child-terminate-notes">
+  <h3 class="title">注释</h3>
+  <blockquote class="note"><p><strong class="note">Note</strong>: <span class="simpara">此函数未在 Windows 平台下实现。</span></p></blockquote>
+ </div>
+
+
+ <div class="refsect1 seealso" id="refsect1-function.apache-child-terminate-seealso">
+  <h3 class="title">参见</h3>
+  <p class="para">
+   <ul class="simplelist">
+    <li class="member"><span class="function"><a href="function.exit.html" class="function" rel="rdfs-seeAlso">exit()</a> - 输出一个消息并且退出当前脚本</span></li>
+   </ul>
+  </p>
+ </div>
+
+</div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="99329""></a>
+  <div class="note">
+   <strong class="user">Stephan Ferraro</strong>
+   <a href="#99329" class="date">11-Aug-2010 02:39</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I found out a solution for Apache 2. However this works only without threads and only on POSIX compatible OS systems (e.g. Linux, OpenSolaris...).
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+
+<br />
+</span><span class="comment">// Terminate Apache 2 child process after request has been
+<br />
+// done by sending a SIGWINCH POSIX signal (28).
+<br />
+</span><span class="keyword">function </span><span class="default">kill_on_exit</span><span class="keyword">() {
+<br />
+&nbsp;</span><span class="default">posix_kill</span><span class="keyword">( </span><span class="default">getmypid</span><span class="keyword">(), </span><span class="default">28 </span><span class="keyword">);
+<br />
+}
+<br />
+
+<br />
+</span><span class="default">register_shutdown_function</span><span class="keyword">( </span><span class="string">'kill_on_exit' </span><span class="keyword">);
+<br />
+
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="80713""></a>
+  <div class="note">
+   <strong class="user">louis at ewens dot com</strong>
+   <a href="#80713" class="date">29-Jan-2008 04:29</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Apache child processes are greedy. If they get bloated by a PHP application that requires a lot of memory, they stay that way. The memory is never given back to the OS until that child dies.<br />
+<br />
+You could use MaxRequestsPerChild in Apache to kill all child processes automatically after a certain number of connections. Or you can use apache_child_terminate to kill the child after your memory intensive functions.<br />
+<br />
+Note: apache_child_terminate is not available in Apache 2.0 handler.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="80103""></a>
+  <div class="note">
+   <strong class="user">daniele_dll at yahoo dot it</strong>
+   <a href="#80103" class="date">29-Dec-2007 03:18</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+In response to sam at liddicott dot com:<br />
+<br />
+it isin't so simple! You should never kill an apache process because it is automatically freed when apache need!<br />
+<br />
+And, if you use apache worker or thread based mpm you risk to kill the entire process!<br />
+<br />
+result: DO NOT USE THIS FUNCTION!</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="79649""></a>
+  <div class="note">
+   <strong class="user">admin at hostultra dot com</strong>
+   <a href="#79649" class="date">06-Dec-2007 08:43</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+this code will add apache_child_terminate() function if it is not already present.<br />
+<br />
+if (!function_exists("apache_child_terminate")){<br />
+function apache_child_terminate(){<br />
+register_shutdown_function("killonexit");<br />
+}<br />
+<br />
+function killonexit(){<br />
+@exec("kill ".getmypid());<br />
+}<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

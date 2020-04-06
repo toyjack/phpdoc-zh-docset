@@ -1,0 +1,251 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>LDAP controls</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="ldap.using.html">? Using the PHP LDAP calls</a></li>
+      <li style="float: right;"><a href="ldap.examples.html">范例 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="book.ldap.html">LDAP</a></li>
+    <li>LDAP controls</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="ldap.controls" class="chapter">
+ <h1>LDAP controls</h1>
+
+ <p class="para">
+   Controls are special objects which may be sent alongside an
+   LDAP request to alter LDAP server behavior while performing
+   the request. There may also be controls sent by the server
+   alongside the response to provide more information, usually
+   to answer a control object from the request.
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <p class="para">
+    Not all controls are supported by all LDAP servers. To know which controls
+    are supported by a server, you need to query the root DSE by reading an
+    empty dn with the filter (objectClass=*).
+   </p>
+   <div class="example" id="example-5423">
+    <p><strong>Example #1 Testing support for paged result control</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /><br /></span><span style="color: #FF8000">//&nbsp;$ds&nbsp;is&nbsp;a&nbsp;valid&nbsp;link&nbsp;identifier&nbsp;for&nbsp;a&nbsp;directory&nbsp;server<br /><br /></span><span style="color: #0000BB">$result&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">ldap_read</span><span style="color: #007700">(</span><span style="color: #0000BB">$ds</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">''</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'(objectClass=*)'</span><span style="color: #007700">,&nbsp;[</span><span style="color: #DD0000">'supportedControl'</span><span style="color: #007700">]);<br />if&nbsp;(!</span><span style="color: #0000BB">in_array</span><span style="color: #007700">(</span><span style="color: #0000BB">LDAP_CONTROL_PAGEDRESULTS</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">ldap_get_entries</span><span style="color: #007700">(</span><span style="color: #0000BB">$ds</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$result</span><span style="color: #007700">)[</span><span style="color: #0000BB">0</span><span style="color: #007700">][</span><span style="color: #DD0000">'supportedcontrol'</span><span style="color: #007700">]))&nbsp;{<br />&nbsp;&nbsp;die(</span><span style="color: #DD0000">"This&nbsp;server&nbsp;does&nbsp;not&nbsp;support&nbsp;paged&nbsp;result&nbsp;control"</span><span style="color: #007700">);<br />}<br /><br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+   </div>
+  </p></blockquote>
+ </p>
+
+ <p class="para">
+   As of PHP 7.3, you can send controls with your request in all
+   request functions using the serverctrls parameter. When a ext
+   version of a function exists, you should use it if you want to
+   get access to the full response object and be able to parse
+   response controls from it using <span class="function"><a href="function.ldap-parse-result.html" class="function">ldap_parse_result()</a></span>.
+ </p>
+
+ <p class="para">
+   serverctrls must be an array containing an array for each control to send,
+   containing the following keys:
+   <dl>
+
+    
+     <dt>
+
+      oid
+      (<span class="type"><a href="language.types.string.html" class="type string">string</a></span>)
+     </dt>
+
+     <dd>
+
+      <span class="simpara">
+       The OID of the control. You should use constants starting with
+       LDAP_CONTROL_ for this. See <a href="ldap.constants.html" class="link">LDAP Constants</a>.
+      </span>
+     </dd>
+
+    
+    
+     <dt>
+
+      iscritical
+      (<span class="type"><a href="language.types.boolean.html" class="type boolean">boolean</a></span>)
+     </dt>
+
+     <dd>
+
+      <span class="simpara">
+       If a control is noted as critical, the request will fail if the
+       control is not supported by the server, or if it fails to be
+       applied. Note that some controls should always be marked as critical
+       as noted in the RFC introducing them. Defaults to <strong><code>FALSE</code></strong>.
+      </span>
+     </dd>
+
+    
+    
+     <dt>
+
+      value
+      (<span class="type"><a href="language.pseudo-types.html#language.types.mixed" class="type mixed">mixed</a></span>)
+     </dt>
+
+     <dd>
+
+      <span class="simpara">
+       If applicable, the value of the control. Read below for more information.
+      </span>
+     </dd>
+
+    
+   </dl>
+
+
+ </p>
+
+ <p class="para">
+   Most control values are sent to the server BER-encoded.
+   You may either BER-encode the value yourself, or you can instead
+   pass an array with the correct keys so that the encoding is done
+   for you.
+   Supported controls to be passed as an array are:
+  <ul class="itemizedlist">
+   <li class="listitem">
+    <p class="para">
+     <strong><code>LDAP_CONTROL_PAGEDRESULTS</code></strong>
+     Expected keys are [size] and [cookie]
+    </p>
+   </li>
+   <li class="listitem">
+    <p class="para">
+     <strong><code>LDAP_CONTROL_ASSERT</code></strong>
+     Expected key is filter
+    </p>
+   </li>
+   <li class="listitem">
+    <p class="para">
+     <strong><code>LDAP_CONTROL_VALUESRETURNFILTER</code></strong>
+     Expected key is filter
+    </p>
+   </li>
+   <li class="listitem">
+    <p class="para">
+     <strong><code>LDAP_CONTROL_PRE_READ</code></strong>
+     Expected key is attrs
+    </p>
+   </li>
+   <li class="listitem">
+    <p class="para">
+     <strong><code>LDAP_CONTROL_POST_READ</code></strong>
+     Expected key is attrs
+    </p>
+   </li>
+   <li class="listitem">
+    <p class="para">
+     <strong><code>LDAP_CONTROL_SORTREQUEST</code></strong>
+     Expects an array of arrays with keys attr, [oid], [reverse].
+    </p>
+   </li>
+   <li class="listitem">
+    <p class="para">
+     <strong><code>LDAP_CONTROL_VLVREQUEST</code></strong>
+     Expected keys are before, after, attrvalue|(offset, count), [context]
+    </p>
+   </li>
+  </ul>
+ </p>
+
+ <p class="para">
+   The following controls do not need any value:
+  <ul class="itemizedlist">
+   <li class="listitem">
+    <p class="para">
+     <strong><code>LDAP_CONTROL_PASSWORDPOLICYREQUEST</code></strong>
+    </p>
+   </li>
+   <li class="listitem">
+    <p class="para">
+     <strong><code>LDAP_CONTROL_MANAGEDSAIT</code></strong>
+    </p>
+   </li>
+   <li class="listitem">
+    <p class="para">
+     <strong><code>LDAP_CONTROL_DONTUSECOPY</code></strong>
+    </p>
+   </li>
+  </ul>
+ </p>
+
+ <p class="para">
+   The control <strong><code>LDAP_CONTROL_PROXY_AUTHZ</code></strong> is a special case
+   as its value is not expected to be BER-encoded, so you can directly
+   use a string for its value.
+ </p>
+
+ <p class="para">
+   When controls are parsed by <span class="function"><a href="function.ldap-parse-result.html" class="function">ldap_parse_result()</a></span>, values are
+   turned into an array if supported.
+   This is supported for:
+  <ul class="itemizedlist">
+   <li class="listitem">
+    <p class="para">
+     <strong><code>LDAP_CONTROL_PASSWORDPOLICYRESPONSE</code></strong>
+     Keys are expire, grace, [error]
+    </p>
+   </li>
+   <li class="listitem">
+    <p class="para">
+     <strong><code>LDAP_CONTROL_PAGEDRESULTS</code></strong>
+     Keys are size, cookie
+    </p>
+   </li>
+   <li class="listitem">
+    <p class="para">
+     <strong><code>LDAP_CONTROL_PRE_READ</code></strong>
+     Keys are dn and LDAP attributes names
+    </p>
+   </li>
+   <li class="listitem">
+    <p class="para">
+     <strong><code>LDAP_CONTROL_POST_READ</code></strong>
+     Keys are dn and LDAP attributes names
+    </p>
+   </li>
+   <li class="listitem">
+    <p class="para">
+     <strong><code>LDAP_CONTROL_SORTRESPONSE</code></strong>
+     Keys are errcode, [attribute]
+    </p>
+   </li>
+   <li class="listitem">
+    <p class="para">
+     <strong><code>LDAP_CONTROL_VLVRESPONSE</code></strong>
+     Keys are target, count, errcode, context
+    </p>
+   </li>
+  </ul>
+ </p>
+</div>
+<div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+ <div class="note">There are no user contributed notes for this page.</div>
+</div>
+</div></div></body></html>

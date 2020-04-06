@@ -1,0 +1,228 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>预处理语句与存储过程</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="pdo.transactions.html">? 事务与自动提交</a></li>
+      <li style="float: right;"><a href="pdo.error-handling.html">错误与错误处理 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="book.pdo.html">PDO</a></li>
+    <li>预处理语句与存储过程</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="pdo.prepared-statements" class="chapter">
+ <h1>预处理语句与存储过程</h1>
+
+ <p class="para">
+  很多更成熟的数据库都支持预处理语句的概念。什么是预处理语句？可以把它看作是想要运行的 SQL 的一种编译过的模板，它可以使用变量参数进行定制。预处理语句可以带来两大好处：
+ </p>
+ <ul class="itemizedlist">
+  <li class="listitem">
+   <span class="simpara">
+    查询仅需解析（或预处理）一次，但可以用相同或不同的参数执行多次。当查询准备好后，数据库将分析、编译和优化执行该查询的计划。对于复杂的查询，此过程要花费较长的时间，如果需要以不同参数多次重复相同的查询，那么该过程将大大降低应用程序的速度。通过使用预处理语句，可以避免重复分析/编译/优化周期。简言之，预处理语句占用更少的资源，因而运行得更快。
+   </span>
+  </li>
+  <li class="listitem">
+   <span class="simpara">
+    提供给预处理语句的参数不需要用引号括起来，驱动程序会自动处理。如果应用程序只使用预处理语句，可以确保不会发生SQL 注入。（然而，如果查询的其他部分是由未转义的输入来构建的，则仍存在 SQL 注入的风险）。
+   </span>
+  </li>
+ </ul>
+ <p class="para">
+  预处理语句如此有用，以至于它们唯一的特性是在驱动程序不支持的时PDO 将模拟处理。这样可以确保不管数据库是否具有这样的功能，都可以确保应用程序可以用相同的数据访问模式。
+ </p>
+ <p class="para">
+  <div class="example" id="example-1018">
+   <p><strong>Example #1 用预处理语句进行重复插入</strong></p>
+   <div class="example-contents"><p>
+    下面例子通过用 <em>name</em> 和 <em>value</em> 替代相应的命名占位符来执行一个插入查询
+   </p></div>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$stmt&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$dbh</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">prepare</span><span style="color: #007700">(</span><span style="color: #DD0000">"INSERT&nbsp;INTO&nbsp;REGISTRY&nbsp;(name,&nbsp;value)&nbsp;VALUES&nbsp;(:name,&nbsp;:value)"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">bindParam</span><span style="color: #007700">(</span><span style="color: #DD0000">':name'</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$name</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">bindParam</span><span style="color: #007700">(</span><span style="color: #DD0000">':value'</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$value</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">//&nbsp;插入一行<br /></span><span style="color: #0000BB">$name&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'one'</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$value&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">execute</span><span style="color: #007700">();<br /><br /></span><span style="color: #FF8000">//&nbsp;&nbsp;用不同的值插入另一行<br /></span><span style="color: #0000BB">$name&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'two'</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$value&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">2</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">execute</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+ </p>
+ <p class="para">
+  <div class="example" id="example-1019">
+   <p><strong>Example #2 用预处理语句进行重复插入</strong></p>
+   <div class="example-contents"><p>
+   下面例子通过用 <em>name</em> 和 <em>value</em> 取代 <em>?</em> 占位符的位置来执行一条插入查询。
+   </p></div>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$stmt&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$dbh</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">prepare</span><span style="color: #007700">(</span><span style="color: #DD0000">"INSERT&nbsp;INTO&nbsp;REGISTRY&nbsp;(name,&nbsp;value)&nbsp;VALUES&nbsp;(?,&nbsp;?)"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">bindParam</span><span style="color: #007700">(</span><span style="color: #0000BB">1</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$name</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">bindParam</span><span style="color: #007700">(</span><span style="color: #0000BB">2</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$value</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">//&nbsp;插入一行<br /></span><span style="color: #0000BB">$name&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'one'</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$value&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">execute</span><span style="color: #007700">();<br /><br /></span><span style="color: #FF8000">//&nbsp;用不同的值插入另一行<br /></span><span style="color: #0000BB">$name&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'two'</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$value&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">2</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">execute</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+ </p>
+ <p class="para">
+  <div class="example" id="example-1020">
+   <p><strong>Example #3 使用预处理语句获取数据</strong></p>
+   <div class="example-contents"><p>
+    下面例子获取数据基于键值已提供的形式。用户的输入被自动用引号括起来，因此不会有 SQL 注入攻击的危险。
+   </p></div>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$stmt&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$dbh</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">prepare</span><span style="color: #007700">(</span><span style="color: #DD0000">"SELECT&nbsp;*&nbsp;FROM&nbsp;REGISTRY&nbsp;where&nbsp;name&nbsp;=&nbsp;?"</span><span style="color: #007700">);<br />if&nbsp;(</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">execute</span><span style="color: #007700">(array(</span><span style="color: #0000BB">$_GET</span><span style="color: #007700">[</span><span style="color: #DD0000">'name'</span><span style="color: #007700">])))&nbsp;{<br />&nbsp;&nbsp;while&nbsp;(</span><span style="color: #0000BB">$row&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">fetch</span><span style="color: #007700">())&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">print_r</span><span style="color: #007700">(</span><span style="color: #0000BB">$row</span><span style="color: #007700">);<br />&nbsp;&nbsp;}<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+ </p>
+ <p class="para">
+ 如果数据库驱动支持，应用程序还可以绑定输出和输入参数.输出参数通常用于从存储过程获取值。输出参数使用起来比输入参数要稍微复杂一些，因为当绑定一个输出参数时，必须知道给定参数的长度。如果为参数绑定的值大于建议的长度，就会产生一个错误。
+ </p>
+
+ <p class="para">
+  <div class="example" id="example-1021">
+   <p><strong>Example #4 带输出参数调用存储过程</strong></p>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$stmt&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$dbh</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">prepare</span><span style="color: #007700">(</span><span style="color: #DD0000">"CALL&nbsp;sp_returns_string(?)"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">bindParam</span><span style="color: #007700">(</span><span style="color: #0000BB">1</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$return_value</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">PDO</span><span style="color: #007700">::</span><span style="color: #0000BB">PARAM_STR</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">4000</span><span style="color: #007700">);&nbsp;<br /><br /></span><span style="color: #FF8000">//&nbsp;调用存储过程<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">execute</span><span style="color: #007700">();<br /><br />print&nbsp;</span><span style="color: #DD0000">"procedure&nbsp;returned&nbsp;</span><span style="color: #0000BB">$return_value</span><span style="color: #DD0000">\n"</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+ </p>
+
+ <p class="para">
+  还可以指定同时具有输入和输出值的参数，其语法类似于输出参数。在下一个例子中，字符串"hello"被传递给存储过程，当存储过程返回时，hello 被替换为该存储过程返回的值。
+ </p>
+
+ <p class="para">
+  <div class="example" id="example-1022">
+   <p><strong>Example #5  带输入/输出参数调用存储过程</strong></p>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$stmt&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$dbh</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">prepare</span><span style="color: #007700">(</span><span style="color: #DD0000">"CALL&nbsp;sp_takes_string_returns_string(?)"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$value&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'hello'</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">bindParam</span><span style="color: #007700">(</span><span style="color: #0000BB">1</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$value</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">PDO</span><span style="color: #007700">::</span><span style="color: #0000BB">PARAM_STR</span><span style="color: #007700">|</span><span style="color: #0000BB">PDO</span><span style="color: #007700">::</span><span style="color: #0000BB">PARAM_INPUT_OUTPUT</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">4000</span><span style="color: #007700">);&nbsp;<br /><br /></span><span style="color: #FF8000">//&nbsp;调用存储过程<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">execute</span><span style="color: #007700">();<br /><br />print&nbsp;</span><span style="color: #DD0000">"procedure&nbsp;returned&nbsp;</span><span style="color: #0000BB">$value</span><span style="color: #DD0000">\n"</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+ </p>
+ <p class="para">
+  <div class="example" id="example-1023">
+   <p><strong>Example #6 占位符的无效使用</strong></p>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$stmt&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$dbh</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">prepare</span><span style="color: #007700">(</span><span style="color: #DD0000">"SELECT&nbsp;*&nbsp;FROM&nbsp;REGISTRY&nbsp;where&nbsp;name&nbsp;LIKE&nbsp;'%?%'"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">execute</span><span style="color: #007700">(array(</span><span style="color: #0000BB">$_GET</span><span style="color: #007700">[</span><span style="color: #DD0000">'name'</span><span style="color: #007700">]));<br /><br /></span><span style="color: #FF8000">//&nbsp;占位符必须被用在整个值的位置<br /></span><span style="color: #0000BB">$stmt&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$dbh</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">prepare</span><span style="color: #007700">(</span><span style="color: #DD0000">"SELECT&nbsp;*&nbsp;FROM&nbsp;REGISTRY&nbsp;where&nbsp;name&nbsp;LIKE&nbsp;?"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">execute</span><span style="color: #007700">(array(</span><span style="color: #DD0000">"%</span><span style="color: #0000BB">$_GET</span><span style="color: #007700">[</span><span style="color: #0000BB">name</span><span style="color: #007700">]</span><span style="color: #DD0000">%"</span><span style="color: #007700">));<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+ </p>
+</div>
+<div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="124692""></a>
+  <div class="note">
+   <strong class="user">w37090 at yandex dot ru</strong>
+   <a href="#124692" class="date">06-Feb-2020 06:11</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Insert a multidimensional array into the database through a prepared query:<br />
+We have an array to write the form:<br />
+<br />
+$dataArr:<br />
+Array<br />
+(<br />
+&nbsp;&nbsp;&nbsp; [0] =&gt; Array<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; (<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [0] =&gt; 2020<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [1] =&gt; 23<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [2] =&gt; 111111<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; )<br />
+&nbsp;<br />
+&nbsp;&nbsp;&nbsp; [1] =&gt; Array<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; (<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [0] =&gt; 2020<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [1] =&gt; 24<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [2] =&gt; 222222222<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; )<br />
+....<br />
+<br />
+Task: prepare a request and pass through binds<br />
+$array = [];<br />
+foreach ($dataArr as $k=&gt;$v) {<br />
+// $x = 2020, the variable is predetermined in advance, does not change the essence<br />
+$array[] = [$x, $k, $v];<br />
+}<br />
+$sql = ("INSERT INTO `table` (`field`,`field`,`field`) VALUES (?,?,?)");<br />
+<br />
+$db-&gt;queryBindInsert($sql,$array);<br />
+<br />
+public function queryBindInsert($sql,$bind) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $stmt = $this-&gt;pdo-&gt;prepare($sql);<br />
+&nbsp;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(count($bind)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; foreach($bind as $param =&gt; $value) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $c = 1;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; for ($i=0; $i&lt;count($value); $i++) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $stmt-&gt;bindValue($c++, $value[$i]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $stmt-&gt;execute();<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="97162""></a>
+  <div class="note">
+   <strong class="user">adam at pyramidpower dot com dot au</strong>
+   <a href="#97162" class="date">05-Apr-2010 06:38</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Note that when using name parameters with bindParam, the name itself, cannot contain a dash '-'. <br />
+<br />
+example:<br />
+<span class="default">&lt;?php<br />
+$stmt </span><span class="keyword">= </span><span class="default">$dbh</span><span class="keyword">-&gt;</span><span class="default">prepare </span><span class="keyword">(</span><span class="string">"INSERT INTO user (firstname, surname) VALUES (:f-name, :s-name)"</span><span class="keyword">);<br />
+</span><span class="default">$stmt </span><span class="keyword">-&gt; </span><span class="default">bindParam</span><span class="keyword">(</span><span class="string">':f-name'</span><span class="keyword">, </span><span class="string">'John'</span><span class="keyword">);<br />
+</span><span class="default">$stmt </span><span class="keyword">-&gt; </span><span class="default">bindParam</span><span class="keyword">(</span><span class="string">':s-name'</span><span class="keyword">, </span><span class="string">'Smith'</span><span class="keyword">);<br />
+</span><span class="default">$stmt </span><span class="keyword">-&gt; </span><span class="default">execute</span><span class="keyword">();<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+The dashes in 'f-name' and 's-name' should be replaced with an underscore or no dash at all.<br />
+<br />
+See <a href="http://bugs.php.net/43130" rel="nofollow" target="_blank">http://bugs.php.net/43130</a><br />
+<br />
+Adam</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

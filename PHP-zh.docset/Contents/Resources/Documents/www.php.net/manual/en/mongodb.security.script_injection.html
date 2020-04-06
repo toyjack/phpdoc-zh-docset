@@ -1,0 +1,129 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Script Injection Attacks</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="mongodb.security.request_injection.html">? Request Injection Attacks</a></li>
+      <li style="float: right;"><a href="book.mongodb.html">MongoDB\Driver ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="mongodb.security.html">Security</a></li>
+    <li>Script Injection Attacks</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="mongodb.security.script_injection" class="article">
+  <h1>Script Injection Attacks</h1>
+
+  <p class="para">
+   If you are using JavaScript, make sure that any variables that cross the PHP-
+   to-JavaScript boundry are passed in the <em>scope</em> field of
+   <a href="class.mongodb-bson-javascript.html" class="classname">MongoDB\BSON\Javascript</a>, not interpolated into the
+   JavaScript string. This can come up when using <em>$where</em>
+   clauses in queries, mapReduce and group commands, and any other time you may
+   pass JavaScript into the database.
+  </p>
+  <p class="para">
+   For example, suppose we have some JavaScript to greet a user in the database
+   logs.  We could do:
+  </p>
+  <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$m&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">MongoDB</span><span style="color: #007700">\</span><span style="color: #0000BB">Driver</span><span style="color: #007700">\</span><span style="color: #0000BB">Manager</span><span style="color: #007700">;<br /><br /></span><span style="color: #FF8000">//&nbsp;Don't&nbsp;do&nbsp;this!!!<br /></span><span style="color: #0000BB">$username&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$_GET</span><span style="color: #007700">[</span><span style="color: #DD0000">'field'</span><span style="color: #007700">];&nbsp;<br /><br /></span><span style="color: #0000BB">$cmd&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;\</span><span style="color: #0000BB">MongoDB</span><span style="color: #007700">\</span><span style="color: #0000BB">Driver</span><span style="color: #007700">\</span><span style="color: #0000BB">Command</span><span style="color: #007700">(&nbsp;[<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">'eval'&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #DD0000">"print('Hello,&nbsp;</span><span style="color: #0000BB">$username</span><span style="color: #DD0000">!');"<br /></span><span style="color: #007700">]&nbsp;);<br /><br /></span><span style="color: #0000BB">$r&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$m</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">executeCommand</span><span style="color: #007700">(&nbsp;</span><span style="color: #DD0000">'dramio'</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$cmd&nbsp;</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+  </div>
+
+  <p class="para">
+   However, what if a malicious user passes in some JavaScript?
+  </p>
+  <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$m&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">MongoDB</span><span style="color: #007700">\</span><span style="color: #0000BB">Driver</span><span style="color: #007700">\</span><span style="color: #0000BB">Manager</span><span style="color: #007700">;<br /><br /></span><span style="color: #FF8000">//&nbsp;Don't&nbsp;do&nbsp;this!!!<br /></span><span style="color: #0000BB">$username&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$_GET</span><span style="color: #007700">[</span><span style="color: #DD0000">'field'</span><span style="color: #007700">];&nbsp;<br /></span><span style="color: #FF8000">//&nbsp;$username&nbsp;is&nbsp;set&nbsp;to&nbsp;"');&nbsp;db.users.drop();&nbsp;print('"<br /><br /></span><span style="color: #0000BB">$cmd&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;\</span><span style="color: #0000BB">MongoDB</span><span style="color: #007700">\</span><span style="color: #0000BB">Driver</span><span style="color: #007700">\</span><span style="color: #0000BB">Command</span><span style="color: #007700">(&nbsp;[<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">'eval'&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #DD0000">"print('Hello,&nbsp;</span><span style="color: #0000BB">$username</span><span style="color: #DD0000">!');"<br /></span><span style="color: #007700">]&nbsp;);<br /><br /></span><span style="color: #0000BB">$r&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$m</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">executeCommand</span><span style="color: #007700">(&nbsp;</span><span style="color: #DD0000">'dramio'</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$cmd&nbsp;</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+  </div>
+
+  <p class="para">
+   Now MongoDB executes the JavaScript string
+   <em>&quot;print(&#039;Hello, &#039;); db.users.drop(); print(&#039;!&#039;);&quot;</em>.
+   This attack is easy to avoid: use <em>args</em> to pass
+   variables from PHP to JavaScript:
+  </p>
+  <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$m&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">MongoDB</span><span style="color: #007700">\</span><span style="color: #0000BB">Driver</span><span style="color: #007700">\</span><span style="color: #0000BB">Manager</span><span style="color: #007700">;<br /><br /></span><span style="color: #0000BB">$_GET</span><span style="color: #007700">[</span><span style="color: #DD0000">'field'</span><span style="color: #007700">]&nbsp;=&nbsp;</span><span style="color: #DD0000">'derick'</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$args&nbsp;</span><span style="color: #007700">=&nbsp;[&nbsp;</span><span style="color: #0000BB">$_GET</span><span style="color: #007700">[</span><span style="color: #DD0000">'field'</span><span style="color: #007700">]&nbsp;];<br /><br /></span><span style="color: #0000BB">$cmd&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;\</span><span style="color: #0000BB">MongoDB</span><span style="color: #007700">\</span><span style="color: #0000BB">Driver</span><span style="color: #007700">\</span><span style="color: #0000BB">Command</span><span style="color: #007700">(&nbsp;[<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">'eval'&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #DD0000">"function&nbsp;greet(username)&nbsp;{&nbsp;print('Hello,&nbsp;'&nbsp;+&nbsp;username&nbsp;+&nbsp;'!');&nbsp;}"</span><span style="color: #007700">,<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">'args'&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #0000BB">$args</span><span style="color: #007700">,<br />]&nbsp;);<br /><br /></span><span style="color: #0000BB">$r&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$m</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">executeCommand</span><span style="color: #007700">(&nbsp;</span><span style="color: #DD0000">'dramio'</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$cmd&nbsp;</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+  </div>
+
+  <p class="para">
+   This adds an argument to the JavaScript scope, which gets used as argument
+   for the <em>greet</em> function. Now if
+   someone tries to send malicious code, MongoDB will harmlessly print
+   <em>Hello, &#039;); db.dropDatabase(); print(&#039;!</em>.
+  </p>
+
+  <p class="para">
+   Using arguments helps to prevent malicious input from being executed by the
+   database.  However, you must make sure that your code does not turn around
+   and execute the input anyway! It is best to avoid executing
+   <em class="emphasis">any</em> JavaScript on the server in the first place.
+  </p>
+
+  <p class="para">
+   You are strongly recommended to stay clear of the <a href="https://docs.mongodb.com/manual/reference/operator/query/where/#considerations" class="link external" title="Link : https://docs.mongodb.com/manual/reference/operator/query/where/#considerations">&raquo;&nbsp;$where
+   clause</a> with queries, as it impacts performance significantly. Where
+   possible, use either normal query operators, or the <a href="https://docs.mongodb.com/manual/core/aggregation-pipeline" class="link external" title="Link : https://docs.mongodb.com/manual/core/aggregation-pipeline">&raquo;&nbsp;Aggregation
+   Framework</a>.
+  </p>
+
+  <p class="para">
+   As alternative to <a href="https://docs.mongodb.com/manual/core/map-reduce/" class="link external" title="Link : https://docs.mongodb.com/manual/core/map-reduce/">&raquo;&nbsp;MapReduce</a>, which uses
+   JavaScript, consider using the <a href="https://docs.mongodb.com/manual/core/aggregation-pipeline" class="link external" title="Link : https://docs.mongodb.com/manual/core/aggregation-pipeline">&raquo;&nbsp;Aggregation
+   Framework</a>. Unlike Map/Reduce, it uses an idiomatic language to
+   construct queries, without having to write, and use, the slower JavaScript
+   approach that Map/Reduce requires.
+  </p>
+
+  <p class="para">
+   The <a href="https://docs.mongodb.com/manual/reference/command/eval/" class="link external" title="Link : https://docs.mongodb.com/manual/reference/command/eval/">&raquo;&nbsp;eval command</a>
+   has been deprecated since MongoDB 3.0, and should also be avoided.
+  </p>
+ </div>
+<div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="120055""></a>
+  <div class="note">
+   <strong class="user">Robin</strong>
+   <a href="#120055" class="date">17-Oct-2016 09:47</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Shouldn't the second example have this<br />
+<br />
+$_GET['field'] = "'); db.users.drop(); print('";<br />
+<br />
+Before it sets $username?</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

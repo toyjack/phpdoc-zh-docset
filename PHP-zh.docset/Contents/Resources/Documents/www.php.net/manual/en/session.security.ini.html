@@ -1,0 +1,323 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>和会话安全相关的配置项</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="features.session.security.management.html">? 会话管理基础</a></li>
+      <li style="float: right;"><a href="ref.session.html">Session 函数 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="session.security.html">会话和安全</a></li>
+    <li>和会话安全相关的配置项</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="session.security.ini" class="sect1">
+  <h2 class="title">和会话安全相关的配置项</h2>
+
+  <p class="para">
+   通过使用 INI 文件中和会话安全相关的配置项，来提高会话的安全性。
+   有一些重要的配置项没有默认值，
+   所以你需要自行设置。
+  </p>
+
+  <ul class="itemizedlist">
+    <li class="listitem">
+     <p class="para">
+      <a href="session.configuration.html#ini.session.cookie-lifetime" class="link">session.cookie_lifetime</a>=0
+     </p>
+     <p class="para">
+      <em>0</em> 表示特殊含义，它告知浏览器不要持久化存储 cookie 数据。
+      也即，关闭浏览器的时候，会话 ID cookie 会被立即删除。
+      如果将此项设置为非 0 的值，
+      可能会导致会话 ID 被其他用户使用。
+      大部分应用应该把此项设置为 &quot;<em>0</em>&quot;。
+     </p>
+     <p class="para">
+      如果应用中有自动登录的功能，
+      请自行实现一种更加安全的方式，
+      而不要使用长生命周期的会话 ID 来完成自动登录。
+      至于如何实现安全的自动登录功能，请参考本文档前面的内容。
+     </p>
+    </li>
+
+    <li class="listitem">
+     <p class="para">
+      <a href="session.configuration.html#ini.session.use-cookies" class="link">session.use_cookies</a>=On
+     </p>
+     <p class="para">
+      <a href="session.configuration.html#ini.session.use-only-cookies" class="link">session.use_only_cookies</a>=On
+     </p>
+     <p class="para">
+      虽然 HTTP cookie 存在一些问题，
+      但是它确实是实现会话 ID 管理的优选方案。
+      尽可能的仅使用 cookie 来进行会话 ID 管理，
+      而且大部分应用也确实是只使用 cookie 来记录会话 ID 的。
+     </p>
+     <p class="para">
+      如果 <em>session.use_only_cookies</em>=Off，
+      会话模块会在基于 cookie 的会话 ID 初始化之前
+      使用 GET/POST/URL 请求中的会话 ID（如果存在的话）。
+     </p>
+    </li>
+
+    <li class="listitem">
+     <p class="para">
+      <a href="session.configuration.html#ini.session.use-strict-mode" class="link">session.use_strict_mode</a>=On
+     </p>
+     <p class="para">
+      虽然启用 <em>session.use_strict_mode</em> 
+      是必不可少的，但是默认情况下，这个配置项是未启用的。
+     </p>
+     <p class="para">
+      此设置防止会话模块使用未初始化的会话 ID。
+      也就是说，
+      会话模块仅接受由它自己创建的有效的会话 ID，
+      而拒绝由用户自己提供的会话 ID。
+     </p>
+     <p class="para">
+      攻击者可以自行设置 cookie 
+      或者使用 JavaScript 注入的方式
+      来设置会话 ID 进行攻击。
+      启用 <em>session.use_strict_mode</em> 配置项
+      可以阻止使用未经会话模块初始化的会话 ID。
+     </p>
+     <blockquote class="note"><p><strong class="note">Note</strong>: 
+      <p class="para">
+       攻击者可以使用自己的设备产生会话 ID，也可以使用受害者的会话 ID。
+       攻击者也可以通过一些后续操作保证会话活跃。
+       因此，启用 <em>session.use_strict_mode</em> 配置项
+       可以降低这种风险。
+      </p>
+     </p></blockquote>
+    </li>
+
+    <li class="listitem">
+     <p class="para">
+      <a href="session.configuration.html#ini.session.cookie-httponly" class="link">session.cookie_httponly</a>=On
+     </p>
+     <p class="para">
+      禁止 JavaScript 访问会话 cookie。
+      此设置项可以保护 cookie 不被 JavaScript 窃取。
+     </p>
+     <p class="para">
+      虽然可以使用会话 ID 来作为防范跨站请求伪造（CSRF）的关键数据，
+      但是不建议你这么做。例如，攻击者可以把 HTML 源代码保存下来并且发送给其他用户。
+      为了安全起见，开发者不应该在 web 页面中显示会话 ID。
+      几乎所有的应用都应该对会话 ID cookie 设置 httponly 为 On。
+     </p>
+     <blockquote class="note"><p><strong class="note">Note</strong>: 
+      <p class="para">
+       类似会话 ID，CSRF 保护串号也应该定期的更新。
+      </p>
+     </p></blockquote>
+    </li>
+
+    <li class="listitem">
+     <p class="para">
+      <a href="session.configuration.html#ini.session.cookie-secure" class="link">session.cookie_secure</a>=On
+     </p>
+     <p class="para">
+      仅允许在 HTTPS 协议下访问会话 ID cookie。
+      如果你的 web 站点仅支持 HTTPS，那么必须将此配置项设置为 On。
+     </p>
+     <p class="para">
+      对于仅支持 HTTPS 的 web 站点建议考虑使用强制安全传输技术（HSTS）。
+     </p>
+    </li>
+
+   <li class="listitem">
+     <p class="para">
+      <a href="session.configuration.html#ini.session.cookie-samesite" class="link">session.cookie_samesite</a>=&quot;Lax&quot; 或者
+      <a href="session.configuration.html#ini.session.cookie-samesite" class="link">session.cookie_samesite</a>=&quot;Strict&quot;
+     </p>
+     <p class="para">
+      自 PHP 7.3 开始，可以为会话 cookie 设置 <em>&quot;SameSite&quot;</em> 属性。
+      这个属性可以有效的降低 CSRF 攻击的风险。
+     </p>
+     <p class="para">
+      Lax 和 Strict 之间的区别是，
+      对于来自其他站点的并且携带了会话 cookie 的 GET 请求的处理方式不同。
+      设置为 Lax 会允许来自其他站点并且携带了会话 cookie 的请求，
+      设置为 Strict 则不会允许这种请求访问本站的会话数据。
+     </p>
+   </li>
+   
+   <li class="listitem">
+     <p class="para">
+      <a href="session.configuration.html#ini.session.gc-maxlifetime" class="link">session.gc_maxlifetime</a>=[选择一个尽可能小的时间段]
+     </p>
+     <p class="para">
+      <em>session.gc_maxlifetime</em>
+      来设置删除过期会话数据的时间周期。
+      <em class="emphasis">来</em>的删除，
+      你需要自己来实现一套基于时间戳的会话数据生命周期管理机制。
+     </p>
+     <p class="para">
+      最好使用 <span class="function"><a href="function.session-gc.html" class="function">session_gc()</a></span> 函数来进行会话数据垃圾收集。
+      如果你是 UNIX 的操作系统，
+      最好使用类似 cron 这样的定时任务来执行 <span class="function"><a href="function.session-gc.html" class="function">session_gc()</a></span> 函数。
+     </p>
+     <p class="para">
+      GC 的运行时机并不是精准的，带有一定的或然性，
+      所以这个设置项并<em class="emphasis">不能</em>确保
+      旧的会话数据被删除。某些会话存储处理模块不使用此设置项。
+      更多的信息请参考会话存储模块的完整文档。
+      虽然开发人员不能完全依赖这个设置，但是还是建议将其设置的尽可能的小。
+      调整 <a href="session.configuration.html#ini.session.gc-probability" class="link">session.gc_probability</a>
+      和 <a href="session.configuration.html#ini.session.gc-divisor" class="link">session.gc_divisor</a> 配置项
+      可以使得过期的会话数据在适当的周期内被删除。
+      如果需要使用自动登录的功能，
+      请使用其他更加安全的方式自行实现，
+      而不要通过使用长生命周期的会话 ID 来实现。
+     </p>
+     <blockquote class="note"><p><strong class="note">Note</strong>: 
+      <p class="para">
+       如果会话存储器将会话数据存储到 memcached 或者 mecache 这种自带超时机制的存储中，
+       就不依赖这个配置项来进行过期会话数据的垃圾收集。
+       更多信息请参考对应的会话存储器文档。
+      </p>
+     </p></blockquote>
+    </li>
+
+    <li class="listitem">
+     <p class="para">
+      <a href="session.configuration.html#ini.session.use-trans-sid" class="link">session.use_trans_sid</a>=Off
+     </p>
+     <p class="para">
+      如果你有需要，可以使用会话 ID 透传机制。
+      但是，禁用会话 ID 透传机制可以
+      避免会话 ID 被注入以及泄漏，
+      有效的提高会话安全性。
+     </p>
+     <blockquote class="note"><p><strong class="note">Note</strong>: 
+      <p class="para">
+       会话 ID 可能在浏览器书签或者保存下来的 HTML 源代码中被泄漏。
+      </p>
+     </p></blockquote>
+    </li>
+
+    <li class="listitem">
+     <p class="para">
+      <a href="session.configuration.html#ini.session.trans-sid-tags" class="link">session.trans_sid_tags</a>=[限制标签]
+     </p>
+     <p class="para">
+      （PHP 7.1.0 及以上）一般情况下，默认值就可以，
+      你无需重写不需要的标签。
+      之前版本的 PHP 请使用 <a href="session.configuration.html#ini.url-rewriter.tags" class="link">url_rewriter.tags</a> 
+      配置项。
+     </p>
+    </li>
+
+    <li class="listitem">
+     <p class="para">
+      <a href="session.configuration.html#ini.session.trans-sid-hosts" class="link">session.trans_sid_hosts</a>=[限制的主机名]
+     </p>
+     <p class="para">
+       （PHP 7.1.0 及以上）这个配置项设定允许进行会话 ID 透传的主机白名单。
+      请勿在其中加入你不信任的主机。
+      如果此配置项为空，
+      则仅允许 <em>$_SERVER[&#039;HTTP_HOST&#039;]</em> 的站点进行会话 ID 透传。
+     </p>
+    </li>
+
+    <li class="listitem">
+     <p class="para">
+      <a href="session.configuration.html#ini.session.referer-check" class="link">session.referer_check</a>=[原始 URL]
+     </p>
+     <p class="para">
+      当启用 <a href="session.configuration.html#ini.session.use-trans-sid" class="link">session.use_trans_sid</a> 配置项的时候，
+      这个设置可以降低会话 ID 注入的风险。
+      如果你的站点是 http://example.com/，
+      那么就把此项设置为 http://example.com/。
+      需要注意的是，如果使用了 HTTPS 协议，
+      那么浏览器在发起请求的时候不会包含 referrer 请求头。
+      建议启用此配置项，虽然它并不是可靠的安全措施。
+     </p>
+    </li>
+
+    <li class="listitem">
+     <p class="para">
+      <a href="session.configuration.html#ini.session.cache-limiter" class="link">session.cache_limiter</a>=nocache
+     </p>
+     <p class="para">
+      确保对于已经认证的会话，其 HTTP 内容不会被浏览器缓存。
+      应该仅针对公开内容允许缓存，
+      否则将会面临内容泄露的风险。
+      即使 HTTP 内容不包含敏感数据，
+      也可以把它设置为"private"。
+      注意，"private"可能会导致客户端缓存私有数据。
+      仅在 HTTP 内容中不包含任何私有数据的时候，可以使用"public"。
+     </p>
+    </li>
+
+    <li class="listitem">
+     <p class="para">
+      <a href="session.configuration.html#ini.session.sid-length" class="link">session.sid_length</a>=&quot;48&quot;
+     </p>
+     <p class="para">
+      （PHP 7.1.0 及更高版本）更长的会话 ID 可以得到更高的安全强度。
+      建议开发者将会话 ID 的长度设置为不低于 32 个字符。
+      当 <a href="session.configuration.html#ini.session.sid-bits-per-character" class="link">session.sid_bits_per_character</a>=&quot;5&quot; 时，
+      会话 ID 至少需要 26 个字符。
+     </p>
+    </li>
+
+    <li class="listitem">
+     <p class="para">
+      <a href="session.configuration.html#ini.session.sid-bits-per-character" class="link">session.sid_bits_per_character</a>=&quot;6&quot;
+     </p>
+     <p class="para">
+     （PHP 7.1.0 及更高版本）
+      即使会话 ID 的长度设定不变，
+     更高的会话 ID 比特位设置也会产生安全性更高的会话 ID。
+     </p>
+    </li>
+
+    <li class="listitem">
+     <p class="para">
+      <a href="session.configuration.html#ini.session.hash-function" class="link">session.hash_function</a>=&quot;sha256&quot;
+     </p>
+     <p class="para">
+     （PHP 7.1.0 及更高版本）高强度的哈希算法可以生成更高安全性的会话 ID。
+     虽然说，即使是采用 MD5 哈希算法，要想生成完全一致的哈希结果都是不太现实的，
+     但是还是建议开发者使用 SHA-2 或者更高强度的哈希算法。
+     比如，可以考虑使用 sha384 和 sha512 哈希算法。
+     请确保 <a href="session.configuration.html#ini.session.entropy-length" class="link">entropy</a> 
+     配置项的设置可以满足你所用的哈希算法对种子长度要求。
+     </p>
+    </li>
+
+  </ul>
+ </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="123434""></a>
+  <div class="note">
+   <strong class="user">Derek Simkowiak</strong>
+   <a href="#123434" class="date">14-Dec-2018 04:04</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Warning: Calling `ini_set('session.use_only_cookies', 1)` returns FALSE if `session_start()` has already been called.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

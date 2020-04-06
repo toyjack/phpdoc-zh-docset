@@ -1,0 +1,86 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Basic query monitoring</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="mysqlnd-uh.quickstart.proxy-installation.html">? Installing a proxy</a></li>
+      <li style="float: right;"><a href="mysqlnd-uh.setup.html">安装／配置 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="mysqlnd-uh.quickstart.html">Quickstart and Examples</a></li>
+    <li>Basic query monitoring</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="mysqlnd-uh.quickstart.query-monitoring" class="section">
+  <h2 class="title">Basic query monitoring</h2>
+  <p class="para">
+   Basic monitoring of a query statement is easy with PECL/mysqlnd_uh.
+   Combined with <span class="function"><a href="function.debug-print-backtrace.html" class="function">debug_print_backtrace()</a></span> it can become a powerful
+   tool, for example, to find the origin of certain statement. This may
+   be desired when searching for slow queries but also after database
+   refactoring to find code still accessing deprecated databases or
+   tables. The latter may be a complicated matter to do otherwise, especially if
+   the application uses auto-generated queries.
+  </p>
+  <p class="para">
+   <div class="example" id="example-2340">
+    <p><strong>Example #1 Basic Monitoring</strong></p>
+        <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">class&nbsp;</span><span style="color: #0000BB">conn_proxy&nbsp;</span><span style="color: #007700">extends&nbsp;</span><span style="color: #0000BB">MysqlndUhConnection&nbsp;</span><span style="color: #007700">{<br />&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #0000BB">$res</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$query</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;</span><span style="color: #0000BB">debug_print_backtrace</span><span style="color: #007700">();<br />&nbsp;&nbsp;return&nbsp;</span><span style="color: #0000BB">parent</span><span style="color: #007700">::</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #0000BB">$res</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$query</span><span style="color: #007700">);<br />&nbsp;}<br />}<br />class&nbsp;</span><span style="color: #0000BB">stmt_proxy&nbsp;</span><span style="color: #007700">extends&nbsp;</span><span style="color: #0000BB">MysqlndUhPreparedStatement&nbsp;</span><span style="color: #007700">{<br />&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">prepare</span><span style="color: #007700">(</span><span style="color: #0000BB">$res</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$query</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;</span><span style="color: #0000BB">debug_print_backtrace</span><span style="color: #007700">();<br />&nbsp;&nbsp;return&nbsp;</span><span style="color: #0000BB">parent</span><span style="color: #007700">::</span><span style="color: #0000BB">prepare</span><span style="color: #007700">(</span><span style="color: #0000BB">$res</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$query</span><span style="color: #007700">);<br />&nbsp;}<br />}<br /></span><span style="color: #0000BB">mysqlnd_uh_set_connection_proxy</span><span style="color: #007700">(new&nbsp;</span><span style="color: #0000BB">conn_proxy</span><span style="color: #007700">());<br /></span><span style="color: #0000BB">mysqlnd_uh_set_statement_proxy</span><span style="color: #007700">(new&nbsp;</span><span style="color: #0000BB">stmt_proxy</span><span style="color: #007700">());<br /><br /></span><span style="color: #0000BB">printf</span><span style="color: #007700">(</span><span style="color: #DD0000">"Proxies&nbsp;installed...\n"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$pdo&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">PDO</span><span style="color: #007700">(</span><span style="color: #DD0000">"mysql:host=localhost;dbname=test"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"root"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">""</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$pdo</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #DD0000">"SELECT&nbsp;1&nbsp;AS&nbsp;_one&nbsp;FROM&nbsp;DUAL"</span><span style="color: #007700">)-&gt;</span><span style="color: #0000BB">fetchAll</span><span style="color: #007700">(</span><span style="color: #0000BB">PDO</span><span style="color: #007700">::</span><span style="color: #0000BB">FETCH_ASSOC</span><span style="color: #007700">));<br /><br /></span><span style="color: #0000BB">$mysqli&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">mysqli</span><span style="color: #007700">(</span><span style="color: #DD0000">"localhost"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"root"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">""</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"test"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">prepare</span><span style="color: #007700">(</span><span style="color: #DD0000">"SELECT&nbsp;1&nbsp;AS&nbsp;_two&nbsp;FROM&nbsp;DUAL"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+    <div class="example-contents"><p>以上例程会输出：</p></div>
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+#0  conn_proxy-&gt;query(Resource id #19, SELECT 1 AS _one FROM DUAL)
+#1  PDO-&gt;query(SELECT 1 AS _one FROM DUAL) called at [example.php:19]
+array(1) {
+  [0]=&gt;
+  array(1) {
+    [&quot;_one&quot;]=&gt;
+    string(1) &quot;1&quot;
+  }
+}
+#0  stmt_proxy-&gt;prepare(Resource id #753, SELECT 1 AS _two FROM DUAL)
+#1  mysqli-&gt;prepare(SELECT 1 AS _two FROM DUAL) called at [example.php:22]
+</pre></div>
+    </div>
+   </div>
+  </p>
+  <p class="para">
+   For basic query monitoring you should install a connection and a prepared statement
+   proxy. The connection proxy should subclass <span class="function"><a href="mysqlnduhconnection.query.html" class="function">MysqlndUhConnection::query()</a></span>.
+   All database queries not using native prepared statements will call this method.
+   In the example the <em>query</em> function is invoked by a PDO call.
+   By default, <em>PDO_MySQL</em> is using prepared statement emulation.
+  </p>
+  <p class="para">
+   All native prepared statements are prepared with the <em>prepare</em>
+   method of <em>mysqlnd</em> exported through
+   <span class="methodname"><a href="mysqlnduhpreparedstatement.prepare.html" class="methodname">MysqlndUhPreparedStatement::prepare()</a></span>. Subclass
+   <a href="class.mysqlnduhpreparedstatement.html" class="classname">MysqlndUhPreparedStatement</a> and overwrite <em>prepare</em>
+   for native prepared statement monitoring.
+  </p>
+ </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+ <div class="note">There are no user contributed notes for this page.</div>
+</div>
+</div></div></body></html>

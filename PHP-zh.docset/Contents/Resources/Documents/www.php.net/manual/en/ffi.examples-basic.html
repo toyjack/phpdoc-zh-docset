@@ -1,0 +1,147 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Basic FFI usage</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="ffi.examples.html">? 范例</a></li>
+      <li style="float: right;"><a href="ffi.examples-callback.html">PHP Callbacks ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="ffi.examples.html">范例</a></li>
+    <li>Basic FFI usage</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="ffi.examples-basic" class="section">
+  <h2 class="title">Basic FFI usage</h2>
+  <p class="para">
+   Before diving into the details of the FFI API, lets take a look at a few examples
+   demonstrating the simplicity of the FFI API usage for regular tasks.
+  </p>
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <p class="para">
+    Some of these examples require <var class="filename">libc.so.6</var> and as such will
+    not work on systems where it is not available.
+   </p>
+  </p></blockquote>
+  <p class="para">
+   <div class="example" id="example-469">
+    <p><strong>Example #1 Calling a function from shared library</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">//&nbsp;create&nbsp;FFI&nbsp;object,&nbsp;loading&nbsp;libc&nbsp;and&nbsp;exporting&nbsp;function&nbsp;printf()<br /></span><span style="color: #0000BB">$ffi&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">FFI</span><span style="color: #007700">::</span><span style="color: #0000BB">cdef</span><span style="color: #007700">(<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">"int&nbsp;printf(const&nbsp;char&nbsp;*format,&nbsp;...);"</span><span style="color: #007700">,&nbsp;</span><span style="color: #FF8000">//&nbsp;this&nbsp;is&nbsp;a&nbsp;regular&nbsp;C&nbsp;declaration<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">"libc.so.6"</span><span style="color: #007700">);<br /></span><span style="color: #FF8000">//&nbsp;call&nbsp;C's&nbsp;printf()<br /></span><span style="color: #0000BB">$ffi</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">printf</span><span style="color: #007700">(</span><span style="color: #DD0000">"Hello&nbsp;%s!\n"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"world"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+    <div class="example-contents"><p>以上例程会输出：</p></div>
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+Hello world!
+</pre></div>
+    </div>
+   </div>
+  </p>
+  <p class="para">
+   <div class="example" id="example-470">
+    <p><strong>Example #2 Calling a function, returning a structure through an argument</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">//&nbsp;create&nbsp;gettimeofday()&nbsp;binding<br /></span><span style="color: #0000BB">$ffi&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">FFI</span><span style="color: #007700">::</span><span style="color: #0000BB">cdef</span><span style="color: #007700">(</span><span style="color: #DD0000">"<br />&nbsp;&nbsp;&nbsp;&nbsp;typedef&nbsp;unsigned&nbsp;int&nbsp;time_t;<br />&nbsp;&nbsp;&nbsp;&nbsp;typedef&nbsp;unsigned&nbsp;int&nbsp;suseconds_t;<br />&nbsp;<br />&nbsp;&nbsp;&nbsp;&nbsp;struct&nbsp;timeval&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;time_t&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tv_sec;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;suseconds_t&nbsp;tv_usec;<br />&nbsp;&nbsp;&nbsp;&nbsp;};<br />&nbsp;<br />&nbsp;&nbsp;&nbsp;&nbsp;struct&nbsp;timezone&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;tz_minuteswest;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;tz_dsttime;<br />&nbsp;&nbsp;&nbsp;&nbsp;};<br />&nbsp;<br />&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;gettimeofday(struct&nbsp;timeval&nbsp;*tv,&nbsp;struct&nbsp;timezone&nbsp;*tz);&nbsp;&nbsp;&nbsp;&nbsp;<br />"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"libc.so.6"</span><span style="color: #007700">);<br /></span><span style="color: #FF8000">//&nbsp;create&nbsp;C&nbsp;data&nbsp;structures<br /></span><span style="color: #0000BB">$tv&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$ffi</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">new</span><span style="color: #007700">(</span><span style="color: #DD0000">"struct&nbsp;timeval"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$tz&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$ffi</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">new</span><span style="color: #007700">(</span><span style="color: #DD0000">"struct&nbsp;timezone"</span><span style="color: #007700">);<br /></span><span style="color: #FF8000">//&nbsp;call&nbsp;C's&nbsp;gettimeofday()<br /></span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$ffi</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">gettimeofday</span><span style="color: #007700">(</span><span style="color: #0000BB">FFI</span><span style="color: #007700">::</span><span style="color: #0000BB">addr</span><span style="color: #007700">(</span><span style="color: #0000BB">$tv</span><span style="color: #007700">),&nbsp;</span><span style="color: #0000BB">FFI</span><span style="color: #007700">::</span><span style="color: #0000BB">addr</span><span style="color: #007700">(</span><span style="color: #0000BB">$tz</span><span style="color: #007700">)));<br /></span><span style="color: #FF8000">//&nbsp;access&nbsp;field&nbsp;of&nbsp;C&nbsp;data&nbsp;structure<br /></span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$tv</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">tv_sec</span><span style="color: #007700">);<br /></span><span style="color: #FF8000">//&nbsp;print&nbsp;the&nbsp;whole&nbsp;C&nbsp;data&nbsp;structure<br /></span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$tz</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+    <div class="example-contents"><p>以上例程的输出类似于：</p></div>
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+int(0)
+int(1555946835)
+object(FFI\CData:struct timezone)#3 (2) {
+  [&quot;tz_minuteswest&quot;]=&gt;
+  int(0)
+  [&quot;tz_dsttime&quot;]=&gt;
+  int(0)
+}
+</pre></div>
+    </div>
+   </div>
+  </p>
+  <p class="para">
+   <div class="example" id="example-471">
+    <p><strong>Example #3 Accessing existing C variables</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">//&nbsp;create&nbsp;FFI&nbsp;object,&nbsp;loading&nbsp;libc&nbsp;and&nbsp;exporting&nbsp;errno&nbsp;variable<br /></span><span style="color: #0000BB">$ffi&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">FFI</span><span style="color: #007700">::</span><span style="color: #0000BB">cdef</span><span style="color: #007700">(<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">"int&nbsp;errno;"</span><span style="color: #007700">,&nbsp;</span><span style="color: #FF8000">//&nbsp;this&nbsp;is&nbsp;a&nbsp;regular&nbsp;C&nbsp;declaration<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #DD0000">"libc.so.6"</span><span style="color: #007700">);<br /></span><span style="color: #FF8000">//&nbsp;print&nbsp;C's&nbsp;errno<br /></span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$ffi</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">errno</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+    <div class="example-contents"><p>以上例程会输出：</p></div>
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+int(0)
+</pre></div>
+    </div>
+   </div>
+  </p>
+  <p class="para">
+   <div class="example" id="example-472">
+    <p><strong>Example #4 Creating and Modifying C variables</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">//&nbsp;create&nbsp;a&nbsp;new&nbsp;C&nbsp;int&nbsp;variable<br /></span><span style="color: #0000BB">$x&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">FFI</span><span style="color: #007700">::new(</span><span style="color: #DD0000">"int"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$x</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">cdata</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">//&nbsp;simple&nbsp;assignment<br /></span><span style="color: #0000BB">$x</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">cdata&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">5</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$x</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">cdata</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">//&nbsp;compound&nbsp;assignment<br /></span><span style="color: #0000BB">$x</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">cdata&nbsp;</span><span style="color: #007700">+=&nbsp;</span><span style="color: #0000BB">2</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$x</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">cdata</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+    <div class="example-contents"><p>以上例程会输出：</p></div>
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+int(0)
+int(5)
+int(7)
+</pre></div>
+    </div>
+   </div>
+  </p>
+  <p class="para">
+   <div class="example" id="example-473">
+    <p><strong>Example #5 Working with C arrays</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">//&nbsp;create&nbsp;C&nbsp;data&nbsp;structure<br /></span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">FFI</span><span style="color: #007700">::new(</span><span style="color: #DD0000">"long[1024]"</span><span style="color: #007700">);<br /></span><span style="color: #FF8000">//&nbsp;work&nbsp;with&nbsp;it&nbsp;like&nbsp;with&nbsp;a&nbsp;regular&nbsp;PHP&nbsp;array<br /></span><span style="color: #007700">for&nbsp;(</span><span style="color: #0000BB">$i&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">0</span><span style="color: #007700">;&nbsp;</span><span style="color: #0000BB">$i&nbsp;</span><span style="color: #007700">&lt;&nbsp;</span><span style="color: #0000BB">count</span><span style="color: #007700">(</span><span style="color: #0000BB">$a</span><span style="color: #007700">);&nbsp;</span><span style="color: #0000BB">$i</span><span style="color: #007700">++)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$a</span><span style="color: #007700">[</span><span style="color: #0000BB">$i</span><span style="color: #007700">]&nbsp;=&nbsp;</span><span style="color: #0000BB">$i</span><span style="color: #007700">;<br />}<br /></span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$a</span><span style="color: #007700">[</span><span style="color: #0000BB">25</span><span style="color: #007700">]);<br /></span><span style="color: #0000BB">$sum&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">0</span><span style="color: #007700">;<br />foreach&nbsp;(</span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">as&nbsp;</span><span style="color: #0000BB">$n</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$sum&nbsp;</span><span style="color: #007700">+=&nbsp;</span><span style="color: #0000BB">$n</span><span style="color: #007700">;<br />}<br /></span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$sum</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">count</span><span style="color: #007700">(</span><span style="color: #0000BB">$a</span><span style="color: #007700">));<br /></span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">FFI</span><span style="color: #007700">::</span><span style="color: #0000BB">sizeof</span><span style="color: #007700">(</span><span style="color: #0000BB">$a</span><span style="color: #007700">));<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+    <div class="example-contents"><p>以上例程会输出：</p></div>
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+int(25)
+int(523776)
+int(1024)
+int(8192)
+</pre></div>
+    </div>
+   </div>
+  </p>
+ </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+ <div class="note">There are no user contributed notes for this page.</div>
+</div>
+</div></div></body></html>

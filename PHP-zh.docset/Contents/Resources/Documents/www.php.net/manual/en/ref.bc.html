@@ -1,0 +1,1008 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>BC 数学 函数</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="bc.constants.html">? 预定义常量</a></li>
+      <li style="float: right;"><a href="function.bcadd.html">bcadd ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="book.bc.html">BC Math</a></li>
+    <li>BC 数学 函数</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="ref.bc" class="reference">
+ <h1 class="title">BC 数学 函数</h1>
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h2>Table of Contents</h2><ul class="chunklist chunklist_reference"><li><a href="function.bcadd.html">bcadd</a> &mdash; 2个任意精度数字的加法计算</li><li><a href="function.bccomp.html">bccomp</a> &mdash; 比较两个任意精度的数字</li><li><a href="function.bcdiv.html">bcdiv</a> &mdash; 2个任意精度的数字除法计算</li><li><a href="function.bcmod.html">bcmod</a> &mdash; 对一个任意精度数字取模</li><li><a href="function.bcmul.html">bcmul</a> &mdash; 2个任意精度数字乘法计算</li><li><a href="function.bcpow.html">bcpow</a> &mdash; 任意精度数字的乘方</li><li><a href="function.bcpowmod.html">bcpowmod</a> &mdash; Raise an arbitrary precision number to another, reduced by a specified modulus</li><li><a href="function.bcscale.html">bcscale</a> &mdash; 设置所有bc数学函数的默认小数点保留位数</li><li><a href="function.bcsqrt.html">bcsqrt</a> &mdash; 任意精度数字的二次方根</li><li><a href="function.bcsub.html">bcsub</a> &mdash; 2个任意精度数字的减法</li></ul>
+</div>
+<div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="119510""></a>
+  <div class="note">
+   <strong class="user">kmeissen at gmx dot de</strong>
+   <a href="#119510" class="date">24-Jun-2016 10:05</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+/*<br />
+&nbsp;* Computes ln(x) very fast even with high resolution<br />
+&nbsp;* uses standard log()-function to optimise convergence of<br />
+&nbsp;* ln(1+x) = x - x*x/2 + x*x*x/3 - ...<br />
+&nbsp;* <br />
+&nbsp;* example:<br />
+&nbsp;* bcscale(1000);<br />
+&nbsp;* $x = bcln("1000000");<br />
+&nbsp;*<br />
+&nbsp;* result:<br />
+&nbsp;* $x = 13.81551055796427410410794872810618524560660893...<br />
+&nbsp;* within 0.9 sec, that are 80 iterations<br />
+&nbsp;* <br />
+&nbsp;* @author Klaus Meissen, Germany<br />
+&nbsp;* @license Public domain<br />
+*/<br />
+function bcln($value) // value &gt; 0<br />
+{<br />
+&nbsp;&nbsp;&nbsp; $m = (string)log($value);<br />
+&nbsp;&nbsp;&nbsp; $x = bcsub(bcdiv($value,bcexp($m)),"1");<br />
+&nbsp;&nbsp;&nbsp; $res = "0";<br />
+&nbsp;&nbsp;&nbsp; $xpow = "1";<br />
+&nbsp;&nbsp;&nbsp; $i=0;<br />
+&nbsp;&nbsp;&nbsp; do<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $i++;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $xpow = bcmul($xpow,$x);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $sum = bcdiv($xpow, $i);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ($i%2==1)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $res = bcadd($res, $sum);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }else{<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $res = bcsub($res, $sum);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; while (bccomp($sum, '0'));<br />
+&nbsp;&nbsp;&nbsp; return bcadd($res,$m);<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="113463""></a>
+  <div class="note">
+   <strong class="user">mail at djordjeungar dot com</strong>
+   <a href="#113463" class="date">14-Oct-2013 01:43</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Inspired by dawidgarus' implementation, here's my simple bc math helper, it does not support function calls, but supports boolean comparisons and is about ~40% faster.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">bc</span><span class="keyword">() {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$argv </span><span class="keyword">= </span><span class="default">func_get_args</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$string </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">' '</span><span class="keyword">, </span><span class="string">''</span><span class="keyword">, </span><span class="string">"(</span><span class="keyword">{</span><span class="default">$argv</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">]}</span><span class="string">)"</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$operations </span><span class="keyword">= array();<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">strpos</span><span class="keyword">(</span><span class="default">$string</span><span class="keyword">, </span><span class="string">'^'</span><span class="keyword">) !== </span><span class="default">false</span><span class="keyword">) </span><span class="default">$operations</span><span class="keyword">[] = </span><span class="string">'\^'</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">strpbrk</span><span class="keyword">(</span><span class="default">$string</span><span class="keyword">, </span><span class="string">'*/%'</span><span class="keyword">) !== </span><span class="default">false</span><span class="keyword">) </span><span class="default">$operations</span><span class="keyword">[] = </span><span class="string">'[\*\/\%]'</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">strpbrk</span><span class="keyword">(</span><span class="default">$string</span><span class="keyword">, </span><span class="string">'+-'</span><span class="keyword">) !== </span><span class="default">false</span><span class="keyword">) </span><span class="default">$operations</span><span class="keyword">[] = </span><span class="string">'[\+\-]'</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">strpbrk</span><span class="keyword">(</span><span class="default">$string</span><span class="keyword">, </span><span class="string">'&lt;&gt;!='</span><span class="keyword">) !== </span><span class="default">false</span><span class="keyword">) </span><span class="default">$operations</span><span class="keyword">[] = </span><span class="string">'&lt;|&gt;|=|&lt;=|==|&gt;=|!=|&lt;&gt;'</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$string </span><span class="keyword">= </span><span class="default">preg_replace</span><span class="keyword">(</span><span class="string">'/\$([0-9\.]+)/e'</span><span class="keyword">, </span><span class="string">'$argv[$1]'</span><span class="keyword">, </span><span class="default">$string</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; while (</span><span class="default">preg_match</span><span class="keyword">(</span><span class="string">'/\(([^\)\(]*)\)/'</span><span class="keyword">, </span><span class="default">$string</span><span class="keyword">, </span><span class="default">$match</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach (</span><span class="default">$operations </span><span class="keyword">as </span><span class="default">$operation</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">preg_match</span><span class="keyword">(</span><span class="string">"/([+-]{0,1}[0-9\.]+)(</span><span class="default">$operation</span><span class="string">)([+-]{0,1}[0-9\.]+)/"</span><span class="keyword">, </span><span class="default">$match</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="default">$m</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; switch(</span><span class="default">$m</span><span class="keyword">[</span><span class="default">2</span><span class="keyword">]) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">'+'</span><span class="keyword">:&nbsp; </span><span class="default">$result </span><span class="keyword">= </span><span class="default">bcadd</span><span class="keyword">(</span><span class="default">$m</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="default">$m</span><span class="keyword">[</span><span class="default">3</span><span class="keyword">]); break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">'-'</span><span class="keyword">:&nbsp; </span><span class="default">$result </span><span class="keyword">= </span><span class="default">bcsub</span><span class="keyword">(</span><span class="default">$m</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="default">$m</span><span class="keyword">[</span><span class="default">3</span><span class="keyword">]); break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">'*'</span><span class="keyword">:&nbsp; </span><span class="default">$result </span><span class="keyword">= </span><span class="default">bcmul</span><span class="keyword">(</span><span class="default">$m</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="default">$m</span><span class="keyword">[</span><span class="default">3</span><span class="keyword">]); break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">'/'</span><span class="keyword">:&nbsp; </span><span class="default">$result </span><span class="keyword">= </span><span class="default">bcdiv</span><span class="keyword">(</span><span class="default">$m</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="default">$m</span><span class="keyword">[</span><span class="default">3</span><span class="keyword">]); break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">'%'</span><span class="keyword">:&nbsp; </span><span class="default">$result </span><span class="keyword">= </span><span class="default">bcmod</span><span class="keyword">(</span><span class="default">$m</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="default">$m</span><span class="keyword">[</span><span class="default">3</span><span class="keyword">]); break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">'^'</span><span class="keyword">:&nbsp; </span><span class="default">$result </span><span class="keyword">= </span><span class="default">bcpow</span><span class="keyword">(</span><span class="default">$m</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="default">$m</span><span class="keyword">[</span><span class="default">3</span><span class="keyword">]); break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">'=='</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">'='</span><span class="keyword">:&nbsp; </span><span class="default">$result </span><span class="keyword">= </span><span class="default">bccomp</span><span class="keyword">(</span><span class="default">$m</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="default">$m</span><span class="keyword">[</span><span class="default">3</span><span class="keyword">]) == </span><span class="default">0</span><span class="keyword">; break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">'&gt;'</span><span class="keyword">:&nbsp; </span><span class="default">$result </span><span class="keyword">= </span><span class="default">bccomp</span><span class="keyword">(</span><span class="default">$m</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="default">$m</span><span class="keyword">[</span><span class="default">3</span><span class="keyword">]) == </span><span class="default">1</span><span class="keyword">; break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">'&lt;'</span><span class="keyword">:&nbsp; </span><span class="default">$result </span><span class="keyword">= </span><span class="default">bccomp</span><span class="keyword">(</span><span class="default">$m</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="default">$m</span><span class="keyword">[</span><span class="default">3</span><span class="keyword">]) ==-</span><span class="default">1</span><span class="keyword">; break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">'&gt;='</span><span class="keyword">: </span><span class="default">$result </span><span class="keyword">= </span><span class="default">bccomp</span><span class="keyword">(</span><span class="default">$m</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="default">$m</span><span class="keyword">[</span><span class="default">3</span><span class="keyword">]) &gt;= </span><span class="default">0</span><span class="keyword">; break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">'&lt;='</span><span class="keyword">: </span><span class="default">$result </span><span class="keyword">= </span><span class="default">bccomp</span><span class="keyword">(</span><span class="default">$m</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="default">$m</span><span class="keyword">[</span><span class="default">3</span><span class="keyword">]) &lt;= </span><span class="default">0</span><span class="keyword">; break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">'&lt;&gt;'</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">'!='</span><span class="keyword">: </span><span class="default">$result </span><span class="keyword">= </span><span class="default">bccomp</span><span class="keyword">(</span><span class="default">$m</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="default">$m</span><span class="keyword">[</span><span class="default">3</span><span class="keyword">]) != </span><span class="default">0</span><span class="keyword">; break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$match</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">] = </span><span class="default">str_replace</span><span class="keyword">(</span><span class="default">$m</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">], </span><span class="default">$result</span><span class="keyword">, </span><span class="default">$match</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$string </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="default">$match</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">], </span><span class="default">$match</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="default">$string</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$string</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="107014""></a>
+  <div class="note">
+   <strong class="user">dawidgarus at gmail dot com</strong>
+   <a href="#107014" class="date">28-Dec-2011 10:22</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you too are confused with illegible code like this:<br />
+<span class="default">&lt;?php<br />
+$a </span><span class="keyword">= </span><span class="string">"3"</span><span class="keyword">;<br />
+</span><span class="default">$b </span><span class="keyword">= </span><span class="string">"5"</span><span class="keyword">;<br />
+</span><span class="default">bcadd</span><span class="keyword">(</span><span class="default">bcmod</span><span class="keyword">(</span><span class="default">bcadd</span><span class="keyword">(</span><span class="default">bcdiv</span><span class="keyword">(</span><span class="default">bcsqrt</span><span class="keyword">(</span><span class="default">bcadd</span><span class="keyword">(</span><span class="default">7</span><span class="keyword">, </span><span class="default">bcpow</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">, </span><span class="default">2</span><span class="keyword">))), </span><span class="default">4</span><span class="keyword">), </span><span class="default">$b</span><span class="keyword">), </span><span class="string">"4"</span><span class="keyword">), </span><span class="string">"0.5"</span><span class="keyword">); </span><span class="comment">// i might made a mistake somewhere<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+You may consider use my function, which makes example above look:<br />
+<span class="default">&lt;?php<br />
+bc</span><span class="keyword">(</span><span class="string">"(sqrt(7 + $1^2) / 4 + $2) % 4 + 0.5"</span><span class="keyword">, </span><span class="string">"3"</span><span class="keyword">, </span><span class="string">"5"</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Code:<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">function </span><span class="default">bc</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$functions </span><span class="keyword">= </span><span class="string">'sqrt'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// list of | separated functions<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; // sqrt refer to bcsqrt etc.<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; // function must take exactly 1 argument<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$argv </span><span class="keyword">= </span><span class="default">func_get_args</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$string </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">' '</span><span class="keyword">, </span><span class="string">''</span><span class="keyword">, </span><span class="string">'('</span><span class="keyword">.</span><span class="default">$argv</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">].</span><span class="string">')'</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$string </span><span class="keyword">= </span><span class="default">preg_replace</span><span class="keyword">(</span><span class="string">'/\$([0-9\.]+)/e'</span><span class="keyword">, </span><span class="string">'$argv[$1]'</span><span class="keyword">, </span><span class="default">$string</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; while (</span><span class="default">preg_match</span><span class="keyword">(</span><span class="string">'/(('</span><span class="keyword">.</span><span class="default">$functions</span><span class="keyword">.</span><span class="string">')?)\(([^\)\(]*)\)/'</span><span class="keyword">, </span><span class="default">$string</span><span class="keyword">, </span><span class="default">$match</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; while (<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">preg_match</span><span class="keyword">(</span><span class="string">'/([0-9\.]+)(\^)([0-9\.]+)/'</span><span class="keyword">, </span><span class="default">$match</span><span class="keyword">[</span><span class="default">3</span><span class="keyword">], </span><span class="default">$m</span><span class="keyword">) ||<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">preg_match</span><span class="keyword">(</span><span class="string">'/([0-9\.]+)([\*\/\%])([0-9\.]+)/'</span><span class="keyword">, </span><span class="default">$match</span><span class="keyword">[</span><span class="default">3</span><span class="keyword">], </span><span class="default">$m</span><span class="keyword">) ||<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">preg_match</span><span class="keyword">(</span><span class="string">'/([0-9\.]+)([\+\-])([0-9\.]+)/'</span><span class="keyword">, </span><span class="default">$match</span><span class="keyword">[</span><span class="default">3</span><span class="keyword">], </span><span class="default">$m</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; ) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; switch(</span><span class="default">$m</span><span class="keyword">[</span><span class="default">2</span><span class="keyword">]) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">'+'</span><span class="keyword">: </span><span class="default">$result </span><span class="keyword">= </span><span class="default">bcadd</span><span class="keyword">(</span><span class="default">$m</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="default">$m</span><span class="keyword">[</span><span class="default">3</span><span class="keyword">]); break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">'-'</span><span class="keyword">: </span><span class="default">$result </span><span class="keyword">= </span><span class="default">bcsub</span><span class="keyword">(</span><span class="default">$m</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="default">$m</span><span class="keyword">[</span><span class="default">3</span><span class="keyword">]); break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">'*'</span><span class="keyword">: </span><span class="default">$result </span><span class="keyword">= </span><span class="default">bcmul</span><span class="keyword">(</span><span class="default">$m</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="default">$m</span><span class="keyword">[</span><span class="default">3</span><span class="keyword">]); break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">'/'</span><span class="keyword">: </span><span class="default">$result </span><span class="keyword">= </span><span class="default">bcdiv</span><span class="keyword">(</span><span class="default">$m</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="default">$m</span><span class="keyword">[</span><span class="default">3</span><span class="keyword">]); break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">'%'</span><span class="keyword">: </span><span class="default">$result </span><span class="keyword">= </span><span class="default">bcmod</span><span class="keyword">(</span><span class="default">$m</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="default">$m</span><span class="keyword">[</span><span class="default">3</span><span class="keyword">]); break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">'^'</span><span class="keyword">: </span><span class="default">$result </span><span class="keyword">= </span><span class="default">bcpow</span><span class="keyword">(</span><span class="default">$m</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="default">$m</span><span class="keyword">[</span><span class="default">3</span><span class="keyword">]); break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$match</span><span class="keyword">[</span><span class="default">3</span><span class="keyword">] = </span><span class="default">str_replace</span><span class="keyword">(</span><span class="default">$m</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">], </span><span class="default">$result</span><span class="keyword">, </span><span class="default">$match</span><span class="keyword">[</span><span class="default">3</span><span class="keyword">]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (!empty(</span><span class="default">$match</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">]) &amp;&amp; </span><span class="default">function_exists</span><span class="keyword">(</span><span class="default">$func </span><span class="keyword">= </span><span class="string">'bc'</span><span class="keyword">.</span><span class="default">$match</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">]))&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$match</span><span class="keyword">[</span><span class="default">3</span><span class="keyword">] = </span><span class="default">$func</span><span class="keyword">(</span><span class="default">$match</span><span class="keyword">[</span><span class="default">3</span><span class="keyword">]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$string </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="default">$match</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">], </span><span class="default">$match</span><span class="keyword">[</span><span class="default">3</span><span class="keyword">], </span><span class="default">$string</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$string</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Note you must define scale with bcscale().</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="99130""></a>
+  <div class="note">
+   <strong class="user">artefact2 at gmail dot com</strong>
+   <a href="#99130" class="date">29-Jul-2010 06:18</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Here are some useful functions to convert large hex numbers from and to large decimal ones :<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">public static function </span><span class="default">bchexdec</span><span class="keyword">(</span><span class="default">$hex</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$hex</span><span class="keyword">) == </span><span class="default">1</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">hexdec</span><span class="keyword">(</span><span class="default">$hex</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$remain </span><span class="keyword">= </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$hex</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">, -</span><span class="default">1</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$last </span><span class="keyword">= </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$hex</span><span class="keyword">, -</span><span class="default">1</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">bcadd</span><span class="keyword">(</span><span class="default">bcmul</span><span class="keyword">(</span><span class="default">16</span><span class="keyword">, </span><span class="default">bchexdec</span><span class="keyword">(</span><span class="default">$remain</span><span class="keyword">)), </span><span class="default">hexdec</span><span class="keyword">(</span><span class="default">$last</span><span class="keyword">));<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public static function </span><span class="default">bcdechex</span><span class="keyword">(</span><span class="default">$dec</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$last </span><span class="keyword">= </span><span class="default">bcmod</span><span class="keyword">(</span><span class="default">$dec</span><span class="keyword">, </span><span class="default">16</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$remain </span><span class="keyword">= </span><span class="default">bcdiv</span><span class="keyword">(</span><span class="default">bcsub</span><span class="keyword">(</span><span class="default">$dec</span><span class="keyword">, </span><span class="default">$last</span><span class="keyword">), </span><span class="default">16</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">$remain </span><span class="keyword">== </span><span class="default">0</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">dechex</span><span class="keyword">(</span><span class="default">$last</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">bcdechex</span><span class="keyword">(</span><span class="default">$remain</span><span class="keyword">).</span><span class="default">dechex</span><span class="keyword">(</span><span class="default">$last</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="94610""></a>
+  <div class="note">
+   <strong class="user">thomas at tgohome dot com</strong>
+   <a href="#94610" class="date">14-Nov-2009 03:17</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Some useful bcmath functions:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="comment">/* <br />
+&nbsp;* Computes the factoral (x!).<br />
+&nbsp;* @author Thomas Oldbury. <br />
+&nbsp;* @license Public domain. <br />
+&nbsp;*/ <br />
+</span><span class="keyword">function </span><span class="default">bcfact</span><span class="keyword">(</span><span class="default">$fact</span><span class="keyword">, </span><span class="default">$scale </span><span class="keyword">= </span><span class="default">100</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; if(</span><span class="default">$fact </span><span class="keyword">== </span><span class="default">1</span><span class="keyword">) return </span><span class="default">1</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">bcmul</span><span class="keyword">(</span><span class="default">$fact</span><span class="keyword">, </span><span class="default">bcfact</span><span class="keyword">(</span><span class="default">bcsub</span><span class="keyword">(</span><span class="default">$fact</span><span class="keyword">, </span><span class="string">'1'</span><span class="keyword">), </span><span class="default">$scale</span><span class="keyword">), </span><span class="default">$scale</span><span class="keyword">);<br />
+}<br />
+<br />
+</span><span class="comment">/* <br />
+&nbsp;* Computes e^x, where e is Euler's constant, or approximately 2.71828.<br />
+&nbsp;* @author Thomas Oldbury. <br />
+&nbsp;* @license Public domain. <br />
+&nbsp;*/ <br />
+</span><span class="keyword">function </span><span class="default">bcexp</span><span class="keyword">(</span><span class="default">$x</span><span class="keyword">, </span><span class="default">$iters </span><span class="keyword">= </span><span class="default">7</span><span class="keyword">, </span><span class="default">$scale </span><span class="keyword">= </span><span class="default">100</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">/* Compute e^x. */<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$res </span><span class="keyword">= </span><span class="default">bcadd</span><span class="keyword">(</span><span class="string">'1.0'</span><span class="keyword">, </span><span class="default">$x</span><span class="keyword">, </span><span class="default">$scale</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; for(</span><span class="default">$i </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">; </span><span class="default">$i </span><span class="keyword">&lt; </span><span class="default">$iters</span><span class="keyword">; </span><span class="default">$i</span><span class="keyword">++)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$res </span><span class="keyword">+= </span><span class="default">bcdiv</span><span class="keyword">(</span><span class="default">bcpow</span><span class="keyword">(</span><span class="default">$x</span><span class="keyword">, </span><span class="default">bcadd</span><span class="keyword">(</span><span class="default">$i</span><span class="keyword">, </span><span class="string">'2'</span><span class="keyword">), </span><span class="default">$scale</span><span class="keyword">), </span><span class="default">bcfact</span><span class="keyword">(</span><span class="default">bcadd</span><span class="keyword">(</span><span class="default">$i</span><span class="keyword">, </span><span class="string">'2'</span><span class="keyword">), </span><span class="default">$scale</span><span class="keyword">), </span><span class="default">$scale</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$res</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="comment">/* <br />
+&nbsp;* Computes ln(x).<br />
+&nbsp;* @author Thomas Oldbury. <br />
+&nbsp;* @license Public domain. <br />
+&nbsp;*/ <br />
+</span><span class="keyword">function </span><span class="default">bcln</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">, </span><span class="default">$iters </span><span class="keyword">= </span><span class="default">10</span><span class="keyword">, </span><span class="default">$scale </span><span class="keyword">= </span><span class="default">100</span><span class="keyword">) <br />
+{ <br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">= </span><span class="string">"0.0"</span><span class="keyword">; <br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; for(</span><span class="default">$i </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">; </span><span class="default">$i </span><span class="keyword">&lt; </span><span class="default">$iters</span><span class="keyword">; </span><span class="default">$i</span><span class="keyword">++) <br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$pow </span><span class="keyword">= </span><span class="default">bcadd</span><span class="keyword">(</span><span class="string">"1.0"</span><span class="keyword">, </span><span class="default">bcmul</span><span class="keyword">(</span><span class="default">$i</span><span class="keyword">, </span><span class="string">"2.0"</span><span class="keyword">, </span><span class="default">$scale</span><span class="keyword">), </span><span class="default">$scale</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">//$pow = 1 + ($i * 2);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$mul </span><span class="keyword">= </span><span class="default">bcdiv</span><span class="keyword">(</span><span class="string">"1.0"</span><span class="keyword">, </span><span class="default">$pow</span><span class="keyword">, </span><span class="default">$scale</span><span class="keyword">); <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$fraction </span><span class="keyword">= </span><span class="default">bcmul</span><span class="keyword">(</span><span class="default">$mul</span><span class="keyword">, </span><span class="default">bcpow</span><span class="keyword">(</span><span class="default">bcdiv</span><span class="keyword">(</span><span class="default">bcsub</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">, </span><span class="string">"1.0"</span><span class="keyword">, </span><span class="default">$scale</span><span class="keyword">), </span><span class="default">bcadd</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">, </span><span class="string">"1.0"</span><span class="keyword">, </span><span class="default">$scale</span><span class="keyword">), </span><span class="default">$scale</span><span class="keyword">), </span><span class="default">$pow</span><span class="keyword">, </span><span class="default">$scale</span><span class="keyword">), </span><span class="default">$scale</span><span class="keyword">); <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">= </span><span class="default">bcadd</span><span class="keyword">(</span><span class="default">$fraction</span><span class="keyword">, </span><span class="default">$result</span><span class="keyword">, </span><span class="default">$scale</span><span class="keyword">); <br />
+&nbsp;&nbsp;&nbsp; } <br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$res </span><span class="keyword">= </span><span class="default">bcmul</span><span class="keyword">(</span><span class="string">"2.0"</span><span class="keyword">, </span><span class="default">$result</span><span class="keyword">, </span><span class="default">$scale</span><span class="keyword">); <br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$res</span><span class="keyword">;<br />
+} <br />
+<br />
+</span><span class="comment">/* <br />
+&nbsp;* Computes a^b, where a and b can have decimal digits, be negative and/or very large.<br />
+&nbsp;* Also works for 0^0. Only able to calculate up to 10 digits. Quite slow.<br />
+&nbsp;* @author Thomas Oldbury. <br />
+&nbsp;* @license Public domain. <br />
+&nbsp;*/ <br />
+</span><span class="keyword">function </span><span class="default">bcpowx</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">, </span><span class="default">$b</span><span class="keyword">, </span><span class="default">$iters </span><span class="keyword">= </span><span class="default">25</span><span class="keyword">, </span><span class="default">$scale </span><span class="keyword">= </span><span class="default">100</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$ln </span><span class="keyword">= </span><span class="default">bcln</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">, </span><span class="default">$iters</span><span class="keyword">, </span><span class="default">$scale</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">bcexp</span><span class="keyword">(</span><span class="default">bcmul</span><span class="keyword">(</span><span class="default">$ln</span><span class="keyword">, </span><span class="default">$b</span><span class="keyword">, </span><span class="default">$scale</span><span class="keyword">), </span><span class="default">$iters</span><span class="keyword">, </span><span class="default">$scale</span><span class="keyword">);<br />
+}<br />
+<br />
+</span><span class="default">$precision </span><span class="keyword">= </span><span class="default">35</span><span class="keyword">;<br />
+<br />
+echo </span><span class="string">"3^4.5,&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; precision 15, iters 25 = " </span><span class="keyword">. </span><span class="default">bcpowx</span><span class="keyword">(</span><span class="string">'3'</span><span class="keyword">, </span><span class="string">'4.5'</span><span class="keyword">, </span><span class="default">25</span><span class="keyword">, </span><span class="default">$precision</span><span class="keyword">) . </span><span class="string">"\n"</span><span class="keyword">;<br />
+echo </span><span class="string">"4.5^3,&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; precision 15, iters 25 = " </span><span class="keyword">. </span><span class="default">bcpowx</span><span class="keyword">(</span><span class="string">'4.5'</span><span class="keyword">, </span><span class="string">'3'</span><span class="keyword">, </span><span class="default">25</span><span class="keyword">, </span><span class="default">$precision</span><span class="keyword">) . </span><span class="string">"\n"</span><span class="keyword">;<br />
+echo </span><span class="string">"8^1/2,&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; precision 15, iters 25 = " </span><span class="keyword">. </span><span class="default">bcpowx</span><span class="keyword">(</span><span class="string">'8'</span><span class="keyword">, </span><span class="string">'0.5'</span><span class="keyword">, </span><span class="default">25</span><span class="keyword">, </span><span class="default">$precision</span><span class="keyword">) . </span><span class="string">"\n"</span><span class="keyword">;<br />
+echo </span><span class="string">"28^-1,&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; precision 15, iters 25 = " </span><span class="keyword">. </span><span class="default">bcpowx</span><span class="keyword">(</span><span class="string">'28'</span><span class="keyword">, </span><span class="string">'-1'</span><span class="keyword">, </span><span class="default">25</span><span class="keyword">, </span><span class="default">$precision</span><span class="keyword">) . </span><span class="string">"\n"</span><span class="keyword">;<br />
+echo </span><span class="string">"432^0,&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; precision 15, iters 25 = " </span><span class="keyword">. </span><span class="default">bcpowx</span><span class="keyword">(</span><span class="string">'432'</span><span class="keyword">, </span><span class="string">'0'</span><span class="keyword">, </span><span class="default">25</span><span class="keyword">, </span><span class="default">$precision</span><span class="keyword">) . </span><span class="string">"\n"</span><span class="keyword">;<br />
+echo </span><span class="string">"0^0,&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; precision 15, iters 25 = " </span><span class="keyword">. </span><span class="default">bcpowx</span><span class="keyword">(</span><span class="string">'0.0'</span><span class="keyword">, </span><span class="string">'0'</span><span class="keyword">, </span><span class="default">25</span><span class="keyword">, </span><span class="default">$precision</span><span class="keyword">) . </span><span class="string">"\n"</span><span class="keyword">;<br />
+echo </span><span class="string">"9^999,&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; precision 15, iters 25 = " </span><span class="keyword">. </span><span class="default">bcpowx</span><span class="keyword">(</span><span class="string">'9'</span><span class="keyword">, </span><span class="string">'999'</span><span class="keyword">, </span><span class="default">25</span><span class="keyword">, </span><span class="default">$precision</span><span class="keyword">) . </span><span class="string">"\n"</span><span class="keyword">;<br />
+echo </span><span class="string">"9^9999,&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; precision 15, iters 25 = " </span><span class="keyword">. </span><span class="default">bcpowx</span><span class="keyword">(</span><span class="string">'9'</span><span class="keyword">, </span><span class="string">'9999'</span><span class="keyword">, </span><span class="default">25</span><span class="keyword">, </span><span class="default">$precision</span><span class="keyword">) . </span><span class="string">"\n"</span><span class="keyword">;<br />
+echo </span><span class="string">"9^99999,&nbsp; &nbsp; &nbsp; &nbsp; precision 15, iters 25 = " </span><span class="keyword">. </span><span class="default">bcpowx</span><span class="keyword">(</span><span class="string">'9'</span><span class="keyword">, </span><span class="string">'99999'</span><span class="keyword">, </span><span class="default">25</span><span class="keyword">, </span><span class="default">$precision</span><span class="keyword">) . </span><span class="string">"\n"</span><span class="keyword">;<br />
+echo </span><span class="string">"9^999999,&nbsp; &nbsp; &nbsp;&nbsp; precision 15, iters 25 = " </span><span class="keyword">. </span><span class="default">bcpowx</span><span class="keyword">(</span><span class="string">'9'</span><span class="keyword">, </span><span class="string">'999999'</span><span class="keyword">, </span><span class="default">25</span><span class="keyword">, </span><span class="default">$precision</span><span class="keyword">) . </span><span class="string">"\n"</span><span class="keyword">;<br />
+echo </span><span class="string">"9^9999999,&nbsp; &nbsp; &nbsp; precision 15, iters 25 = " </span><span class="keyword">. </span><span class="default">bcpowx</span><span class="keyword">(</span><span class="string">'9'</span><span class="keyword">, </span><span class="string">'9999999'</span><span class="keyword">, </span><span class="default">25</span><span class="keyword">, </span><span class="default">$precision</span><span class="keyword">) . </span><span class="string">"\n"</span><span class="keyword">;<br />
+echo </span><span class="string">"9^99999999,&nbsp; &nbsp;&nbsp; precision 15, iters 25 = " </span><span class="keyword">. </span><span class="default">bcpowx</span><span class="keyword">(</span><span class="string">'9'</span><span class="keyword">, </span><span class="string">'99999999'</span><span class="keyword">, </span><span class="default">25</span><span class="keyword">, </span><span class="default">$precision</span><span class="keyword">) . </span><span class="string">"\n"</span><span class="keyword">;<br />
+echo </span><span class="string">"9^999999999,&nbsp; &nbsp; precision 15, iters 25 = " </span><span class="keyword">. </span><span class="default">bcpowx</span><span class="keyword">(</span><span class="string">'9'</span><span class="keyword">, </span><span class="string">'999999999'</span><span class="keyword">, </span><span class="default">25</span><span class="keyword">, </span><span class="default">$precision</span><span class="keyword">) . </span><span class="string">"\n"</span><span class="keyword">;<br />
+echo </span><span class="string">"9^9999999999,&nbsp;&nbsp; precision 15, iters 25 = " </span><span class="keyword">. </span><span class="default">bcpowx</span><span class="keyword">(</span><span class="string">'9'</span><span class="keyword">, </span><span class="string">'9999999999'</span><span class="keyword">, </span><span class="default">25</span><span class="keyword">, </span><span class="default">$precision</span><span class="keyword">) . </span><span class="string">"\n"</span><span class="keyword">;<br />
+echo </span><span class="string">"9^99999999999,&nbsp; precision 15, iters 25 = " </span><span class="keyword">. </span><span class="default">bcpowx</span><span class="keyword">(</span><span class="string">'9'</span><span class="keyword">, </span><span class="string">'99999999999'</span><span class="keyword">, </span><span class="default">25</span><span class="keyword">, </span><span class="default">$precision</span><span class="keyword">) . </span><span class="string">"\n"</span><span class="keyword">;<br />
+echo </span><span class="string">"9^999999999999, precision 15, iters 25 = " </span><span class="keyword">. </span><span class="default">bcpowx</span><span class="keyword">(</span><span class="string">'9'</span><span class="keyword">, </span><span class="string">'999999999999'</span><span class="keyword">, </span><span class="default">25</span><span class="keyword">, </span><span class="default">$precision</span><span class="keyword">) . </span><span class="string">"\n"</span><span class="keyword">; <br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="92888""></a>
+  <div class="note">
+   <strong class="user">francois dot barbier at gmail dot com</strong>
+   <a href="#92888" class="date">12-Aug-2009 10:19</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+As "benjcarson at digitaljunkies dot ca" (<a href="http://www.php.net/ref.bc.php#23038" rel="nofollow" target="_blank">http://www.php.net/ref.bc.php#23038</a>) noted in the first two comments, bcmath doesn't accept exponential notation.<br />
+<br />
+Moreover, you might have other problems if you feed the bcmath functions directly with floating point numbers.<br />
+Consider the following example:<br />
+<span class="default">&lt;?php<br />
+bcscale</span><span class="keyword">(</span><span class="default">1</span><span class="keyword">);<br />
+</span><span class="default">$a </span><span class="keyword">= </span><span class="default">0.8</span><span class="keyword">;<br />
+</span><span class="default">$b </span><span class="keyword">= </span><span class="default">0.7</span><span class="keyword">;<br />
+</span><span class="default">var_dump</span><span class="keyword">((string) </span><span class="default">$a</span><span class="keyword">);&nbsp;&nbsp; </span><span class="comment">// string(3) "0.8"<br />
+</span><span class="default">var_dump</span><span class="keyword">((string) </span><span class="default">$b</span><span class="keyword">);&nbsp;&nbsp; </span><span class="comment">// string(3) "0.a"<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">bcadd</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">, </span><span class="default">$b</span><span class="keyword">)); </span><span class="comment">// string(3) "1.5"<br />
+</span><span class="default">setLocale</span><span class="keyword">(</span><span class="default">LC_ALL</span><span class="keyword">, </span><span class="string">'fr_BE.UTF-8'</span><span class="keyword">);<br />
+</span><span class="default">var_dump</span><span class="keyword">((string) </span><span class="default">$a</span><span class="keyword">);&nbsp;&nbsp; </span><span class="comment">// string(3) "0,8" --&gt; note the comma<br />
+</span><span class="default">var_dump</span><span class="keyword">((string) </span><span class="default">$b</span><span class="keyword">);&nbsp;&nbsp; </span><span class="comment">// string(3) "0,7" --&gt; note the comma<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">bcadd</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">, </span><span class="default">$b</span><span class="keyword">)); </span><span class="comment">// string(3) "0.0"<br />
+</span><span class="default">?&gt;<br />
+</span>The floating point numbers passed to the bcadd() function are automatically converted to string using the localized decimal separator. However, the bcmath functions always use a full stop, which results in the last result being incorrect.<br />
+<br />
+Below is a function to convert floating point numbers to strings correctly. It takes care of the decimal separator and the exponential notation. It also preserve the precision without drifting away (e.g. 1.0 doesn't become 0.99999...)<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">/**<br />
+&nbsp;* Convert a number to locale independent string without E notation and without<br />
+&nbsp;* loosing precision<br />
+&nbsp;*<br />
+&nbsp;* @param&nbsp; &nbsp; &nbsp; int/float/double $fNumber The number to convert.<br />
+&nbsp;* @return&nbsp; &nbsp;&nbsp; string The locale independent converted number.<br />
+&nbsp;*/<br />
+</span><span class="keyword">function </span><span class="default">bcconv</span><span class="keyword">(</span><span class="default">$fNumber</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$sAppend </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$iDecimals </span><span class="keyword">= </span><span class="default">ini_get</span><span class="keyword">(</span><span class="string">'precision'</span><span class="keyword">) - </span><span class="default">floor</span><span class="keyword">(</span><span class="default">log10</span><span class="keyword">(</span><span class="default">abs</span><span class="keyword">(</span><span class="default">$fNumber</span><span class="keyword">)));<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">0 </span><span class="keyword">&gt; </span><span class="default">$iDecimals</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$fNumber </span><span class="keyword">*= </span><span class="default">pow</span><span class="keyword">(</span><span class="default">10</span><span class="keyword">, </span><span class="default">$iDecimals</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$sAppend </span><span class="keyword">= </span><span class="default">str_repeat</span><span class="keyword">(</span><span class="string">'0'</span><span class="keyword">, -</span><span class="default">$iDecimals</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$iDecimals </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">number_format</span><span class="keyword">(</span><span class="default">$fNumber</span><span class="keyword">, </span><span class="default">$iDecimals</span><span class="keyword">, </span><span class="string">'.'</span><span class="keyword">, </span><span class="string">''</span><span class="keyword">).</span><span class="default">$sAppend</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Example:<br />
+<span class="default">&lt;?php<br />
+setLocale</span><span class="keyword">(</span><span class="default">LC_ALL</span><span class="keyword">, </span><span class="string">'fr_BE.UTF-8'</span><span class="keyword">); </span><span class="comment">// decimal separator is now a comma<br />
+</span><span class="default">$precision </span><span class="keyword">= </span><span class="default">ini_get</span><span class="keyword">(</span><span class="string">'precision'</span><span class="keyword">) + </span><span class="default">2</span><span class="keyword">; </span><span class="comment">// should give 16<br />
+</span><span class="default">bcscale</span><span class="keyword">(</span><span class="default">$precision</span><span class="keyword">);<br />
+</span><span class="default">$big </span><span class="keyword">= </span><span class="default">pow</span><span class="keyword">(</span><span class="default">10</span><span class="keyword">, </span><span class="default">$precision</span><span class="keyword">);<br />
+</span><span class="default">$small </span><span class="keyword">= </span><span class="default">1 </span><span class="keyword">/ </span><span class="default">$big</span><span class="keyword">;<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">bcconv</span><span class="keyword">(</span><span class="default">$big </span><span class="keyword">+ </span><span class="default">$small</span><span class="keyword">));&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// string(17) "10000000000000000"<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">bcadd</span><span class="keyword">(</span><span class="default">$big</span><span class="keyword">, </span><span class="default">$small</span><span class="keyword">));&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// string(18) "0.0000000000000000"<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">bcadd</span><span class="keyword">(</span><span class="default">bcconv</span><span class="keyword">(</span><span class="default">$big</span><span class="keyword">), </span><span class="default">bcconv</span><span class="keyword">(</span><span class="default">$small</span><span class="keyword">))); </span><span class="comment">// string(34) "10000000000000000.0000000000000001"<br />
+</span><span class="default">?&gt;<br />
+</span>The first result's precision loss is due to PHP's internal floating point numbers' representation.<br />
+The second result is wrong because of the localized decimal separator.<br />
+Finally, the last result is correct.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="85084""></a>
+  <div class="note">
+   <strong class="user">Charles</strong>
+   <a href="#85084" class="date">13-Aug-2008 10:04</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Function to round bc string:
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+</span><span class="keyword">function </span><span class="default">bcround</span><span class="keyword">(</span><span class="default">$strval</span><span class="keyword">, </span><span class="default">$precision </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">) {
+<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">false </span><span class="keyword">!== (</span><span class="default">$pos </span><span class="keyword">= </span><span class="default">strpos</span><span class="keyword">(</span><span class="default">$strval</span><span class="keyword">, </span><span class="string">'.'</span><span class="keyword">)) &amp;&amp; (</span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$strval</span><span class="keyword">) - </span><span class="default">$pos </span><span class="keyword">- </span><span class="default">1</span><span class="keyword">) &gt; </span><span class="default">$precision</span><span class="keyword">) {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$zeros </span><span class="keyword">= </span><span class="default">str_repeat</span><span class="keyword">(</span><span class="string">"0"</span><span class="keyword">, </span><span class="default">$precision</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">bcadd</span><span class="keyword">(</span><span class="default">$strval</span><span class="keyword">, </span><span class="string">"0.</span><span class="keyword">{</span><span class="default">$zeros</span><span class="keyword">}</span><span class="string">5"</span><span class="keyword">, </span><span class="default">$precision</span><span class="keyword">);
+<br />
+&nbsp;&nbsp;&nbsp; } else {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$strval</span><span class="keyword">;
+<br />
+&nbsp;&nbsp;&nbsp; }
+<br />
+}
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="82155""></a>
+  <div class="note">
+   <strong class="user">Bouke Haarsma</strong>
+   <a href="#82155" class="date">29-Mar-2008 03:40</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Please be aware not to use/have spaces in your strings. It took me a while to find the error in some advanced calculations!<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">echo </span><span class="default">bcadd</span><span class="keyword">(</span><span class="string">"1"</span><span class="keyword">, </span><span class="string">"2"</span><span class="keyword">); </span><span class="comment">// 3<br />
+</span><span class="keyword">echo </span><span class="default">bcadd</span><span class="keyword">(</span><span class="string">"1"</span><span class="keyword">, </span><span class="string">"2 "</span><span class="keyword">); </span><span class="comment">// 1<br />
+</span><span class="keyword">echo </span><span class="default">bcadd</span><span class="keyword">(</span><span class="string">"1"</span><span class="keyword">, </span><span class="string">" 2"</span><span class="keyword">); </span><span class="comment">// 1<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="73522""></a>
+  <div class="note">
+   <strong class="user">udochen at gmail dot com</strong>
+   <a href="#73522" class="date">27-Feb-2007 11:48</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Code below implements standard rounding on 5 or higer round up, else don't round.&nbsp; There wasn't a round function for the BC functions, so here is a simple one that works. Same args as round, except takes strings and returns a string for more BC operations.<br />
+<br />
+----------------<br />
+<br />
+function roundbc($x, $p) {<br />
+<br />
+&nbsp;&nbsp; &nbsp; $x = trim($x);<br />
+&nbsp;&nbsp; &nbsp; $data = explode(".",$x);<br />
+<br />
+&nbsp;&nbsp; &nbsp; if(substr($data[1],$p,1) &gt;= "5") {<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; //generate the add string.<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; $i=0;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; $addString = "5";<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; while($i &lt; $p) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; $addString = "0" . $addString;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; $i++;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }//end while.<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; $addString = "." . $addString;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; //now add the addString to the original fraction.<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; $sum = bcadd($data[0] . "." . $data&nbsp;&nbsp; [1],$addString,$p+1);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; //explode the result.<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; $sumData = explode(".",$sum);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; //now, return the correct precision on the rounded number.<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; return $sumData[0] . "." . substr($sumData[1],0,$p);<br />
+<br />
+&nbsp;&nbsp; &nbsp;&nbsp; } else {<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; //don't round the value and return the orignal to the desired<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; //precision or less.<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; return $data[0] . "." . substr($data[1],0,$p);<br />
+<br />
+&nbsp;&nbsp; &nbsp;&nbsp; }//end if/else.<br />
+<br />
+&nbsp;&nbsp; }//end roundbc.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="72691""></a>
+  <div class="note">
+   <strong class="user">mgcclx at gmail dot com</strong>
+   <a href="#72691" class="date">29-Jan-2007 06:52</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I wrote this function with many BCMath functions. It should be the fastest function in PHP to find the number pi into any precision, my test is it generate 2000 digits after the dot in 8 seconds. I don't think you need anything more than that.<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">//bcpi function with Gauss-Legendre algorithm<br />
+//by Chao Xu (Mgccl)<br />
+</span><span class="keyword">function </span><span class="default">bcpi</span><span class="keyword">(</span><span class="default">$precision</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$limit </span><span class="keyword">= </span><span class="default">ceil</span><span class="keyword">(</span><span class="default">log</span><span class="keyword">(</span><span class="default">$precision</span><span class="keyword">)/</span><span class="default">log</span><span class="keyword">(</span><span class="default">2</span><span class="keyword">))-</span><span class="default">1</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">bcscale</span><span class="keyword">(</span><span class="default">$precision</span><span class="keyword">+</span><span class="default">6</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$a </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$b </span><span class="keyword">= </span><span class="default">bcdiv</span><span class="keyword">(</span><span class="default">1</span><span class="keyword">,</span><span class="default">bcsqrt</span><span class="keyword">(</span><span class="default">2</span><span class="keyword">));<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$t </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">/</span><span class="default">4</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$p </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; while(</span><span class="default">$n </span><span class="keyword">&lt; </span><span class="default">$limit</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$x </span><span class="keyword">= </span><span class="default">bcdiv</span><span class="keyword">(</span><span class="default">bcadd</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">,</span><span class="default">$b</span><span class="keyword">),</span><span class="default">2</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$y </span><span class="keyword">= </span><span class="default">bcsqrt</span><span class="keyword">(</span><span class="default">bcmul</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">, </span><span class="default">$b</span><span class="keyword">));<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$t </span><span class="keyword">= </span><span class="default">bcsub</span><span class="keyword">(</span><span class="default">$t</span><span class="keyword">, </span><span class="default">bcmul</span><span class="keyword">(</span><span class="default">$p</span><span class="keyword">,</span><span class="default">bcpow</span><span class="keyword">(</span><span class="default">bcsub</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">,</span><span class="default">$x</span><span class="keyword">),</span><span class="default">2</span><span class="keyword">)));<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$a </span><span class="keyword">= </span><span class="default">$x</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$b </span><span class="keyword">= </span><span class="default">$y</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$p </span><span class="keyword">= </span><span class="default">bcmul</span><span class="keyword">(</span><span class="default">2</span><span class="keyword">,</span><span class="default">$p</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; ++</span><span class="default">$n</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">bcdiv</span><span class="keyword">(</span><span class="default">bcpow</span><span class="keyword">(</span><span class="default">bcadd</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">, </span><span class="default">$b</span><span class="keyword">),</span><span class="default">2</span><span class="keyword">),</span><span class="default">bcmul</span><span class="keyword">(</span><span class="default">4</span><span class="keyword">,</span><span class="default">$t</span><span class="keyword">),</span><span class="default">$precision</span><span class="keyword">);<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="68756""></a>
+  <div class="note">
+   <strong class="user">marcus at synchromedia dot co dot uk</strong>
+   <a href="#68756" class="date">09-Aug-2006 09:17</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Oops, first posting contained wrong code... sorry.<br />
+An amendment to the entry by pulstar at mail dot com - the digits() function can be made much faster (remove the line breaks from the big string, and make sure you don't miss any characters!):<br />
+<br />
+function digits2($base) {<br />
+&nbsp;&nbsp;&nbsp; if($base &lt; 64) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return substr('0123456789abcdefghijklmnopqrstuvwxyz<br />
+ABCDEFGHIJKLMNOPQRSTUVWXYZ-_', 0, $base);<br />
+&nbsp;&nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return substr("\x0\x1\x2\x3\x4\x5\x6\x7\x8\x9\xa\xb\xc\xd<br />
+\xe\xf\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d<br />
+\x1e\x1f\x20!\x22#\x24%&amp;'()*+,-./0123456789:;&lt;=&gt;<br />
+\x3f@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]<br />
+^_`abcdefghijklmnopqrstuvwxyz{|}~\x7f\x80\x81\x82\x83\x84\x85<br />
+\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x90\x91\x92\x93\x94\x95<br />
+\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f\xa0\xa1\xa2\xa3\xa4\xa5<br />
+\xa6\xa7\xa8\xa9\xaa\xab\xac\xad\xae\xaf\xb0\xb1\xb2\xb3\xb4\xb5<br />
+\xb6\xb7\xb8\xb9\xba\xbb\xbc\xbd\xbe\xbf\xc0\xc1\xc2\xc3\xc4\xc5<br />
+\xc6\xc7\xc8\xc9\xca\xcb\xcc\xcd\xce\xcf\xd0\xd1\xd2\xd3\xd4\xd5<br />
+\xd6\xd7\xd8\xd9\xda\xdb\xdc\xdd\xde\xdf\xe0\xe1\xe2\xe3\xe4\xe5<br />
+\xe6\xe7\xe8\xe9\xea\xeb\xec\xed\xee\xef\xf0\xf1\xf2\xf3\xf4\xf5\xf6<br />
+\xf7\xf8\xf9\xfa\xfb\xfc\xfd\xfe\xff", 0, $base);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+in my benchmarks, this is around 150x faster for 256 digits</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="47682""></a>
+  <div class="note">
+   <strong class="user">stonehew ut gm a il det com</strong>
+   <a href="#47682" class="date">24-Nov-2004 09:31</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Like any other bc function, you can't trust the last couple of digits, but everything else seems to check out.&nbsp; If you want to use this for anything important, you may want to verify this against other sources of pi before use.&nbsp; This function calculates 100 decimal places of pi in 329 iterations -- not exactly fast (each iteration calls the factorial function, from below, twice), so I try to avoid calling it more than once.<br />
+<br />
+&lt;?<br />
+//arbitrary precision pi approximator<br />
+//author tom boothby<br />
+//free for any use<br />
+<br />
+function bcpi() {<br />
+&nbsp;&nbsp;&nbsp; $r=2;<br />
+&nbsp;&nbsp;&nbsp; $i=0;<br />
+&nbsp;&nbsp;&nbsp; $or=0;<br />
+<br />
+&nbsp;&nbsp;&nbsp; while(bccomp($or,$r)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $i++;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $or=$r;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $r = bcadd($r,bcdiv(bcmul(bcpow(bcfact($i),2),<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; bcpow(2,$i+1)),bcfact(2*$i+1)));<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; return $r;<br />
+}<br />
+<br />
+?&gt;</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="47654""></a>
+  <div class="note">
+   <strong class="user">stonehew et g m a i l dut com</strong>
+   <a href="#47654" class="date">23-Nov-2004 11:20</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I hacked these taylor expansions up to make diagrams for some physics homework.&nbsp; I don't think you'll be wanting to do any real science with PHP... but what the hell, why not?&nbsp; I plan to implement either a spigot algorithm or something similar to generate pi in the near future.<br />
+<br />
+&lt;?<br />
+// arbitrary precision sin and cosine functions<br />
+// author tom boothby<br />
+// free for any use<br />
+<br />
+function bcfact($n) {<br />
+&nbsp;&nbsp;&nbsp; $r = $n--;<br />
+&nbsp;&nbsp;&nbsp; while($n&gt;1) $r=bcmul($r,$n--);<br />
+&nbsp;&nbsp;&nbsp; return $r;<br />
+}<br />
+<br />
+function bcsin($a) {<br />
+&nbsp;&nbsp;&nbsp; $or= $a;<br />
+&nbsp;&nbsp;&nbsp; $r = bcsub($a,bcdiv(bcpow($a,3),6));<br />
+&nbsp;&nbsp;&nbsp; $i = 2;<br />
+&nbsp;&nbsp;&nbsp; while(bccomp($or,$r)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $or=$r;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; switch($i%2) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case 0:&nbsp; $r = bcadd($r,bcdiv(bcpow($a,$i*2+1),bcfact($i*2+1))); break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; default: $r = bcsub($r,bcdiv(bcpow($a,$i*2+1),bcfact($i*2+1))); break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $i++;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; return $r;<br />
+}<br />
+<br />
+function bccos($a) {<br />
+&nbsp;&nbsp;&nbsp; $or= $a;<br />
+&nbsp;&nbsp;&nbsp; $r = bcsub(1,bcdiv(bcpow($a,2),2));<br />
+&nbsp;&nbsp;&nbsp; $i = 2;<br />
+&nbsp;&nbsp;&nbsp; while(bccomp($or,$r)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $or=$r;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; switch($i%2) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case 0:&nbsp; $r = bcadd($r,bcdiv(bcpow($a,$i*2),bcfact($i*2))); break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; default: $r = bcsub($r,bcdiv(bcpow($a,$i*2),bcfact($i*2))); break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $i++;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; return $r;<br />
+}<br />
+<br />
+?&gt;</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="46965""></a>
+  <div class="note">
+   <strong class="user">Diabolos at GMail dot com</strong>
+   <a href="#46965" class="date">28-Oct-2004 11:42</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Here's a function to compute the natural exponential function in arbitrary precision using the basic bcMath arithmetic operations.<br />
+<br />
+EXAMPLE:<br />
+To compute the exponential function of 1.7 to 36 decimals:<br />
+<br />
+$y = bcExp("1.7", 36);<br />
+<br />
+The result:<br />
+4.331733759839529271053448625299468628<br />
+<br />
+would be returned in variable $y<br />
+<br />
+NOTE:<br />
+In practice, the last couple of digits may be inaccurate due to small rounding errors.&nbsp; If you require a specific degree of precision, always compute 3-4 decimals beyond the required precision.<br />
+<br />
+The program code for the natural exponential function is:<br />
+******************************************<br />
+<br />
+&nbsp; Function bcExp($xArg, $NumDecimals)<br />
+<br />
+{<br />
+&nbsp;&nbsp; $x = Trim($xArg);<br />
+<br />
+&nbsp;&nbsp; $PrevSum&nbsp; = $x - 1;<br />
+&nbsp;&nbsp; $CurrTerm = 1;<br />
+&nbsp;&nbsp; $CurrSum&nbsp; = bcAdd("1", $x, $NumDecimals);<br />
+&nbsp;&nbsp; $n&nbsp; &nbsp; &nbsp; &nbsp; = 1;<br />
+<br />
+&nbsp;&nbsp; While (bcComp($CurrSum, $PrevSum, $NumDecimals))<br />
+<br />
+&nbsp; {<br />
+&nbsp;&nbsp; $PrevSum&nbsp; = $CurrSum;<br />
+&nbsp;&nbsp; $CurrTerm = bcDiv(bcMul($CurrTerm, $x, $NumDecimals), $n + 1, $NumDecimals);<br />
+&nbsp;&nbsp; $CurrSum&nbsp; = bcAdd($CurrSum, $CurrTerm, $NumDecimals);<br />
+<br />
+&nbsp;&nbsp; $n++;<br />
+&nbsp; }<br />
+<br />
+&nbsp;&nbsp; Return $CurrSum;<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="42915""></a>
+  <div class="note">
+   <strong class="user">robert at scabserver dot com</strong>
+   <a href="#42915" class="date">03-Jun-2004 09:58</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I spent some time looking for how to generate a large random number, in the end I've settled for reading directly from /dev/urandom<br />
+<br />
+I know this is a *nix only solution, but I figured that it might come in handy to someone else.<br />
+<br />
+The value $size is the size in bits, it could be simplified greatly if you want the size in bytes, but bits was more helpful to what I needed.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">bcrand</span><span class="keyword">(</span><span class="default">$size</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$filename </span><span class="keyword">= </span><span class="string">"/dev/urandom"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$handle </span><span class="keyword">= </span><span class="default">fopen</span><span class="keyword">(</span><span class="default">$filename</span><span class="keyword">, </span><span class="string">"r"</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$bin_urand </span><span class="keyword">= </span><span class="default">fread</span><span class="keyword">(</span><span class="default">$handle</span><span class="keyword">, </span><span class="default">ceil</span><span class="keyword">(</span><span class="default">$size</span><span class="keyword">/</span><span class="default">8.0</span><span class="keyword">));<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$handle</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$mask </span><span class="keyword">= ((</span><span class="default">$size </span><span class="keyword">% </span><span class="default">8 </span><span class="keyword">&lt; </span><span class="default">5</span><span class="keyword">) ? </span><span class="string">'0' </span><span class="keyword">: </span><span class="string">''</span><span class="keyword">) . </span><span class="default">dechex</span><span class="keyword">(</span><span class="default">bindec</span><span class="keyword">(</span><span class="default">str_repeat</span><span class="keyword">(</span><span class="string">'1'</span><span class="keyword">, </span><span class="default">$size </span><span class="keyword">% </span><span class="default">8</span><span class="keyword">))) . </span><span class="default">str_repeat</span><span class="keyword">(</span><span class="string">'FF'</span><span class="keyword">, </span><span class="default">floor</span><span class="keyword">(</span><span class="default">$size</span><span class="keyword">/</span><span class="default">8</span><span class="keyword">));<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$binmask </span><span class="keyword">= </span><span class="default">pack</span><span class="keyword">(</span><span class="string">"H*"</span><span class="keyword">, </span><span class="default">$mask</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$binrand </span><span class="keyword">= </span><span class="default">$binmask </span><span class="keyword">&amp; </span><span class="default">$bin_urand</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$hexnumber </span><span class="keyword">= </span><span class="default">unpack</span><span class="keyword">(</span><span class="string">"H*"</span><span class="keyword">, </span><span class="default">$binrand</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$hexnumber </span><span class="keyword">= </span><span class="default">$hexnumber</span><span class="keyword">[</span><span class="string">''</span><span class="keyword">];<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$numlength </span><span class="keyword">= </span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$hexnumber</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$decnumber </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; for(</span><span class="default">$x </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">; </span><span class="default">$x </span><span class="keyword">&lt;= </span><span class="default">$numlength</span><span class="keyword">; </span><span class="default">$x</span><span class="keyword">++)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$place </span><span class="keyword">= </span><span class="default">$numlength </span><span class="keyword">- </span><span class="default">$x</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$operand </span><span class="keyword">= </span><span class="default">hexdec</span><span class="keyword">(</span><span class="default">substr</span><span class="keyword">(</span><span class="default">$hexnumber</span><span class="keyword">,</span><span class="default">$place</span><span class="keyword">,</span><span class="default">1</span><span class="keyword">));<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$exponent </span><span class="keyword">= </span><span class="default">bcpow</span><span class="keyword">(</span><span class="default">16</span><span class="keyword">,</span><span class="default">$x</span><span class="keyword">-</span><span class="default">1</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$decValue </span><span class="keyword">= </span><span class="default">bcmul</span><span class="keyword">(</span><span class="default">$operand</span><span class="keyword">, </span><span class="default">$exponent</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$decnumber </span><span class="keyword">= </span><span class="default">bcadd</span><span class="keyword">(</span><span class="default">$decValue</span><span class="keyword">, </span><span class="default">$decnumber</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$decnumber</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="31268""></a>
+  <div class="note">
+   <strong class="user">pulstar at mail dot com</strong>
+   <a href="#31268" class="date">15-Apr-2003 05:12</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+A little comment for the simplified example above: you can do base converting without BCMath functions using only math operators, but you will not able to manage very large values or work with strings to compress or scramble data. If you have BCMath installed in your system it worth use it for this.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="29938""></a>
+  <div class="note">
+   <strong class="user">oliver at summertime dot net</strong>
+   <a href="#29938" class="date">01-Mar-2003 10:12</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+A simplier Version of the Script above:<br />
+<br />
+function dec2base($dec, $digits) {<br />
+&nbsp;$value = "";<br />
+&nbsp;$base&nbsp; = strlen($digits);<br />
+&nbsp;while($dec&gt;$base-1) {<br />
+&nbsp; $rest = $dec % $base;<br />
+&nbsp; $dec&nbsp; = $dec / $base;<br />
+&nbsp; $value = $digits[$rest].$value;<br />
+&nbsp;}<br />
+&nbsp;$value = $digits[intval($dec)].$value;<br />
+&nbsp;return (string) $value;<br />
+}<br />
+<br />
+function base2dec($value, $digits) {<br />
+&nbsp;$value = strtoupper($value);<br />
+&nbsp;$base&nbsp; = strlen($digits);<br />
+&nbsp;$size&nbsp; = strlen($value);<br />
+&nbsp;$dec&nbsp;&nbsp; = '0';<br />
+&nbsp;for ($loop = 0; $loop&lt;$size; $loop++) {<br />
+&nbsp; $element = strpos($digits,$value[$loop]);<br />
+&nbsp; $power&nbsp;&nbsp; = pow($base,$size-$loop-1);<br />
+&nbsp; $dec&nbsp; &nbsp; += $element * $power;<br />
+&nbsp;}<br />
+&nbsp;return (string) $dec;<br />
+}<br />
+<br />
+$digits = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";<br />
+echo dec2base('1000', $digits);</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="25349""></a>
+  <div class="note">
+   <strong class="user">pulstar at mail dot com</strong>
+   <a href="#25349" class="date">20-Sep-2002 07:23</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+A found a little fix to do in my base2dec() function:<br />
+The line "if($base&lt;37) $value=strtolower($value);" should be removed if you want to specify another digits for your base conversions. Change it this way:<br />
+<br />
+if(!$digits) {<br />
+$digits=digits($base);<br />
+if($base&lt;37) {<br />
+$value=strtolower($value);<br />
+}<br />
+}<br />
+<br />
+Another example using these functions is to generate a key for a session, to name temporary files or something else:<br />
+<br />
+srand((double) microtime()*1000000);<br />
+$id=uniqid(rand(10,999));<br />
+$mykey=dec2base(base2dec($id,16),64);<br />
+<br />
+$mykey is a base64 value, which is a good key for passing thru an URL and also is shorter than a MD5 string (it will be allways 11 chars long). If you need something more secure, just scramble the 64 digits in the digits() function.<br />
+<br />
+Well, I hope you enjoy it.<br />
+<br />
+Regards,<br />
+Edemilson Lima</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="25336""></a>
+  <div class="note">
+   <strong class="user">pulstar at mail dot com</strong>
+   <a href="#25336" class="date">19-Sep-2002 08:27</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+A good use for BCMath functions:<br />
+The functions below can convert a number in any base (from 2 to 256) to its decimal value and vice-versa.<br />
+<br />
+// convert a decimal value to any other base value<br />
+function dec2base($dec,$base,$digits=FALSE) {<br />
+&nbsp;&nbsp;&nbsp; if($base&lt;2 or $base&gt;256) die("Invalid Base: ".$base);<br />
+&nbsp;&nbsp;&nbsp; bcscale(0);<br />
+&nbsp;&nbsp;&nbsp; $value="";<br />
+&nbsp;&nbsp;&nbsp; if(!$digits) $digits=digits($base);<br />
+&nbsp;&nbsp;&nbsp; while($dec&gt;$base-1) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $rest=bcmod($dec,$base);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $dec=bcdiv($dec,$base);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $value=$digits[$rest].$value;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; $value=$digits[intval($dec)].$value;<br />
+&nbsp;&nbsp;&nbsp; return (string) $value;<br />
+}<br />
+<br />
+// convert another base value to its decimal value<br />
+function base2dec($value,$base,$digits=FALSE) {<br />
+&nbsp;&nbsp;&nbsp; if($base&lt;2 or $base&gt;256) die("Invalid Base: ".$base);<br />
+&nbsp;&nbsp;&nbsp; bcscale(0);<br />
+&nbsp;&nbsp;&nbsp; if($base&lt;37) $value=strtolower($value);<br />
+&nbsp;&nbsp;&nbsp; if(!$digits) $digits=digits($base);<br />
+&nbsp;&nbsp;&nbsp; $size=strlen($value);<br />
+&nbsp;&nbsp;&nbsp; $dec="0";<br />
+&nbsp;&nbsp;&nbsp; for($loop=0;$loop&lt;$size;$loop++) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $element=strpos($digits,$value[$loop]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $power=bcpow($base,$size-$loop-1);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $dec=bcadd($dec,bcmul($element,$power));<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; return (string) $dec;<br />
+}<br />
+<br />
+function digits($base) {<br />
+&nbsp;&nbsp;&nbsp; if($base&gt;64) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $digits="";<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; for($loop=0;$loop&lt;256;$loop++) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $digits.=chr($loop);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $digits ="0123456789abcdefghijklmnopqrstuvwxyz";<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $digits.="ABCDEFGHIJKLMNOPQRSTUVWXYZ-_";<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; $digits=substr($digits,0,$base);<br />
+&nbsp;&nbsp;&nbsp; return (string) $digits;<br />
+}<br />
+<br />
+The purpose of digits() function above is to supply the characters that will be used as digits for the base you want. NOTE: You can use any characters for that when you convert to another base, but when you convert again to the decimal base, you need to use the same characters or you will get another unexpected result.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

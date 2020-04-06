@@ -1,0 +1,311 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>OCI8 Transparent Application Failover (TAF) Support</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="oci8.fan.html">? OCI8 Fast Application Notification (FAN) Support</a></li>
+      <li style="float: right;"><a href="oci8.dtrace.html">OCI8 and DTrace Dynamic Tracing ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="book.oci8.html">OCI8</a></li>
+    <li>OCI8 Transparent Application Failover (TAF) Support</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="oci8.taf" class="chapter">
+ <h1>OCI8 Transparent Application Failover (TAF) Support</h1>
+
+ <div class="section">
+  <p class="para">
+   TAF is an Oracle Database feature that provides high availability.
+   It enables PHP OCI8 applications to automatically reconnect to a
+   preconfigured database when database connectivity fails due to
+   instance or network failure.
+  </p>
+  <p class="para">
+   In a configured Oracle Database system, TAF occurs when the PHP
+   application detects that the database instance is down or
+   unreachable. It establishes a connection to another node in an
+   Oracle <a href="http://docs.oracle.com/database/122/RACAD/ensuring-application-continuity.htm#RACAD-GUID-DEF850F6-27E9-428E-B8FC-530230D78AD2" class="link external" title="Link : http://docs.oracle.com/database/122/RACAD/ensuring-application-continuity.htm#RACAD-GUID-DEF850F6-27E9-428E-B8FC-530230D78AD2">&raquo;&nbsp;RAC</a>
+   configuration, a hot standby database, or the same database
+   instance
+   itself. See <a href="http://docs.oracle.com/database/122/LNOCI/oci-programming-advanced-topics.htm#LNOCI16675" class="link external" title="Link : http://docs.oracle.com/database/122/LNOCI/oci-programming-advanced-topics.htm#LNOCI16675">&raquo;&nbsp;Oracle
+   Call Interface Programmer&#039;s Guide</a> for more information about
+   OCI TAF.
+  </p>
+  <p class="para">
+   An application callback can be registered
+   with <span class="function"><a href="function.oci-register-taf-callback.html" class="function">oci_register_taf_callback()</a></span>. During
+   failover, normal application processing stops and the registered
+   callback is invoked.  The callback notifies the application of the
+   failover events. If the failover succeeds, normal processing will
+   be resumed. If the failover aborts, any following database
+   operations in the application will fail due to no connection being
+   available.
+  </p>
+  <p class="para">
+   When a connection fails over to another database, the callback can
+   reset any necessary connection state, for example replaying any
+   necessary ALTER SESSION commands if the database service did not have
+   -failover_restore enabled.
+  </p>
+  <p class="para">
+   An application callback can be removed by calling <span class="function"><a href="function.oci-unregister-taf-callback.html" class="function">oci_unregister_taf_callback()</a></span>.
+  </p>
+ </div>
+ <div class="section">
+  <h2 class="title">Configuring Transparent Application Failover</h2>
+  <p class="para">
+   TAF can be configured on the PHP OCI8 side or in the database
+   configuration. If both are configured, database-side settings
+   take precedence.
+  </p>
+  <p class="para">
+   Configure TAF in PHP OCI8 (the client side) by including the
+   FAILOVER_MODE parameter in the CONNECT_DATA portion of a
+   connect descriptor. See Configuring Transparent Application
+   Failover in <a href="http://docs.oracle.com/database/122/NETAG/enabling-advanced-features.htm#NETAG338" class="link external" title="Link : http://docs.oracle.com/database/122/NETAG/enabling-advanced-features.htm#NETAG338">&raquo;&nbsp;
+   Oracle Database Net Services Administrator&#039;s Guide</a> for
+   more information about client side configuration of TAF.
+  </p>
+  <p class="para">
+   An example tnsnames.ora to configure TAF reconnecting to the
+   same database instance:
+  </p>
+  <p class="para">
+    <div class="informalexample">
+     <div class="example-contents screen">
+<div class="cdata"><pre>
+    ORCL =
+      (DESCRIPTION =
+        (ADDRESS = (PROTOCOL = TCP)(HOST = 127.0.0.1)(PORT = 1521))
+        (CONNECT_DATA =
+          (SERVICE_NAME = orcl)
+          (FAILOVER_MODE =
+            (TYPE = SELECT)
+            (METHOD = BASIC)
+            (RETRIES = 20)
+            (DELAY = 15))))
+ </pre></div>
+     </div>
+   </div>
+  </p>
+  <p class="para">
+   Alternatively configure TAF on the database side by
+   modifying the target service with
+   <a href="http://docs.oracle.com/database/122/RACAD/workload-management-with-dynamic-database-services.htm#RACAD076" class="link external" title="Link : http://docs.oracle.com/database/122/RACAD/workload-management-with-dynamic-database-services.htm#RACAD076">&raquo;&nbsp;srvctl</a>
+   (for RAC) or the
+   <a href="http://docs.oracle.com/database/122/ARPLS/DBMS_SERVICE.htm#ARPLS092" class="link external" title="Link : http://docs.oracle.com/database/122/ARPLS/DBMS_SERVICE.htm#ARPLS092">&raquo;&nbsp;
+   DBMS_SERVICE.MODIFY_SERVICE</a> packaged procedure
+   (for single instance databases).
+  </p>
+ </div>
+ <div class="section">
+  <h2 class="title">Using TAF Callbacks in OCI8</h2>
+  <p class="para">
+   A TAF callback is an application function that can be
+   registered to be called during failover. It is called
+   several times while re-establishing the application&#039;s connection.
+  </p>
+  <p class="para">
+   Callback first occurs when a loss of connection is detected.
+   This allows the application to act accordingly for the
+   upcoming delay of the failover. If the failover is successful,
+   the callback is invoked after connection is re-established
+   and usable. At this time, the application can resynchronize
+   session settings and take actions such as informing the user
+   that failover occurred. If failover is unsuccessful, a
+   callback occurs to inform the application that a failover did
+   not take place and the connection is unusable.
+  </p>
+  <p class="para">
+   The interface of a TAF user-defined callback function is as
+   follows:
+  </p>
+  <div class="methodsynopsis dc-description">
+   <span class="methodname"><strong>userCallbackFn</strong></span>
+    ( <span class="methodparam"><span class="type">resource</span> <code class="parameter">$connection</code></span>
+   , <span class="methodparam"><span class="type">int</span> <code class="parameter">$event</code></span>
+   , <span class="methodparam"><span class="type">int</span> <code class="parameter">$type</code></span>
+   ) : <span class="type">int</span></div>
+
+  <p class="para">
+   <dl>
+
+    
+     <dt>
+<code class="parameter">connection</code></dt>
+
+     <dd>
+
+      <p class="para">
+       The Oracle connection on which the TAF callback was 
+       registered via <span class="function"><a href="function.oci-register-taf-callback.html" class="function">oci_register_taf_callback()</a></span>.
+       The connection is not valid until the
+       failover completes successfully.
+      </p>
+     </dd>
+
+    
+    
+     <dt>
+<code class="parameter">event</code></dt>
+
+     <dd>
+
+      <p class="para">
+       The failover event indicates the current status of
+       the failover. 
+      </p>
+      <p class="para">
+       <ul class="itemizedlist">
+        <li class="listitem">
+         <p class="para">
+          <strong><code>OCI_FO_BEGIN</code></strong> indicates that
+          failover has detected a lost connection and failover
+          is starting.
+         </p>
+        </li>
+        <li class="listitem">
+         <p class="para">
+          <strong><code>OCI_FO_END</code></strong> indicates successful
+          completion of failover.
+         </p>
+        </li>
+        <li class="listitem">
+         <p class="para">
+          <strong><code>OCI_FO_ABORT</code></strong> indicates that
+          failover was unsuccessful, and there is no option
+          of retrying.
+         </p>
+        </li>
+        <li class="listitem">
+         <p class="para">
+          <strong><code>OCI_FO_ERROR</code></strong> also indicates
+          that failover was unsuccessful, but it gives the
+          application the opportunity to handle the error
+          and return OCI_FO_RETRY to retry failover.
+         </p>
+        </li>
+        <li class="listitem">
+         <p class="para">
+           <strong><code>OCI_FO_REAUTH</code></strong> indicates
+           that an Oracle user has been re-authenticated.
+         </p>
+        </li>
+       </ul>
+      </p>
+     </dd>
+
+    
+    
+     <dt>
+<code class="parameter">type</code></dt>
+
+     <dd>
+
+      <p class="para">
+       The failover type. This lets the callback know what
+       type of failover the application has requested. The
+       usual values are as follows:
+      </p>
+      <p class="para">
+       <ul class="itemizedlist">
+        <li class="listitem">
+         <p class="para">
+          <strong><code>OCI_FO_SESSION</code></strong> indicates that
+          the user has requested only session failover. For
+          example, if a user&#039;s connection is lost, then a
+          new session is automatically created for the user
+          on the backup. This type of failover does not
+          attempt to recover SELECTs.
+         </p>
+        </li>
+        <li class="listitem">
+         <p class="para">
+          <strong><code>OCI_FO_SELECT</code></strong> indicates that
+          the user has requested SELECT failover as well.
+          It allows users with open cursors to continue
+          fetching from them after failure.
+         </p>
+        </li>
+       </ul>
+      </p>
+     </dd>
+
+    
+    
+     <dt>
+<code class="parameter">return value</code></dt>
+
+     <dd>
+
+      <p class="para">
+       <ul class="itemizedlist">
+        <li class="listitem">
+         <p class="para">
+          <strong><code>0</code></strong> indicates the failover
+          steps should continue normally.
+         </p>
+        </li>
+        <li class="listitem">
+         <p class="para">
+          <strong><code>OCI_FO_RETRY</code></strong> indicates that
+          the failover should be attempted again by Oracle.
+          In case of an error while failing over to a new
+          connection, TAF is able to retry the failover.
+          Typically, the application code should sleep for
+          a while before returning OCI_FO_RETRY.
+         </p>
+        </li>
+       </ul>
+      </p>
+     </dd>
+
+    
+   </dl>
+
+  </p>
+  <div class="example" id="example-2406">
+   <div class="example-contents"><p>
+    The following example registers a TAF callback
+   </p></div>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /><br /></span><span style="color: #FF8000">//&nbsp;Define&nbsp;userspace&nbsp;callback<br /></span><span style="color: #007700">class&nbsp;</span><span style="color: #0000BB">MyClass&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;static&nbsp;</span><span style="color: #0000BB">$retry_count</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;static&nbsp;function&nbsp;</span><span style="color: #0000BB">TAFCallback</span><span style="color: #007700">(</span><span style="color: #0000BB">$conn</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$event</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$type</span><span style="color: #007700">)<br />&nbsp;&nbsp;&nbsp;&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;switch&nbsp;(</span><span style="color: #0000BB">$event</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case&nbsp;</span><span style="color: #0000BB">OCI_FO_BEGIN</span><span style="color: #007700">:<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">printf</span><span style="color: #007700">(</span><span style="color: #DD0000">"&nbsp;Failing&nbsp;Over&nbsp;...&nbsp;Please&nbsp;stand&nbsp;by"</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">printf</span><span style="color: #007700">(</span><span style="color: #DD0000">"&nbsp;Failover&nbsp;type&nbsp;was&nbsp;found&nbsp;to&nbsp;be&nbsp;%s&nbsp;\n"</span><span style="color: #007700">,<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;((</span><span style="color: #0000BB">$type</span><span style="color: #007700">==</span><span style="color: #0000BB">OCI_FO_SESSION</span><span style="color: #007700">)&nbsp;?&nbsp;</span><span style="color: #DD0000">"SESSION"<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">:(</span><span style="color: #0000BB">$type</span><span style="color: #007700">==</span><span style="color: #0000BB">OCI_FO_SELECT</span><span style="color: #007700">)&nbsp;?&nbsp;</span><span style="color: #DD0000">"SELECT"<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">:&nbsp;</span><span style="color: #DD0000">"UNKNOWN!"</span><span style="color: #007700">));<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">self</span><span style="color: #007700">::</span><span style="color: #0000BB">$retry_count&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">0</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case&nbsp;</span><span style="color: #0000BB">OCI_FO_ABORT</span><span style="color: #007700">:<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;The&nbsp;application&nbsp;cannot&nbsp;continue&nbsp;using&nbsp;the&nbsp;database<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">printf</span><span style="color: #007700">(</span><span style="color: #DD0000">"&nbsp;Failover&nbsp;aborted.&nbsp;Failover&nbsp;will&nbsp;not&nbsp;take&nbsp;place.\n"</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case&nbsp;</span><span style="color: #0000BB">OCI_FO_END</span><span style="color: #007700">:<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;Failover&nbsp;completes&nbsp;successfully.&nbsp;Inform&nbsp;users&nbsp;a&nbsp;failover&nbsp;occurs.<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">printf</span><span style="color: #007700">(</span><span style="color: #DD0000">"&nbsp;Failover&nbsp;ended&nbsp;...&nbsp;resuming&nbsp;services\n"</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case&nbsp;</span><span style="color: #0000BB">OCI_FO_REAUTH</span><span style="color: #007700">:<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">printf</span><span style="color: #007700">(</span><span style="color: #DD0000">"&nbsp;Failed&nbsp;over&nbsp;user&nbsp;...&nbsp;resuming&nbsp;services\n"</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;Replay&nbsp;any&nbsp;ALTER&nbsp;SESSION&nbsp;commands&nbsp;associated&nbsp;with&nbsp;this&nbsp;connection<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;eg.&nbsp;oci_parse($conn,&nbsp;'ALTER&nbsp;SESSION&nbsp;...')&nbsp;;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">break;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case&nbsp;</span><span style="color: #0000BB">OCI_FO_ERROR</span><span style="color: #007700">:<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;Stop&nbsp;retrying&nbsp;if&nbsp;we&nbsp;have&nbsp;already&nbsp;attempted&nbsp;for&nbsp;20&nbsp;times.<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">if&nbsp;(</span><span style="color: #0000BB">self</span><span style="color: #007700">::</span><span style="color: #0000BB">$retry_count&nbsp;</span><span style="color: #007700">&gt;=&nbsp;</span><span style="color: #0000BB">20</span><span style="color: #007700">)<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;</span><span style="color: #0000BB">0</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">printf</span><span style="color: #007700">(</span><span style="color: #DD0000">"&nbsp;Failover&nbsp;error&nbsp;received.&nbsp;Sleeping...\n"</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">sleep</span><span style="color: #007700">(</span><span style="color: #0000BB">10</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">self</span><span style="color: #007700">::</span><span style="color: #0000BB">$retry_count</span><span style="color: #007700">++;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;</span><span style="color: #0000BB">OCI_FO_RETRY</span><span style="color: #007700">;&nbsp;</span><span style="color: #FF8000">//&nbsp;retry&nbsp;failover<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">break;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;default:<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">printf</span><span style="color: #007700">(</span><span style="color: #DD0000">"Bad&nbsp;Failover&nbsp;Event:&nbsp;%d.\n"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$event</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;</span><span style="color: #0000BB">0</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br /></span><span style="color: #0000BB">$conn&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">oci_connect</span><span style="color: #007700">(</span><span style="color: #DD0000">'hr'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'welcome'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'localhost/XE'</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$fn_name&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'MyClass::TAFCallback'</span><span style="color: #007700">;<br /><br /></span><span style="color: #0000BB">oci_register_taf_callback</span><span style="color: #007700">(</span><span style="color: #0000BB">$conn</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$fn_name</span><span style="color: #007700">);&nbsp;</span><span style="color: #FF8000">//&nbsp;Register&nbsp;TAFCallback&nbsp;to&nbsp;Oracle&nbsp;TAF&nbsp;<br /><br /></span><span style="color: #0000BB">$sql&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">"SELECT&nbsp;col1&nbsp;FROM&nbsp;mytab"</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$stmt&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">oci_parse</span><span style="color: #007700">(</span><span style="color: #0000BB">$conn</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$sql</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">oci_define_by_name</span><span style="color: #007700">(</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'COL1'</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$col1</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">//&nbsp;For&nbsp;example,&nbsp;if&nbsp;a&nbsp;connection&nbsp;loss&nbsp;occurs&nbsp;at&nbsp;this&nbsp;point,&nbsp;oci_execute()&nbsp;will<br />//&nbsp;detect&nbsp;the&nbsp;loss&nbsp;and&nbsp;failover&nbsp;begins.&nbsp;During&nbsp;failover,&nbsp;oci_execute()&nbsp;will<br />//&nbsp;invoke&nbsp;the&nbsp;TAF&nbsp;callback&nbsp;function&nbsp;several&nbsp;times.&nbsp;If&nbsp;the&nbsp;failover&nbsp;is&nbsp;successful,<br />//&nbsp;a&nbsp;new&nbsp;connection&nbsp;is&nbsp;transparently&nbsp;created&nbsp;and&nbsp;oci_execute()&nbsp;will&nbsp;continue&nbsp;as<br />//&nbsp;usual.&nbsp;The&nbsp;connection&nbsp;session&nbsp;settings&nbsp;can&nbsp;be&nbsp;reset&nbsp;in&nbsp;the&nbsp;TAF&nbsp;callback<br />//&nbsp;function.&nbsp;If&nbsp;the&nbsp;failover&nbsp;is&nbsp;aborted,&nbsp;oci_execute()&nbsp;will&nbsp;return&nbsp;an&nbsp;error&nbsp;<br />//&nbsp;because&nbsp;a&nbsp;valid&nbsp;connection&nbsp;is&nbsp;not&nbsp;available.<br /><br /></span><span style="color: #0000BB">$e&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">oci_execute</span><span style="color: #007700">(</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">);<br />if&nbsp;(</span><span style="color: #0000BB">$e&nbsp;</span><span style="color: #007700">==&nbsp;</span><span style="color: #0000BB">false</span><span style="color: #007700">)<br />{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;do&nbsp;error&nbsp;handling,&nbsp;if&nbsp;oci_execute()&nbsp;fails<br />&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;var_dump(oci_error($stmt));<br /></span><span style="color: #007700">}<br />while&nbsp;(</span><span style="color: #0000BB">oci_fetch</span><span style="color: #007700">(</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">))<br />{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"COL1&nbsp;value&nbsp;is&nbsp;</span><span style="color: #0000BB">$col1</span><span style="color: #DD0000">&lt;br&gt;\n"</span><span style="color: #007700">;<br />}<br /><br /></span><span style="color: #FF8000">//&nbsp;do&nbsp;other&nbsp;SQL&nbsp;statements&nbsp;with&nbsp;the&nbsp;new&nbsp;connection,&nbsp;if&nbsp;it&nbsp;is&nbsp;valid<br />//&nbsp;$stmt&nbsp;=&nbsp;oci_parse($conn,&nbsp;&nbsp;.&nbsp;.&nbsp;.);&nbsp;<br /><br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+ </div>
+
+ <div class="section">
+ <h2 class="title">See Also</h2>
+ <ul class="simplelist">
+  <li class="member"><span class="function"><a href="function.oci-register-taf-callback.html" class="function">oci_register_taf_callback()</a></span></li>
+  <li class="member"><span class="function"><a href="function.oci-unregister-taf-callback.html" class="function">oci_unregister_taf_callback()</a></span></li>
+ </ul>
+</div>
+
+
+</div>
+<div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+ <div class="note">There are no user contributed notes for this page.</div>
+</div>
+</div></div></body></html>

@@ -1,0 +1,352 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Bzip2 函数</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="bzip2.examples.html">? 范例</a></li>
+      <li style="float: right;"><a href="function.bzclose.html">bzclose ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="book.bzip2.html">Bzip2</a></li>
+    <li>Bzip2 函数</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="ref.bzip2" class="reference">
+ <h1 class="title">Bzip2 函数</h1>
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h2>Table of Contents</h2><ul class="chunklist chunklist_reference"><li><a href="function.bzclose.html">bzclose</a> &mdash; 关闭一个 bzip2 文件</li><li><a href="function.bzcompress.html">bzcompress</a> &mdash; 把一个字符串压缩成 bzip2 编码数据</li><li><a href="function.bzdecompress.html">bzdecompress</a> &mdash; 解压经 bzip2 编码过的数据</li><li><a href="function.bzerrno.html">bzerrno</a> &mdash; 返回一个 bzip2 错误码</li><li><a href="function.bzerror.html">bzerror</a> &mdash; 返回包含 bzip2 错误号和错误字符串的一个 array</li><li><a href="function.bzerrstr.html">bzerrstr</a> &mdash; 返回一个 bzip2 的错误字符串</li><li><a href="function.bzflush.html">bzflush</a> &mdash; 强制写入所有写缓冲区的数据</li><li><a href="function.bzopen.html">bzopen</a> &mdash; 打开 bzip2 压缩文件</li><li><a href="function.bzread.html">bzread</a> &mdash; bzip2 文件二进制安全地读取</li><li><a href="function.bzwrite.html">bzwrite</a> &mdash; 二进制安全地写入 bzip2 文件</li></ul>
+</div>
+<div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="118582""></a>
+  <div class="note">
+   <strong class="user">salsi at icosaedro dot it</strong>
+   <a href="#118582" class="date">01-Jan-2016 06:22</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+<span class="default">&lt;?php<br />
+</span><span class="comment">/*<br />
+&nbsp;* Reading a BZIP2 file can be tricky, and I never seen a complete example of<br />
+&nbsp;* code that account for any possible failure that may happen accessing a file<br />
+&nbsp;* in general, and decoding compressed data in this specific case.<br />
+&nbsp;* The example that follows is my attempt to address this gap.<br />
+&nbsp;* Some things that worth noting are:<br />
+&nbsp;* - Encoding/decoding errors must be detected with bzerrno().<br />
+&nbsp;* - bzopen() may fail returning FALSE if the file cannot be created or read,<br />
+&nbsp;*&nbsp;&nbsp; but succeeds also if the file is not properly encoded.<br />
+&nbsp;* - bzread() may fail returning FALSE if it fails reading from the source, but<br />
+&nbsp;*&nbsp;&nbsp; it returns the empty string on end of file and on encoding error.<br />
+&nbsp;* - bzread() may still return corrupted data with no error whatsoever until the<br />
+&nbsp;*&nbsp;&nbsp; BZIP2 algo encounters the first hash code, so data retrieved cannot be<br />
+&nbsp;*&nbsp;&nbsp; trusted until the very end of the file has been reached.<br />
+&nbsp;*/<br />
+<br />
+// Safety first:<br />
+</span><span class="default">error_reporting</span><span class="keyword">(-</span><span class="default">1</span><span class="keyword">);<br />
+</span><span class="comment">// On error, set $php_errormsg:<br />
+</span><span class="default">ini_set</span><span class="keyword">(</span><span class="string">"track_errors"</span><span class="keyword">, </span><span class="string">"1"</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">/**<br />
+&nbsp;* Reads and displays on stdout the content of a BZIP2 compressed file with<br />
+&nbsp;* full error detection.<br />
+&nbsp;* @param string $fn Filename.<br />
+&nbsp;* @return void<br />
+&nbsp;*/<br />
+</span><span class="keyword">function </span><span class="default">displaysBZIP2File</span><span class="keyword">(</span><span class="default">$fn</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"Reading </span><span class="default">$fn</span><span class="string">:\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$bz </span><span class="keyword">= @</span><span class="default">bzopen</span><span class="keyword">(</span><span class="default">$fn</span><span class="keyword">, </span><span class="string">"r"</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; if( </span><span class="default">$bz </span><span class="keyword">=== </span><span class="default">FALSE </span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"ERROR: bzopen() failed: </span><span class="default">$php_errormsg</span><span class="string">\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$errno </span><span class="keyword">= </span><span class="default">bzerrno</span><span class="keyword">(</span><span class="default">$bz</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; if( </span><span class="default">$errno </span><span class="keyword">!= </span><span class="default">0 </span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// May detect "DATA_ERROR_MAGIC" (not a BZIP2 file), or "DATA_ERROR"<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; // (BZIP2 decoding error) and maybe others BZIP2 errors too.<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">echo </span><span class="string">"ERROR: bzopen(): BZIP2 decoding failed: "</span><span class="keyword">, </span><span class="default">bzerrstr</span><span class="keyword">(</span><span class="default">$bz</span><span class="keyword">), </span><span class="string">"\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; @</span><span class="default">bzclose</span><span class="keyword">(</span><span class="default">$bz</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; while(! </span><span class="default">feof</span><span class="keyword">(</span><span class="default">$bz</span><span class="keyword">) ) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$s </span><span class="keyword">= </span><span class="default">bzread</span><span class="keyword">(</span><span class="default">$bz</span><span class="keyword">, </span><span class="default">100</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if( </span><span class="default">$s </span><span class="keyword">=== </span><span class="default">FALSE </span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"ERROR: bzread() failed: </span><span class="default">$php_errormsg</span><span class="string">\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; @</span><span class="default">bzclose</span><span class="keyword">(</span><span class="default">$bz</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$errno </span><span class="keyword">= </span><span class="default">bzerrno</span><span class="keyword">(</span><span class="default">$bz</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if( </span><span class="default">$errno </span><span class="keyword">!= </span><span class="default">0 </span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// May detect "DATA_ERROR" (BZIP2 decoding error) and maybe others<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; // BZIP2 errors too.<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">echo </span><span class="string">"ERROR: bzread(): BZIP2 decoding failed: "</span><span class="keyword">, </span><span class="default">bzerrstr</span><span class="keyword">(</span><span class="default">$bz</span><span class="keyword">), </span><span class="string">"\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; @</span><span class="default">bzclose</span><span class="keyword">(</span><span class="default">$bz</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"read: "</span><span class="keyword">, </span><span class="default">var_export</span><span class="keyword">(</span><span class="default">$s</span><span class="keyword">, </span><span class="default">true</span><span class="keyword">), </span><span class="string">"\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; if( ! </span><span class="default">bzclose</span><span class="keyword">(</span><span class="default">$bz</span><span class="keyword">) ){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"ERROR: bzclose() failed: </span><span class="default">$php_errormsg</span><span class="string">\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="comment">// Target file:<br />
+</span><span class="default">$fn </span><span class="keyword">= </span><span class="string">"test.bz2"</span><span class="keyword">;<br />
+<br />
+</span><span class="comment">// Test 1: writes and read a good BZIP2 file:<br />
+</span><span class="default">file_put_contents</span><span class="keyword">(</span><span class="default">$fn</span><span class="keyword">, </span><span class="default">bzcompress</span><span class="keyword">(</span><span class="string">"Content of the file."</span><span class="keyword">));<br />
+</span><span class="default">displaysBZIP2File</span><span class="keyword">(</span><span class="default">$fn</span><span class="keyword">); </span><span class="comment">// works ok.<br />
+<br />
+// Test 2: invalid content, not a BZIP2 file:<br />
+</span><span class="default">file_put_contents</span><span class="keyword">(</span><span class="default">$fn</span><span class="keyword">, </span><span class="string">"This ia plain text file, no compression at all!"</span><span class="keyword">);<br />
+</span><span class="default">displaysBZIP2File</span><span class="keyword">(</span><span class="default">$fn</span><span class="keyword">); </span><span class="comment">// ERROR: bzread(): BZIP2 decoding failed: DATA_ERROR_MAGIC<br />
+<br />
+// Test 3: creates a corrupted BZIP2 file:<br />
+</span><span class="default">$plain </span><span class="keyword">= </span><span class="default">str_repeat</span><span class="keyword">(</span><span class="string">"Quite random string. "</span><span class="keyword">, </span><span class="default">1000</span><span class="keyword">);<br />
+</span><span class="default">$compressed </span><span class="keyword">= </span><span class="default">bzcompress</span><span class="keyword">(</span><span class="default">$plain</span><span class="keyword">);<br />
+</span><span class="default">$compressed_corrupted </span><span class="keyword">= </span><span class="default">$compressed</span><span class="keyword">;<br />
+</span><span class="default">$compressed_corrupted</span><span class="keyword">[(int)(</span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$compressed</span><span class="keyword">)/</span><span class="default">2</span><span class="keyword">)] = </span><span class="string">'X'</span><span class="keyword">; </span><span class="comment">// put random char in middle<br />
+</span><span class="default">file_put_contents</span><span class="keyword">(</span><span class="default">$fn</span><span class="keyword">, </span><span class="default">$compressed_corrupted</span><span class="keyword">);<br />
+</span><span class="default">displaysBZIP2File</span><span class="keyword">(</span><span class="default">$fn</span><span class="keyword">);<br />
+</span><span class="comment">// Only after some Kbytes of garbage, it tells:<br />
+// ERROR: bzread(): BZIP2 decoding failed: DATA_ERROR<br />
+<br />
+// Safe coding against headache, ever.<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="42539""></a>
+  <div class="note">
+   <strong class="user">ec10 at gmx dot net</strong>
+   <a href="#42539" class="date">20-May-2004 11:34</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+<span class="default">&lt;?php
+<br />
+</span><span class="comment">/**
+<br />
+&nbsp;* @return bool
+<br />
+&nbsp;* @param string $in
+<br />
+&nbsp;* @param string $out
+<br />
+&nbsp;* @desc compressing the file with the bzip2-extension
+<br />
+*/
+<br />
+</span><span class="keyword">function </span><span class="default">bzip2 </span><span class="keyword">(</span><span class="default">$in</span><span class="keyword">, </span><span class="default">$out</span><span class="keyword">)
+<br />
+{
+<br />
+&nbsp;&nbsp;&nbsp; if (!</span><span class="default">file_exists </span><span class="keyword">(</span><span class="default">$in</span><span class="keyword">) || !</span><span class="default">is_readable </span><span class="keyword">(</span><span class="default">$in</span><span class="keyword">))
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;
+<br />
+&nbsp;&nbsp;&nbsp; if ((!</span><span class="default">file_exists </span><span class="keyword">(</span><span class="default">$out</span><span class="keyword">) &amp;&amp; !</span><span class="default">is_writeable </span><span class="keyword">(</span><span class="default">dirname </span><span class="keyword">(</span><span class="default">$out</span><span class="keyword">)) || (</span><span class="default">file_exists</span><span class="keyword">(</span><span class="default">$out</span><span class="keyword">) &amp;&amp; !</span><span class="default">is_writable</span><span class="keyword">(</span><span class="default">$out</span><span class="keyword">)) ))
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;
+<br />
+&nbsp;&nbsp;&nbsp; 
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$in_file </span><span class="keyword">= </span><span class="default">fopen </span><span class="keyword">(</span><span class="default">$in</span><span class="keyword">, </span><span class="string">"rb"</span><span class="keyword">);
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$out_file </span><span class="keyword">= </span><span class="default">bzopen </span><span class="keyword">(</span><span class="default">$out</span><span class="keyword">, </span><span class="string">"wb"</span><span class="keyword">);
+<br />
+&nbsp;&nbsp;&nbsp; 
+<br />
+&nbsp;&nbsp;&nbsp; while (!</span><span class="default">feof </span><span class="keyword">(</span><span class="default">$in_file</span><span class="keyword">)) {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">fgets </span><span class="keyword">(</span><span class="default">$in_file</span><span class="keyword">, </span><span class="default">4096</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="default">bzwrite </span><span class="keyword">(</span><span class="default">$out_file</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">, </span><span class="default">4096</span><span class="keyword">);
+<br />
+&nbsp;&nbsp;&nbsp; }
+<br />
+
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">fclose </span><span class="keyword">(</span><span class="default">$in_file</span><span class="keyword">);
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">bzclose </span><span class="keyword">(</span><span class="default">$out_file</span><span class="keyword">);
+<br />
+&nbsp;&nbsp;&nbsp; 
+<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">true</span><span class="keyword">;
+<br />
+}
+<br />
+
+<br />
+</span><span class="comment">/**
+<br />
+&nbsp;* @return bool
+<br />
+&nbsp;* @param string $in
+<br />
+&nbsp;* @param string $out
+<br />
+&nbsp;* @desc uncompressing the file with the bzip2-extension
+<br />
+*/
+<br />
+</span><span class="keyword">function </span><span class="default">bunzip2 </span><span class="keyword">(</span><span class="default">$in</span><span class="keyword">, </span><span class="default">$out</span><span class="keyword">)
+<br />
+{
+<br />
+&nbsp;&nbsp;&nbsp; if (!</span><span class="default">file_exists </span><span class="keyword">(</span><span class="default">$in</span><span class="keyword">) || !</span><span class="default">is_readable </span><span class="keyword">(</span><span class="default">$in</span><span class="keyword">))
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;
+<br />
+&nbsp;&nbsp;&nbsp; if ((!</span><span class="default">file_exists </span><span class="keyword">(</span><span class="default">$out</span><span class="keyword">) &amp;&amp; !</span><span class="default">is_writeable </span><span class="keyword">(</span><span class="default">dirname </span><span class="keyword">(</span><span class="default">$out</span><span class="keyword">)) || (</span><span class="default">file_exists</span><span class="keyword">(</span><span class="default">$out</span><span class="keyword">) &amp;&amp; !</span><span class="default">is_writable</span><span class="keyword">(</span><span class="default">$out</span><span class="keyword">)) ))
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;
+<br />
+
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$in_file </span><span class="keyword">= </span><span class="default">bzopen </span><span class="keyword">(</span><span class="default">$in</span><span class="keyword">, </span><span class="string">"rb"</span><span class="keyword">);
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$out_file </span><span class="keyword">= </span><span class="default">fopen </span><span class="keyword">(</span><span class="default">$out</span><span class="keyword">, </span><span class="string">"wb"</span><span class="keyword">);
+<br />
+
+<br />
+&nbsp;&nbsp;&nbsp; while (</span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">bzread </span><span class="keyword">(</span><span class="default">$in_file</span><span class="keyword">, </span><span class="default">4096</span><span class="keyword">)) {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fwrite </span><span class="keyword">(</span><span class="default">$out_file</span><span class="keyword">, </span><span class="default">$buffer</span><span class="keyword">, </span><span class="default">4096</span><span class="keyword">);
+<br />
+&nbsp;&nbsp;&nbsp; }
+<br />
+&nbsp;
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">bzclose </span><span class="keyword">(</span><span class="default">$in_file</span><span class="keyword">);
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">fclose </span><span class="keyword">(</span><span class="default">$out_file</span><span class="keyword">);
+<br />
+&nbsp;&nbsp;&nbsp; 
+<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">true</span><span class="keyword">;
+<br />
+}
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

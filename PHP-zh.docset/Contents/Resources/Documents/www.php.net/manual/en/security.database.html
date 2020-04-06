@@ -1,0 +1,134 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>数据库安全</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="security.filesystem.nullbytes.html">? Null 字符问题</a></li>
+      <li style="float: right;"><a href="security.database.design.html">设计数据库 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="security.html">安全</a></li>
+    <li>数据库安全</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="security.database" class="chapter">
+   <h1>数据库安全</h1>
+<h2>Table of Contents</h2><ul class="chunklist chunklist_chapter"><li><a href="security.database.design.html">设计数据库</a></li><li><a href="security.database.connection.html">连接数据库</a></li><li><a href="security.database.storage.html">加密存储模型</a></li><li><a href="security.database.sql-injection.html">SQL 注入</a></li></ul>
+
+
+   <p class="simpara">
+    今时今日，数据库系统已经成为各个动态网站上 web
+    应用程序的重要组成部分。由于非常敏感和机密的数据有可能保存在数据库中，所以对数据库实施保护就显得尤为重要了。
+   </p>
+   <p class="simpara">
+    要从数据库中提取或者存入数据，就必须经过连接数据库、发送一条合法查询、获取结果、关闭连接等步骤。目前，能完成这一系列动作的最常用的查询语言是结构化查询语言
+    Structured Query Language (SQL)。可以看看攻击者是如何<a href="security.database.sql-injection.html" class="link">篡改 SQL 查询语句的</a>。
+   </p>
+   <p class="simpara">
+    PHP 本身并不能保护数据库的安全。下面的章节只是讲述怎样用 PHP
+    脚本对数据库进行基本的访问和操作。
+   </p>
+   <p class="simpara">
+    记住一条简单的原则：深入防御。保护数据库的措施越多，攻击者就越难获得和使用数据库内的信息。正确地设计和应用数据库可以减少被攻击的担忧。
+   </p>
+
+   
+
+   
+
+   
+
+   
+  </div>
+<div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="109558""></a>
+  <div class="note">
+   <strong class="user">Chris Travers</strong>
+   <a href="#109558" class="date">28-Jul-2012 11:45</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Regarding where to put logic, it's really best not to be dogmatic about this.&nbsp; Putting logic in the db can have some security advantages but it has other security gotchas (for example, SQL injection inside a stored procedure may be possible in some environments).&nbsp; Similarly it can have some portability advantages and disadvantages.<br />
+<br />
+The real question is that you want to ask what you want to be portable.&nbsp; If you put it in the db, it becomes easier to integrate programs written in different development environments with a minimum of security gotchas.&nbsp; If you put it in the application, then you have to create the interfaces on that level in middleware.&nbsp; Both approaches are doable.&nbsp; On the other hand if you are writing software you want to be deployable in MS SQL shops and Oracle shops, then you have to write portable SQL (avoiding gotchas) and put the logic in the application.<br />
+<br />
+When we started rewriting the LedgerSMB codebase, we decided to move logic into the db because this would make it easier to retrofit security onto a very insecure codebase (by not trusting the application), and because we wanted to support languages other than Perl.&nbsp; A few years later this is bearing fruit and indeed I am reading the manual because I am writing integration libraries in PHP.&nbsp; I am not much of a PHP guy (I haven't programmed PHP since PHP 4.x) but I can write modules that let folks write code to interface securely with LedgerSMB's database logic.&nbsp; You can think of the stored procedures as being named queries which are shared between applications, or as API's to the database.&nbsp; But again, this approach is not universally applicable.<br />
+<br />
+If portability between db's is not a major requirement, then I think the best approach is to do as much as possible in SQL queries and put those in the database.&nbsp; A couple hundred lines of SQL can replace a couple thousand lines in Perl or PHP, and is fundamentally easier to debug.&nbsp; Of course that won't work for everyone.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="77120""></a>
+  <div class="note">
+   <strong class="user">Dave Martin</strong>
+   <a href="#77120" class="date">16-Aug-2007 12:15</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The posting below is at the very best extremely POV.<br />
+<br />
+There is no more reason to assume you would want to change database vendor than there is to assume you might want to port your php code to Java for example. In either case, its going to be a matter of luck where your business rules sit.<br />
+<br />
+Even if your business rules sit in your application, SQL is NOT portable. Oracle outer joins and pivot queries for example, can look completely different to those in other vendors software (particularly from 8i or lower). This fact alone means that changing your DB vendor requires work on your business rules either in the database or in the application.<br />
+<br />
+Having your rules in the database and keeping the sql in application simple, will at least keep the work in the database if you need to change DB vendor. If you have the rules in the PHP, you'll have to change both.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="77088""></a>
+  <div class="note">
+   <strong class="user">x12code at yahoo dot com</strong>
+   <a href="#77088" class="date">14-Aug-2007 09:48</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+About offloading business logic to views and queries facilitated by the database engine, I seek to avoid this as much as possible, and only do so when such would drastically improve efficiency and user response time.<br />
+<br />
+For instance, where I am there is database staff and application staff. Trying to do analysis on existent applications can easily become a snipe hunt.<br />
+<br />
+The database should be kept discreet as much as possible from the application, such that any database or database provider can easily be substituted with a minimum of cognitive effort on the part of the one setting up a new database. If functionality has been offloaded to the database, additional testing is required to make sure triggers and views were done correctly, again, and that they work right.<br />
+<br />
+Also, keeping all business logic with the application allows all functionality and documentation to be readable in one place, which is invaluable when doing subsequent analysis on an existing application. The worst thing is to have functionality scattered here and there.<br />
+<br />
+Keeping everything with the application means one group of people is responsible, as in my case, application staff. Fewer requests go back and forth. Remember, anytime someone else is brought into the picture, such as asking a DBA to create a view or trigger for you, that DBA must take responsibility over his or her work, with whatever requirements, causing more bureaucracy and administrative complexity.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="54317""></a>
+  <div class="note">
+   
+   <a href="#54317" class="date">30-Jun-2005 03:57</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+you can also chamge CHMOD for some file containing "user names" or "passwords"</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

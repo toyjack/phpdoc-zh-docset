@@ -1,0 +1,151 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Connection handling and persistence</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="mongodb.overview.html">? Architecture</a></li>
+      <li style="float: right;"><a href="mongodb.persistence.html">Persisting Data ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="mongodb.architecture.html">Driver Architecture and Internals</a></li>
+    <li>Connection handling and persistence</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="mongodb.connection-handling" class="article">
+  
+  <h1>Connection handling and persistence</h1>
+
+
+  
+   <blockquote class="note"><p><strong class="note">Note</strong>: 
+    <span class="simpara">
+     On Unix platforms, the MongoDB driver is sensitive to scripts that use the
+     fork() system call without also calling exec(). Users are advised not to
+     re-use <a href="class.mongodb-driver-manager.html" class="classname">MongoDB\Driver\Manager</a> instances in a forked
+     child process.
+    </span>
+   </p></blockquote>
+
+
+  <div class="section">
+   <h2 class="title">Connection and topology persistence (PHP version since 1.2.0)</h2>
+
+   <p class="para">
+    All versions of the driver since 1.2.0 persist the
+    <a href="https://github.com/mongodb/mongo-c-driver" class="link external" title="Link : https://github.com/mongodb/mongo-c-driver">&raquo;&nbsp;libmongoc</a> client object in
+    the PHP worker process, which allows it to re-use database connections,
+    authentication states, <em class="emphasis">and</em> topology information across
+    multiple requests.
+   </p>
+
+   <p class="para">
+    When <span class="methodname"><a href="mongodb-driver-manager.construct.html" class="methodname">MongoDB\Driver\Manager::__construct()</a></span> is
+    invoked, a hash is created from its arguments (i.e. URI string and array
+    options). The driver will attempt to find a previously persisted
+    <a href="https://github.com/mongodb/mongo-c-driver" class="link external" title="Link : https://github.com/mongodb/mongo-c-driver">&raquo;&nbsp;libmongoc</a> client object for
+    that hash. If an existing client cannot be found for the hash, a new client
+    will be created (and persisted for future use).
+   </p>
+
+   <p class="para">
+    Each client contains its own database connections and a view of the server
+    topology (e.g. standalone, replica set, shard cluster). By persisting the
+    client between PHP requests, the driver is able to re-use established
+    database connections and remove the need for
+    <a href="https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-discovery-and-monitoring.rst" class="link external" title="Link : https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-discovery-and-monitoring.rst">&raquo;&nbsp;discovering the server topology</a>
+    on each request.
+   </p>
+
+   <p class="para">
+    Consider the following example:
+   </p>
+
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /><br />$managers&nbsp;</span><span style="color: #007700">=&nbsp;[<br />&nbsp;&nbsp;&nbsp;&nbsp;new&nbsp;</span><span style="color: #0000BB">MongoDB</span><span style="color: #007700">\</span><span style="color: #0000BB">Driver</span><span style="color: #007700">\</span><span style="color: #0000BB">Manager</span><span style="color: #007700">(</span><span style="color: #DD0000">'mongodb://127.0.0.1'</span><span style="color: #007700">),<br />&nbsp;&nbsp;&nbsp;&nbsp;new&nbsp;</span><span style="color: #0000BB">MongoDB</span><span style="color: #007700">\</span><span style="color: #0000BB">Driver</span><span style="color: #007700">\</span><span style="color: #0000BB">Manager</span><span style="color: #007700">(</span><span style="color: #DD0000">'mongodb://127.0.0.1'</span><span style="color: #007700">),<br />&nbsp;&nbsp;&nbsp;&nbsp;new&nbsp;</span><span style="color: #0000BB">MongoDB</span><span style="color: #007700">\</span><span style="color: #0000BB">Driver</span><span style="color: #007700">\</span><span style="color: #0000BB">Manager</span><span style="color: #007700">(</span><span style="color: #DD0000">'mongodb://127.0.0.1:27017'</span><span style="color: #007700">),<br />&nbsp;&nbsp;&nbsp;&nbsp;new&nbsp;</span><span style="color: #0000BB">MongoDB</span><span style="color: #007700">\</span><span style="color: #0000BB">Driver</span><span style="color: #007700">\</span><span style="color: #0000BB">Manager</span><span style="color: #007700">(</span><span style="color: #DD0000">'mongodb://rs1.example.com,rs2.example.com/'</span><span style="color: #007700">,&nbsp;[</span><span style="color: #DD0000">'replicaSet'&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #DD0000">'myReplicaSet'</span><span style="color: #007700">]),<br />];<br /><br />foreach&nbsp;(</span><span style="color: #0000BB">$managers&nbsp;</span><span style="color: #007700">as&nbsp;</span><span style="color: #0000BB">$manager</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$manager</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">executeCommand</span><span style="color: #007700">(</span><span style="color: #DD0000">'test'</span><span style="color: #007700">,&nbsp;new&nbsp;</span><span style="color: #0000BB">MongoDB</span><span style="color: #007700">\</span><span style="color: #0000BB">Driver</span><span style="color: #007700">\</span><span style="color: #0000BB">Command</span><span style="color: #007700">([</span><span style="color: #DD0000">'ping'&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">]));<br />}<br /><br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+
+   <p class="para">
+    The first two Manager objects will share the same
+    <a href="https://github.com/mongodb/mongo-c-driver" class="link external" title="Link : https://github.com/mongodb/mongo-c-driver">&raquo;&nbsp;libmongoc</a> client since
+    their constructor arguments are identical. The third and fourth objects will
+    each use their own client. In total, three clients will be created and the
+    PHP worker executing this script will open two connections to
+    <em>127.0.0.1</em> and one connection to each of
+    <em>rs1.example.com</em> and <em>rs2.example.com</em>.
+    If the driver discovers additional members of the replica set after issuing
+    <em>isMaster</em> commands, it will open additional connections to
+    those servers as well.
+   </p>
+
+   <p class="para">
+    If the same worker executes the script again in a second request, the three
+    clients will be re-used and no new connections should be made. Depending on
+    how long ago the previous request was served, the driver may need to issue
+    additional <em>isMaster</em> commands to update its view of the
+    topologies.
+   </p>
+  </div>
+
+  <div class="section">
+   <h2 class="title">Socket persistence (PHP versions before 1.2.0)</h2>
+
+   <p class="para">
+    Versions of the PHP driver before 1.2.0 utilize PHP&#039;s Streams API for
+    database connections, using an API within
+    <a href="https://github.com/mongodb/mongo-c-driver" class="link external" title="Link : https://github.com/mongodb/mongo-c-driver">&raquo;&nbsp;libmongoc</a> to designate
+    custom handlers for socket communication; however, a new libmongoc client is
+    created for each <a href="class.mongodb-driver-manager.html" class="classname">MongoDB\Driver\Manager</a>. As a result,
+    the driver persists individual database connections but not authentication
+    state or topology information. This means that the driver needs to issue
+    commands at the start of each request to authenticate and
+    <a href="https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-discovery-and-monitoring.rst" class="link external" title="Link : https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-discovery-and-monitoring.rst">&raquo;&nbsp;discover the server topology</a>.
+   </p>
+
+   <p class="para">
+    Database connections are persisted by a hash derived from the server&#039;s
+    host, port, and the URI string used to construct the
+    <a href="class.mongodb-driver-manager.html" class="classname">MongoDB\Driver\Manager</a>. The constructor&#039;s array
+    options are not included in this hash.
+   </p>
+
+   <blockquote class="note"><p><strong class="note">Note</strong>: 
+    <span class="simpara">
+     Versions of the driver &gt;= 1.1.8 and &lt; 1.2.0 do not persist sockets
+     for SSL connections. See
+     <a href="https://jira.mongodb.org/browse/PHPC-720" class="link external" title="Link : https://jira.mongodb.org/browse/PHPC-720">&raquo;&nbsp;PHPC-720</a> for
+     additional information.
+    </span>
+   </p></blockquote>
+
+   <p class="para">
+    Despite its shortcomings with persisting SSL connections when and topology
+    information, this version of the driver supports all
+    <a href="context.ssl.html" class="link">SSL context options</a> since it uses
+    PHP&#039;s Streams API.
+   </p>
+  </div>
+ </div>
+<div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+ <div class="note">There are no user contributed notes for this page.</div>
+</div>
+</div></div></body></html>

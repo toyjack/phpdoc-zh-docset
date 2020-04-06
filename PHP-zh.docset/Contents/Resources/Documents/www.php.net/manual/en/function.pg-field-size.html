@@ -1,0 +1,154 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>返回指定字段占用内部存储空间的大小</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="function.pg-field-prtlen.html">? pg_field_prtlen</a></li>
+      <li style="float: right;"><a href="function.pg-field-table.html">pg_field_table ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="ref.pgsql.html">PostgreSQL 函数</a></li>
+    <li>返回指定字段占用内部存储空间的大小</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="function.pg-field-size" class="refentry">
+   <div class="refnamediv">
+    <h1 class="refname">pg_field_size</h1>
+    <p class="verinfo">(PHP 4 &gt;= 4.2.0, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">pg_field_size</span> &mdash; <span class="dc-title">
+     返回指定字段占用内部存储空间的大小
+    </span></p>
+
+   </div>
+   <div class="refsect1 unknown-unknown-unknown-unknown-unknown-seealst" id="refsect1-function.pg-field-size-unknown-unknown-unknown-unknown-unknown-seealst">
+    <h3 class="title">说明</h3>
+     <div class="methodsynopsis dc-description">
+      <span class="methodname"><strong>pg_field_size</strong></span>
+       ( <span class="methodparam"><span class="type">resource</span> <code class="parameter">$result</code></span>
+      , <span class="methodparam"><span class="type">int</span> <code class="parameter">$field_number</code></span>
+      ) : <span class="type">int</span></div>
+
+    <p class="para rdfs-comment">
+     <span class="function"><strong>pg_field_size()</strong></span> 返回 PostgreSQL <code class="parameter">result</code> 中指定字段占用内部存储空间的大小（字节数）。字段编号从 0 开始。字段大小为 -1 表示可变长度字段。如果出错本函数返回 <strong><code>FALSE</code></strong>。
+    </p>
+    <p class="para">
+     参考 <span class="function"><a href="function.pg-field-name.html" class="function">pg_field_name()</a></span> 页面中的例子。
+    </p>
+    <blockquote class="note"><p><strong class="note">Note</strong>: 
+     <p class="para">
+      本函数以前的名字为 <em>pg_fieldsize()</em>。
+     </p>
+    </p></blockquote>
+    <p class="para">
+     参见 <span class="function"><a href="function.pg-field-prtlen.html" class="function">pg_field_prtlen()</a></span> 和 <span class="function"><a href="function.pg-field-type.html" class="function">pg_field_type()</a></span>。
+    </p>
+   </div>
+
+  </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="53820""></a>
+  <div class="note">
+   <strong class="user">ij at NOSPAM dot irj dot co dot za</strong>
+   <a href="#53820" class="date">14-Jun-2005 04:21</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+To view the file structure of a table using a sql query<br />
+<br />
+select pg_class.relname, pg_attribute.attname, pg_type.typname, pg_type.typlen from pg_class, pg_attribute, pg_type&nbsp; where pg_class.relname = 'YOURTABLENAME' and pg_class.oid = pg_attribute.attrelid and pg_type.oid = pg_attribute.atttypid having attnum &gt; 0</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="50271""></a>
+  <div class="note">
+   <strong class="user">php at tribun dot de</strong>
+   <a href="#50271" class="date">23-Feb-2005 05:49</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+function get_create_syntax( $table )<br />
+{<br />
+&nbsp; $qry&nbsp; =&nbsp; "<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; SELECT&nbsp; &nbsp; *<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; FROM&nbsp; &nbsp; &nbsp; $table<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; LIMIT&nbsp; &nbsp;&nbsp; 1<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; ";<br />
+&nbsp; $res = pg_query( $qry );<br />
+&nbsp; $row = pg_fetch_assoc( $res );<br />
+<br />
+&nbsp; $create = "CREATE TABLE $table \n(\n";<br />
+<br />
+&nbsp; $item = array();<br />
+&nbsp; for( $i = 0; $i &lt; count( $row ); $i++ )<br />
+&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; $name = pg_field_name( $res, $i );<br />
+&nbsp;&nbsp;&nbsp; $type = pg_field_type( $res, $i );<br />
+&nbsp;&nbsp;&nbsp; $size = pg_field_size( $res, $i );<br />
+<br />
+&nbsp;&nbsp;&nbsp; $item[$i] = '"'.$name.'" '.$type;<br />
+<br />
+&nbsp;&nbsp;&nbsp; $qry&nbsp; =&nbsp; "<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; SELECT&nbsp; &nbsp; a.atttypmod&nbsp; &nbsp; AS size,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; a.attnotnull&nbsp; AS notnull<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; FROM&nbsp; &nbsp; &nbsp; pg_attribute&nbsp; AS a,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; pg_class&nbsp; &nbsp; &nbsp; AS c<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; WHERE&nbsp; &nbsp;&nbsp; c.relname&nbsp;&nbsp; = '$table'<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; AND&nbsp; &nbsp; &nbsp;&nbsp; a.attrelid&nbsp; =&nbsp; c.oid<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; AND&nbsp; &nbsp; &nbsp;&nbsp; a.attname&nbsp; &nbsp; =&nbsp; '$name'<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ";<br />
+&nbsp;&nbsp;&nbsp; $res2&nbsp; = pg_query( $qry );<br />
+&nbsp;&nbsp;&nbsp; $out&nbsp; = pg_fetch_object( $res2 );<br />
+<br />
+&nbsp;&nbsp;&nbsp; if( $out -&gt; size != -1 )<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; $item[$i] .= '('.( $out -&gt; size - 4 ).')';<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; if( $out -&gt; notnull == 't' )<br />
+&nbsp;&nbsp;&nbsp; $item[$i] .= ' NOT';<br />
+<br />
+&nbsp;&nbsp;&nbsp; $item[$i] .= ' NULL';<br />
+<br />
+&nbsp; }<br />
+&nbsp; $create .= implode( ",\n", $item ) ."\n);";<br />
+<br />
+&nbsp; return $create;<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="22872""></a>
+  <div class="note">
+   <strong class="user">alex at linuxNOSPAM dot org dot pe</strong>
+   <a href="#22872" class="date">02-Jul-2002 09:44</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+How i can extract the struct of a Postgresql Table?<br />
+<br />
+I want to do a dynamic php code, that see the pg table, and print name, type and size of fields</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

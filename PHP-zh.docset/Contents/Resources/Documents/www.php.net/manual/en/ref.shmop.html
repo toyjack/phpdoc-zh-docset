@@ -1,0 +1,569 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Shared Memory 函数</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="shmop.examples-basic.html">? Basic usage</a></li>
+      <li style="float: right;"><a href="function.shmop-close.html">shmop_close ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="book.shmop.html">Shared Memory</a></li>
+    <li>Shared Memory 函数</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="ref.shmop" class="reference">
+ <h1 class="title">Shared Memory 函数</h1>
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h2>Table of Contents</h2><ul class="chunklist chunklist_reference"><li><a href="function.shmop-close.html">shmop_close</a> &mdash; Close shared memory block</li><li><a href="function.shmop-delete.html">shmop_delete</a> &mdash; Delete shared memory block</li><li><a href="function.shmop-open.html">shmop_open</a> &mdash; Create or open shared memory block</li><li><a href="function.shmop-read.html">shmop_read</a> &mdash; Read data from shared memory block</li><li><a href="function.shmop-size.html">shmop_size</a> &mdash; Get size of shared memory block</li><li><a href="function.shmop-write.html">shmop_write</a> &mdash; Write data into shared memory block</li></ul>
+</div>
+<div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="122703""></a>
+  <div class="note">
+   <strong class="user">Arikania</strong>
+   <a href="#122703" class="date">06-May-2018 04:11</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The shmop implementation as described in this help page is acttually merely a ramdisk / tmpfs that exists only within php, and even only on the linux servers. Or am I missing something?<br />
+<br />
+On windows, the very same functionality can easily be achieved by creating such disk.<br />
+<br />
+In fact, on my own server, I do use a tmpfs disk instead of the - as it appears to me - limited shmop feature.<br />
+<br />
+Why not implement a $_SHARED or $_MUTUAL SuperGlobal in which we can create variables at will, and that is shared by all connections?<br />
+<br />
+This would greatly improve performance of many PHP applications, and could save a lot of burden on server memory. Especially if those variables could be classes containing functions.<br />
+<br />
+You could implement that it is up to the programmer to guard atomicity.<br />
+<br />
+Such superglobal would be feasible on windows servers as well.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="61692""></a>
+  <div class="note">
+   <strong class="user">joeldg at gmail.com</strong>
+   <a href="#61692" class="date">09-Feb-2006 11:28</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I wrote a php memcache back in 2003 as a sort of proof of concept
+<br />
+it is use on a few machines for doing heavy page load caching...
+<br />
+it works very well.
+<br />
+Following are some of the core functions I made 
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+</span><span class="comment">###############################################
+<br />
+#### shared mem functions
+<br />
+/*
+<br />
+&nbsp;&nbsp;&nbsp; for debugging these
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; use `ipcs` to view current memory
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; use `ipcrm -m {shmid}` to remove
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; on some systems use `ipcclean` to clean up unused memory if you
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; don't want to do it by hand
+<br />
+*/
+<br />
+###############################################
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">function </span><span class="default">get_key</span><span class="keyword">(</span><span class="default">$fsize</span><span class="keyword">, </span><span class="default">$file</span><span class="keyword">){
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(!</span><span class="default">file_exists</span><span class="keyword">(</span><span class="default">TMPDIR</span><span class="keyword">.</span><span class="default">TMPPRE</span><span class="keyword">.</span><span class="default">$file</span><span class="keyword">)){
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">touch</span><span class="keyword">(</span><span class="default">TMPDIR</span><span class="keyword">.</span><span class="default">TMPPRE</span><span class="keyword">.</span><span class="default">$file</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$shmkey </span><span class="keyword">= @</span><span class="default">shmop_open</span><span class="keyword">(</span><span class="default">ftok</span><span class="keyword">(</span><span class="default">TMPDIR</span><span class="keyword">.</span><span class="default">TMPPRE</span><span class="keyword">.</span><span class="default">$file</span><span class="keyword">, </span><span class="string">'R'</span><span class="keyword">), </span><span class="string">"c"</span><span class="keyword">, </span><span class="default">0644</span><span class="keyword">, </span><span class="default">$fsize</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(!</span><span class="default">$shmkey</span><span class="keyword">) {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }else{
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$shmkey</span><span class="keyword">;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }</span><span class="comment">//fi
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">}
+<br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">writemem</span><span class="keyword">(</span><span class="default">$fdata</span><span class="keyword">, </span><span class="default">$shmkey</span><span class="keyword">){
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">MEMCOMPRESS </span><span class="keyword">&amp;&amp; </span><span class="default">function_exists</span><span class="keyword">(</span><span class="string">'gzcompress'</span><span class="keyword">)){
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$fdata </span><span class="keyword">= @</span><span class="default">gzcompress</span><span class="keyword">(</span><span class="default">$fdata</span><span class="keyword">, </span><span class="default">MEMCOMPRESSLVL</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$fsize </span><span class="keyword">= </span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$fdata</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$shm_bytes_written </span><span class="keyword">= </span><span class="default">shmop_write</span><span class="keyword">(</span><span class="default">$shmkey</span><span class="keyword">, </span><span class="default">$fdata</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">updatestats</span><span class="keyword">(</span><span class="default">$shm_bytes_written</span><span class="keyword">, </span><span class="string">"add"</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">$shm_bytes_written </span><span class="keyword">!= </span><span class="default">$fsize</span><span class="keyword">) {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }else{
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$shm_bytes_written</span><span class="keyword">;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }</span><span class="comment">//fi
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">}
+<br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">readmem</span><span class="keyword">(</span><span class="default">$shmkey</span><span class="keyword">, </span><span class="default">$shm_size</span><span class="keyword">){
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$my_string </span><span class="keyword">= @</span><span class="default">shmop_read</span><span class="keyword">(</span><span class="default">$shmkey</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">, </span><span class="default">$shm_size</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">MEMCOMPRESS </span><span class="keyword">&amp;&amp; </span><span class="default">function_exists</span><span class="keyword">(</span><span class="string">'gzuncompress'</span><span class="keyword">)){
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$my_string </span><span class="keyword">= @</span><span class="default">gzuncompress</span><span class="keyword">(</span><span class="default">$my_string</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(!</span><span class="default">$my_string</span><span class="keyword">) {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }else{
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$my_string</span><span class="keyword">;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }</span><span class="comment">//fi
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">}
+<br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">deletemem</span><span class="keyword">(</span><span class="default">$shmkey</span><span class="keyword">){
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$size </span><span class="keyword">= @</span><span class="default">shmop_size</span><span class="keyword">(</span><span class="default">$shmkey</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">$size </span><span class="keyword">&gt; </span><span class="default">0</span><span class="keyword">){ </span><span class="default">updatestats</span><span class="keyword">(</span><span class="default">$size</span><span class="keyword">, </span><span class="string">"del"</span><span class="keyword">); }
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(!@</span><span class="default">shmop_delete</span><span class="keyword">(</span><span class="default">$shmkey</span><span class="keyword">)) {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; @</span><span class="default">shmop_close</span><span class="keyword">(</span><span class="default">$shmkey</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }else{
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; @</span><span class="default">shmop_close</span><span class="keyword">(</span><span class="default">$shmkey</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">true</span><span class="keyword">;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }
+<br />
+&nbsp;&nbsp;&nbsp; }
+<br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">closemem</span><span class="keyword">(</span><span class="default">$shmkey</span><span class="keyword">){
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(!</span><span class="default">shmop_close</span><span class="keyword">(</span><span class="default">$shmkey</span><span class="keyword">)) {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }else{
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">true</span><span class="keyword">;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }
+<br />
+&nbsp;&nbsp;&nbsp; }
+<br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">iskey</span><span class="keyword">(</span><span class="default">$size</span><span class="keyword">, </span><span class="default">$key</span><span class="keyword">){
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">$ret </span><span class="keyword">= </span><span class="default">get_key</span><span class="keyword">(</span><span class="default">$size</span><span class="keyword">, </span><span class="default">$key</span><span class="keyword">)){
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$ret</span><span class="keyword">;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }else{
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }
+<br />
+&nbsp;&nbsp;&nbsp; }
+<br />
+</span><span class="comment">################################################
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="61242""></a>
+  <div class="note">
+   <strong class="user">Roy &lt;roy AT enhost.com&gt;</strong>
+   <a href="#61242" class="date">28-Jan-2006 09:58</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I have written a script to highlight the superiority of shared memory storage.
+<br />
+Although it doesn't use the shmop function, the underlying concept is similar.
+<br />
+'/shm_dir/' is a tmpfs directory, which is based on shared memory, that I have mounted on the server.
+<br />
+
+<br />
+Below is the result on an Intel Pentium VI 2.8 server:
+<br />
+
+<br />
+IO test on 1000 files
+<br />
+IO Result of Regular Directory : 0.079015016555786
+<br />
+IO Result of Shared Memory Directory : 0.047761917114258
+<br />
+
+<br />
+IO test on 10000 files
+<br />
+IO Result of Regular Directory : 3.7090260982513
+<br />
+IO Result of Shared Memory Directory : 0.46256303787231
+<br />
+
+<br />
+IO test on 40000 files
+<br />
+IO Result of Regular Directory : 117.35703110695 seconds
+<br />
+IO Result of Shared Memory Directory : 2.6221358776093 seconds
+<br />
+
+<br />
+The difference is not very apparent nor convincing at 100 files.
+<br />
+But when we step it up a level to 10000 and 40000 files, it becomes pretty obvious that Shared Memory is a better contender.
+<br />
+
+<br />
+Script courtesy of <a href="http://www.enhost.com" rel="nofollow" target="_blank">http://www.enhost.com</a>
+<br />
+
+<br />
+<span class="default">&lt;?php
+<br />
+set_time_limit</span><span class="keyword">(</span><span class="default">0</span><span class="keyword">);
+<br />
+
+<br />
+</span><span class="comment">// Your regular directory. Make sure it is write enabled
+<br />
+</span><span class="default">$setting</span><span class="keyword">[</span><span class="string">'regular_dir'</span><span class="keyword">] =&nbsp; </span><span class="string">'/home/user/regular_directory/'</span><span class="keyword">;&nbsp; &nbsp; 
+<br />
+
+<br />
+</span><span class="comment">// Your shared memory directory. 
+<br />
+</span><span class="default">$setting</span><span class="keyword">[</span><span class="string">'shm_dir'</span><span class="keyword">] =&nbsp; </span><span class="string">'/shm_dir/'</span><span class="keyword">;&nbsp; &nbsp; 
+<br />
+
+<br />
+</span><span class="comment">// Number of files to read and write
+<br />
+</span><span class="default">$setting</span><span class="keyword">[</span><span class="string">'files'</span><span class="keyword">] =&nbsp; </span><span class="default">40000</span><span class="keyword">;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 
+<br />
+
+<br />
+function </span><span class="default">IO_Test</span><span class="keyword">(</span><span class="default">$mode</span><span class="keyword">)
+<br />
+{
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$starttime </span><span class="keyword">= </span><span class="default">time</span><span class="keyword">()+</span><span class="default">microtime</span><span class="keyword">();
+<br />
+
+<br />
+&nbsp;&nbsp;&nbsp; global </span><span class="default">$setting</span><span class="keyword">;
+<br />
+
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; for(</span><span class="default">$i </span><span class="keyword">= </span><span class="default">0 </span><span class="keyword">; </span><span class="default">$i</span><span class="keyword">&lt; </span><span class="default">$setting</span><span class="keyword">[</span><span class="string">'files'</span><span class="keyword">] ;</span><span class="default">$i</span><span class="keyword">++)
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$filename </span><span class="keyword">= </span><span class="default">$setting</span><span class="keyword">[</span><span class="default">$mode</span><span class="keyword">].</span><span class="string">'test'</span><span class="keyword">.</span><span class="default">$i</span><span class="keyword">.</span><span class="string">'.txt'</span><span class="keyword">;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$content </span><span class="keyword">= </span><span class="string">"Just a random content"</span><span class="keyword">;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; 
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Just some error detection
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="keyword">if (!</span><span class="default">$handle </span><span class="keyword">= </span><span class="default">fopen</span><span class="keyword">(</span><span class="default">$filename</span><span class="keyword">, </span><span class="string">'w+'</span><span class="keyword">)) 
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; echo </span><span class="string">"Can't open the file "</span><span class="keyword">.</span><span class="default">$filename</span><span class="keyword">;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; exit;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if (</span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$handle</span><span class="keyword">, </span><span class="default">$content </span><span class="keyword">) === </span><span class="default">FALSE</span><span class="keyword">) 
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; echo </span><span class="string">"Can't write to file : "</span><span class="keyword">.</span><span class="default">$filename</span><span class="keyword">;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; exit;
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$handle</span><span class="keyword">);
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Read Test
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">file_get_contents</span><span class="keyword">(</span><span class="default">$filename</span><span class="keyword">);
+<br />
+&nbsp;&nbsp;&nbsp; 
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }
+<br />
+
+<br />
+&nbsp;&nbsp; </span><span class="default">$endtime </span><span class="keyword">= </span><span class="default">time</span><span class="keyword">()+</span><span class="default">microtime</span><span class="keyword">(); 
+<br />
+&nbsp;&nbsp; 
+<br />
+&nbsp;&nbsp; </span><span class="default">$totaltime </span><span class="keyword">= (</span><span class="default">$endtime </span><span class="keyword">- </span><span class="default">$starttime</span><span class="keyword">); 
+<br />
+&nbsp;&nbsp; 
+<br />
+&nbsp;&nbsp; return </span><span class="default">$totaltime</span><span class="keyword">;
+<br />
+
+<br />
+}
+<br />
+
+<br />
+echo </span><span class="string">'&lt;b&gt;IO test on '</span><span class="keyword">.</span><span class="default">$setting</span><span class="keyword">[</span><span class="string">'files'</span><span class="keyword">]. </span><span class="string">' files&lt;/b&gt;&lt;br&gt;'</span><span class="keyword">;
+<br />
+echo </span><span class="string">'IO Result of &lt;b&gt;Regular&lt;/b&gt; Directory : '</span><span class="keyword">.</span><span class="default">IO_Test</span><span class="keyword">(</span><span class="string">'regular_dir'</span><span class="keyword">)&nbsp;&nbsp; .</span><span class="string">' seconds&lt;br&gt;'</span><span class="keyword">;
+<br />
+echo </span><span class="string">'IO Result of &lt;b&gt;Shared Memory&lt;/b&gt; Directory : '</span><span class="keyword">.</span><span class="default">IO_Test</span><span class="keyword">(</span><span class="string">'shm_dir'</span><span class="keyword">)&nbsp; &nbsp; &nbsp;&nbsp; .</span><span class="string">' seconds&lt;br&gt;'</span><span class="keyword">;
+<br />
+
+<br />
+</span><span class="comment">/* Removal of files to avoid underestimation
+<br />
+#
+<br />
+#&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; Failure to remove files will result in inaccurate benchmark
+<br />
+#&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; as it will result in the IO_Test function not re-creating the existing files 
+<br />
+*/ 
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">foreach ( </span><span class="default">glob</span><span class="keyword">(</span><span class="default">$setting</span><span class="keyword">[</span><span class="string">'regular_dir'</span><span class="keyword">].</span><span class="string">"*.txt"</span><span class="keyword">) as </span><span class="default">$filename</span><span class="keyword">) {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; </span><span class="default">unlink</span><span class="keyword">(</span><span class="default">$filename</span><span class="keyword">);</span><span class="default">$cnt </span><span class="keyword">++;
+<br />
+&nbsp;&nbsp;&nbsp; }
+<br />
+&nbsp;&nbsp;&nbsp; foreach ( </span><span class="default">glob</span><span class="keyword">(</span><span class="default">$setting</span><span class="keyword">[</span><span class="string">'shm_dir'</span><span class="keyword">].</span><span class="string">"*.txt"</span><span class="keyword">) as </span><span class="default">$filename</span><span class="keyword">) {
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; </span><span class="default">unlink</span><span class="keyword">(</span><span class="default">$filename</span><span class="keyword">);</span><span class="default">$cnt </span><span class="keyword">++;
+<br />
+&nbsp;&nbsp;&nbsp; }
+<br />
+
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="57184""></a>
+  <div class="note">
+   <strong class="user">hackie at prohost dot org</strong>
+   <a href="#57184" class="date">26-Sep-2005 09:33</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+It's not the job of the shmop extension to provide locking, there are many locking schemes avalible, if you need some sort of atomic operations choose a locking scheme that suits you and use it.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="48785""></a>
+  <div class="note">
+   <strong class="user">Craig Manley</strong>
+   <a href="#48785" class="date">06-Jan-2005 03:19</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Since there is no mention of the (lack of) need for locking here, I took a look into the shmop.c extensions code. So correct me if I'm wrong, but the shmop.c extension uses memcpy() to copy strings to and from shared memory without any form of locking, and as far as I know, memcpy() is not atomic.<br />
+<br />
+If that's true as I suspect, then these 'easy to use' functions are not so 'easy to use' any more and have to be wrapped in locks (e.g. semaphores, flocks, whatever).</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="23616""></a>
+  <div class="note">
+   <strong class="user">stoimenov at email dot com</strong>
+   <a href="#23616" class="date">23-Jul-2002 05:18</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Windows does support shared memory through memory mapped file. Check the following functions for details:<br />
+<br />
+&nbsp;* CreateFileMapping<br />
+&nbsp;* MapViewOfFile</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="10592""></a>
+  <div class="note">
+   <strong class="user">rei at prohost dot org</strong>
+   <a href="#10592" class="date">11-Jan-2001 03:16</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The idea behind SHMOP is an easy to use shared memory interface, 
+<br />
+without any additional headers added to the shared memory segment 
+<br />
+or requiring any special special controls to access the shared memory
+<br />
+segment outside of PHP. SHMOP borrows its api from C's api to shm,
+<br />
+which makes it very easy to use, because it treats shared memory, like C, as&nbsp; &nbsp; 
+<br />
+a file of sorts. This makes it very easy to use even for novices, due to this&nbsp; 
+<br />
+functionality. Most importantly SHMOP uses shm segments to store raw data,
+<br />
+which means you don't need to worry about matching headers, etc... when you are
+<br />
+using C, perl or other programming languages to open/create/read/write shm segments
+<br />
+that were create or are going to be used by PHP. In this it differs from
+<br />
+sysvshm, who's shm interface uses a specialized header, which resides inside
+<br />
+the shared memory segment this adds an unnecessary level of difficulty when
+<br />
+you want to access php shm from external programs.
+<br />
+Also, from my personal tests in Linux 2.2/2.4 and FreeBSD 3.3 SHMOP is about
+<br />
+20% faster then sysvshm, mostly due to fact it does not need to parse the
+<br />
+specialized header and stores the data in raw form.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="10590""></a>
+  <div class="note">
+   <strong class="user">slavapl at mailandnews dot com</strong>
+   <a href="#10590" class="date">11-Jan-2001 03:02</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+What you need to realise is that sysvshm is extremly php oriented in it's ability, it's quite a kludge interfacing other NON PHP utilities with it. For example have you tried using sysvshm to read an shm segment NOT created by php? It's not possible, because sysvshm uses a proprietry format, in essense it can ONLY be used within PHP unless of course you take time to figure out this format. 
+<br />
+So basically, the purpose of shmop is to provide a symple interface to shared memory that can be used with OTHER NON php shm creators. 
+<br />
+
+<br />
+Hope this clears it up.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

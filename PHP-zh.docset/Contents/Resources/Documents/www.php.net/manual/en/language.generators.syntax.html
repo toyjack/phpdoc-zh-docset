@@ -1,0 +1,677 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>生成器语法</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="language.generators.overview.html">? 生成器总览</a></li>
+      <li style="float: right;"><a href="language.generators.comparison.html">Comparing generators with Iterator objects ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="language.generators.html">生成器</a></li>
+    <li>生成器语法</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="language.generators.syntax" class="sect1">
+  <h2 class="title">生成器语法</h2>
+
+  <p class="para">
+   一个生成器函数看起来像一个普通的函数，不同的是普通函数返回一个值，而一个生成器可以<a href="language.generators.syntax.html#control-structures.yield" class="link">yield</a>生成许多它所需要的值。
+  </p>
+
+  <p class="para">
+   当一个生成器被调用的时候，它返回一个可以被遍历的对象.当你遍历这个对象的时候(例如通过一个<a href="control-structures.foreach.html" class="link">foreach</a>循环)，PHP  将会在每次需要值的时候调用生成器函数，并在产生一个值之后保存生成器的状态，这样它就可以在需要产生下一个值的时候恢复调用状态。
+  </p>
+
+  <p class="para">
+   一旦不再需要产生更多的值，生成器函数可以简单退出，而调用生成器的代码还可以继续执行，就像一个数组已经被遍历完了。
+  </p>
+
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <p class="para">
+    一个生成器不可以返回值： 这样做会产生一个编译错误。然而<strong class="command">return</strong>空是一个有效的语法并且它将会终止生成器继续执行。
+   </p>
+  </p></blockquote>
+
+  <div class="sect2" id="control-structures.yield">
+   <h3 class="title"><strong class="command">yield</strong>关键字</h3>
+ 
+   <p class="para">
+    生成器函数的核心是<strong class="command">yield</strong>关键字。它最简单的调用形式看起来像一个return申明，不同之处在于普通return会返回值并终止函数的执行，而yield会返回一个值给循环调用此生成器的代码并且只是暂停执行生成器函数。
+   </p>
+
+   <div class="example" id="example-288">
+    <p><strong>Example #1 一个简单的生成值的例子</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">function&nbsp;</span><span style="color: #0000BB">gen_one_to_three</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;(</span><span style="color: #0000BB">$i&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">;&nbsp;</span><span style="color: #0000BB">$i&nbsp;</span><span style="color: #007700">&lt;=&nbsp;</span><span style="color: #0000BB">3</span><span style="color: #007700">;&nbsp;</span><span style="color: #0000BB">$i</span><span style="color: #007700">++)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//注意变量$i的值在不同的yield之间是保持传递的。<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">yield&nbsp;</span><span style="color: #0000BB">$i</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br /></span><span style="color: #0000BB">$generator&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">gen_one_to_three</span><span style="color: #007700">();<br />foreach&nbsp;(</span><span style="color: #0000BB">$generator&nbsp;</span><span style="color: #007700">as&nbsp;</span><span style="color: #0000BB">$value</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"</span><span style="color: #0000BB">$value</span><span style="color: #DD0000">\n"</span><span style="color: #007700">;<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+    <div class="example-contents"><p>以上例程会输出：</p></div>
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+1
+2
+3
+</pre></div>
+    </div>
+   </div>
+
+   <blockquote class="note"><p><strong class="note">Note</strong>: 
+    <p class="para">
+     在内部会为生成的值配对连续的整型索引，就像一个非关联的数组。
+    </p>
+   </p></blockquote>
+
+   <div class="caution"><strong class="caution">Caution</strong>
+    <p class="para">
+     如果在一个表达式上下文(例如在一个赋值表达式的右侧)中使用yield，你必须使用圆括号把yield申明包围起来。 例如这样是有效的：
+    </p>
+
+    <div class="informalexample">
+     <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+$data&nbsp;=&nbsp;(yield&nbsp;$value);</span>
+</code></div>
+     </div>
+
+    </div>
+
+    <p class="para">
+     而这样就不合法，并且在PHP5中会产生一个编译错误：
+    </p>
+
+    <div class="informalexample">
+     <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+$data&nbsp;=&nbsp;yield&nbsp;$value;</span>
+</code></div>
+     </div>
+
+    </div>
+
+    <p class="para">
+     The parenthetical restrictions do not apply in PHP 7.
+    </p>
+
+    <p class="para">
+     这个语法可以和生成器对象的<span class="methodname"><a href="generator.send.html" class="methodname">Generator::send()</a></span>方法配合使用。
+    </p>
+   </div>
+   
+   <div class="sect3" id="control-structures.yield.associative">
+    <h4 class="title">指定键名来生成值</h4>
+    
+    <p class="para">
+     PHP的数组支持关联键值对数组，生成器也一样支持。所以除了生成简单的值，你也可以在生成值的时候指定键名。
+    </p>
+    
+    <p class="para">
+     如下所示，生成一个键值对与定义一个关联数组十分相似。
+    </p>
+    
+    <div class="example" id="example-289">
+     <p><strong>Example #2 生成一个键值对</strong></p>
+     <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">/*&nbsp;<br />&nbsp;*&nbsp;下面每一行是用分号分割的字段组合，第一个字段将被用作键名。<br />&nbsp;*/<br /><br /></span><span style="color: #0000BB">$input&nbsp;</span><span style="color: #007700">=&nbsp;&lt;&lt;&lt;'EOF'<br /></span><span style="color: #DD0000">1;PHP;Likes&nbsp;dollar&nbsp;signs<br />2;Python;Likes&nbsp;whitespace<br />3;Ruby;Likes&nbsp;blocks<br /></span><span style="color: #007700">EOF;<br /><br />function&nbsp;</span><span style="color: #0000BB">input_parser</span><span style="color: #007700">(</span><span style="color: #0000BB">$input</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;foreach&nbsp;(</span><span style="color: #0000BB">explode</span><span style="color: #007700">(</span><span style="color: #DD0000">"\n"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$input</span><span style="color: #007700">)&nbsp;as&nbsp;</span><span style="color: #0000BB">$line</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$fields&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">explode</span><span style="color: #007700">(</span><span style="color: #DD0000">';'</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$line</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$id&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">array_shift</span><span style="color: #007700">(</span><span style="color: #0000BB">$fields</span><span style="color: #007700">);<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;</span><span style="color: #0000BB">$id&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #0000BB">$fields</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br />foreach&nbsp;(</span><span style="color: #0000BB">input_parser</span><span style="color: #007700">(</span><span style="color: #0000BB">$input</span><span style="color: #007700">)&nbsp;as&nbsp;</span><span style="color: #0000BB">$id&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #0000BB">$fields</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"</span><span style="color: #0000BB">$id</span><span style="color: #DD0000">:\n"</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$fields</span><span style="color: #007700">[</span><span style="color: #0000BB">0</span><span style="color: #007700">]</span><span style="color: #DD0000">\n"</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$fields</span><span style="color: #007700">[</span><span style="color: #0000BB">1</span><span style="color: #007700">]</span><span style="color: #DD0000">\n"</span><span style="color: #007700">;<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+     </div>
+
+     <div class="example-contents"><p>以上例程会输出：</p></div>
+     <div class="example-contents screen">
+<div class="cdata"><pre>
+1:
+    PHP
+    Likes dollar signs
+2:
+    Python
+    Likes whitespace
+3:
+    Ruby
+    Likes blocks
+</pre></div>
+     </div>
+    </div>
+
+    <div class="caution"><strong class="caution">Caution</strong>
+     <p class="para">
+      和之前生成简单值类型一样，在一个表达式上下文中生成键值对也需要使用圆括号进行包围：
+     </p>
+
+     <div class="informalexample">
+      <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+$data&nbsp;=&nbsp;(yield&nbsp;$key&nbsp;=&gt;&nbsp;$value);</span>
+</code></div>
+      </div>
+
+     </div>
+    </div>
+   </div>
+   
+   <div class="sect3" id="control-structures.yield.null">
+    <h4 class="title">生成null值</h4>
+    
+    <p class="para">
+     Yield可以在没有参数传入的情况下被调用来生成一个 <strong><code>NULL</code></strong>值并配对一个自动的键名。
+    </p>
+    
+    <div class="example" id="example-290">
+     <p><strong>Example #3 生成<strong><code>NULL</code></strong>s</strong></p>
+     <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">function&nbsp;</span><span style="color: #0000BB">gen_three_nulls</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;foreach&nbsp;(</span><span style="color: #0000BB">range</span><span style="color: #007700">(</span><span style="color: #0000BB">1</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">3</span><span style="color: #007700">)&nbsp;as&nbsp;</span><span style="color: #0000BB">$i</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;yield;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br /></span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">iterator_to_array</span><span style="color: #007700">(</span><span style="color: #0000BB">gen_three_nulls</span><span style="color: #007700">()));<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+     </div>
+
+     <div class="example-contents"><p>以上例程会输出：</p></div>
+     <div class="example-contents screen">
+<div class="cdata"><pre>
+array(3) {
+  [0]=&gt;
+  NULL
+  [1]=&gt;
+  NULL
+  [2]=&gt;
+  NULL
+}
+</pre></div>
+     </div>
+    </div>
+   </div>
+   
+   <div class="sect3" id="control-structures.yield.references">
+    <h4 class="title">使用引用来生成值</h4>
+    
+    <p class="para">
+     生成函数可以像使用值一样来使用引用生成。这个和<a href="functions.returning-values.html" class="link">returning references from functions</a>（从函数返回一个引用）一样：通过在函数名前面加一个引用符号。
+    </p>
+    
+    <div class="example" id="example-291">
+     <p><strong>Example #4 使用引用来生成值</strong></p>
+     <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">function&nbsp;&amp;</span><span style="color: #0000BB">gen_reference</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$value&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">3</span><span style="color: #007700">;<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;while&nbsp;(</span><span style="color: #0000BB">$value&nbsp;</span><span style="color: #007700">&gt;&nbsp;</span><span style="color: #0000BB">0</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;</span><span style="color: #0000BB">$value</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br /></span><span style="color: #FF8000">/*&nbsp;<br />&nbsp;*&nbsp;我们可以在循环中修改$number的值，而生成器是使用的引用值来生成，所以gen_reference()内部的$value值也会跟着变化。<br />&nbsp;*/<br /></span><span style="color: #007700">foreach&nbsp;(</span><span style="color: #0000BB">gen_reference</span><span style="color: #007700">()&nbsp;as&nbsp;&amp;</span><span style="color: #0000BB">$number</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;(--</span><span style="color: #0000BB">$number</span><span style="color: #007700">).</span><span style="color: #DD0000">'...&nbsp;'</span><span style="color: #007700">;<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+     </div>
+
+     <div class="example-contents"><p>以上例程会输出：</p></div>
+     <div class="example-contents screen">
+<div class="cdata"><pre>
+2... 1... 0... 
+</pre></div>
+     </div>
+    </div>
+   </div>
+
+   <div class="sect3" id="control-structures.yield.from">
+    <h4 class="title">Generator delegation via <strong class="command">yield from</strong></h4>
+
+    <p class="para">
+     In PHP 7, generator delegation allows you to yield values from another
+     generator, <strong class="classname">Traversable</strong> object, or
+     <span class="type"><a href="language.types.array.html" class="type array">array</a></span> by using the <strong class="command">yield from</strong> keyword.
+     The outer generator will then yield all values from the inner generator,
+     object, or array until that is no longer valid, after which execution
+     will continue in the outer generator.
+    </p>
+
+    <p class="para">
+     If a generator is used with <strong class="command">yield from</strong>, the
+     <strong class="command">yield from</strong> expression will also return any value
+     returned by the inner generator.
+    </p>
+
+    <div class="example" id="example-292">
+     <p><strong>Example #5 Basic use of <strong class="command">yield from</strong></strong></p>
+     <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">function&nbsp;</span><span style="color: #0000BB">count_to_ten</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;</span><span style="color: #0000BB">2</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;from&nbsp;[</span><span style="color: #0000BB">3</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">4</span><span style="color: #007700">];<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;from&nbsp;new&nbsp;</span><span style="color: #0000BB">ArrayIterator</span><span style="color: #007700">([</span><span style="color: #0000BB">5</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">6</span><span style="color: #007700">]);<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;from&nbsp;</span><span style="color: #0000BB">seven_eight</span><span style="color: #007700">();<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;</span><span style="color: #0000BB">9</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;</span><span style="color: #0000BB">10</span><span style="color: #007700">;<br />}<br /><br />function&nbsp;</span><span style="color: #0000BB">seven_eight</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;</span><span style="color: #0000BB">7</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;from&nbsp;</span><span style="color: #0000BB">eight</span><span style="color: #007700">();<br />}<br /><br />function&nbsp;</span><span style="color: #0000BB">eight</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;</span><span style="color: #0000BB">8</span><span style="color: #007700">;<br />}<br /><br />foreach&nbsp;(</span><span style="color: #0000BB">count_to_ten</span><span style="color: #007700">()&nbsp;as&nbsp;</span><span style="color: #0000BB">$num</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"</span><span style="color: #0000BB">$num</span><span style="color: #DD0000">&nbsp;"</span><span style="color: #007700">;<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+     </div>
+
+     <div class="example-contents"><p>以上例程会输出：</p></div>
+     <div class="example-contents screen">
+<div class="cdata"><pre>
+1 2 3 4 5 6 7 8 9 10 
+</pre></div>
+     </div>
+    </div>
+
+    <div class="example" id="example-293">
+     <p><strong>Example #6 <strong class="command">yield from</strong> and return values</strong></p>
+     <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">function&nbsp;</span><span style="color: #0000BB">count_to_ten</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;</span><span style="color: #0000BB">2</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;from&nbsp;[</span><span style="color: #0000BB">3</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">4</span><span style="color: #007700">];<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;from&nbsp;new&nbsp;</span><span style="color: #0000BB">ArrayIterator</span><span style="color: #007700">([</span><span style="color: #0000BB">5</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">6</span><span style="color: #007700">]);<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;from&nbsp;</span><span style="color: #0000BB">seven_eight</span><span style="color: #007700">();<br />&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;yield&nbsp;from&nbsp;</span><span style="color: #0000BB">nine_ten</span><span style="color: #007700">();<br />}<br /><br />function&nbsp;</span><span style="color: #0000BB">seven_eight</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;</span><span style="color: #0000BB">7</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;from&nbsp;</span><span style="color: #0000BB">eight</span><span style="color: #007700">();<br />}<br /><br />function&nbsp;</span><span style="color: #0000BB">eight</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;</span><span style="color: #0000BB">8</span><span style="color: #007700">;<br />}<br /><br />function&nbsp;</span><span style="color: #0000BB">nine_ten</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;</span><span style="color: #0000BB">9</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;</span><span style="color: #0000BB">10</span><span style="color: #007700">;<br />}<br /><br /></span><span style="color: #0000BB">$gen&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">count_to_ten</span><span style="color: #007700">();<br />foreach&nbsp;(</span><span style="color: #0000BB">$gen&nbsp;</span><span style="color: #007700">as&nbsp;</span><span style="color: #0000BB">$num</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"</span><span style="color: #0000BB">$num</span><span style="color: #DD0000">&nbsp;"</span><span style="color: #007700">;<br />}<br />echo&nbsp;</span><span style="color: #0000BB">$gen</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">getReturn</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+     </div>
+
+     <div class="example-contents"><p>以上例程会输出：</p></div>
+     <div class="example-contents screen">
+<div class="cdata"><pre>
+1 2 3 4 5 6 7 8 9 10
+</pre></div>
+     </div>
+    </div>
+   </div>
+  </div>
+ </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="123983""></a>
+  <div class="note">
+   <strong class="user">christianggimenez at gmail dot com</strong>
+   <a href="#123983" class="date">24-Jun-2019 09:36</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Module list of a number from 1 to 100.<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">function </span><span class="default">list_of_modulo</span><span class="keyword">(){<br />
+<br />
+&nbsp;&nbsp;&nbsp; for(</span><span class="default">$i </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">; </span><span class="default">$i </span><span class="keyword">&lt;= </span><span class="default">100</span><span class="keyword">; </span><span class="default">$i</span><span class="keyword">++){<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if((</span><span class="default">$i </span><span class="keyword">% </span><span class="default">2</span><span class="keyword">) == </span><span class="default">0</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; yield </span><span class="default">$i</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">$modulos </span><span class="keyword">= </span><span class="default">list_of_modulo</span><span class="keyword">();<br />
+<br />
+foreach(</span><span class="default">$modulos </span><span class="keyword">as </span><span class="default">$value</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"</span><span class="default">$value</span><span class="string">\n"</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118526""></a>
+  <div class="note">
+   <strong class="user">Hayley Watson</strong>
+   <a href="#118526" class="date">21-Dec-2015 09:14</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If for some strange reason you need a generator that doesn't yield anything, an empty function doesn't work; the function needs a yield statement to be recognised as a generator.<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">function </span><span class="default">gndn</span><span class="keyword">()<br />
+{<br />
+}<br />
+<br />
+foreach(</span><span class="default">gndn</span><span class="keyword">() as </span><span class="default">$it</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">'FNORD'</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+&nbsp;But it's enough to have the yield syntactically present even if it's not reachable:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">function </span><span class="default">gndn</span><span class="keyword">()<br />
+{<br />
+&nbsp;&nbsp;&nbsp; if(</span><span class="default">false</span><span class="keyword">) { yield; }<br />
+}<br />
+<br />
+foreach(</span><span class="default">gndn</span><span class="keyword">() as </span><span class="default">$it</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">'FNORD'</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118316""></a>
+  <div class="note">
+   <strong class="user">zilvinas at kuusas dot lt</strong>
+   <a href="#118316" class="date">16-Nov-2015 09:18</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Do not call generator functions directly, that won't work.<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">function </span><span class="default">my_transform</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$value </span><span class="keyword">* </span><span class="default">2</span><span class="keyword">;<br />
+}<br />
+<br />
+function </span><span class="default">my_function</span><span class="keyword">(array </span><span class="default">$values</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; foreach (</span><span class="default">$values </span><span class="keyword">as </span><span class="default">$value</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; yield </span><span class="default">my_transform</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">$data </span><span class="keyword">= [</span><span class="default">1</span><span class="keyword">, </span><span class="default">5</span><span class="keyword">, </span><span class="default">10</span><span class="keyword">];<br />
+</span><span class="comment">// my_transform() won't be called inside my_function()<br />
+</span><span class="default">my_function</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">);<br />
+<br />
+</span><span class="comment"># my_transform() will be called.<br />
+</span><span class="keyword">foreach (</span><span class="default">my_function</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">) as </span><span class="default">$val</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// ...<br />
+</span><span class="keyword">}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117460""></a>
+  <div class="note">
+   <strong class="user">Harun Yasar harunyasar at mail dot com</strong>
+   <a href="#117460" class="date">12-Jun-2015 02:43</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+That is a simple fibonacci generator.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">fibonacci</span><span class="keyword">(</span><span class="default">$item</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$a </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$b </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; for (</span><span class="default">$i </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">; </span><span class="default">$i </span><span class="keyword">&lt; </span><span class="default">$item</span><span class="keyword">; </span><span class="default">$i</span><span class="keyword">++) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; yield </span><span class="default">$a</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$a </span><span class="keyword">= </span><span class="default">$b </span><span class="keyword">- </span><span class="default">$a</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$b </span><span class="keyword">= </span><span class="default">$a </span><span class="keyword">+ </span><span class="default">$b</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="comment"># give me the first ten fibonacci numbers<br />
+</span><span class="default">$fibo </span><span class="keyword">= </span><span class="default">fibonacci</span><span class="keyword">(</span><span class="default">10</span><span class="keyword">);<br />
+foreach (</span><span class="default">$fibo </span><span class="keyword">as </span><span class="default">$value</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"</span><span class="default">$value</span><span class="string">\n"</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116577""></a>
+  <div class="note">
+   <strong class="user">info at boukeversteegh dot nl</strong>
+   <a href="#116577" class="date">23-Jan-2015 07:02</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+[This comment replaces my previous comment]<br />
+<br />
+You can use generators to do lazy loading of lists. You only compute the items that are actually used. However, when you want to load more items, how to cache the ones already loaded?<br />
+<br />
+Here is how to do cached lazy loading with a generator:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">CachedGenerator </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; protected </span><span class="default">$cache </span><span class="keyword">= [];<br />
+&nbsp;&nbsp;&nbsp; protected </span><span class="default">$generator </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__construct</span><span class="keyword">(</span><span class="default">$generator</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">generator </span><span class="keyword">= </span><span class="default">$generator</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">generator</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">cache </span><span class="keyword">as </span><span class="default">$item</span><span class="keyword">) yield </span><span class="default">$item</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; while( </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">generator</span><span class="keyword">-&gt;</span><span class="default">valid</span><span class="keyword">() ) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">cache</span><span class="keyword">[] = </span><span class="default">$current </span><span class="keyword">= </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">generator</span><span class="keyword">-&gt;</span><span class="default">current</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">generator</span><span class="keyword">-&gt;</span><span class="default">next</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; yield </span><span class="default">$current</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+class </span><span class="default">Foobar </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; protected </span><span class="default">$loader </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp;&nbsp; protected function </span><span class="default">loadItems</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach(</span><span class="default">range</span><span class="keyword">(</span><span class="default">0</span><span class="keyword">,</span><span class="default">10</span><span class="keyword">) as </span><span class="default">$i</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">usleep</span><span class="keyword">(</span><span class="default">200000</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; yield </span><span class="default">$i</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">getItems</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">loader </span><span class="keyword">= </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">loader </span><span class="keyword">?: new </span><span class="default">CachedGenerator</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">loadItems</span><span class="keyword">());<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">loader</span><span class="keyword">-&gt;</span><span class="default">generator</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">$f </span><span class="keyword">= new </span><span class="default">Foobar</span><span class="keyword">;<br />
+<br />
+</span><span class="comment"># First<br />
+</span><span class="keyword">print </span><span class="string">"First\n"</span><span class="keyword">;<br />
+foreach(</span><span class="default">$f</span><span class="keyword">-&gt;</span><span class="default">getItems</span><span class="keyword">() as </span><span class="default">$i</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; print </span><span class="default">$i </span><span class="keyword">. </span><span class="string">"\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; if( </span><span class="default">$i </span><span class="keyword">== </span><span class="default">5 </span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="comment"># Second (items 1-5 are cached, 6-10 are loaded)<br />
+</span><span class="keyword">print </span><span class="string">"Second\n"</span><span class="keyword">;<br />
+foreach(</span><span class="default">$f</span><span class="keyword">-&gt;</span><span class="default">getItems</span><span class="keyword">() as </span><span class="default">$i</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; print </span><span class="default">$i </span><span class="keyword">. </span><span class="string">"\n"</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="comment"># Third (all items are cached and returned instantly)<br />
+</span><span class="keyword">print </span><span class="string">"Third\n"</span><span class="keyword">;<br />
+foreach(</span><span class="default">$f</span><span class="keyword">-&gt;</span><span class="default">getItems</span><span class="keyword">() as </span><span class="default">$i</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; print </span><span class="default">$i </span><span class="keyword">. </span><span class="string">"\n"</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115705""></a>
+  <div class="note">
+   <strong class="user">christophe dot maymard at gmail dot com</strong>
+   <a href="#115705" class="date">11-Sep-2014 04:43</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+<span class="default">&lt;?php<br />
+</span><span class="comment">//Example of class implementing IteratorAggregate using generator<br />
+<br />
+</span><span class="keyword">class </span><span class="default">ValueCollection </span><span class="keyword">implements </span><span class="default">IteratorAggregate<br />
+</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; private </span><span class="default">$items </span><span class="keyword">= array();<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">addValue</span><span class="keyword">(</span><span class="default">$item</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">items</span><span class="keyword">[] = </span><span class="default">$item</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$this</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">getIterator</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach (</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">items </span><span class="keyword">as </span><span class="default">$item</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; yield </span><span class="default">$item</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="comment">//Initializes a collection<br />
+</span><span class="default">$collection </span><span class="keyword">= new </span><span class="default">ValueCollection</span><span class="keyword">();<br />
+</span><span class="default">$collection<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">-&gt;</span><span class="default">addValue</span><span class="keyword">(</span><span class="string">'A string'</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; -&gt;</span><span class="default">addValue</span><span class="keyword">(new </span><span class="default">stdClass</span><span class="keyword">())<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; -&gt;</span><span class="default">addValue</span><span class="keyword">(</span><span class="default">NULL</span><span class="keyword">);<br />
+<br />
+foreach (</span><span class="default">$collection </span><span class="keyword">as </span><span class="default">$item</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$item</span><span class="keyword">);<br />
+}</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="114844""></a>
+  <div class="note">
+   <strong class="user">denshadewillspam at HOTMAIL dot com</strong>
+   <a href="#114844" class="date">13-Apr-2014 10:46</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Note that you can't use count() on generators.<br />
+<br />
+/**<br />
+&nbsp;* @return integer[]<br />
+&nbsp;*/<br />
+function xrange() {<br />
+&nbsp;&nbsp;&nbsp; for ($a = 0; $a &lt; 10; $a++)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; yield $a;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+function mycount(Traversable $traversable)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; $skip = 0;<br />
+&nbsp;&nbsp;&nbsp; foreach($traversable as $skip)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $skip++;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; return $skip;<br />
+}<br />
+echo "Count:" . count(xrange()). PHP_EOL;<br />
+echo "Count:" . mycount(xrange()). PHP_EOL;</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="113636""></a>
+  <div class="note">
+   <strong class="user">Shumeyko Dmitriy</strong>
+   <a href="#113636" class="date">08-Nov-2013 07:46</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+This is little example of using generators with recursion. Used version of php is 5.5.5<br />
+[php]<br />
+<span class="default">&lt;?php<br />
+define </span><span class="keyword">(</span><span class="string">"DS"</span><span class="keyword">, </span><span class="default">DIRECTORY_SEPARATOR</span><span class="keyword">);<br />
+</span><span class="default">define </span><span class="keyword">(</span><span class="string">"ZERO_DEPTH"</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">);<br />
+</span><span class="default">define </span><span class="keyword">(</span><span class="string">"DEPTHLESS"</span><span class="keyword">, -</span><span class="default">1</span><span class="keyword">);<br />
+</span><span class="default">define </span><span class="keyword">(</span><span class="string">"OPEN_SUCCESS"</span><span class="keyword">, </span><span class="default">True</span><span class="keyword">);<br />
+</span><span class="default">define </span><span class="keyword">(</span><span class="string">"END_OF_LIST"</span><span class="keyword">, </span><span class="default">False</span><span class="keyword">);<br />
+</span><span class="default">define </span><span class="keyword">(</span><span class="string">"CURRENT_DIR"</span><span class="keyword">, </span><span class="string">"."</span><span class="keyword">);<br />
+</span><span class="default">define </span><span class="keyword">(</span><span class="string">"PARENT_DIR"</span><span class="keyword">, </span><span class="string">".."</span><span class="keyword">);<br />
+<br />
+function </span><span class="default">DirTreeTraversal</span><span class="keyword">(</span><span class="default">$DirName</span><span class="keyword">, </span><span class="default">$MaxDepth </span><span class="keyword">= </span><span class="default">DEPTHLESS</span><span class="keyword">, </span><span class="default">$CurrDepth </span><span class="keyword">= </span><span class="default">ZERO_DEPTH</span><span class="keyword">)<br />
+{<br />
+&nbsp; if ((</span><span class="default">$MaxDepth </span><span class="keyword">=== </span><span class="default">DEPTHLESS</span><span class="keyword">) || (</span><span class="default">$CurrDepth </span><span class="keyword">&lt; </span><span class="default">$MaxDepth</span><span class="keyword">)) { <br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$DirHandle </span><span class="keyword">= </span><span class="default">opendir</span><span class="keyword">(</span><span class="default">$DirName</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">$DirHandle </span><span class="keyword">!== </span><span class="default">OPEN_SUCCESS</span><span class="keyword">) { <br />
+&nbsp;&nbsp; &nbsp;&nbsp; try{<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; while ((</span><span class="default">$FileName </span><span class="keyword">= </span><span class="default">readdir</span><span class="keyword">(</span><span class="default">$DirHandle</span><span class="keyword">)) !== </span><span class="default">END_OF_LIST</span><span class="keyword">) { </span><span class="comment">//read all file in directory<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if ((</span><span class="default">$FileName </span><span class="keyword">!= </span><span class="default">CURRENT_DIR</span><span class="keyword">) &amp;&amp; (</span><span class="default">$FileName </span><span class="keyword">!= </span><span class="default">PARENT_DIR</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$FullName </span><span class="keyword">= </span><span class="default">$DirName</span><span class="keyword">.</span><span class="default">$FileName</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; yield </span><span class="default">$FullName</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">is_dir</span><span class="keyword">(</span><span class="default">$FullName</span><span class="keyword">)) { </span><span class="comment">//include sub files and directories<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$SubTrav </span><span class="keyword">= </span><span class="default">DirTreeTraversal</span><span class="keyword">(</span><span class="default">$FullName</span><span class="keyword">.</span><span class="default">DS</span><span class="keyword">, </span><span class="default">$MaxDepth</span><span class="keyword">, (</span><span class="default">$CurrDepth </span><span class="keyword">+ </span><span class="default">1</span><span class="keyword">));<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; foreach(</span><span class="default">$SubTrav </span><span class="keyword">as </span><span class="default">$SubItem</span><span class="keyword">) yield </span><span class="default">$SubItem</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp;&nbsp; } finally {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">closedir</span><span class="keyword">(</span><span class="default">$DirHandle</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">$PathTrav </span><span class="keyword">= </span><span class="default">DirTreeTraversal</span><span class="keyword">(</span><span class="string">"C:"</span><span class="keyword">.</span><span class="default">DS</span><span class="keyword">, </span><span class="default">2</span><span class="keyword">);<br />
+print </span><span class="string">"&lt;pre&gt;"</span><span class="keyword">;<br />
+foreach(</span><span class="default">$PathTrav </span><span class="keyword">as </span><span class="default">$FileName</span><span class="keyword">) </span><span class="default">printf</span><span class="keyword">(</span><span class="string">"%s\n"</span><span class="keyword">, </span><span class="default">$FileName</span><span class="keyword">);<br />
+print </span><span class="string">"&lt;/pre&gt;"</span><span class="keyword">;<br />
+[/</span><span class="default">php</span><span class="keyword">]</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="111969""></a>
+  <div class="note">
+   <strong class="user">Adil lhan (adilmedya at gmail dot com)</strong>
+   <a href="#111969" class="date">18-Apr-2013 09:02</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+For example yield keyword with Fibonacci:<br />
+<br />
+function getFibonacci()<br />
+{<br />
+&nbsp;&nbsp;&nbsp; $i = 0;<br />
+&nbsp;&nbsp;&nbsp; $k = 1; //first fibonacci value<br />
+&nbsp;&nbsp;&nbsp; yield $k;<br />
+&nbsp;&nbsp;&nbsp; while(true)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $k = $i + $k;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $i = $k - $i;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; yield $k;&nbsp; &nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+$y = 0;<br />
+<br />
+foreach(getFibonacci() as $fibonacci)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; echo $fibonacci . "\n";<br />
+&nbsp;&nbsp;&nbsp; $y++;&nbsp; &nbsp; <br />
+&nbsp;&nbsp;&nbsp; if($y &gt; 30)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; break; // infinite loop prevent<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

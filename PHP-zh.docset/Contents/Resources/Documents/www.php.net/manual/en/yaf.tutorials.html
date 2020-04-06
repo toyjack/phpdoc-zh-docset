@@ -1,0 +1,343 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>范例</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="yaf.constants.html">? 预定义常量</a></li>
+      <li style="float: right;"><a href="yaf.appconfig.html">应用配置 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="book.yaf.html">Yaf</a></li>
+    <li>范例</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="yaf.tutorials" class="chapter">
+ <h1>范例</h1>
+
+
+ <div class="section">
+  <div class="example" id="example-4950">
+   <p><strong>Example #1 一个典型的应用目录结构</strong></p>
+   <div class="example-contents screen">
+<div class="cdata"><pre>
+- index.php 
+- .htaccess 
++ conf
+  |- application.ini //application config
+- application/
+  - Bootstrap.php   
+  + controllers
+     - Index.php //default controller
+  + views    
+     |+ index   
+        - index.phtml //view template for default action
+  + modules 
+  - library
+  - models  
+  - plugins 
+</pre></div>
+   </div>
+  </div>
+ </div>
+
+ <div class="section">
+ <div class="example" id="example-4951">
+  <p><strong>Example #2 入口文件</strong></p>
+  <div class="example-contents"><p>顶层目录下的index.php是整个应用的唯一入口，应该把所有请求都重定向到这个文件（在Apache+php_mod模式下可以使用.htaccess）。</p></div>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />define</span><span style="color: #007700">(</span><span style="color: #DD0000">"APPLICATION_PATH"</span><span style="color: #007700">,&nbsp;&nbsp;</span><span style="color: #0000BB">dirname</span><span style="color: #007700">(</span><span style="color: #0000BB">__FILE__</span><span style="color: #007700">));<br /><br /></span><span style="color: #0000BB">$app&nbsp;&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">Yaf_Application</span><span style="color: #007700">(</span><span style="color: #0000BB">APPLICATION_PATH&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">"/conf/application.ini"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$app</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">bootstrap</span><span style="color: #007700">()&nbsp;</span><span style="color: #FF8000">//call&nbsp;bootstrap&nbsp;methods&nbsp;defined&nbsp;in&nbsp;Bootstrap.php<br />&nbsp;</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">run</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+ </div>
+ </div>
+
+ <div class="section">
+ <div class="example" id="example-4952">
+  <p><strong>Example #3 重写规则</strong></p>
+  <div class="example-contents screen">
+<div class="cdata"><pre>
+#for apache (.htaccess)
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule .* index.php
+
+#for nginx
+server {
+  listen ****;
+  server_name  domain.com;
+  root   document_root;
+  index  index.php index.html index.htm;
+
+  if (!-e $request_filename) {
+    rewrite ^/(.*)  /index.php/$1 last;
+  }
+}
+
+#for lighttpd
+$HTTP[&quot;host&quot;] =~ &quot;(www.)?domain.com$&quot; {
+  url.rewrite = (
+     &quot;^/(.+)/?$&quot;  =&gt; &quot;/index.php/$1&quot;,
+  )
+}
+</pre></div>
+  </div>
+ </div>
+ </div>
+
+ <div class="section">
+ <div class="example" id="example-4953">
+  <p><strong>Example #4 应用配置文件</strong></p>
+   <div class="example-contents">
+<div class="inicode"><pre class="inicode">[yaf]
+;APPLICATION_PATH is the constant defined in index.php
+application.directory=APPLICATION_PATH &quot;/application/&quot; 
+
+;product section inherit from yaf section
+[product:yaf]
+foo=bar</pre>
+</div>
+   </div>
+
+ </div>
+ </div>
+
+ <div class="section">
+ <div class="example" id="example-4954">
+  <p><strong>Example #5 默认控制器</strong></p>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">class&nbsp;</span><span style="color: #0000BB">IndexController&nbsp;</span><span style="color: #007700">extends&nbsp;</span><span style="color: #0000BB">Yaf_Controller_Abstract&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;default&nbsp;action&nbsp;*/<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">public&nbsp;function&nbsp;</span><span style="color: #0000BB">indexAction</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$this</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">_view</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">word&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">"hello&nbsp;world"</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//or<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;$this-&gt;getView()-&gt;word&nbsp;=&nbsp;"hello&nbsp;world";<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">}<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+ </div>
+ </div>
+
+ <div class="section">
+ <div class="example" id="example-4955">
+  <p><strong>Example #6 默认视图文件</strong></p>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+&lt;html&gt;<br />&nbsp;&lt;head&gt;<br />&nbsp;&nbsp;&nbsp;&lt;title&gt;Hello&nbsp;World&lt;/title&gt;<br />&nbsp;&lt;/head&gt;<br />&nbsp;&lt;body&gt;<br />&nbsp;&nbsp;&nbsp;<span style="color: #0000BB">&lt;?php&nbsp;</span><span style="color: #007700">echo&nbsp;</span><span style="color: #0000BB">$word</span><span style="color: #007700">;</span><span style="color: #0000BB">?&gt;<br /></span>&nbsp;&lt;/body&gt;<br />&lt;/html&gt;</span>
+</code></div>
+   </div>
+
+  </div>
+  </div>
+
+ <div class="section">
+  <div class="example" id="example-4956">
+   <p><strong>Example #7 运行应用</strong></p>
+    <div class="example-contents"><p>以上例程的输出类似于：</p></div>
+   <div class="example-contents screen">
+<div class="cdata"><pre>
+&lt;html&gt;
+ &lt;head&gt;
+   &lt;title&gt;Hello World&lt;/title&gt;
+ &lt;/head&gt;
+ &lt;body&gt;
+   hello world
+ &lt;/body&gt;
+&lt;/html&gt;
+</pre></div>
+   </div> 
+   <blockquote class="note"><p><strong class="note">Note</strong>: 
+    <p class="para">
+     在yaf@github上有Yaf代码生成器，你也可以用它来生成上面的例子。
+    </p>
+   </p></blockquote>
+  </div>
+ </div>
+
+</div>
+<div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="122936""></a>
+  <div class="note">
+   <strong class="user">498936940 at qq dot com</strong>
+   <a href="#122936" class="date">13-Jul-2018 05:42</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+YAF based on the actual case:Hooks、Event、Modules、Plugins、Multiple templates、Multiple languages、SQL Centralized Management...<br />
+Support Electric Business Platform、OA、ERP、IaaS、PaaS、SaaS、Blog、Cms...<br />
+Common features required by any platform: User、Acl、Menu...<br />
+<br />
+https://github.com/letwang/HookPHP</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119173""></a>
+  <div class="note">
+   <strong class="user">yeszao at qq dot com</strong>
+   <a href="#119173" class="date">15-Apr-2016 02:10</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I success in "application" directory set to:<br />
+<br />
+- application/<br />
+&nbsp; - Bootstrap.php&nbsp;&nbsp; <br />
+&nbsp; + modules <br />
+&nbsp;&nbsp;&nbsp; + Index<br />
+&nbsp;&nbsp; &nbsp;&nbsp; + controllers<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; - Index.php&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; //default controller<br />
+&nbsp;&nbsp; &nbsp;&nbsp; + views&nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; |+ index<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; - index.phtml&nbsp;&nbsp; //view template for default action<br />
+&nbsp; - library<br />
+&nbsp; - models&nbsp; <br />
+&nbsp; - plugins <br />
+<br />
+And Bootstrap.php should be enter at least 3 line like these:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">Bootstrap </span><span class="keyword">extends </span><span class="default">Yaf_Bootstrap_Abstract </span><span class="keyword">{<br />
+}</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118415""></a>
+  <div class="note">
+   <strong class="user">zhaozhi406 at 163 dot com</strong>
+   <a href="#118415" class="date">03-Dec-2015 04:09</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+the nginx rewrite rule should be:<br />
+<br />
+if (!-e $request_filename) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; rewrite ^/(.*)&nbsp; /index.php?$1 last;<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117621""></a>
+  <div class="note">
+   <strong class="user">fatih dot akgun at hotmail dot be</strong>
+   <a href="#117621" class="date">09-Jul-2015 08:17</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Alternative<br />
+<br />
+you can generate the example above by using Yaf Code Generator: https://github.com/laruence/php-yaf/tree/master/tools/cg</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116875""></a>
+  <div class="note">
+   <strong class="user">jshawcx at gmail dot com</strong>
+   <a href="#116875" class="date">13-Mar-2015 03:15</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+use&nbsp; nginx&nbsp; and php-fpm&nbsp;&nbsp; you can&nbsp;&nbsp; config:<br />
+<br />
+&nbsp;&nbsp;&nbsp; location / {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; try_files $uri&nbsp; &nbsp; $uri/&nbsp; &nbsp; /index.php$is_args$args;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; location ~ \.php$ {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; fastcgi_pass&nbsp;&nbsp; 127.0.0.1:9000;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; #fastcgi_pass unix:/tmp/php-cgi.sock;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; fastcgi_index&nbsp; index.php;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; include&nbsp; &nbsp; &nbsp; &nbsp; fastcgi_params;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116857""></a>
+  <div class="note">
+   <strong class="user">winston</strong>
+   <a href="#116857" class="date">11-Mar-2015 04:30</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+When you use nginx &amp; php-fpm config for yaf frame, you must set PATH_INFO support in nginx. Otherwise, it will not work.<br />
+Demo :<br />
+location / {<br />
+&nbsp; try_files $uri $uri/ @path_rw;<br />
+}<br />
+<br />
+#path_info is needed by some php frameworks like yaf/thinkphp<br />
+location @path_rw {<br />
+&nbsp; rewrite ^/(.*)$&nbsp; /index.php/$1 last;<br />
+}<br />
+<br />
+location ~ \.php {<br />
+&nbsp; fastcgi_pass unix:/dev/shm/php-cgi.sock;<br />
+&nbsp; fastcgi_index index.php;<br />
+&nbsp; include fastcgi.conf;<br />
+<br />
+&nbsp; fastcgi_split_path_info ^(.+?\.php)(/.+)$;<br />
+&nbsp; fastcgi_param SCRIPT_FILENAME&nbsp;&nbsp; $document_root$fastcgi_script_name;<br />
+&nbsp; fastcgi_param SCRIPT_NAME $fastcgi_script_name;<br />
+&nbsp; fastcgi_param PATH_INFO $fastcgi_path_info;<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="113571""></a>
+  <div class="note">
+   <strong class="user">Li Min</strong>
+   <a href="#113571" class="date">31-Oct-2013 06:26</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+<a href="http://us3.php.net/manual/zh/yaf.tutorials.php" rel="nofollow" target="_blank">http://us3.php.net/manual/zh/yaf.tutorials.php</a><br />
+<br />
+Lost default Bootstrap.php <br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp; </span><span class="comment">/* bootstrap class should be defined under ./application/Bootstrap.php */<br />
+&nbsp;&nbsp; </span><span class="keyword">class </span><span class="default">Bootstrap </span><span class="keyword">extends </span><span class="default">Yaf_Bootstrap_Abstract </span><span class="keyword">{<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; public function </span><span class="default">_initConfig</span><span class="keyword">(</span><span class="default">Yaf_Dispatcher $dispatcher</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">__METHOD__</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; public function </span><span class="default">_initPlugin</span><span class="keyword">(</span><span class="default">Yaf_Dispatcher $dispatcher</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">__METHOD__</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; }</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

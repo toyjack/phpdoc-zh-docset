@@ -1,0 +1,133 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Loads C declarations from a C header file</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="ffi.isnull.html">? FFI::isNull</a></li>
+      <li style="float: right;"><a href="ffi.memcmp.html">FFI::memcmp ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="class.ffi.html">FFI</a></li>
+    <li>Loads C declarations from a C header file</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="ffi.load" class="refentry">
+ <div class="refnamediv">
+  <h1 class="refname">FFI::load</h1>
+  <p class="verinfo">(PHP 7 &gt;= 7.4.0)</p><p class="refpurpose"><span class="refname">FFI::load</span> &mdash; <span class="dc-title">Loads C declarations from a C header file</span></p>
+
+ </div>
+
+ <div class="refsect1 description" id="refsect1-ffi.load-description">
+  <h3 class="title">说明</h3>
+  <div class="methodsynopsis dc-description">
+   <span class="modifier">public</span> <span class="modifier">static</span> <span class="methodname"><strong>FFI::load</strong></span>
+    ( <span class="methodparam"><span class="type">string</span> <code class="parameter">$filename</code></span>
+   ) : <span class="type"><a href="class.ffi.html" class="type FFI">FFI</a></span></div>
+
+  <p class="para rdfs-comment">
+   Loads C declarations from a C header file. It is possible to specify shared libraries that should be loaded,
+   using special <em>FFI_LIB</em> defines in the loaded C header file.
+  </p>
+ </div>
+
+
+ <div class="refsect1 parameters" id="refsect1-ffi.load-parameters">
+  <h3 class="title">参数</h3>
+  <dl>
+
+   
+    <dt>
+<code class="parameter">filename</code></dt>
+
+    <dd>
+
+     <p class="para">
+      The name of a C header file.
+     </p>
+     <p class="para">
+      C preprocessor directives are not supported, i.e. <em>#include</em>,
+      <em>#define</em> and CPP macros do not work, except for special cases
+      listed below.
+     </p>
+     <p class="para">
+      The header file <em class="emphasis">should</em> contain a <em>#define</em> statement for the
+      <em>FFI_SCOPE</em> variable, e.g.: <code class="code">#define FFI_SCOPE &quot;MYLIB&quot;</code>.
+      Refer to the <a href="class.ffi.html#ffi.intro" class="link">class introduction</a> for details.
+     </p>
+     <p class="para">
+      The header file <em class="emphasis">may</em> contain a <em>#define</em> statement for the
+      <em>FFI_LIB</em> variable to specify the library it exposes. If it is
+      a system library only the file name is required, e.g.: <code class="code">#define FFI_LIB
+      &quot;libc.so.6&quot;</code>.  If it is a custom library, a relative path is required,
+      e.g.: <code class="code">#define FFI_LIB &quot;./mylib.so&quot;</code>.
+     </p>
+    </dd>
+
+   
+  </dl>
+
+ </div>
+
+
+ <div class="refsect1 returnvalues" id="refsect1-ffi.load-returnvalues">
+  <h3 class="title">返回值</h3>
+  <p class="para">
+   Returns the freshly created <a href="class.ffi.html" class="classname">FFI</a> object.
+  </p>
+ </div>
+
+
+ <div class="refsect1 seealso" id="refsect1-ffi.load-seealso">
+  <h3 class="title">参见</h3>
+  <p class="para">
+   <ul class="simplelist">
+    <li class="member"><span class="methodname"><a href="ffi.scope.html" class="methodname" rel="rdfs-seeAlso">FFI::scope()</a> - Instantiates an FFI object with C declarations parsed during preloading</span></li>
+   </ul>
+  </p>
+ </div>
+
+
+</div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="124677""></a>
+  <div class="note">
+   <strong class="user">ojrask at gmail dot com</strong>
+   <a href="#124677" class="date">03-Feb-2020 07:23</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Regarding the `FFI_LIB` constant:<br />
+<br />
+The path given can be either relative, or absolute, or then refer to a library that is in your global libraries path (i.e. where libc.so.6 and friends are).<br />
+<br />
+The absolute path and global lib path work as expected. The relative path does not work from the header file path, but the current working directory instead. So when you create header files for FFI usage, remember that the PHP script can be called anywhere and this means any relative paths in `FFI_LIB` will most probably fail.<br />
+<br />
+Not sure if there is some possibility to make it use paths relative to the script being called, or relative to the header file being loaded. That would make more sense to me at least.<br />
+<br />
+Right now `FFI_LIB` is quite unusable when it comes to making FFI-powered PHP packages that can be installed literally anywhere on a system. `FFI::cdef` works just as well, but `FFI::scope` also seems to rely on `FFI_LIB` meaning it will fail with relative paths as well.<br />
+<br />
+I guess this comes from the C function `dlopen` as is.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

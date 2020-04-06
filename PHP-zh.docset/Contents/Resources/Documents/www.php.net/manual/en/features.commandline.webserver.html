@@ -1,0 +1,696 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>内置Web Server</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="features.commandline.html">? PHP 的命令行模式</a></li>
+      <li style="float: right;"><a href="features.commandline.ini.html">INI 配置 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="features.commandline.html">PHP 的命令行模式</a></li>
+    <li>内置Web Server</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="features.commandline.webserver" class="section">
+  <h2 class="title">内置Web Server</h2>
+
+  <p class="para">
+   PHP 5.4.0起， <acronym title="Command Line Interpreter/Interface">CLI</acronym> <acronym title="Server Application Programming Interface">SAPI</acronym> 提供了一个内置的Web服务器。
+  </p>
+<p class="para">   
+   这个内置的Web服务器主要用于本地开发使用，不可用于线上产品环境。
+  </p>
+
+  <p class="para">
+     URI请求会被发送到PHP所在的的工作目录（Working Directory）进行处理，除非你使用了-t参数来自定义不同的目录。
+  </p>
+
+  <p class="para">
+  
+   如果请求未指定执行哪个PHP文件，则默认执行目录内的index.php 或者 index.html。如果这两个文件都不存在，服务器会返回404错误。
+  </p>
+
+  <p class="para">  
+   
+   当你在命令行启动这个Web Server时，如果指定了一个PHP文件，则这个文件会作为一个"路由"脚本，意味着每次请求都会先执行这个脚本。如果这个脚本返回 <strong><code>FALSE</code></strong> ，那么直接返回请求的文件（例如请求静态文件不作任何处理）。否则会把输出返回到浏览器。
+  </p>
+
+  <div class="example" id="example-381">
+   <p><strong>Example #1 启动Web服务器</strong></p> 
+   <div class="example-contents">
+<div class="shellcode"><pre class="shellcode">$ cd ~/public_html
+$ php -S localhost:8000</pre>
+</div>
+   </div>
+
+   <div class="example-contents"><p>
+     终端窗口会显示:
+   </p></div>
+   <div class="example-contents screen">
+<div class="cdata"><pre>
+PHP 5.4.0 Development Server started at Thu Jul 21 10:43:28 2011
+Listening on localhost:8000
+Document root is /home/me/public_html
+Press Ctrl-C to quit
+</pre></div>
+   </div>
+   <div class="example-contents"><p>   
+    
+    接着访问http://localhost:8000/和http://localhost:8000/myscript.html，窗口会显示：
+   </p></div>
+   <div class="example-contents screen">
+<div class="cdata"><pre>
+PHP 5.4.0 Development Server started at Thu Jul 21 10:43:28 2011
+Listening on localhost:8000
+Document root is /home/me/public_html
+Press Ctrl-C to quit.
+[Thu Jul 21 10:48:48 2011] ::1:39144 GET /favicon.ico - Request read
+[Thu Jul 21 10:48:50 2011] ::1:39146 GET / - Request read
+[Thu Jul 21 10:48:50 2011] ::1:39147 GET /favicon.ico - Request read
+[Thu Jul 21 10:48:52 2011] ::1:39148 GET /myscript.html - Request read
+[Thu Jul 21 10:48:52 2011] ::1:39149 GET /favicon.ico - Request read
+</pre></div>
+   </div>
+  </div>
+
+  <div class="example" id="example-382">
+   <p><strong>Example #2 启动时指定根目录</strong></p> 
+   <div class="example-contents">
+<div class="shellcode"><pre class="shellcode">$ cd ~/public_html
+$ php -S localhost:8000 -t foo/</pre>
+</div>
+   </div>
+
+   <div class="example-contents"><p>
+     终端窗口显示：
+   </p></div>
+   <div class="example-contents screen">
+<div class="cdata"><pre>
+PHP 5.4.0 Development Server started at Thu Jul 21 10:50:26 2011
+Listening on localhost:8000
+Document root is /home/me/public_html/foo
+Press Ctrl-C to quit
+</pre></div>
+   </div>
+  </div>
+
+  <div class="example" id="example-383">
+   <p><strong>Example #3 使用路由（Router）脚本</strong></p> 
+<div class="example-contents"><p>
+ 
+ 请求图片直接显示图片，请求HTML则显示"Welcome to PHP"
+</p></div>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">//&nbsp;router.php<br /></span><span style="color: #007700">if&nbsp;(</span><span style="color: #0000BB">preg_match</span><span style="color: #007700">(</span><span style="color: #DD0000">'/\.(?:png|jpg|jpeg|gif)$/'</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$_SERVER</span><span style="color: #007700">[</span><span style="color: #DD0000">"REQUEST_URI"</span><span style="color: #007700">]))<br />&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;</span><span style="color: #0000BB">false</span><span style="color: #007700">;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;直接返回请求的文件<br /></span><span style="color: #007700">else&nbsp;{&nbsp;<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"&lt;p&gt;Welcome&nbsp;to&nbsp;PHP&lt;/p&gt;"</span><span style="color: #007700">;<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+   <div class="example-contents">
+<div class="shellcode"><pre class="shellcode">$ php -S localhost:8000 router.php</pre>
+</div>
+   </div>
+
+   <div class="example-contents"><p>
+    
+    执行之后终端显示：
+   </p></div>
+   <div class="example-contents screen">
+<div class="cdata"><pre>
+PHP 5.4.0 Development Server started at Thu Jul 21 10:53:19 2011
+Listening on localhost:8000
+Document root is /home/me/public_html
+Press Ctrl-C to quit.
+[Thu Jul 21 10:53:45 2011] ::1:55801 GET /mylogo.jpg - Request read
+[Thu Jul 21 10:53:52 2011] ::1:55803 GET /abc.html - Request read
+[Thu Jul 21 10:53:52 2011] ::1:55804 GET /favicon.ico - Request read
+</pre></div>
+   </div>
+  </div>
+
+ </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="124576""></a>
+  <div class="note">
+   <strong class="user">sony at sony-ak dot com</strong>
+   <a href="#124576" class="date">08-Jan-2020 03:49</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+To send environment variable as long as with PHP built-in web server, type like this.<br />
+<br />
+~$ MYENV=dev php -d variables_order=EGPCS -S 0.0.0.0:8000<br />
+<br />
+On PHP script we can check with this code.<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp; </span><span class="keyword">echo </span><span class="default">getenv</span><span class="keyword">(</span><span class="string">'MYENV'</span><span class="keyword">); </span><span class="comment">// print dev</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="123997""></a>
+  <div class="note">
+   <strong class="user">Lukas</strong>
+   <a href="#123997" class="date">01-Jul-2019 03:45</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+For serving static content like .css or .js and otherwise using a router (for me it was index.php)&nbsp; this worked out of the box for me:<br />
+<br />
+&nbsp;&nbsp; php -S localhost:8000 <br />
+<br />
+Due to my router file was index.php. But <br />
+<br />
+&nbsp;&nbsp; php -S localhost:8000 index.php <br />
+<br />
+did not work, because my static files are not served via my router.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="123877""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#123877" class="date">22-May-2019 08:23</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+In order to set project specific configuration options, simply add a php.ini file to your project, and then run the built-in server with this flag:<br />
+<br />
+php -S localhost:8000 -c php.ini<br />
+<br />
+This is especially helpful for settings that cannot be set at runtime (ini_set()).</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="122737""></a>
+  <div class="note">
+   <strong class="user">ssmusoke at gmail dot com</strong>
+   <a href="#122737" class="date">16-May-2018 07:19</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I have found a strange issue while executing shell scripts on my Mac (High Sierra), PHP 7.2 with both the server and Laravel Valet.<br />
+<br />
+It seems like the PATH=/usr/bin:/bin:/usr/sbin:/sbin which are the default Mac paths, but does not take into account the shell path from my .bash_profile which means that mysql and other utilities cannot be found.<br />
+<br />
+Is there any workaround for injecting a PATH variable on execution</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="122533""></a>
+  <div class="note">
+   <strong class="user">fanghao90s at gmail dot com</strong>
+   <a href="#122533" class="date">22-Mar-2018 06:54</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+if you encountered this error:<br />
+<br />
+Unknown: php_network_getaddresses: getaddrinfo failed<br />
+<br />
+try this:<br />
+1. make sure you have a `localhost` entry in your hosts file<br />
+2. or use `php -S 127.0.0.1:8888`</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="122171""></a>
+  <div class="note">
+   <strong class="user">dachund at gmail dot com</strong>
+   <a href="#122171" class="date">22-Dec-2017 06:17</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I fiddled around with the internal webserver and had issues regarding handling static files, that do not contain a dot and a file extension.<br />
+<br />
+The webserver responded with 200 without any content for files with URIs like "/testfile".<br />
+<br />
+I am not certain if this is a bug, but I created a router.php that now does not use the "return false;" operation in order to pass thru the static file by the internal webserver.<br />
+<br />
+Instead I use fpassthru() to do that.<br />
+<br />
+In addition to that, my router.php can be configured to...<br />
+- ... have certain index files, when requesting a directory<br />
+- ... configure regex routes, so that, if the REQUEST_URI matches the regex, a certain file or directory is requested instead. (something you would do with nginx config or .htaccess ModRewrite)<br />
+<br />
+Maybe someone finds this helpful.<br />
+<br />
+================================<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+$indexFiles </span><span class="keyword">= [</span><span class="string">'index.html'</span><span class="keyword">, </span><span class="string">'index.php'</span><span class="keyword">];<br />
+</span><span class="default">$routes </span><span class="keyword">= [<br />
+&nbsp; </span><span class="string">'^/api(/.*)?$' </span><span class="keyword">=&gt; </span><span class="string">'/index.php'<br />
+</span><span class="keyword">];<br />
+<br />
+</span><span class="default">$requestedAbsoluteFile </span><span class="keyword">= </span><span class="default">dirname</span><span class="keyword">(</span><span class="default">__FILE__</span><span class="keyword">) . </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'REQUEST_URI'</span><span class="keyword">];<br />
+<br />
+</span><span class="comment">// check if the the request matches one of the defined routes<br />
+</span><span class="keyword">foreach (</span><span class="default">$routes </span><span class="keyword">as </span><span class="default">$regex </span><span class="keyword">=&gt; </span><span class="default">$fn</span><span class="keyword">)<br />
+{<br />
+&nbsp; if (</span><span class="default">preg_match</span><span class="keyword">(</span><span class="string">'%'</span><span class="keyword">.</span><span class="default">$regex</span><span class="keyword">.</span><span class="string">'%'</span><span class="keyword">, </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'REQUEST_URI'</span><span class="keyword">]))<br />
+&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$requestedAbsoluteFile </span><span class="keyword">= </span><span class="default">dirname</span><span class="keyword">(</span><span class="default">__FILE__</span><span class="keyword">) . </span><span class="default">$fn</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; break;<br />
+&nbsp; }<br />
+}<br />
+<br />
+</span><span class="comment">// if request is a directory call check if index files exist<br />
+</span><span class="keyword">if (</span><span class="default">is_dir</span><span class="keyword">(</span><span class="default">$requestedAbsoluteFile</span><span class="keyword">))<br />
+{<br />
+&nbsp; foreach (</span><span class="default">$indexFiles </span><span class="keyword">as </span><span class="default">$filename</span><span class="keyword">)<br />
+&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$fn </span><span class="keyword">= </span><span class="default">$requestedAbsoluteFile</span><span class="keyword">.</span><span class="string">'/'</span><span class="keyword">.</span><span class="default">$filename</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">is_file</span><span class="keyword">(</span><span class="default">$fn</span><span class="keyword">))<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$requestedAbsoluteFile </span><span class="keyword">= </span><span class="default">$fn</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp;&nbsp; break;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp; }<br />
+}<br />
+<br />
+</span><span class="comment">// if requested file does not exist or is directory =&gt; 404<br />
+</span><span class="keyword">if (!</span><span class="default">is_file</span><span class="keyword">(</span><span class="default">$requestedAbsoluteFile</span><span class="keyword">))<br />
+{<br />
+&nbsp; </span><span class="default">header</span><span class="keyword">(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'SERVER_PROTOCOL'</span><span class="keyword">].</span><span class="string">' 404 Not Found'</span><span class="keyword">);<br />
+&nbsp; </span><span class="default">printf</span><span class="keyword">(</span><span class="string">'"%s" does not exist'</span><span class="keyword">, </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'REQUEST_URI'</span><span class="keyword">]);<br />
+&nbsp; return </span><span class="default">true</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="comment">// if requested file is'nt a php file<br />
+</span><span class="keyword">if (!</span><span class="default">preg_match</span><span class="keyword">(</span><span class="string">'/\.php$/'</span><span class="keyword">, </span><span class="default">$requestedAbsoluteFile</span><span class="keyword">)) {<br />
+&nbsp; </span><span class="default">header</span><span class="keyword">(</span><span class="string">'Content-Type: '</span><span class="keyword">.</span><span class="default">mime_content_type</span><span class="keyword">(</span><span class="default">$requestedAbsoluteFile</span><span class="keyword">));<br />
+&nbsp; </span><span class="default">$fh </span><span class="keyword">= </span><span class="default">fopen</span><span class="keyword">(</span><span class="default">$requestedAbsoluteFile</span><span class="keyword">, </span><span class="string">'r'</span><span class="keyword">);<br />
+&nbsp; </span><span class="default">fpassthru</span><span class="keyword">(</span><span class="default">$fh</span><span class="keyword">);<br />
+&nbsp; </span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$fh</span><span class="keyword">);<br />
+&nbsp; return </span><span class="default">true</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="comment">// if requested file is php, include it<br />
+</span><span class="keyword">include_once </span><span class="default">$requestedAbsoluteFile</span><span class="keyword">;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="121772""></a>
+  <div class="note">
+   <strong class="user">arsensafarian1984 at gmail dot com</strong>
+   <a href="#121772" class="date">18-Oct-2017 03:40</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+submit_btn.addEventListener(MouseEvent.CLICK, sendMessage);<br />
+function sendMessage(e:MouseEvent):void{<br />
+var my_vars:URLVariables = new URLVariables();<br />
+my_vars.senderName = name_txt.text;<br />
+my_vars.senderEmail = email_txt.text;<br />
+my_vars.senderMsg = message_txt.text;<br />
+<br />
+var my_url:URLRequest = new URLRequest("mail.php");<br />
+my_url.method = URLRequestMethod.POST;<br />
+my_url.data = my_vars;<br />
+<br />
+var my_loader:URLLoader = new URLLoader();<br />
+my_loader.dataFormat = URLLoaderDataFormat.VARIABLES;<br />
+my_loader.load(my_url);<br />
+<br />
+name_txt.text = "";<br />
+email_txt.text = "";<br />
+message_txt.text = "Message Sent";<br />
+<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="121501""></a>
+  <div class="note">
+   <strong class="user">dwingardjr at gmail dot com</strong>
+   <a href="#121501" class="date">09-Aug-2017 11:53</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Just a note to people who also use windows 8.1, or anyone who has had this problem when running the using the PHP server CLI.<br />
+<br />
+`PHP -S localhost:8000 -t /public` &lt;-- Not going to work.<br />
+<br />
+`PHP -S localhost:8000 -t public` &lt;-- Works!<br />
+<br />
+And there is something else up in the notes saying something about you can't serve a project folder and a router file. Well, actually you can! At least for me.<br />
+<br />
+`PHP -S localhost:8000 router.php -t public` &lt;-- Perhaps someone tries this and it doesn't work.<br />
+<br />
+`PHP -S localhost:8000 -t public router.php` &lt;-- Works!</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="121287""></a>
+  <div class="note">
+   <strong class="user">gyunaev at gmail dot com</strong>
+   <a href="#121287" class="date">29-Jun-2017 07:16</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+You can also print messages to the server's STDOUT via error_log().<br />
+<br />
+Also the documentation doesn't make it clear that when you use router script if a PHP file is requested and you return false, the PHP file will be served (i.e. you do not need to load and eval it manually).</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="121137""></a>
+  <div class="note">
+   <strong class="user">eyecatchup at gmail dot com</strong>
+   <a href="#121137" class="date">26-May-2017 07:26</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Note: The built-in web server has a file size limit. For files larger than 5 GB, it will always serve a "File not found" error page.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="120449""></a>
+  <div class="note">
+   <strong class="user">oan at vizrt dot com</strong>
+   <a href="#120449" class="date">11-Jan-2017 01:43</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I painfully experienced behaviour that I can't seem to find documented here so I wanted to save everyone from repeating my mistake by giving the following heads up:<br />
+<br />
+When starting php -S on a mac (in my case macOS Sierra) to host a local server, I had trouble with connecting from legacy Java. <br />
+<br />
+As it turned out, if you started the php server with <br />
+"php -S localhost:80" <br />
+the server will be started with ipv6 support only!<br />
+<br />
+To access it via ipv4, you need to change the start up command like so:<br />
+&nbsp;"php -S 127.0.0.1:80"<br />
+which starts server in ipv4 mode only.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="120365""></a>
+  <div class="note">
+   <strong class="user">ohcc at 163 dot com</strong>
+   <a href="#120365" class="date">22-Dec-2016 07:09</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+$_SERVER['SERVER_ADDR'] is not defined when using php as the built-in commandline web server, so you can not use $_SERVER['SERVER_ADDR'] to detect the Server's IP address.<br />
+<br />
+P.S.: This is tested on Windows with PHP 7.1 on 2016-12-22.<br />
+<br />
+Below is the printed $_SERVER variable.<br />
+<br />
+Array<br />
+(<br />
+&nbsp;&nbsp;&nbsp; [DOCUMENT_ROOT] =&gt; E:\Programs\PHPServer\www\srv<br />
+&nbsp;&nbsp;&nbsp; [REMOTE_ADDR] =&gt; 118.117.61.32<br />
+&nbsp;&nbsp;&nbsp; [REMOTE_PORT] =&gt; 10865<br />
+&nbsp;&nbsp;&nbsp; [SERVER_SOFTWARE] =&gt; PHP 7.1.0 Development Server<br />
+&nbsp;&nbsp;&nbsp; [SERVER_PROTOCOL] =&gt; HTTP/1.1<br />
+&nbsp;&nbsp;&nbsp; [SERVER_NAME] =&gt; 0.0.0.0<br />
+&nbsp;&nbsp;&nbsp; [SERVER_PORT] =&gt; 8080<br />
+&nbsp;&nbsp;&nbsp; [REQUEST_URI] =&gt; /<br />
+&nbsp;&nbsp;&nbsp; [REQUEST_METHOD] =&gt; GET<br />
+&nbsp;&nbsp;&nbsp; [SCRIPT_NAME] =&gt; /index.php<br />
+&nbsp;&nbsp;&nbsp; [SCRIPT_FILENAME] =&gt; E:\Programs\PHPServer\www\srv\index.php<br />
+&nbsp;&nbsp;&nbsp; [PHP_SELF] =&gt; /index.php<br />
+&nbsp;&nbsp;&nbsp; [HTTP_HOST] =&gt; www.wuxiancheng.cn:8080<br />
+&nbsp;&nbsp;&nbsp; [HTTP_CONNECTION] =&gt; keep-alive<br />
+&nbsp;&nbsp;&nbsp; [HTTP_CACHE_CONTROL] =&gt; max-age=0<br />
+&nbsp;&nbsp;&nbsp; [HTTP_UPGRADE_INSECURE_REQUESTS] =&gt; 1<br />
+&nbsp;&nbsp;&nbsp; [HTTP_USER_AGENT] =&gt; Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36<br />
+&nbsp;&nbsp;&nbsp; [HTTP_ACCEPT] =&gt; text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8<br />
+&nbsp;&nbsp;&nbsp; [HTTP_DNT] =&gt; 1<br />
+&nbsp;&nbsp;&nbsp; [HTTP_ACCEPT_ENCODING] =&gt; gzip, deflate, sdch<br />
+&nbsp;&nbsp;&nbsp; [HTTP_ACCEPT_LANGUAGE] =&gt; zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4<br />
+&nbsp;&nbsp;&nbsp; [HTTP_COOKIE] =&gt; qbbs_2132_saltkey=fZ7509n5; qbbs_2132_lastvisit=1482156014; Hm_lvt_f812a4362ef73c80c4d13485d1ab3a49=1482159614; _ga=GA1.2.1594404236.1482159615; su=727vL6EEPLqjcyfJcad-za9eVYOh1i7e; Hm_lvt_6a65b0f2004e441e86ecea9c3562d997=1482232509,1482241896,1482242293,1482296586<br />
+&nbsp;&nbsp;&nbsp; [REQUEST_TIME_FLOAT] =&gt; 1482390410.65625<br />
+&nbsp;&nbsp;&nbsp; [REQUEST_TIME] =&gt; 1482390410<br />
+)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="120058""></a>
+  <div class="note">
+   <strong class="user">matthes at leuffen dot de</strong>
+   <a href="#120058" class="date">18-Oct-2016 01:21</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+To output debugging information on the command line you can write output to php://stdout:<br />
+<br />
+<span class="default">&lt;?php<br />
+$path </span><span class="keyword">= </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">"SCRIPT_FILENAME"</span><span class="keyword">];<br />
+<br />
+</span><span class="default">file_put_contents</span><span class="keyword">(</span><span class="string">"php://stdout"</span><span class="keyword">, </span><span class="string">"\nRequested: </span><span class="default">$path</span><span class="string">"</span><span class="keyword">);<br />
+echo </span><span class="string">"&lt;p&gt;Hello World&lt;/p&gt;"</span><span class="keyword">;<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119903""></a>
+  <div class="note">
+   <strong class="user">ohcc at 163 dot com</strong>
+   <a href="#119903" class="date">17-Sep-2016 07:29</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Do NOT use the -t option if you want to use a router script, you can change current working directory to the web document root before launching the php built-in web server.<br />
+<br />
+[works fine]<br />
+<br />
+cd /d C:\Web\Server<br />
+php -S www.51-n.com:80 router.php -n -d expose_php=0 -d display_errors=0 -d extension_dir="ext"<br />
+<br />
+[always gets a 500 error]<br />
+<br />
+php -S www.51-n.com:80 router.php -t C:\Web\Server -n -d expose_php=0 -d display_errors=0 -d extension_dir="ext"</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119706""></a>
+  <div class="note">
+   <strong class="user">Mark Simon</strong>
+   <a href="#119706" class="date">07-Aug-2016 09:55</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+It's not mentioned directly, and may not be obvious, but you can also use this to create a virtual host. This, of course, requires the help of your hosts file.<br />
+<br />
+Here are the steps:<br />
+<br />
+1&nbsp; &nbsp; /etc/hosts<br />
+&nbsp;&nbsp;&nbsp; 127.0.0.1&nbsp; &nbsp; www.example.com<br />
+<br />
+2&nbsp; &nbsp; cd [root folder]<br />
+&nbsp;&nbsp;&nbsp; php -S www.example.com:8000<br />
+<br />
+3&nbsp; &nbsp; Browser:<br />
+&nbsp;&nbsp;&nbsp; <a href="http://www.example.com:8000/index.php" rel="nofollow" target="_blank">http://www.example.com:8000/index.php</a><br />
+<br />
+Combined with a simple SQLite database, you have a very handy testing environment.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119171""></a>
+  <div class="note">
+   <strong class="user">@salmanapk</strong>
+   <a href="#119171" class="date">14-Apr-2016 03:50</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I improved Ivan Ferrer's phpserver.bat to open the Send To'd files in the browser directly:-<br />
+<br />
+rem check if arg is file or dir<br />
+if exist "%~1\" (<br />
+&nbsp; explorer <a href="http://localhost:8888" rel="nofollow" target="_blank">http://localhost:8888</a><br />
+&nbsp; php -S localhost:8888 -t "%~1"<br />
+) else (<br />
+&nbsp; explorer <a href="http://localhost:8888/%~nx1" rel="nofollow" target="_blank">http://localhost:8888/%~nx1</a><br />
+&nbsp; php -S localhost:8888 -t "%~dp1"<br />
+)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118912""></a>
+  <div class="note">
+   <strong class="user">leandro at leandroleite dot info</strong>
+   <a href="#118912" class="date">26-Feb-2016 12:48</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+when I need to up a server for develop with rewrite, I use it:<br />
+<br />
+// php -S 0.0.0.0:8080 -file webServer.php<br />
+<br />
+// webServer.php<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">if (</span><span class="default">preg_match</span><span class="keyword">(</span><span class="string">'/\.css|\.js|\.jpg|\.png|\.map$/'</span><span class="keyword">, </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'REQUEST_URI'</span><span class="keyword">], </span><span class="default">$match</span><span class="keyword">)) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$mimeTypes </span><span class="keyword">= [<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'.css' </span><span class="keyword">=&gt; </span><span class="string">'text/css'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'.js'&nbsp; </span><span class="keyword">=&gt; </span><span class="string">'application/javascript'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'.jpg' </span><span class="keyword">=&gt; </span><span class="string">'image/jpg'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'.png' </span><span class="keyword">=&gt; </span><span class="string">'image/png'</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'.map' </span><span class="keyword">=&gt; </span><span class="string">'application/json'<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">];<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$path </span><span class="keyword">= </span><span class="default">__DIR__ </span><span class="keyword">. </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'REQUEST_URI'</span><span class="keyword">];<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">is_file</span><span class="keyword">(</span><span class="default">$path</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">header</span><span class="keyword">(</span><span class="string">"Content-Type: </span><span class="keyword">{</span><span class="default">$mimeTypes</span><span class="keyword">[</span><span class="default">$match</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">]]}</span><span class="string">"</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; require </span><span class="default">$path</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; exit;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+require_once </span><span class="default">__DIR__</span><span class="keyword">.</span><span class="string">'/../app/bootstrap.php'</span><span class="keyword">;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117854""></a>
+  <div class="note">
+   <strong class="user">php dot chaska at xoxy dot net</strong>
+   <a href="#117854" class="date">20-Aug-2015 03:04</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Note that to listen on a naked IPv6 address, you have to strangely enclose the address in so-called square brackets.&nbsp; Example:<br />
+<br />
+$ php -S [9990:116:a001:1900::1001]:8080 -t web/</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116858""></a>
+  <div class="note">
+   <strong class="user">simonbengt at gmail dot com</strong>
+   <a href="#116858" class="date">11-Mar-2015 10:59</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+My routing file looks like this: <br />
+<br />
+if (file_exists($_SERVER["DOCUMENT_ROOT"] . $_SERVER["REQUEST_URI"])) {<br />
+&nbsp;&nbsp;&nbsp; return false;<br />
+} else {<br />
+&nbsp;&nbsp;&nbsp; require "index.php";<br />
+}<br />
+<br />
+The reason is to support all static files.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115907""></a>
+  <div class="note">
+   <strong class="user">tamas at bartatamas dot hu</strong>
+   <a href="#115907" class="date">13-Oct-2014 02:19</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If your URI contains a dot, you'll lose the $_SERVER['PATH_INFO'] variable, when using the built-in webserver.<br />
+I wanted to write an API, and use .json ending in the URI-s, but then the framework's routing mechanism broke, and it took a lot of time to discover that the reason behind it was its router relying on $_SERVER['PATH_INFO'].<br />
+<br />
+References:<br />
+https://bugs.php.net/bug.php?id=61286</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="114189""></a>
+  <div class="note">
+   <strong class="user">jonathan at reinink dot ca</strong>
+   <a href="#114189" class="date">22-Jan-2014 03:26</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+In order to set project specific configuration options, simply add a php.ini file to your project, and then run the built-in server with this flag:<br />
+<br />
+php -S localhost:8000 -c php.ini<br />
+<br />
+This is especially helpful for settings that cannot be set at runtime (ini_set()).</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="112667""></a>
+  <div class="note">
+   <strong class="user">Ivan Ferrer</strong>
+   <a href="#112667" class="date">10-Jul-2013 08:03</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+On Windows you may find useful to have a phpserver.bat file in shell:sendto with the folowing:<br />
+explorer <a href="http://localhost:8888" rel="nofollow" target="_blank">http://localhost:8888</a><br />
+rem check if arg is file or dir<br />
+if exist "%~1\" (<br />
+&nbsp; php -S localhost:8888 -t "%~1"<br />
+) else (<br />
+&nbsp; php -S localhost:8888 -t "%~dp1"<br />
+)<br />
+<br />
+then for fast web testing you only have to SendTo a file or folder to this bat and it will open your explorer and run the server.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

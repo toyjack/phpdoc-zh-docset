@@ -1,0 +1,88 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>故障转移</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="mysqlnd-ms.quickstart.cache.html">? Cache integration</a></li>
+      <li style="float: right;"><a href="mysqlnd-ms.quickstart.partitioning.html">分区和分片 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="mysqlnd-ms.quickstart.html">快速入门与例子</a></li>
+    <li>故障转移</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="mysqlnd-ms.quickstart.failover" class="section">
+  <h2 class="title">故障转移</h2>
+  <p class="para">
+   默认情况下，插件并不会在连接一个服务器失败的时候进行故障处理。这是为了防止
+   <a href="mysqlnd-ms.quickstart.connectionpooling.html" class="link">连接状态</a>中的陷阱。
+   这里建议手动的对连接错误进行处理，你可以捕获这个错误，重新建立连接，执行的你的查询，如同下面展示的那样。
+  </p>
+  <p class="para">
+   如果连接状态并不是由于你的操作引起的，你可以选择自动进行错误处理或者无视他。
+   通过配置可以实现，当 master 出现故障，可以在重新连接 master 之前，自动尝试连接
+   一台 slave 去自动处理故障，或者无视这个错误。因为 <a href="mysqlnd-ms.failover.html" class="link">自动故障转移</a>
+   并不是一个十分安全的方式，这里就不做过多讨论了，在 concepts section 中会有更多的说明。
+  </p>
+  <p class="para">
+   <div class="example" id="example-2241">
+    <p><strong>Example #1 手动故障转移，可选自动</strong></p>
+    <div class="example-contents">
+<div class="inicode"><pre class="inicode">{
+    &quot;myapp&quot;: {
+        &quot;master&quot;: {
+            &quot;master_0&quot;: {
+                &quot;host&quot;: &quot;localhost&quot;,
+                &quot;socket&quot;: &quot;\/tmp\/mysql.sock&quot;
+            }
+        },
+        &quot;slave&quot;: {
+            &quot;slave_0&quot;: {
+                &quot;host&quot;: &quot;simulate_slave_failure&quot;,
+                &quot;port&quot;: &quot;0&quot;
+            },
+            &quot;slave_1&quot;: {
+                &quot;host&quot;: &quot;127.0.0.1&quot;,
+                &quot;port&quot;: 3311
+            }
+        },
+       &quot;filters&quot;: { &quot;roundrobin&quot;: [] }
+    }
+ }</pre>
+</div>
+    </div>
+
+   </div>
+  </p>
+  <p class="para">
+   <div class="example" id="example-2242">
+    <p><strong>Example #2 手动故障转移</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$mysqli&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">mysqli</span><span style="color: #007700">(</span><span style="color: #DD0000">"myapp"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"username"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"password"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"database"</span><span style="color: #007700">);<br />if&nbsp;(!</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">)<br />&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;Of&nbsp;course,&nbsp;your&nbsp;error&nbsp;handling&nbsp;is&nbsp;nicer...&nbsp;*/<br />&nbsp;&nbsp;</span><span style="color: #007700">die(</span><span style="color: #0000BB">sprintf</span><span style="color: #007700">(</span><span style="color: #DD0000">"[%d]&nbsp;%s\n"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">mysqli_connect_errno</span><span style="color: #007700">(),&nbsp;</span><span style="color: #0000BB">mysqli_connect_error</span><span style="color: #007700">()));<br /><br /></span><span style="color: #0000BB">$sql&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">"SELECT&nbsp;1&nbsp;FROM&nbsp;DUAL"</span><span style="color: #007700">;<br /><br /></span><span style="color: #FF8000">/*&nbsp;error&nbsp;handling&nbsp;as&nbsp;it&nbsp;should&nbsp;be&nbsp;done&nbsp;regardless&nbsp;of&nbsp;the&nbsp;plugin&nbsp;*/<br /></span><span style="color: #007700">if&nbsp;(!(</span><span style="color: #0000BB">$res&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$link</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #0000BB">$sql</span><span style="color: #007700">)))&nbsp;{<br />&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;plugin&nbsp;specific:&nbsp;check&nbsp;for&nbsp;connection&nbsp;error&nbsp;*/<br />&nbsp;&nbsp;</span><span style="color: #007700">switch&nbsp;(</span><span style="color: #0000BB">$link</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">errno</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;case&nbsp;</span><span style="color: #0000BB">2002</span><span style="color: #007700">:<br />&nbsp;&nbsp;&nbsp;&nbsp;case&nbsp;</span><span style="color: #0000BB">2003</span><span style="color: #007700">:<br />&nbsp;&nbsp;&nbsp;&nbsp;case&nbsp;</span><span style="color: #0000BB">2005</span><span style="color: #007700">:<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">printf</span><span style="color: #007700">(</span><span style="color: #DD0000">"Connection&nbsp;error&nbsp;-&nbsp;trying&nbsp;next&nbsp;slave!\n"</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;load&nbsp;balancer&nbsp;will&nbsp;pick&nbsp;next&nbsp;slave&nbsp;*/<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$res&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$link</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #0000BB">$sql</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break;<br />&nbsp;&nbsp;&nbsp;&nbsp;default:<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;no&nbsp;connection&nbsp;error,&nbsp;failover&nbsp;is&nbsp;unlikely&nbsp;to&nbsp;help&nbsp;*/<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">die(</span><span style="color: #0000BB">sprintf</span><span style="color: #007700">(</span><span style="color: #DD0000">"SQL&nbsp;error:&nbsp;[%d]&nbsp;%s"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$link</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">errno</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$link</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">error</span><span style="color: #007700">));<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break;<br />&nbsp;&nbsp;}<br />}<br />if&nbsp;(</span><span style="color: #0000BB">$res</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;</span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$res</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">fetch_assoc</span><span style="color: #007700">());<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+   </div>
+  </p>
+ </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+ <div class="note">There are no user contributed notes for this page.</div>
+</div>
+</div></div></body></html>
