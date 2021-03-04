@@ -36,15 +36,15 @@
   <div class="methodsynopsis dc-description">
    <span class="methodname"><strong>uopz_flags</strong></span>
     ( <span class="methodparam"><span class="type">string</span> <code class="parameter">$function</code></span>
-   [, <span class="methodparam"><span class="type">int</span> <code class="parameter">$flags</code><span class="initializer"> = PHP_INT_MAX</span></span>
-  ] ) : <span class="type">int</span></div>
+   , <span class="methodparam"><span class="type">int</span> <code class="parameter">$flags</code><span class="initializer"> = PHP_INT_MAX</span></span>
+   ) : <span class="type">int</span></div>
 
   <div class="methodsynopsis dc-description">
    <span class="methodname"><strong>uopz_flags</strong></span>
     ( <span class="methodparam"><span class="type">string</span> <code class="parameter">$class</code></span>
    , <span class="methodparam"><span class="type">string</span> <code class="parameter">$function</code></span>
-   [, <span class="methodparam"><span class="type">int</span> <code class="parameter">$flags</code><span class="initializer"> = PHP_INT_MAX</span></span>
-  ] ) : <span class="type">int</span></div>
+   , <span class="methodparam"><span class="type">int</span> <code class="parameter">$flags</code><span class="initializer"> = PHP_INT_MAX</span></span>
+   ) : <span class="type">int</span></div>
 
   <p class="para rdfs-comment">
  Get or set the flags on a class or function entry at runtime
@@ -76,7 +76,9 @@
     <dd>
 
      <p class="para">
- The name of the function
+      The name of the function. If <code class="parameter">class</code> is given and an empty string
+      is passed as <code class="parameter">function</code>, <span class="function"><strong>uopz_flags()</strong></span>
+      gets or sets the flags of the class entry.
      </p>
     </dd>
 
@@ -103,6 +105,18 @@
   <h3 class="title">返回值</h3>
   <p class="para">
  If setting, returns old flags, else returns flags
+  </p>
+ </div>
+
+
+ <div class="refsect1 errors" id="refsect1-function.uopz-flags-errors">
+  <h3 class="title">错误／异常</h3>
+  <p class="simpara">
+   As of PHP 7.4.0, if the parameter <code class="parameter">flags</code> is passed,
+   <span class="function"><strong>uopz_flags()</strong></span> throws a <a href="class.runtimeexception.html" class="classname">RuntimeException</a>,
+   if <a href="book.opcache.html" class="link">OPcache</a> is enabled,
+   and the class entry of <code class="parameter">class</code>
+   or the function entry of <code class="parameter">function</code> is immutable.
   </p>
  </div>
 
@@ -138,7 +152,7 @@
 
  <div class="refsect1 examples" id="refsect1-function.uopz-flags-examples">
   <h3 class="title">范例</h3>
-  <div class="example" id="example-587">
+  <div class="example" id="example-556">
    <p><strong>Example #1 <span class="function"><strong>uopz_flags()</strong></span> example</strong></p>
    <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -158,6 +172,22 @@ bool(true)
 </pre></div>
    </div>
   </div>
+  <div class="example" id="example-557">
+   <p><strong>Example #2 &quot;Unfinalize&quot; a Class</strong></p>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">final&nbsp;class&nbsp;</span><span style="color: #0000BB">MyClass<br /></span><span style="color: #007700">{<br />}<br /><br /></span><span style="color: #0000BB">$flags&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">uopz_flags</span><span style="color: #007700">(</span><span style="color: #0000BB">MyClass</span><span style="color: #007700">::class,&nbsp;</span><span style="color: #DD0000">''</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">uopz_flags</span><span style="color: #007700">(</span><span style="color: #0000BB">MyClass</span><span style="color: #007700">::class,&nbsp;</span><span style="color: #DD0000">''</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$flags&nbsp;</span><span style="color: #007700">&amp;&nbsp;~</span><span style="color: #0000BB">ZEND_ACC_FINAL</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">var_dump</span><span style="color: #007700">((new&nbsp;</span><span style="color: #0000BB">ReflectionClass</span><span style="color: #007700">(</span><span style="color: #0000BB">MyClass</span><span style="color: #007700">::class))-&gt;</span><span style="color: #0000BB">isFinal</span><span style="color: #007700">());<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+   <div class="example-contents"><p>以上例程会输出：</p></div>
+   <div class="example-contents screen">
+<div class="cdata"><pre>
+bool(false)
+</pre></div>
+   </div>
+  </div>
  </div>
 
 
@@ -165,7 +195,25 @@ bool(true)
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="122961""></a>
+<div id="allnotes">  <a name="125571""></a>
+  <div class="note">
+   <strong class="user">ASchmidt at Anamera dot net</strong>
+   <a href="#125571" class="date">05-Dec-2020 06:37</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+To clarify the above hint: <br />
+"...the class entry of class or the function entry of function is immutable"<br />
+<br />
+Neither PHP class or function definitions have any "immutable" keyword - so this note is confusing, as it implies that a PHP programmer has any control over this. In reality, the "immutable" state mentioned is an internally-controlled optimization/shared memory feature of OPcache.<br />
+<br />
+Consequently, if one has a need to set (alter) the flags of a PHP class or function by means of "uopz_flags()", then it is necessary to EXCLUDE the PHP script of the referenced class or function from OPcache, using the "opcache.blacklist_filename" INI parameter.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="122961""></a>
   <div class="note">
    <strong class="user">ASchmidt at Anamera dot net</strong>
    <a href="#122961" class="date">19-Jul-2018 04:44</a>

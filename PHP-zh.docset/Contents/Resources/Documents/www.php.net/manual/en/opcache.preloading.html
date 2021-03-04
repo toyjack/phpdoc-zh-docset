@@ -1,0 +1,126 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Preloading</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="opcache.resources.html">? 资源类型</a></li>
+      <li style="float: right;"><a href="ref.opcache.html">OPcache 函数 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="book.opcache.html">OPcache</a></li>
+    <li>Preloading</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="opcache.preloading" class="chapter">
+ <h1>Preloading</h1>
+
+
+ <p class="para">
+  As of PHP 7.4.0, PHP can be configured to preload scripts into the opcache when the engine
+  starts.  Any symbols (functions, classes, etc.) in those files will then become
+  globally available for all requests without needing to be explicitly included.  That trades
+  convenience and performance (because the code is always available) for baseline memory usage.  It also
+  requires restarting the PHP process to clear pre-loaded scripts, meaning this feature is
+  only practical to use in production, not in a development environment.
+ </p>
+
+ <p class="para">
+  Note that the optimal tradeoff between performance and memory may vary with the application.
+  &quot;Preload everything&quot; may be the easiest strategy, but not necessarily the best strategy.  Additionally,
+  preloading is only useful when there is a persistent process from one request to another.  That means
+  while it can work in a CLI script if the opcache is enabled, it&#039;s generally pointless.  The exception
+  is when using preloading on <a href="ffi.examples-complete.html" class="link">FFI libraries</a>.
+ </p>
+
+ <blockquote class="note"><p><strong class="note">Note</strong>: 
+  <p class="para">
+   Preloading is not supported on Windows.
+  </p>
+ </p></blockquote>
+
+ <p class="para">
+  Configuring preloading involves two steps, and requires that the opcache be enabled.
+  First, set the <a href="opcache.configuration.html#ini.opcache.preload" class="link">opcache.preload</a>
+  value in <var class="filename">php.ini</var>:
+ </p>
+
+ <div class="informalexample">
+  <div class="example-contents">
+<div class="inicode"><pre class="inicode">opcache.preload=preload.php</pre>
+</div>
+  </div>
+
+ </div>
+
+ <p class="para">
+  <var class="filename">preload.php</var> is an arbitrary file that will run once at server startup
+  (PHP-FPM, mod_php, etc.) and load code into persistent memory.  If PHP will be run as
+  root (not recommended), the <a href="opcache.configuration.html#ini.opcache.preload-user" class="link">opcache.preload_user</a>
+  value can specify an alternate system user to run the preloading.  Running preloading as
+  root is not allowed.
+ </p>
+
+ <p class="para">
+  In the <var class="filename">preload.php</var> script, any file referenced by <span class="function"><a href="function.include.html" class="function">include</a></span>,
+  <span class="function"><a href="function.include-once.html" class="function">include_once</a></span>, <span class="function"><a href="function.require.html" class="function">require</a></span>, <span class="function"><a href="function.require-once.html" class="function">require_once</a></span>, or
+  <span class="function"><a href="function.opcache-compile-file.html" class="function">opcache_compile_file()</a></span> will be parsed into persistent memory.  In the following example,
+  all <var class="filename">.php</var> files in the <var class="filename">src</var> directory will be preloaded, unless they
+  are a <code class="literal">Test</code> file.
+ </p>
+
+ <div class="informalexample">
+  <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$directory&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">RecursiveDirectoryIterator</span><span style="color: #007700">(</span><span style="color: #0000BB">__DIR__&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">'/src'</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$fullTree&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">RecursiveIteratorIterator</span><span style="color: #007700">(</span><span style="color: #0000BB">$directory</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$phpFiles&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">RegexIterator</span><span style="color: #007700">(</span><span style="color: #0000BB">$fullTree</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'/.+((?&lt;!Test)+\.php$)/i'</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">RecursiveRegexIterator</span><span style="color: #007700">::</span><span style="color: #0000BB">GET_MATCH</span><span style="color: #007700">);<br /><br />foreach&nbsp;(</span><span style="color: #0000BB">$phpFiles&nbsp;</span><span style="color: #007700">as&nbsp;</span><span style="color: #0000BB">$key&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #0000BB">$file</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;require_once(</span><span style="color: #0000BB">$file</span><span style="color: #007700">[</span><span style="color: #0000BB">0</span><span style="color: #007700">]);<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+  </div>
+
+ </div>
+
+ <p class="para">
+  Both <span class="function"><a href="function.include.html" class="function">include</a></span> and <span class="function"><a href="function.opcache-compile-file.html" class="function">opcache_compile_file()</a></span> will work, but have different
+  implications for how code gets handled.
+
+  <ul class="itemizedlist">
+   <li class="listitem"><span class="simpara"><span class="function"><a href="function.include.html" class="function">include</a></span> will execute code in the file,
+    while <span class="function"><a href="function.opcache-compile-file.html" class="function">opcache_compile_file()</a></span> will not.  That means only the former supports
+    conditional declaration (functions declared inside an if-block).</span></li>
+   <li class="listitem"><span class="simpara">Because <span class="function"><a href="function.include.html" class="function">include</a></span> will execute code, nested <span class="function"><a href="function.include.html" class="function">include</a></span>d
+    files will also be parsed and their declarations preloaded.</span></li>
+   <li class="listitem"><span class="simpara"><span class="function"><a href="function.opcache-compile-file.html" class="function">opcache_compile_file()</a></span> can load files in any order.  That is, if
+    <var class="filename">a.php</var> defines  class <code class="literal">A</code> and <var class="filename">b.php</var> defines class
+    <code class="literal">B</code> that extends <code class="literal">A</code>, then <span class="function"><a href="function.opcache-compile-file.html" class="function">opcache_compile_file()</a></span> can
+    load those two files in any order.  When using <span class="function"><a href="function.include.html" class="function">include</a></span>, however, <var class="filename">a.php</var>
+    <em class="emphasis">must</em> be included first.</span></li>
+   <li class="listitem"><span class="simpara">In either case, if a later script includes a file that has already been preloaded then
+    its contents will still execute, but any symbols it defines will not be re-defined.  Using
+    <span class="function"><a href="function.include-once.html" class="function">include_once</a></span> will not prevent the file from being included a second time.</span></li>
+  </ul>
+
+  Which approach is better therefore depends on the desired behavior.  With code that would otherwise use an
+  autoloader, <span class="function"><a href="function.opcache-compile-file.html" class="function">opcache_compile_file()</a></span> allows for greater flexibility.  With code that would
+  otherwise be loaded manually, <span class="function"><a href="function.include.html" class="function">include</a></span> will be more robust.
+ </p>
+
+</div>
+<div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+ <div class="note">There are no user contributed notes for this page.</div>
+</div>
+</div></div></body></html>

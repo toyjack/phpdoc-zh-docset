@@ -34,7 +34,7 @@
   <h3 class="title">ËµÃ÷</h3>
   <div class="methodsynopsis dc-description">
    <span class="modifier">public</span> <span class="methodname"><strong>Phar::startBuffering</strong></span>
-    ( <span class="methodparam">void</span>
+    (
    ) : <span class="type"><span class="type void">void</span></span></div>
 
 
@@ -57,8 +57,8 @@
   </p>
   <p class="para">
    Phar write buffering is per-archive, buffering active for the
-   <em>foo.phar</em> Phar archive does not affect changes
-   to the <em>bar.phar</em> Phar archive.
+   <code class="literal">foo.phar</code> Phar archive does not affect changes
+   to the <code class="literal">bar.phar</code> Phar archive.
   </p>
  </div>
 
@@ -74,7 +74,7 @@
  <div class="refsect1 examples" id="refsect1-phar.startbuffering-examples">
   <h3 class="title">·¶Àý</h3>
   <p class="para">
-   <div class="example" id="example-768">
+   <div class="example" id="example-706">
     <p><strong>Example #1 A <span class="function"><strong>Phar::startBuffering()</strong></span> example</strong></p>
     <div class="example-contents"><p>
     </p></div>
@@ -105,6 +105,56 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
- <div class="note">There are no user contributed notes for this page.</div>
+<div id="allnotes">  <a name="125553""></a>
+  <div class="note">
+   <strong class="user">anon at php dot com</strong>
+   <a href="#125553" class="date">29-Nov-2020 02:24</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+To setthe&nbsp; ini key phar.readonly to 0, from a unix shell script, this is possible on the fly it is possible see below.<br />
+The example given on this page has some issues with quoting: (See conversion to simple quotes)<br />
+<br />
+#!/usr/bin/php -d phar.readonly=0<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">print(</span><span class="default">ini_get</span><span class="keyword">(</span><span class="string">'phar.readonly'</span><span class="keyword">)); </span><span class="comment">// Must return 0<br />
+// make sure it doesn't exist<br />
+</span><span class="keyword">@</span><span class="default">unlink</span><span class="keyword">(</span><span class="string">'brandnewphar.phar'</span><span class="keyword">);<br />
+try {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$p </span><span class="keyword">= new </span><span class="default">Phar</span><span class="keyword">(</span><span class="default">dirname</span><span class="keyword">(</span><span class="default">__FILE__</span><span class="keyword">) . </span><span class="string">'/brandnewphar.phar'</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">, </span><span class="string">'brandnewphar.phar'</span><span class="keyword">);<br />
+} catch (</span><span class="default">Exception $e</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">'Could not create phar:'</span><span class="keyword">, </span><span class="default">$e</span><span class="keyword">;<br />
+}<br />
+echo </span><span class="string">'The new phar has ' </span><span class="keyword">. </span><span class="default">$p</span><span class="keyword">-&gt;</span><span class="default">count</span><span class="keyword">() . </span><span class="string">" entries\n"</span><span class="keyword">;<br />
+</span><span class="default">$p</span><span class="keyword">-&gt;</span><span class="default">startBuffering</span><span class="keyword">();<br />
+</span><span class="default">$p</span><span class="keyword">[</span><span class="string">'file.txt'</span><span class="keyword">] = </span><span class="string">'hi'</span><span class="keyword">;<br />
+</span><span class="default">$p</span><span class="keyword">[</span><span class="string">'file2.txt'</span><span class="keyword">] = </span><span class="string">'there'</span><span class="keyword">;<br />
+</span><span class="default">$p</span><span class="keyword">[</span><span class="string">'file2.txt'</span><span class="keyword">]-&gt;</span><span class="default">compress</span><span class="keyword">(</span><span class="default">Phar</span><span class="keyword">::</span><span class="default">GZ</span><span class="keyword">);<br />
+</span><span class="default">$p</span><span class="keyword">[</span><span class="string">'file3.txt'</span><span class="keyword">] = </span><span class="string">'babyface'</span><span class="keyword">;<br />
+</span><span class="default">$p</span><span class="keyword">[</span><span class="string">'file3.txt'</span><span class="keyword">]-&gt;</span><span class="default">setMetadata</span><span class="keyword">(</span><span class="default">42</span><span class="keyword">);<br />
+</span><span class="default">$p</span><span class="keyword">-&gt;</span><span class="default">setStub</span><span class="keyword">(</span><span class="string">'&lt;?php<br />
+function __autoload($class)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; include "phar://myphar.phar/" . str_replace("_", "/", $class) . ".php";<br />
+}<br />
+Phar::mapPhar("myphar.phar");<br />
+include "phar://myphar.phar/startup.php";<br />
+__HALT_COMPILER();'</span><span class="keyword">);<br />
+</span><span class="default">$p</span><span class="keyword">-&gt;</span><span class="default">stopBuffering</span><span class="keyword">();<br />
+<br />
+</span><span class="comment">// Test<br />
+</span><span class="default">$m </span><span class="keyword">= </span><span class="default">file_get_contents</span><span class="keyword">(</span><span class="string">"phar://brandnewphar.phar/file2.txt"</span><span class="keyword">);<br />
+</span><span class="default">$m </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">(</span><span class="string">"\n"</span><span class="keyword">,</span><span class="default">$m</span><span class="keyword">);<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$m</span><span class="keyword">);<br />
+</span><span class="comment">/* Output:<br />
+* there<br />
+**/</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
 </div>
 </div></div></body></html>

@@ -35,8 +35,8 @@
   <h3 class="title">说明</h3>
   <div class="methodsynopsis dc-description">
    <span class="modifier">public</span> <span class="methodname"><strong>Pool::collect</strong></span>
-    ([ <span class="methodparam"><span class="type"><a href="language.types.callable.html" class="type Callable">Callable</a></span> <code class="parameter">$collector</code></span>
-  ] ) : <span class="type">int</span></div>
+    ( <span class="methodparam"><span class="type"><a href="language.types.callable.html" class="type Callable">Callable</a></span> <code class="parameter">$collector</code> = ?</span>
+   ) : <span class="type">int</span></div>
 
   <p class="para rdfs-comment">
    对于视为垃圾的引用，使用给定的垃圾收集器进行收集
@@ -108,7 +108,7 @@
  <div class="refsect1 examples" id="refsect1-pool.collect-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-4435">
+   <div class="example" id="example-3708">
     <p><strong>Example #1 <span class="methodname"><strong>Pool::collect()</strong></span> 基本用法示例</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -126,7 +126,86 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="121965""></a>
+<div id="allnotes">  <a name="125634""></a>
+  <div class="note">
+   <strong class="user">meadowsjared at gmail dot com</strong>
+   <a href="#125634" class="date">29-Dec-2020 06:00</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+In this example, it shows how to use a Threaded with a pool to get an array of results, using pThreads v3.2.1 and php 7.3.23<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">TestWork </span><span class="keyword">extends </span><span class="default">Threaded </span><span class="keyword">{<br />
+</span><span class="comment">//updated version that works with pThreads v3.2.1 and php 7.3.23<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">protected </span><span class="default">$complete</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">//$pData is the data sent to your worker thread to do it's job.<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">public function </span><span class="default">__construct</span><span class="keyword">(</span><span class="default">$pData</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">//transfer all the variables to local variables<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">complete </span><span class="keyword">= </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">testData </span><span class="keyword">= </span><span class="default">$pData</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">//This is where all of your work will be done.<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">public function </span><span class="default">run</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">usleep</span><span class="keyword">(</span><span class="default">2000000</span><span class="keyword">); </span><span class="comment">//sleep 2 seconds to simulate a large job<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">complete </span><span class="keyword">= </span><span class="default">true</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">isDone</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">complete</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+class </span><span class="default">ExamplePool </span><span class="keyword">extends </span><span class="default">Pool </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public </span><span class="default">$data </span><span class="keyword">= array(); </span><span class="comment">// used to return data after we're done<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">private </span><span class="default">$numTasks </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">; </span><span class="comment">// counter used to know when we're done<br />
+&nbsp;&nbsp;&nbsp; /**<br />
+&nbsp;&nbsp; &nbsp; * override the submit function from the parent<br />
+&nbsp;&nbsp; &nbsp; * to keep track of our jobs<br />
+&nbsp;&nbsp; &nbsp; */<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">public function </span><span class="default">submit</span><span class="keyword">(</span><span class="default">Threaded $task</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">numTasks</span><span class="keyword">++;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">parent</span><span class="keyword">::</span><span class="default">submit</span><span class="keyword">(</span><span class="default">$task</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">/**<br />
+&nbsp;&nbsp; &nbsp; * used to wait until all workers are done<br />
+&nbsp;&nbsp; &nbsp; */<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">public function </span><span class="default">process</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Run this loop as long as we have<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; // jobs in the pool<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">while (</span><span class="default">count</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">data</span><span class="keyword">) &lt; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">numTasks</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">collect</span><span class="keyword">(function (</span><span class="default">TestWork $task</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// If a task was marked as done, collect its results<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if (</span><span class="default">$task</span><span class="keyword">-&gt;</span><span class="default">isDone</span><span class="keyword">()) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$tmpObj </span><span class="keyword">= new </span><span class="default">stdclass</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$tmpObj</span><span class="keyword">-&gt;</span><span class="default">complete </span><span class="keyword">= </span><span class="default">$task</span><span class="keyword">-&gt;</span><span class="default">complete</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">//this is how you get your completed data back out [accessed by $pool-&gt;process()]<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">data</span><span class="keyword">[] = </span><span class="default">$tmpObj</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$task</span><span class="keyword">-&gt;</span><span class="default">isDone</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; });<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// All jobs are done<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; // we can shutdown the pool<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">shutdown</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">data</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+</span><span class="default">$pool </span><span class="keyword">= new </span><span class="default">ExamplePool</span><span class="keyword">(</span><span class="default">3</span><span class="keyword">);<br />
+</span><span class="default">$testData </span><span class="keyword">= </span><span class="string">'asdf'</span><span class="keyword">;<br />
+for(</span><span class="default">$i</span><span class="keyword">=</span><span class="default">0</span><span class="keyword">;</span><span class="default">$i</span><span class="keyword">&lt;</span><span class="default">5</span><span class="keyword">;</span><span class="default">$i</span><span class="keyword">++) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$pool</span><span class="keyword">-&gt;</span><span class="default">submit</span><span class="keyword">(new </span><span class="default">TestWork</span><span class="keyword">(</span><span class="default">$testData</span><span class="keyword">));<br />
+}<br />
+</span><span class="default">$retArr </span><span class="keyword">= </span><span class="default">$pool</span><span class="keyword">-&gt;</span><span class="default">process</span><span class="keyword">(); </span><span class="comment">//get all of the results<br />
+</span><span class="keyword">echo </span><span class="string">'&lt;pre&gt;'</span><span class="keyword">;<br />
+</span><span class="default">print_r</span><span class="keyword">(</span><span class="default">$retArr</span><span class="keyword">); </span><span class="comment">//return the array of results (and maybe errors)<br />
+</span><span class="keyword">echo </span><span class="string">'&lt;/pre&gt;'</span><span class="keyword">;<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="121965""></a>
   <div class="note">
    <strong class="user">l00k at protonmail dot com</strong>
    <a href="#121965" class="date">02-Dec-2017 04:05</a>

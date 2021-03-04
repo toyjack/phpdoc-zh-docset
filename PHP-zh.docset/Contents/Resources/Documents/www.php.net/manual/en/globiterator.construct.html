@@ -36,8 +36,8 @@
   <div class="methodsynopsis dc-description">
    <span class="modifier">public</span> <span class="methodname"><strong>GlobIterator::__construct</strong></span>
     ( <span class="methodparam"><span class="type">string</span> <code class="parameter">$pattern</code></span>
-   [, <span class="methodparam"><span class="type">int</span> <code class="parameter">$flags</code><span class="initializer"> = FilesystemIterator::KEY_AS_PATHNAME | FilesystemIterator::CURRENT_AS_FILEINFO</span></span>
-  ] )</div>
+   , <span class="methodparam"><span class="type">int</span> <code class="parameter">$flags</code><span class="initializer"> = FilesystemIterator::KEY_AS_PATHNAME | FilesystemIterator::CURRENT_AS_FILEINFO</span></span>
+   )</div>
 
   <p class="para rdfs-comment">
    Constructs a new directory iterator from a glob expression.
@@ -84,7 +84,7 @@
  <div class="refsect1 examples" id="refsect1-globiterator.construct-examples">
   <h3 class="title">·¶Àý</h3>
   <p class="para">
-   <div class="example" id="example-4724">
+   <div class="example" id="example-3993">
     <p><strong>Example #1 <a href="class.globiterator.html" class="classname">GlobIterator</a> example</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -122,7 +122,73 @@ Matched 2 item(s)
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="114725""></a>
+<div id="allnotes">  <a name="125221""></a>
+  <div class="note">
+   <strong class="user">info at ensostudio dot ru</strong>
+   <a href="#125221" class="date">28-Jul-2020 12:30</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Fix problem with braces in template:<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">GlobStreamWrapper<br />
+</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; private </span><span class="default">$generator</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp;&nbsp; protected function </span><span class="default">createGenerator</span><span class="keyword">(array </span><span class="default">$paths</span><span class="keyword">): </span><span class="default">Generator<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">{<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return yield from </span><span class="default">$paths</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">dir_opendir</span><span class="keyword">(</span><span class="default">string $pattern</span><span class="keyword">, </span><span class="default">int $options </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">): </span><span class="default">bool<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">{<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$pattern </span><span class="keyword">= </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$pattern</span><span class="keyword">, </span><span class="default">7</span><span class="keyword">); </span><span class="comment">// crop 'glob://' prefix<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$pattern </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">([</span><span class="string">'\\'</span><span class="keyword">, </span><span class="string">'/'</span><span class="keyword">], </span><span class="default">DIRECTORY_SEPARATOR</span><span class="keyword">, </span><span class="default">$pattern</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$paths </span><span class="keyword">= (array) </span><span class="default">glob</span><span class="keyword">(</span><span class="default">$pattern</span><span class="keyword">, </span><span class="default">GLOB_BRACE </span><span class="keyword">| </span><span class="default">GLOB_NOSORT</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">generator </span><span class="keyword">= </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">createGenerator</span><span class="keyword">(</span><span class="default">$paths</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">generator</span><span class="keyword">-&gt;</span><span class="default">valid</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">dir_readdir</span><span class="keyword">(): </span><span class="default">string<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">{<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$path </span><span class="keyword">= </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">generator</span><span class="keyword">-&gt;</span><span class="default">current</span><span class="keyword">() ?: </span><span class="string">''</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">generator</span><span class="keyword">-&gt;</span><span class="default">next</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$path</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">dir_rewinddir</span><span class="keyword">(): </span><span class="default">bool<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">{<br />
+&nbsp;&nbsp; &nbsp; &nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">generator</span><span class="keyword">-&gt;</span><span class="default">rewind</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">generator</span><span class="keyword">-&gt;</span><span class="default">valid</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">dir_closedir</span><span class="keyword">(): </span><span class="default">bool<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">{<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">generator </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">true</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span>Replace glob wrapper:<br />
+<span class="default">&lt;?php<br />
+stream_wrapper_unregister</span><span class="keyword">(</span><span class="string">'glob'</span><span class="keyword">);<br />
+</span><span class="default">stream_wrapper_register</span><span class="keyword">(</span><span class="string">'glob'</span><span class="keyword">, </span><span class="string">'GlobStreamWrapper'</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span>Example:<br />
+<span class="default">&lt;?php<br />
+$iterator </span><span class="keyword">= new </span><span class="default">GlobIterator</span><span class="keyword">(</span><span class="default">__DIR__ </span><span class="keyword">. </span><span class="string">'/{application,system}/src/*.php'</span><span class="keyword">);<br />
+while (</span><span class="default">$iterator</span><span class="keyword">-&gt;</span><span class="default">valid</span><span class="keyword">()) {<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="default">$iterator</span><span class="keyword">-&gt;</span><span class="default">current</span><span class="keyword">()-&gt;</span><span class="default">getFilename</span><span class="keyword">() . </span><span class="string">'&lt;/br&gt;'</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$iterator</span><span class="keyword">-&gt;</span><span class="default">next</span><span class="keyword">();<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="114725""></a>
   <div class="note">
    <strong class="user">ozana at omdesign dot cz</strong>
    <a href="#114725" class="date">29-Mar-2014 10:08</a>

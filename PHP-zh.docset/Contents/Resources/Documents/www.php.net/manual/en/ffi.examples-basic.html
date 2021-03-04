@@ -37,7 +37,7 @@
    </p>
   </p></blockquote>
   <p class="para">
-   <div class="example" id="example-469">
+   <div class="example" id="example-464">
     <p><strong>Example #1 Calling a function from shared library</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -54,8 +54,14 @@ Hello world!
     </div>
    </div>
   </p>
+    <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <p class="para">
+    Note that some C functions need specific calling conventions, e.g. <code class="literal">__fastcall</code>,
+    <code class="literal">__stdcall</code> or <code class="literal">,__vectorcall</code>.
+   </p>
+  </p></blockquote>
   <p class="para">
-   <div class="example" id="example-470">
+   <div class="example" id="example-465">
     <p><strong>Example #2 Calling a function, returning a structure through an argument</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -80,7 +86,7 @@ object(FFI\CData:struct timezone)#3 (2) {
    </div>
   </p>
   <p class="para">
-   <div class="example" id="example-471">
+   <div class="example" id="example-466">
     <p><strong>Example #3 Accessing existing C variables</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -98,7 +104,7 @@ int(0)
    </div>
   </p>
   <p class="para">
-   <div class="example" id="example-472">
+   <div class="example" id="example-467">
     <p><strong>Example #4 Creating and Modifying C variables</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -118,7 +124,7 @@ int(7)
    </div>
   </p>
   <p class="para">
-   <div class="example" id="example-473">
+   <div class="example" id="example-468">
     <p><strong>Example #5 Working with C arrays</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -138,10 +144,74 @@ int(8192)
     </div>
    </div>
   </p>
+  <p class="para">
+    <div class="example" id="example-469">
+    <p><strong>Example #6 Working with C enums</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$a&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">FFI</span><span style="color: #007700">::</span><span style="color: #0000BB">cdef</span><span style="color: #007700">(</span><span style="color: #DD0000">'typedef&nbsp;enum&nbsp;_zend_ffi_symbol_kind&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;ZEND_FFI_SYM_TYPE,<br />&nbsp;&nbsp;&nbsp;&nbsp;ZEND_FFI_SYM_CONST&nbsp;=&nbsp;2,<br />&nbsp;&nbsp;&nbsp;&nbsp;ZEND_FFI_SYM_VAR,<br />&nbsp;&nbsp;&nbsp;&nbsp;ZEND_FFI_SYM_FUNC<br />}&nbsp;zend_ffi_symbol_kind;<br />'</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$a</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">ZEND_FFI_SYM_TYPE</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$a</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">ZEND_FFI_SYM_CONST</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$a</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">ZEND_FFI_SYM_VAR</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+     </div>
+
+    <div class="example-contents"><p>以上例程会输出：</p></div>
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+int(0)
+int(2)
+int(3)
+</pre></div>
+    </div>
+   </div>
+  </p>
  </div><div id="usernotes">
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
- <div class="note">There are no user contributed notes for this page.</div>
+<div id="allnotes">  <a name="125593""></a>
+  <div class="note">
+   <strong class="user">wowabbs+php at gmail dot com</strong>
+   <a href="#125593" class="date">11-Dec-2020 07:42</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+&lt;?<br />
+&nbsp; if(!dl("ffi")) // Load the extension<br />
+&nbsp;&nbsp; &nbsp;&nbsp; throw new Exception('Cound not load the FFI extension.');<br />
+<br />
+&nbsp; function setWindowsDesktop($bmpFilePath)<br />
+&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; define('SPI_SETDESKWALLPAPER'&nbsp; , 0x14);<br />
+&nbsp;&nbsp;&nbsp; define('SPIF_UPDATEINIFILE'&nbsp; &nbsp; ,&nbsp; 0x1);<br />
+&nbsp;&nbsp;&nbsp; define('SPIF_SENDWININICHANGE' ,&nbsp; 0x2);<br />
+&nbsp;&nbsp;&nbsp; assert(File_Exists($bmpFilePath));<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; // declare the Win32 API function used to change desktop settings.<br />
+&nbsp;&nbsp;&nbsp; $User32 = FFI::cdef(&lt;&lt;&lt;'IDL'<br />
+&nbsp;&nbsp; &nbsp;&nbsp; int SystemParametersInfoA(int uAction, int uParam, char *lpvParam, int fuWinIni);<br />
+&nbsp;&nbsp;&nbsp; IDL, 'User32.dll');<br />
+&nbsp;&nbsp;&nbsp; $Kernel32 = FFI::cdef(&lt;&lt;&lt;'IDL'<br />
+&nbsp;&nbsp; &nbsp;&nbsp; int GetLastError();<br />
+&nbsp;&nbsp;&nbsp; IDL, 'Kernel32.dll');<br />
+&nbsp;&nbsp;&nbsp; // call the Windows API to update the desktop background.<br />
+&nbsp;&nbsp;&nbsp; $Ret = $User32-&gt;SystemParametersInfoA(SPI_SETDESKWALLPAPER, 0, $bmpFilePath, SPIF_UPDATEINIFILE || SPIF_SENDWININICHANGE);<br />
+&nbsp;&nbsp;&nbsp; if ($Ret == 0)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; $Error = $Kernel32-&gt;GetLastError();<br />
+&nbsp;&nbsp; &nbsp;&nbsp; throw new Exception("The call to the Windows API failed (error {$Error}).");<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp; }<br />
+&nbsp; <br />
+&nbsp; $Url='https://www.php.net//images/news/phpkonf_2015.png';<br />
+&nbsp; $Img=File_Get_Contents($Url);<br />
+&nbsp; File_Put_Contents($File=basename($Url), $Img);<br />
+&nbsp; setWindowsDesktop(realpath($File));<br />
+?&gt;</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
 </div>
 </div></div></body></html>

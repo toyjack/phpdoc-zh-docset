@@ -27,7 +27,7 @@
   <div id="layout-content"><div id="function.shm-attach" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">shm_attach</h1>
-  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">shm_attach</span> &mdash; <span class="dc-title">Creates or open a shared memory segment</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7, PHP 8)</p><p class="refpurpose"><span class="refname">shm_attach</span> &mdash; <span class="dc-title">Creates or open a shared memory segment</span></p>
 
  </div>
  
@@ -36,23 +36,23 @@
   <div class="methodsynopsis dc-description">
    <span class="methodname"><strong>shm_attach</strong></span>
     ( <span class="methodparam"><span class="type">int</span> <code class="parameter">$key</code></span>
-   [, <span class="methodparam"><span class="type">int</span> <code class="parameter">$memsize</code></span>
-   [, <span class="methodparam"><span class="type">int</span> <code class="parameter">$perm</code><span class="initializer"> = 0666</span></span>
-  ]] ) : <span class="type">resource</span></div>
+   , <span class="methodparam"><span class="type"><span class="type">int</span>|<span class="type">null</span></span> <code class="parameter">$size</code><span class="initializer"> = <strong><code>null</code></strong></span></span>
+   , <span class="methodparam"><span class="type">int</span> <code class="parameter">$permissions</code><span class="initializer"> = 0666</span></span>
+   ) : <span class="type"><span class="type"><span class="type SysvSharedMemory">SysvSharedMemory</span></span>|<span class="type"><span class="type false">false</span></span></span></div>
 
   <p class="para rdfs-comment">
    <span class="function"><strong>shm_attach()</strong></span> returns an id that can be used to access
    the System V shared memory with the given <code class="parameter">key</code>, the
    first call creates the shared memory segment with 
-   <code class="parameter">memsize</code> and the optional perm-bits 
-   <code class="parameter">perm</code>.
+   <code class="parameter">size</code> and the optional perm-bits 
+   <code class="parameter">permissions</code>.
   </p>
   <p class="para">
    A second call to <span class="function"><strong>shm_attach()</strong></span> for the same
-   <code class="parameter">key</code> will return a different shared memory
-   identifier, but both identifiers access the same underlying
-   shared memory. <code class="parameter">memsize</code> and
-   <code class="parameter">perm</code> will be ignored.
+   <code class="parameter">key</code> will return a different <strong class="classname">SysvSharedMemory</strong>
+   instance, but both instances access the same underlying
+   shared memory. <code class="parameter">size</code> and
+   <code class="parameter">permissions</code> will be ignored.
   </p>
  </div>
 
@@ -76,13 +76,13 @@
     
     
      <dt>
-<code class="parameter">memsize</code></dt>
+<code class="parameter">size</code></dt>
 
      <dd>
 
       <p class="para">
        The memory size. If not provided, default to the
-       <em>sysvshm.init_mem</em> in the <var class="filename">php.ini</var>, otherwise 10000
+       <code class="literal">sysvshm.init_mem</code> in the <var class="filename">php.ini</var>, otherwise 10000
        bytes.
       </p>
      </dd>
@@ -90,7 +90,7 @@
     
     
      <dt>
-<code class="parameter">perm</code></dt>
+<code class="parameter">permissions</code></dt>
 
      <dd>
 
@@ -109,61 +109,43 @@
  <div class="refsect1 returnvalues" id="refsect1-function.shm-attach-returnvalues">
   <h3 class="title">返回值</h3>
   <p class="para">
-   Returns a shared memory segment identifier.
+   Returns a <strong class="classname">SysvSharedMemory</strong> instance on success,  或者在失败时返回 <strong><code>false</code></strong>.
   </p>
  </div>
 
 
  <div class="refsect1 changelog" id="refsect1-function.shm-attach-changelog">
   <h3 class="title">更新日志</h3>
-  <p class="para">
-   <table class="doctable informaltable">
-    
-     <thead>
-      <tr>
-       <th>版本</th>
-       <th>说明</th>
-      </tr>
+  <table class="doctable informaltable">
+   
+    <thead>
+     <tr>
+      <th>版本</th>
+      <th>说明</th>
+     </tr>
 
-     </thead>
+    </thead>
 
-     <tbody class="tbody">
-      <tr>
-       <td>5.3.0</td>
-       <td>
-         This function now returns a <a href="language.types.resource.html" class="link">资源(resource)</a> instead of an 
-         <a href="language.types.integer.html" class="link">integer</a>.
-       </td>
-      </tr>
+    <tbody class="tbody">
+     <tr>
+      <td>8.0.0</td>
+      <td>
+       On success, this function returns an <strong class="classname">SysvSharedMemory</strong> instance now;
+       previously, a <span class="type">resource</span> was returned.
+      </td>
+     </tr>
 
-     </tbody>
-    
-   </table>
+     <tr>
+      <td>8.0.0</td>
+      <td>
+       <code class="parameter">size</code> is nullable now.
+      </td>
+     </tr>
 
-  </p>
- </div>
+    </tbody>
+   
+  </table>
 
-
- <div class="refsect1 notes" id="refsect1-function.shm-attach-notes">
-  <h3 class="title">注释</h3>
-  <blockquote class="note"><p><strong class="note">Note</strong>: 
-   <p class="para">
-    This function used to return an integer value prior to 
-    PHP 5.3.0. To achieve the same value in a portable manner, the 
-    return value can be cast to an integer like:
-   </p>
-   <p class="para">
-    <div class="example" id="example-4488">
-     <div class="example-contents">
-<div class="phpcode"><code><span style="color: #000000">
-<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">//&nbsp;Create&nbsp;a&nbsp;temporary&nbsp;file&nbsp;and&nbsp;return&nbsp;its&nbsp;path<br /></span><span style="color: #0000BB">$tmp&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">tempnam</span><span style="color: #007700">(</span><span style="color: #DD0000">'/tmp'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'PHP'</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">//&nbsp;Get&nbsp;the&nbsp;file&nbsp;token&nbsp;key<br /></span><span style="color: #0000BB">$key&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">ftok</span><span style="color: #007700">(</span><span style="color: #0000BB">$tmp</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'a'</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">//&nbsp;Attach&nbsp;the&nbsp;SHM&nbsp;resource,&nbsp;notice&nbsp;the&nbsp;cast&nbsp;afterwards<br /></span><span style="color: #0000BB">$id&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">shm_attach</span><span style="color: #007700">(</span><span style="color: #0000BB">$key</span><span style="color: #007700">);<br /><br />if&nbsp;(</span><span style="color: #0000BB">$id&nbsp;</span><span style="color: #007700">===&nbsp;</span><span style="color: #0000BB">false</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;die(</span><span style="color: #DD0000">'Unable&nbsp;to&nbsp;create&nbsp;the&nbsp;shared&nbsp;memory&nbsp;segment'</span><span style="color: #007700">);<br />}<br /><br /></span><span style="color: #FF8000">//&nbsp;Cast&nbsp;to&nbsp;integer,&nbsp;since&nbsp;prior&nbsp;to&nbsp;PHP&nbsp;5.3.0&nbsp;the&nbsp;resource&nbsp;id&nbsp;<br />//&nbsp;is&nbsp;returned&nbsp;which&nbsp;can&nbsp;be&nbsp;exposed&nbsp;when&nbsp;casting&nbsp;a&nbsp;resource<br />//&nbsp;to&nbsp;an&nbsp;integer<br /></span><span style="color: #0000BB">$id&nbsp;</span><span style="color: #007700">=&nbsp;(integer)&nbsp;</span><span style="color: #0000BB">$id</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">?&gt;</span>
-</span>
-</code></div>
-     </div>
-
-    </div>
-   </p>
-  </p></blockquote>
  </div>
 
 

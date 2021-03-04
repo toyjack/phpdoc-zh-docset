@@ -27,7 +27,7 @@
   <div id="layout-content"><div id="function.chdir" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">chdir</h1>
-  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">chdir</span> &mdash; <span class="dc-title">改变目录</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7, PHP 8)</p><p class="refpurpose"><span class="refname">chdir</span> &mdash; <span class="dc-title">改变目录</span></p>
 
  </div>
 
@@ -71,7 +71,7 @@
  <div class="refsect1 returnvalues" id="refsect1-function.chdir-returnvalues">
   <h3 class="title">返回值</h3>
   <p class="para">
-   成功时返回 <strong><code>TRUE</code></strong>， 或者在失败时返回 <strong><code>FALSE</code></strong>。
+   成功时返回 <strong><code>true</code></strong>， 或者在失败时返回 <strong><code>false</code></strong>。
   </p>
  </div>
 
@@ -87,7 +87,7 @@
  <div class="refsect1 examples" id="refsect1-function.chdir-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-2779">
+   <div class="example" id="example-2508">
     <p><strong>Example #1 <span class="function"><strong>chdir()</strong></span> 例子</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -110,9 +110,18 @@
 
  <div class="refsect1 notes" id="refsect1-function.chdir-notes">
   <h3 class="title">注释</h3>
-  <blockquote class="note"><p><strong class="note">Note</strong>: <span class="simpara">当启用
-<a href="features.safe-mode.html" class="link">安全模式</a>时，
-PHP 会在执行脚本时检查被脚本操作的目录是否与被执行的脚本有相同的 UID（所有者）。</span></p></blockquote>
+  <div class="caution"><strong class="caution">Caution</strong>
+   <p class="para">
+    If the PHP interpreter has been built with ZTS (Zend Thread Safety) enabled,
+    any changes to the current directory made through <span class="function"><strong>chdir()</strong></span>
+    will be invisible to the operating system. All built-in PHP functions will
+    still respect the change in current directory; but external library
+    functions called using <a href="book.ffi.html" class="link">FFI</a> will not. You
+    can tell whether your copy of PHP was built with ZTS enabled using
+    <strong class="command">php -i</strong> or the built-in constant
+    <strong><code>PHP_ZTS</code></strong>.
+   </p>
+  </div>
  </div>
 
 
@@ -129,7 +138,48 @@ PHP 会在执行脚本时检查被脚本操作的目录是否与被执行的脚本有相同的 UID（所有者）。
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="88617""></a>
+<div id="allnotes">  <a name="125457""></a>
+  <div class="note">
+   <strong class="user">nesk at xakep dot ru</strong>
+   <a href="#125457" class="date">24-Oct-2020 12:43</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+When working with FFI under a PHP ZTS environment, there is no standard way to change the directory with libraries (dll/so/dylib/etc), so to get around this problem, you should use something like this polyfill:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+$directory </span><span class="keyword">= </span><span class="string">'path/to/libraries'</span><span class="keyword">;<br />
+<br />
+switch (\</span><span class="default">PHP_OS_FAMILY</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; case </span><span class="string">'Windows'</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; \</span><span class="default">FFI</span><span class="keyword">::</span><span class="default">cdef</span><span class="keyword">(</span><span class="string">'extern unsigned char SetDllDirectoryA(const char* lpPathName);'</span><span class="keyword">, </span><span class="string">'kernel32.dll'</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; -&gt;</span><span class="default">SetDllDirectoryA</span><span class="keyword">(</span><span class="default">$directory</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; ;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+<br />
+&nbsp;&nbsp;&nbsp; case </span><span class="string">'Linux'</span><span class="keyword">:<br />
+&nbsp;&nbsp;&nbsp; case </span><span class="string">'BSD'</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; \</span><span class="default">FFI</span><span class="keyword">::</span><span class="default">cdef</span><span class="keyword">(</span><span class="string">'int setenv(const char *name, const char *value, int overwrite);'</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; -&gt;</span><span class="default">setenv</span><span class="keyword">(</span><span class="string">'LD_LIBRARY_PATH'</span><span class="keyword">, </span><span class="default">$directory</span><span class="keyword">, </span><span class="default">1</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; ;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+<br />
+&nbsp;&nbsp;&nbsp; case </span><span class="string">'Darwin'</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; \</span><span class="default">FFI</span><span class="keyword">::</span><span class="default">cdef</span><span class="keyword">(</span><span class="string">'int setenv(const char *name, const char *value, int overwrite);'</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; -&gt;</span><span class="default">setenv</span><span class="keyword">(</span><span class="string">'DYLD_LIBRARY_PATH'</span><span class="keyword">, </span><span class="default">$directory</span><span class="keyword">, </span><span class="default">1</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; ;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+}<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="88617""></a>
   <div class="note">
    <strong class="user">php dot duke at qik dot nl</strong>
    <a href="#88617" class="date">31-Jan-2009 02:16</a>

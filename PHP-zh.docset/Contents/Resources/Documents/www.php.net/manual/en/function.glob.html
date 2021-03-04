@@ -27,7 +27,7 @@
   <div id="layout-content"><div id="function.glob" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">glob</h1>
-  <p class="verinfo">(PHP 4 &gt;= 4.3.0, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">glob</span> &mdash; <span class="dc-title">寻找与模式匹配的文件路径</span></p>
+  <p class="verinfo">(PHP 4 &gt;= 4.3.0, PHP 5, PHP 7, PHP 8)</p><p class="refpurpose"><span class="refname">glob</span> &mdash; <span class="dc-title">寻找与模式匹配的文件路径</span></p>
 
  </div>
  <div class="refsect1 description" id="refsect1-function.glob-description">
@@ -35,13 +35,13 @@
   <div class="methodsynopsis dc-description">
    <span class="methodname"><strong>glob</strong></span>
     ( <span class="methodparam"><span class="type">string</span> <code class="parameter">$pattern</code></span>
-   [, <span class="methodparam"><span class="type">int</span> <code class="parameter">$flags</code><span class="initializer"> = 0</span></span>
-  ] ) : <span class="type">array</span></div>
+   , <span class="methodparam"><span class="type">int</span> <code class="parameter">$flags</code><span class="initializer"> = 0</span></span>
+   ) : <span class="type">array</span></div>
 
   <p class="para rdfs-comment">
    <span class="function"><strong>glob()</strong></span> 函数依照 libc glob() 函数使用的规则寻找所有与
    <code class="parameter">pattern</code> 匹配的文件路径，类似于一般 shells
-   所用的规则一样。不进行缩写扩展或参数替代。
+   所用的规则一样。
   </p>
  </div>
 
@@ -58,7 +58,35 @@
      <dd>
 
       <p class="para">
-       The pattern. No tilde expansion or parameter substitution is done.
+       匹配模式（pattern）。
+       不进行缩写扩展或参数替代。
+      </p>
+      <p class="para">
+       特殊字符：
+       <ul class="itemizedlist">
+        <li class="listitem">
+         <span class="simpara">
+          <code class="literal">*</code> - 匹配零个或多个字符。
+         </span>
+        </li>
+        <li class="listitem">
+         <span class="simpara">
+          <code class="literal">?</code> - 只匹配单个字符（任意字符）。
+         </span>
+        </li>
+        <li class="listitem">
+         <span class="simpara">
+          <code class="literal">[...]</code> - 匹配一组字符中的一个字符。
+          如果第一个字符是 <code class="literal">!</code>，则为否定模式，
+          即匹配不在这组字符中的任意字符。
+         </span>
+        </li>
+        <li class="listitem">
+         <span class="simpara">
+          <code class="literal">\</code> - 只要没有使用 <strong><code>GLOB_NOESCAPE</code></strong> 标记，该字符会转义后面的字符。
+         </span>
+        </li>
+       </ul>
       </p>
      </dd>
 
@@ -120,58 +148,21 @@
 
  <div class="refsect1 returnvalues" id="refsect1-function.glob-returnvalues">
   <h3 class="title">返回值</h3>
-  <p class="para">返回一个包含有匹配文件／目录的数组。如果出错返回 <strong><code>FALSE</code></strong>。
+  <p class="para">
+   返回包含有匹配文件和目录的数组，没有匹配文件时返回空数组，出错返回 <strong><code>false</code></strong>。
   </p>
   <blockquote class="note"><p><strong class="note">Note</strong>: 
    <p class="para">
-    On some systems it is impossible to distinguish between empty match and an
-    error.
+    在个别操作系统上，无法区分是否为空匹配或错误。
    </p>
   </p></blockquote>
- </div>
-
-
- <div class="refsect1 changelog" id="refsect1-function.glob-changelog">
-  <h3 class="title">更新日志</h3>
-  <p class="para">
-   <table class="doctable informaltable">
-    
-     <thead>
-      <tr>
-       <th>版本</th>
-       <th>说明</th>
-      </tr>
-
-     </thead>
-
-     <tbody class="tbody">
-      <tr>
-       <td>5.1.0</td>
-       <td>
-        <strong><code>GLOB_ERR</code></strong> was added
-       </td>
-      </tr>
-
-      <tr>
-       <td>4.3.3</td>
-       <td>
-        <strong><code>GLOB_ONLYDIR</code></strong>
-       在 Windows 或者其它不使用 GNU C 库的系统上开始可用。
-       </td>
-      </tr>
-
-     </tbody>
-    
-   </table>
-
-  </p>
  </div>
 
 
  <div class="refsect1 examples" id="refsect1-function.glob-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-2844">
+   <div class="example" id="example-2573">
     <p><strong>Example #1 怎样用 <span class="function"><strong>glob()</strong></span> 方便地替代
     <span class="function"><a href="function.opendir.html" class="function">opendir()</a></span> 和相关函数</strong></p>
     <div class="example-contents">
@@ -226,7 +217,41 @@ quickref.txt size 137820
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="124302""></a>
+<div id="allnotes">  <a name="125723""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#125723" class="date">25-Jan-2021 12:25</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Include dotfiles excluding . and .. special dirs with .[!.]*<br />
+<br />
+<span class="default">&lt;?php<br />
+$all_files </span><span class="keyword">= </span><span class="default">array_merge</span><span class="keyword">(</span><span class="default">glob</span><span class="keyword">(</span><span class="string">'.[!.]*'</span><span class="keyword">), </span><span class="default">glob</span><span class="keyword">(</span><span class="string">'*'</span><span class="keyword">));<br />
+</span><span class="comment">// or<br />
+</span><span class="default">$all_files </span><span class="keyword">= </span><span class="default">glob</span><span class="keyword">(</span><span class="string">'{.[!.],}*'</span><span class="keyword">, </span><span class="default">GLOB_BRACE</span><span class="keyword">);<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="125639""></a>
+  <div class="note">
+   <strong class="user">davewho at nexicom dot net</strong>
+   <a href="#125639" class="date">29-Dec-2020 03:09</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Note that if you use braces ie. /*.{gif,jpg,htm} then glob returns<br />
+gifs before jpgs before htm files rather than in filename sequence.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="124302""></a>
   <div class="note">
    <strong class="user">vincewansink at outlook dot com</strong>
    <a href="#124302" class="date">17-Oct-2019 09:05</a>

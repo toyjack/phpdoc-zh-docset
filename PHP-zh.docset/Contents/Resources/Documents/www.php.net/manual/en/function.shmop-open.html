@@ -27,7 +27,7 @@
   <div id="layout-content"><div id="function.shmop-open" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">shmop_open</h1>
-  <p class="verinfo">(PHP 4 &gt;= 4.0.4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">shmop_open</span> &mdash; <span class="dc-title">Create or open shared memory block</span></p>
+  <p class="verinfo">(PHP 4 &gt;= 4.0.4, PHP 5, PHP 7, PHP 8)</p><p class="refpurpose"><span class="refname">shmop_open</span> &mdash; <span class="dc-title">Create or open shared memory block</span></p>
 
  </div>
  <div class="refsect1 description" id="refsect1-function.shmop-open-description">
@@ -35,10 +35,10 @@
   <div class="methodsynopsis dc-description">
    <span class="methodname"><strong>shmop_open</strong></span>
     ( <span class="methodparam"><span class="type">int</span> <code class="parameter">$key</code></span>
-   , <span class="methodparam"><span class="type">string</span> <code class="parameter">$flags</code></span>
-   , <span class="methodparam"><span class="type">int</span> <code class="parameter">$mode</code></span>
+   , <span class="methodparam"><span class="type">string</span> <code class="parameter">$mode</code></span>
+   , <span class="methodparam"><span class="type">int</span> <code class="parameter">$permissions</code></span>
    , <span class="methodparam"><span class="type">int</span> <code class="parameter">$size</code></span>
-   ) : <span class="type">resource</span></div>
+   ) : <span class="type"><span class="type"><a href="class.shmop.html" class="type Shmop">Shmop</a></span>|<span class="type"><span class="type false">false</span></span></span></div>
 
   <p class="para rdfs-comment">
    <span class="function"><strong>shmop_open()</strong></span> can create or open a shared memory block.
@@ -65,7 +65,7 @@
     
     
      <dt>
-<code class="parameter">flags</code></dt>
+<code class="parameter">mode</code></dt>
 
      <dd>
 
@@ -110,14 +110,14 @@
     
     
      <dt>
-<code class="parameter">mode</code></dt>
+<code class="parameter">permissions</code></dt>
 
      <dd>
 
       <p class="para">
        The permissions that you wish to assign to your memory segment, those
        are the same as permission for a file. Permissions need to be passed
-       in octal form, like for example <em>0644</em>
+       in octal form, like for example <code class="literal">0644</code>
       </p>
      </dd>
 
@@ -148,8 +148,8 @@
  <div class="refsect1 returnvalues" id="refsect1-function.shmop-open-returnvalues">
   <h3 class="title">·µ»ØÖµ</h3>
   <p class="para">
-   On success <span class="function"><strong>shmop_open()</strong></span> will return an resource that you can
-   use to access the shared memory segment you&#039;ve created. <strong><code>FALSE</code></strong> is 
+   On success <span class="function"><strong>shmop_open()</strong></span> will return a <a href="class.shmop.html" class="classname">Shmop</a> instance that you can
+   use to access the shared memory segment you&#039;ve created. <strong><code>false</code></strong> is
    returned on failure.
   </p>
  </div>
@@ -169,10 +169,10 @@
 
     <tbody class="tbody">
      <tr>
-      <td>7.0.0</td>
+      <td>8.0.0</td>
       <td>
-       The return type of <span class="function"><strong>shmop_open()</strong></span> has been changed from
-       <span class="type"><a href="language.types.integer.html" class="type int">int</a></span> to <span class="type"><a href="language.types.resource.html" class="type resource">resource</a></span>.
+       On success, this function returns an <a href="class.shmop.html" class="classname">Shmop</a> instance now;
+       previously, a <span class="type">resource</span> was returned.
       </td>
      </tr>
 
@@ -186,7 +186,7 @@
  <div class="refsect1 examples" id="refsect1-function.shmop-open-examples">
   <h3 class="title">·¶Àý</h3>
   <p class="para">
-   <div class="example" id="example-4492">
+   <div class="example" id="example-3764">
     <p><strong>Example #1 Create a new shared memory block</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -332,205 +332,6 @@ The implementation of shmop for Windows is pretty slick - the author basically p
    </div>
   </div>
  <div class="foot"></div>
-  <a name="85423""></a>
-  <div class="note">
-   <strong class="user">DinosauRUS</strong>
-   <a href="#85423" class="date">29-Aug-2008 03:24</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-If you faced with any problem you're going to solve with shared memmory, but your server doesn't support it, you can use files instead. I've wrote simple wrapper for this and its suites for me. Hope it will be usefull for you too.<br />
-<br />
-<span class="default">&lt;?php<br />
-<br />
-define</span><span class="keyword">(</span><span class="default">kSHARED_FOLDER</span><span class="keyword">, </span><span class="string">"shared/"</span><span class="keyword">);<br />
-</span><span class="default">define</span><span class="keyword">(</span><span class="default">kSHARED_MAX_ATTEMPS</span><span class="keyword">, </span><span class="default">10</span><span class="keyword">);<br />
-</span><span class="default">define</span><span class="keyword">(</span><span class="default">kSESSION_SHARED</span><span class="keyword">, </span><span class="string">"shared_"</span><span class="keyword">);<br />
-<br />
-class </span><span class="default">Shared </span><span class="keyword">{<br />
-&nbsp;&nbsp;&nbsp; var </span><span class="default">$id </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; var </span><span class="default">$filename </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; var </span><span class="default">$filepointer</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; <br />
-&nbsp;&nbsp;&nbsp; var </span><span class="default">$data </span><span class="keyword">= array();<br />
-&nbsp;&nbsp;&nbsp; var </span><span class="default">$date </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; <br />
-&nbsp;&nbsp;&nbsp; function </span><span class="default">Shared</span><span class="keyword">(</span><span class="default">$id</span><span class="keyword">) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">id </span><span class="keyword">= </span><span class="default">$id</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filename </span><span class="keyword">= </span><span class="default">kSHARED_FOLDER</span><span class="keyword">.</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">id</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(empty(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filename</span><span class="keyword">))<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; print </span><span class="string">"no filename"</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;&nbsp; &nbsp; &nbsp; &nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">date </span><span class="keyword">= </span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="default">kSESSION_SHARED</span><span class="keyword">.</span><span class="default">$id</span><span class="keyword">];<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; <br />
-&nbsp;&nbsp;&nbsp; function </span><span class="default">clear</span><span class="keyword">() {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">id </span><span class="keyword">== </span><span class="default">null</span><span class="keyword">)<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$counter </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">ignore_user_abort</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if((</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filepointer </span><span class="keyword">= @</span><span class="default">fopen</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filename</span><span class="keyword">, </span><span class="string">"w"</span><span class="keyword">)) == </span><span class="default">false</span><span class="keyword">) {&nbsp; &nbsp; &nbsp; &nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">ignore_user_abort</span><span class="keyword">(</span><span class="default">false</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; while(</span><span class="default">true</span><span class="keyword">) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$counter </span><span class="keyword">&gt;= </span><span class="default">kSHARED_MAX_ATTEMPS</span><span class="keyword">) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filepointer</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">ignore_user_abort</span><span class="keyword">(</span><span class="default">false</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">flock</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filepointer</span><span class="keyword">, </span><span class="default">LOCK_EX</span><span class="keyword">) == </span><span class="default">false</span><span class="keyword">) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$counter</span><span class="keyword">++;<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">usleep</span><span class="keyword">(</span><span class="default">rand</span><span class="keyword">(</span><span class="default">1</span><span class="keyword">, </span><span class="default">25000</span><span class="keyword">));<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; else<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">flock</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filepointer</span><span class="keyword">, </span><span class="default">LOCK_UN</span><span class="keyword">) == </span><span class="default">false</span><span class="keyword">) {&nbsp; &nbsp; &nbsp; &nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">ignore_user_abort</span><span class="keyword">(</span><span class="default">false</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; unset(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">data</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">data </span><span class="keyword">= array();<br />
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filepointer</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">date </span><span class="keyword">= </span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="default">kSESSION_SHARED</span><span class="keyword">.</span><span class="default">$id</span><span class="keyword">] = </span><span class="default">filemtime</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filename</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">ignore_user_abort</span><span class="keyword">(</span><span class="default">false</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">true</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; <br />
-&nbsp;&nbsp;&nbsp; function </span><span class="default">setObjectForKey</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">, </span><span class="default">$key</span><span class="keyword">) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">id </span><span class="keyword">== </span><span class="default">null</span><span class="keyword">)<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$counter </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">ignore_user_abort</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if((</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filepointer </span><span class="keyword">= @</span><span class="default">fopen</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filename</span><span class="keyword">, </span><span class="string">"a+"</span><span class="keyword">)) == </span><span class="default">false</span><span class="keyword">) {&nbsp; &nbsp; &nbsp; &nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">ignore_user_abort</span><span class="keyword">(</span><span class="default">false</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; print </span><span class="string">"can not open file&lt;br&gt;"</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; while(</span><span class="default">true</span><span class="keyword">) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$counter </span><span class="keyword">&gt;= </span><span class="default">kSHARED_MAX_ATTEMPS</span><span class="keyword">) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filepointer</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; print(</span><span class="string">"1 aborted..."</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">ignore_user_abort</span><span class="keyword">(</span><span class="default">false</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$block</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">flock</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filepointer</span><span class="keyword">, </span><span class="default">LOCK_EX</span><span class="keyword">, </span><span class="default">$block</span><span class="keyword">) == </span><span class="default">false</span><span class="keyword">) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$counter</span><span class="keyword">++;<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; print(</span><span class="string">"1 waiting..."</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">usleep</span><span class="keyword">(</span><span class="default">rand</span><span class="keyword">(</span><span class="default">1</span><span class="keyword">, </span><span class="default">25000</span><span class="keyword">));<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; else<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$data </span><span class="keyword">= </span><span class="default">file_get_contents</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filename</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$array </span><span class="keyword">= array();<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (!empty(</span><span class="default">$data</span><span class="keyword">))<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$array </span><span class="keyword">= </span><span class="default">unserialize</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">);<br />
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$array</span><span class="keyword">[</span><span class="default">$key</span><span class="keyword">] = </span><span class="default">$value</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$data </span><span class="keyword">= </span><span class="default">serialize</span><span class="keyword">(</span><span class="default">$array</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">ftruncate</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filepointer</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fseek</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filepointer</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">, </span><span class="default">SEEK_SET</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filepointer</span><span class="keyword">, </span><span class="default">$data</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">data </span><span class="keyword">= </span><span class="default">$array</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">flock</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filepointer</span><span class="keyword">, </span><span class="default">LOCK_UN</span><span class="keyword">) == </span><span class="default">false</span><span class="keyword">) {&nbsp; &nbsp; &nbsp; &nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">ignore_user_abort</span><span class="keyword">(</span><span class="default">false</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filepointer</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">date </span><span class="keyword">= </span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="default">kSESSION_SHARED</span><span class="keyword">.</span><span class="default">$id</span><span class="keyword">] = </span><span class="default">filemtime</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filename</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">ignore_user_abort</span><span class="keyword">(</span><span class="default">false</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">true</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; <br />
-&nbsp;&nbsp;&nbsp; function </span><span class="default">getObjectForKey</span><span class="keyword">(</span><span class="default">$key</span><span class="keyword">)&nbsp; &nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">id </span><span class="keyword">== </span><span class="default">null</span><span class="keyword">)<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">null</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$counter </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">ignore_user_abort</span><span class="keyword">(</span><span class="default">true</span><span class="keyword">);<br />
-&nbsp;&nbsp;&nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if((</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filepointer </span><span class="keyword">= @</span><span class="default">fopen</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filename</span><span class="keyword">, </span><span class="string">"a+"</span><span class="keyword">)) == </span><span class="default">false</span><span class="keyword">) {&nbsp; &nbsp; &nbsp; &nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">ignore_user_abort</span><span class="keyword">(</span><span class="default">false</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; print(</span><span class="string">"can not open&lt;br&gt;"</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">null</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">date </span><span class="keyword">== </span><span class="default">filemtime</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filename</span><span class="keyword">)) {&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filepointer</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">data</span><span class="keyword">[</span><span class="default">$key</span><span class="keyword">];<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; while(</span><span class="default">true</span><span class="keyword">) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$counter </span><span class="keyword">&gt;= </span><span class="default">kSHARED_MAX_ATTEMPS</span><span class="keyword">) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filepointer</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">ignore_user_abort</span><span class="keyword">(</span><span class="default">false</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; print(</span><span class="string">"2 aborted&lt;br&gt;"</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">null</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">flock</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filepointer</span><span class="keyword">,&nbsp; </span><span class="default">LOCK_SH </span><span class="keyword">) == </span><span class="default">false</span><span class="keyword">) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$counter</span><span class="keyword">++;<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; print(</span><span class="string">"2 waiting...&lt;br&gt;"</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">usleep</span><span class="keyword">(</span><span class="default">rand</span><span class="keyword">(</span><span class="default">1</span><span class="keyword">, </span><span class="default">25000</span><span class="keyword">));<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; else<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fseek</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filepointer</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$data </span><span class="keyword">= </span><span class="default">file_get_contents</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filename</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$array </span><span class="keyword">= array();<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (!empty(</span><span class="default">$data</span><span class="keyword">))<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$array </span><span class="keyword">= </span><span class="default">unserialize</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$data </span><span class="keyword">= </span><span class="default">$array</span><span class="keyword">[</span><span class="default">$key</span><span class="keyword">];<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">data </span><span class="keyword">= </span><span class="default">$array</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">flock</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filepointer</span><span class="keyword">, </span><span class="default">LOCK_UN</span><span class="keyword">) == </span><span class="default">false</span><span class="keyword">) {&nbsp; &nbsp; &nbsp; &nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">ignore_user_abort</span><span class="keyword">(</span><span class="default">false</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$data</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filepointer</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">date </span><span class="keyword">= </span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="default">kSESSION_SHARED</span><span class="keyword">.</span><span class="default">$id</span><span class="keyword">] = </span><span class="default">filemtime</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">filename</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">ignore_user_abort</span><span class="keyword">(</span><span class="default">false</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$data</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; }<br />
-}<br />
-</span><span class="default">?&gt;</span>
-</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
   <a name="79430""></a>
   <div class="note">
    <strong class="user">erelsgl at gmail dot com</strong>
@@ -616,33 +417,6 @@ sorry for my english :)</span>
     <div class="phpcode">
 <code><span class="html">
 Be warned that if you try to shmop_open with a key set to zero, shmop_open will seemingly work, and you can write to it, but you will not be able to read from it or delete it.&nbsp; If you're not careful, you can continue doing this - creating more and more shared memory blocks at "zero" until eventually you WILL start getting errors saying that php can't access or create the shared memory block, and you will have to restart your machine to free up all of those "zero" blocks.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="16651""></a>
-  <div class="note">
-   <strong class="user">Mitchell_Shnier at ieee dot orgZ</strong>
-   <a href="#16651" class="date">07-Nov-2001 05:51</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-To check whether a particular shared memory segment is already created, you need to concatenate the "a" and "c" flags. For example (where $SystemKey is the Unix key used by the other process(es) with which you want to share this memory segment)...&lt;BR&gt;
-<br />
-$shm_id = shmop_open($SystemKey, "ac", 0, 0);
-<br />
-if ($shm_id) {
-<br />
-&nbsp;&nbsp; #it is already created
-<br />
-} else {
-<br />
-&nbsp;&nbsp; #you need to create it with shmop_open using "c" only
-<br />
-}&lt;BR&gt;
-<br />
-Using only "a" does not work (just as using only IPC_EXCL in the Unix shmget() call is meaningless). Also, use the ipcs shell command to see your shared memory segments.</span>
 </code>
     </div>
    </div>

@@ -27,7 +27,7 @@
   <div id="layout-content"><div id="function.mb-ereg" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">mb_ereg</h1>
-  <p class="verinfo">(PHP 4 &gt;= 4.2.0, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">mb_ereg</span> &mdash; <span class="dc-title">Regular expression match with multibyte support</span></p>
+  <p class="verinfo">(PHP 4 &gt;= 4.2.0, PHP 5, PHP 7, PHP 8)</p><p class="refpurpose"><span class="refname">mb_ereg</span> &mdash; <span class="dc-title">Regular expression match with multibyte support</span></p>
 
  </div>
    
@@ -37,8 +37,8 @@
    <span class="methodname"><strong>mb_ereg</strong></span>
     ( <span class="methodparam"><span class="type">string</span> <code class="parameter">$pattern</code></span>
    , <span class="methodparam"><span class="type">string</span> <code class="parameter">$string</code></span>
-   [, <span class="methodparam"><span class="type">array</span> <code class="parameter reference">&$regs</code></span>
-  ] ) : <span class="type">int</span></div>
+   , <span class="methodparam"><span class="type">array</span> <code class="parameter reference">&$matches</code><span class="initializer"> = <strong><code>null</code></strong></span></span>
+   ) : <span class="type">bool</span></div>
 
   <p class="simpara">
    Executes the regular expression match with multibyte support.
@@ -70,30 +70,30 @@
      <dd>
 
       <p class="para">
-       The search <span class="type"><a href="language.types.string.html" class="type string">string</a></span>.
+       The search <span class="type">string</span>.
       </p>
      </dd>
 
     
     
      <dt>
-<code class="parameter">regs</code></dt>
+<code class="parameter">matches</code></dt>
 
      <dd>
 
       <p class="para">
        If matches are found for parenthesized substrings of
        <code class="parameter">pattern</code> and the function is called with the
-       third argument <code class="parameter">regs</code>, the matches will be stored
-       in the elements of the array <code class="parameter">regs</code>.
-       If no matches are found, <code class="parameter">regs</code> is set to an empty
+       third argument <code class="parameter">matches</code>, the matches will be stored
+       in the elements of the array <code class="parameter">matches</code>.
+       If no matches are found, <code class="parameter">matches</code> is set to an empty
        array.
       </p>
       <p class="para">
-       <var class="varname"><var class="varname">$regs[1]</var></var> will contain the substring which starts at
-       the first left parenthesis; <var class="varname"><var class="varname">$regs[2]</var></var> will contain
+       <var class="varname">$matches[1]</var> will contain the substring which starts at
+       the first left parenthesis; <var class="varname">$matches[2]</var> will contain
        the substring starting at the second, and so on.
-       <var class="varname"><var class="varname">$regs[0]</var></var> will contain a copy of the complete string
+       <var class="varname">$matches[0]</var> will contain a copy of the complete string
        matched.
       </p>
      </dd>
@@ -108,13 +108,7 @@
  <div class="refsect1 returnvalues" id="refsect1-function.mb-ereg-returnvalues">
   <h3 class="title">·µ»ØÖµ</h3>
   <p class="para">
-   Returns the byte length of the matched string if a match for
-   <code class="parameter">pattern</code> was found in <code class="parameter">string</code>,
-   or <strong><code>FALSE</code></strong> if no matches were found or an error occurred.
-  </p>
-  <p class="para">
-   If the optional parameter <code class="parameter">regs</code> was not passed or
-   the length of the matched string is <em>0</em>, this function returns <em>1</em>.
+   Returns whether <code class="parameter">pattern</code> matches <code class="parameter">string</code>.
   </p>
  </div>
 
@@ -133,11 +127,22 @@
 
     <tbody class="tbody">
      <tr>
+      <td>8.0.0</td>
+      <td>
+       This function returns <strong><code>true</code></strong> on success now. Previously, it returned the byte length
+       of the matched string if a match for <code class="parameter">pattern</code> was found in
+       <code class="parameter">string</code> and <code class="parameter">matches</code> was passed.
+       If the optional parameter <code class="parameter">matches</code> was not passed or
+       the length of the matched string was <code class="literal">0</code>, this function returned <code class="literal">1</code>.
+      </td>
+     </tr>
+
+     <tr>
       <td>7.1.0</td>
       <td>
-       <span class="function"><strong>mb_ereg()</strong></span> will now set <code class="parameter">regs</code> to
-       an empty <span class="type"><a href="language.types.array.html" class="type array">array</a></span>, if nothing matched. Formerly,
-       <code class="parameter">regs</code> was not modified in that case.
+       <span class="function"><strong>mb_ereg()</strong></span> will now set <code class="parameter">matches</code> to
+       an empty <span class="type">array</span>, if nothing matched. Formerly,
+       <code class="parameter">matches</code> was not modified in that case.
       </td>
      </tr>
 
@@ -171,7 +176,80 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="123715""></a>
+<div id="allnotes">  <a name="125579""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#125579" class="date">08-Dec-2020 01:28</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="comment"># What mb_ereg() returns &amp; changes $_3rd_argument into<br />
+# (Just run this script)<br />
+<br />
+</span><span class="keyword">function </span><span class="default">dump2str</span><span class="keyword">(</span><span class="default">$var</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">ob_start</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$var</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$output </span><span class="keyword">= </span><span class="default">ob_get_contents</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">ob_end_clean</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$output</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="comment"># (PHP7)empty pattern returns bool(false) with Warning<br />
+# (PHP8)empty pattern throws ValueError<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$emp_ptn </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">;<br />
+try{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$emp_ptn</span><span class="keyword">.=&nbsp; </span><span class="default">dump2str</span><span class="keyword">(</span><span class="default">mb_ereg</span><span class="keyword">(</span><span class="string">''</span><span class="keyword">, </span><span class="string">'abcde'</span><span class="keyword">));<br />
+}catch(</span><span class="default">Exception </span><span class="keyword">| </span><span class="default">Error $e</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$emp_ptn</span><span class="keyword">.=&nbsp; </span><span class="default">get_class</span><span class="keyword">(</span><span class="default">$e</span><span class="keyword">).</span><span class="string">'&lt;br&gt;'</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$emp_ptn</span><span class="keyword">.=&nbsp; </span><span class="default">$e</span><span class="keyword">-&gt;</span><span class="default">getMessage</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$emp_ptn</span><span class="keyword">.=&nbsp; </span><span class="string">'&lt;pre&gt;'</span><span class="keyword">.</span><span class="default">$e</span><span class="keyword">-&gt;</span><span class="default">getTraceAsString</span><span class="keyword">().</span><span class="string">'&lt;/pre&gt;'</span><span class="keyword">;<br />
+}<br />
+<br />
+echo<br />
+</span><span class="string">'PHP '</span><span class="keyword">.</span><span class="default">phpversion</span><span class="keyword">().</span><span class="string">'&lt;br&gt;&lt;br&gt;'</span><span class="keyword">.<br />
+<br />
+</span><span class="string">'# match&lt;br&gt;'</span><span class="keyword">.<br />
+</span><span class="default">dump2str</span><span class="keyword">(</span><span class="default">mb_ereg</span><span class="keyword">(</span><span class="string">"bcd"</span><span class="keyword">, </span><span class="string">"abcde"</span><span class="keyword">)).<br />
+</span><span class="string">' : mb_ereg("bcd", "abcde")&lt;br&gt;&lt;br&gt;'</span><span class="keyword">.<br />
+<br />
+</span><span class="string">'# match with 3rd argument&lt;br&gt;'</span><span class="keyword">.<br />
+</span><span class="default">dump2str</span><span class="keyword">(</span><span class="default">mb_ereg</span><span class="keyword">(</span><span class="string">"bcd"</span><span class="keyword">, </span><span class="string">"abcde"</span><span class="keyword">, </span><span class="default">$_3rd</span><span class="keyword">)).<br />
+</span><span class="string">' : mb_ereg("bcd", "abcde", $_3rd)&nbsp; &nbsp; // '</span><span class="keyword">.</span><span class="default">dump2str</span><span class="keyword">(</span><span class="default">$_3rd</span><span class="keyword">).</span><span class="string">'&lt;br&gt;&lt;br&gt;'</span><span class="keyword">.<br />
+<br />
+</span><span class="string">'# match (0 byte)&lt;br&gt;'</span><span class="keyword">.<br />
+</span><span class="default">dump2str</span><span class="keyword">(</span><span class="default">mb_ereg</span><span class="keyword">(</span><span class="string">"^"</span><span class="keyword">, </span><span class="string">"abcde"</span><span class="keyword">)).<br />
+</span><span class="string">' : mb_ereg("^", "abcde")&lt;br&gt;&lt;br&gt;'</span><span class="keyword">.<br />
+<br />
+</span><span class="string">'# match (0 byte) with 3rd argument&lt;br&gt;'</span><span class="keyword">.<br />
+</span><span class="default">dump2str</span><span class="keyword">(</span><span class="default">mb_ereg</span><span class="keyword">(</span><span class="string">"^"</span><span class="keyword">, </span><span class="string">"abcde"</span><span class="keyword">, </span><span class="default">$_3rd</span><span class="keyword">)).<br />
+</span><span class="string">' : mb_ereg("^", "abcde", $_3rd)&nbsp; &nbsp; // '</span><span class="keyword">.</span><span class="default">dump2str</span><span class="keyword">(</span><span class="default">$_3rd</span><span class="keyword">).</span><span class="string">'&lt;br&gt;&lt;br&gt;'</span><span class="keyword">.<br />
+<br />
+</span><span class="string">'# unmatch&lt;br&gt;'</span><span class="keyword">.<br />
+</span><span class="default">dump2str</span><span class="keyword">(</span><span class="default">mb_ereg</span><span class="keyword">(</span><span class="string">"f"</span><span class="keyword">, </span><span class="string">"abcde"</span><span class="keyword">)).<br />
+</span><span class="string">' : mb_ereg("f", "abcde")&lt;br&gt;&lt;br&gt;'</span><span class="keyword">.<br />
+<br />
+</span><span class="string">'# unmatch with 3rd argument&lt;br&gt;'</span><span class="keyword">.<br />
+</span><span class="default">dump2str</span><span class="keyword">(</span><span class="default">mb_ereg</span><span class="keyword">(</span><span class="string">"f"</span><span class="keyword">, </span><span class="string">"abcde"</span><span class="keyword">, </span><span class="default">$_3rd</span><span class="keyword">)).<br />
+</span><span class="string">' : mb_ereg("f", "abcde", $_3rd)&nbsp; &nbsp; // '</span><span class="keyword">.</span><span class="default">dump2str</span><span class="keyword">(</span><span class="default">$_3rd</span><span class="keyword">).</span><span class="string">'&lt;br&gt;&lt;br&gt;'</span><span class="keyword">.<br />
+<br />
+</span><span class="string">'# empty pattern&lt;br&gt;'</span><span class="keyword">.<br />
+</span><span class="default">$emp_ptn</span><span class="keyword">.<br />
+</span><span class="string">' : mb_ereg("", "abcde")&lt;br&gt;&lt;br&gt;'</span><span class="keyword">.<br />
+<br />
+</span><span class="string">'# empty pattern with 3rd argument&lt;br&gt;'</span><span class="keyword">.<br />
+</span><span class="default">$emp_ptn</span><span class="keyword">.<br />
+</span><span class="string">' : mb_ereg("", "abcde", $_3rd)&nbsp; &nbsp; // '</span><span class="keyword">.</span><span class="default">dump2str</span><span class="keyword">(</span><span class="default">$_3rd</span><span class="keyword">).</span><span class="string">'&lt;br&gt;&lt;br&gt;'</span><span class="keyword">;<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="123715""></a>
   <div class="note">
    <strong class="user">Anonymous</strong>
    <a href="#123715" class="date">21-Mar-2019 08:24</a>

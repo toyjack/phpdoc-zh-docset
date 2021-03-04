@@ -27,7 +27,7 @@
   <div id="layout-content"><div id="function.ldap-get-entries" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">ldap_get_entries</h1>
-  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">ldap_get_entries</span> &mdash; <span class="dc-title">Get all result entries</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7, PHP 8)</p><p class="refpurpose"><span class="refname">ldap_get_entries</span> &mdash; <span class="dc-title">Get all result entries</span></p>
 
  </div>
  
@@ -35,9 +35,9 @@
   <h3 class="title">说明</h3>
   <div class="methodsynopsis dc-description">
    <span class="methodname"><strong>ldap_get_entries</strong></span>
-    ( <span class="methodparam"><span class="type">resource</span> <code class="parameter">$link_identifier</code></span>
-   , <span class="methodparam"><span class="type">resource</span> <code class="parameter">$result_identifier</code></span>
-   ) : <span class="type">array</span></div>
+    ( <span class="methodparam"><span class="type">resource</span> <code class="parameter">$ldap</code></span>
+   , <span class="methodparam"><span class="type">resource</span> <code class="parameter">$result</code></span>
+   ) : <span class="type"><span class="type">array</span>|<span class="type"><span class="type false">false</span></span></span></div>
 
   <p class="para rdfs-comment">
    Reads multiple entries from the given result, and then reading the
@@ -53,7 +53,7 @@
 
     
      <dt>
-<code class="parameter">link_identifier</code></dt>
+<code class="parameter">ldap</code></dt>
 
      <dd>
 
@@ -65,7 +65,7 @@
     
     
      <dt>
-<code class="parameter">result_identifier</code></dt>
+<code class="parameter">result</code></dt>
 
      <dd>
 
@@ -84,7 +84,7 @@
   <h3 class="title">返回值</h3>
   <p class="para">
    Returns a complete result information in a multi-dimensional array on
-   success and <strong><code>FALSE</code></strong> on error.
+   success and <strong><code>false</code></strong> on error.
   </p>
   <p class="para">
    The structure of the array is as follows.
@@ -128,7 +128,110 @@ return_value[i][&quot;attribute&quot;][j] = jth value of attribute in ith entry
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="107267""></a>
+<div id="allnotes">  <a name="125083""></a>
+  <div class="note">
+   <strong class="user">peter dot mlich at volny dot cz</strong>
+   <a href="#125083" class="date">05-Jun-2020 07:52</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+public function entriesToArray($entries=array())<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; $list&nbsp; = array();<br />
+&nbsp;&nbsp;&nbsp; for($i=0;$i&lt;$entries['count'];$i++)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $row = array();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $dn&nbsp; = $entries[$i]['dn'];<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; unset($entries[$i]['count']);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; unset($entries[$i]['dn']);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach($entries[$i] as $key=&gt;$value)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (is_int($key))<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; {continue;}<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $list_in_col = array();<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; foreach($value as $key2=&gt;$value2)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (!is_int($key2))<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; {continue;}<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $list_in_col[] = $value2;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $row[$key] = $list_in_col;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $row['dn'] = $dn;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $list[$i] = $row;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; return $list;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+/*<br />
+Format ldap entries to better array<br />
+<br />
+array (size=2)<br />
+&nbsp; 'count' =&gt; int 1<br />
+&nbsp; 0 =&gt; <br />
+&nbsp;&nbsp;&nbsp; array (size=14)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 'ou' =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; array (size=2)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 'count' =&gt; int 1<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 0 =&gt; string '03024' (length=5)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 0 =&gt; string 'ou' (length=2)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 'mail' =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; array (size=2)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 'count' =&gt; int 1<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 0 =&gt; string 'name.surname@myfirm.cz' (length=22)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 1 =&gt; string 'mail' (length=4)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 'telephonenumber' =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; array (size=2)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 'count' =&gt; int 1<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 0 =&gt; string '+420123456781' (length=13)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 2 =&gt; string 'telephonenumber' (length=15)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 'personaltitle' =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; array (size=2)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 'count' =&gt; int 1<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 0 =&gt; string 'Ing.|' (length=4)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 3 =&gt; string 'personaltitle' (length=13)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 'sn' =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; array (size=2)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 'count' =&gt; int 1<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 0 =&gt; string 'MySurname' (length=6)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 4 =&gt; string 'sn' (length=2)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 'givenname' =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; array (size=2)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 'count' =&gt; int 1<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 0 =&gt; string 'MyName' (length=5)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 5 =&gt; string 'givenname' (length=9)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 'count' =&gt; int 6<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 'dn' =&gt; string 'cn=mynickid,ou=users,o=mydepartmentid' (length=24)<br />
+<br />
+array (size=1)<br />
+&nbsp; 0 =&gt; <br />
+&nbsp;&nbsp;&nbsp; array (size=7)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 'ou' =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; array (size=1)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 0 =&gt; string '03024' (length=5)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 'mail' =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; array (size=1)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 0 =&gt; string 'name.surname@myfirm.cz' (length=22)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 'telephonenumber' =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; array (size=1)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 0 =&gt; string '+420123456781' (length=13)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 'personaltitle' =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; array (size=1)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 0 =&gt; string 'Ing.|' (length=4)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 'sn' =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; array (size=1)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 0 =&gt; string 'MySurname' (length=6)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 'givenname' =&gt; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; array (size=1)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 0 =&gt; string 'MyName' (length=5)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 'dn' =&gt; string 'cn=mynickid,ou=users,o=mydepartmentid' (length=24)<br />
+*/</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="107267""></a>
   <div class="note">
    <strong class="user">tomas dot hampl at gmail dot com</strong>
    <a href="#107267" class="date">26-Jan-2012 10:50</a>

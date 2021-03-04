@@ -12,7 +12,7 @@
   <div class="navbar-inner clearfix">
     <ul class="nav" style="width: 100%">
       <li style="float: left;"><a href="language.oop5.references.html">? 对象和引用</a></li>
-      <li style="float: right;"><a href="language.oop5.changelog.html">OOP 变更日志 ?</a></li>
+      <li style="float: right;"><a href="language.oop5.variance.html">协变与逆变 ?</a></li>
     </ul>
   </div>
 </div>
@@ -35,13 +35,13 @@
   
   <p class="para">
    为了能够<span class="function"><a href="function.unserialize.html" class="function">unserialize()</a></span>一个对象，这个对象的类必须已经定义过。如果序列化类A的一个对象，将会返回一个跟类A相关，而且包含了对象所有变量值的字符串。
-   如果要想在另外一个文件中解序列化一个对象，这个对象的类必须在解序列化之前定义，可以通过包含一个定义该类的文件或使用函数<span class="function"><a href="function.spl-autoload-register.html" class="function">spl_autoload_register()</a></span>来实现。
+   如果要想在另外一个文件中反序列化一个对象，这个对象的类必须在反序列化之前定义，可以通过包含一个定义该类的文件或使用函数<span class="function"><a href="function.spl-autoload-register.html" class="function">spl_autoload_register()</a></span>来实现。
   </p>
   
   <div class="informalexample">
    <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
-<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">//&nbsp;classa.inc:<br />&nbsp;&nbsp;<br />&nbsp;&nbsp;</span><span style="color: #007700">class&nbsp;</span><span style="color: #0000BB">A&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;</span><span style="color: #0000BB">$one&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">show_one</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #0000BB">$this</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">one</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;}<br />&nbsp;&nbsp;<br /></span><span style="color: #FF8000">//&nbsp;page1.php:<br /><br />&nbsp;&nbsp;</span><span style="color: #007700">include(</span><span style="color: #DD0000">"classa.inc"</span><span style="color: #007700">);<br />&nbsp;&nbsp;<br />&nbsp;&nbsp;</span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">A</span><span style="color: #007700">;<br />&nbsp;&nbsp;</span><span style="color: #0000BB">$s&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">serialize</span><span style="color: #007700">(</span><span style="color: #0000BB">$a</span><span style="color: #007700">);<br />&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;把变量$s保存起来以便文件page2.php能够读到<br />&nbsp;&nbsp;</span><span style="color: #0000BB">file_put_contents</span><span style="color: #007700">(</span><span style="color: #DD0000">'store'</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$s</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">//&nbsp;page2.php:<br />&nbsp;&nbsp;<br />&nbsp;&nbsp;//&nbsp;要正确了解序列化，必须包含下面一个文件<br />&nbsp;&nbsp;</span><span style="color: #007700">include(</span><span style="color: #DD0000">"classa.inc"</span><span style="color: #007700">);<br /><br />&nbsp;&nbsp;</span><span style="color: #0000BB">$s&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">file_get_contents</span><span style="color: #007700">(</span><span style="color: #DD0000">'store'</span><span style="color: #007700">);<br />&nbsp;&nbsp;</span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">unserialize</span><span style="color: #007700">(</span><span style="color: #0000BB">$s</span><span style="color: #007700">);<br /><br />&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;现在可以使用对象$a里面的函数&nbsp;show_one()<br />&nbsp;&nbsp;</span><span style="color: #0000BB">$a</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">show_one</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">?&gt;</span>
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">//&nbsp;classa.inc:<br />&nbsp;&nbsp;<br />&nbsp;&nbsp;</span><span style="color: #007700">class&nbsp;</span><span style="color: #0000BB">A&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;</span><span style="color: #0000BB">$one&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">show_one</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #0000BB">$this</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">one</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;}<br />&nbsp;&nbsp;<br /></span><span style="color: #FF8000">//&nbsp;page1.php:<br /><br />&nbsp;&nbsp;</span><span style="color: #007700">include(</span><span style="color: #DD0000">"classa.inc"</span><span style="color: #007700">);<br />&nbsp;&nbsp;<br />&nbsp;&nbsp;</span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">A</span><span style="color: #007700">;<br />&nbsp;&nbsp;</span><span style="color: #0000BB">$s&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">serialize</span><span style="color: #007700">(</span><span style="color: #0000BB">$a</span><span style="color: #007700">);<br />&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;把变量$s保存起来以便文件page2.php能够读到<br />&nbsp;&nbsp;</span><span style="color: #0000BB">file_put_contents</span><span style="color: #007700">(</span><span style="color: #DD0000">'store'</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$s</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">//&nbsp;page2.php:<br />&nbsp;&nbsp;<br />&nbsp;&nbsp;//&nbsp;要正确反序列化，必须包含下面一个文件<br />&nbsp;&nbsp;</span><span style="color: #007700">include(</span><span style="color: #DD0000">"classa.inc"</span><span style="color: #007700">);<br /><br />&nbsp;&nbsp;</span><span style="color: #0000BB">$s&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">file_get_contents</span><span style="color: #007700">(</span><span style="color: #DD0000">'store'</span><span style="color: #007700">);<br />&nbsp;&nbsp;</span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">unserialize</span><span style="color: #007700">(</span><span style="color: #0000BB">$s</span><span style="color: #007700">);<br /><br />&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;现在可以使用对象$a里面的函数&nbsp;show_one()<br />&nbsp;&nbsp;</span><span style="color: #0000BB">$a</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">show_one</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">?&gt;</span>
 </span>
 </code></div>
    </div>
@@ -49,17 +49,17 @@
   </div>
   
   <p class="para">
-   当一个应用程序使用函数<span class="function"><a href="function.session-register.html" class="function">session_register()</a></span>来保存对象到会话中时，在每个页面结束的时候这些对象都会自动序列化，而在每个页面开始的时候又自动解序列化。
+   当一个应用程序使用函数<span class="function"><a href="function.session-register.html" class="function">session_register()</a></span>来保存对象到会话中时，在每个页面结束的时候这些对象都会自动序列化，而在每个页面开始的时候又自动反序列化。
    所以一旦对象被保存在会话中，整个应用程序的页面都能使用这些对象。但是，<span class="function"><a href="function.session-register.html" class="function">session_register()</a></span>在php5.4.0之后被移除了。
   </p>
   
   <p class="para">
    在应用程序中序列化对象以便在之后使用，强烈推荐在整个应用程序都包含对象的类的定义。
-   不然有可能出现在解序列化对象的时候，没有找到该对象的类的定义，从而把没有方法的类<strong class="classname">__PHP_Incomplete_Class_Name</strong>作为该对象的类，导致返回一个没有用的对象。
+   不然有可能出现在反序列化对象的时候，没有找到该对象的类的定义，从而把没有方法的类<strong class="classname">__PHP_Incomplete_Class_Name</strong>作为该对象的类，导致返回一个没有用的对象。
   </p>
   
   <p class="para">
-   所以在上面的例子中，当运行<em>session_register(&quot;a&quot;)</em>，把变量<var class="varname"><var class="varname">$a</var></var>放在会话里之后，需要在每个页面都包含文件<em>classa.inc</em>，而不是只有文件<var class="filename">page1.php</var>和<var class="filename">page2.php</var>。
+   所以在上面的例子中，当运行<code class="literal">session_register(&quot;a&quot;)</code>，把变量<var class="varname">$a</var>放在会话里之后，需要在每个页面都包含文件<code class="literal">classa.inc</code>，而不是只有文件<var class="filename">page1.php</var>和<var class="filename">page2.php</var>。
   </p>
   
   <p class="para">
@@ -67,13 +67,26 @@
    <a href="language.oop5.magic.html#object.sleep" class="link">__sleep()</a> 和
    <a href="language.oop5.magic.html#object.wakeup" class="link">__wakeup()</a> 方法对序列化/反序列化事件挂载钩子。
    使用
-   <a href="language.oop5.magic.html#object.sleep" class="link">__sleep()</a> 也能够让仅仅序列化对象的某些属性。
+   <a href="language.oop5.magic.html#object.sleep" class="link">__sleep()</a> 也能够让你仅序列化对象的某些属性。
   </p>
  </div><div id="usernotes">
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116756""></a>
+<div id="allnotes">  <a name="125588""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#125588" class="date">09-Dec-2020 06:58</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Until such time as these documents are updated, note that `session_register()` is not needed to automatically serialize &amp; unserialize objects in sessions. Any objects in `$_SESSION` are serialized when the session is closed (via `session_write_close()` or upon script exit) &amp; unserialized when opened (via `session_start()`). The note about including classes throughout an app (either by including the definition globally or autoloading it) still holds.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116756""></a>
   <div class="note">
    <strong class="user">michael at smith-li dot com</strong>
    <a href="#116756" class="date">23-Feb-2015 07:28</a>

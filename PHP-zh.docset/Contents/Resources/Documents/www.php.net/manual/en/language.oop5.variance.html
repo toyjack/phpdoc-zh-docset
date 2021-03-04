@@ -1,0 +1,245 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>协变与逆变</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="language.oop5.serialization.html">? 对象序列化</a></li>
+      <li style="float: right;"><a href="language.oop5.changelog.html">OOP 变更日志 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="language.oop5.html">类与对象</a></li>
+    <li>协变与逆变</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="language.oop5.variance" class="sect1">
+ <h2 class="title">协变与逆变</h2>
+
+ <p class="para">
+  在 PHP 7.2.0 里，通过对子类方法里参数的类型放宽限制，实现对逆变的部分支持。
+  自 PHP 7.4.0 起开始支持完整的协变和逆变。
+ </p>
+ <p class="para">
+  协变使子类比父类方法能返回更具体的类型；
+  逆变使子类比父类方法参数类型能接受更模糊的类型。
+ </p>
+
+ <div class="sect2" id="language.oop5.variance.covariance">
+  <h3 class="title">协变</h3>
+
+  <p class="para">
+   创建一个名为 <var class="varname">Animal</var> 的简单的抽象父类，用于演示什么是协变。
+   两个子类：<var class="varname">Cat</var> 和 <var class="varname">Dog</var> 扩展（extended）了 <var class="varname">Animal</var>。
+  </p>
+
+  <div class="informalexample">
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /><br /></span><span style="color: #007700">abstract&nbsp;class&nbsp;</span><span style="color: #0000BB">Animal<br /></span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;protected&nbsp;</span><span style="color: #0000BB">string&nbsp;$name</span><span style="color: #007700">;<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">__construct</span><span style="color: #007700">(</span><span style="color: #0000BB">string&nbsp;$name</span><span style="color: #007700">)<br />&nbsp;&nbsp;&nbsp;&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$this</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">name&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$name</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;abstract&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">speak</span><span style="color: #007700">();<br />}<br /><br />class&nbsp;</span><span style="color: #0000BB">Dog&nbsp;</span><span style="color: #007700">extends&nbsp;</span><span style="color: #0000BB">Animal<br /></span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">speak</span><span style="color: #007700">()<br />&nbsp;&nbsp;&nbsp;&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #0000BB">$this</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">name&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">"&nbsp;barks"</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br />class&nbsp;</span><span style="color: #0000BB">Cat&nbsp;</span><span style="color: #007700">extends&nbsp;</span><span style="color: #0000BB">Animal&nbsp;<br /></span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">speak</span><span style="color: #007700">()<br />&nbsp;&nbsp;&nbsp;&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #0000BB">$this</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">name&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">"&nbsp;meows"</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+
+  <p class="para">
+   注意：在这个例子中，没有方法返回了值。
+   将通过添加个别工厂方法，创建并返回 <var class="varname">Animal</var>、<var class="varname">Cat</var>、<var class="varname">Dog</var> 
+   类型的新对象。
+  </p>
+
+  <div class="informalexample">
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /><br /></span><span style="color: #007700">interface&nbsp;</span><span style="color: #0000BB">AnimalShelter<br /></span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">adopt</span><span style="color: #007700">(</span><span style="color: #0000BB">string&nbsp;$name</span><span style="color: #007700">):&nbsp;</span><span style="color: #0000BB">Animal</span><span style="color: #007700">;<br />}<br /><br />class&nbsp;</span><span style="color: #0000BB">CatShelter&nbsp;</span><span style="color: #007700">implements&nbsp;</span><span style="color: #0000BB">AnimalShelter<br /></span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">adopt</span><span style="color: #007700">(</span><span style="color: #0000BB">string&nbsp;$name</span><span style="color: #007700">):&nbsp;</span><span style="color: #0000BB">Cat&nbsp;</span><span style="color: #FF8000">//&nbsp;返回类的类型不仅限于&nbsp;Animal，还可以是&nbsp;Cat&nbsp;类型<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;new&nbsp;</span><span style="color: #0000BB">Cat</span><span style="color: #007700">(</span><span style="color: #0000BB">$name</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br />class&nbsp;</span><span style="color: #0000BB">DogShelter&nbsp;</span><span style="color: #007700">implements&nbsp;</span><span style="color: #0000BB">AnimalShelter<br /></span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">adopt</span><span style="color: #007700">(</span><span style="color: #0000BB">string&nbsp;$name</span><span style="color: #007700">):&nbsp;</span><span style="color: #0000BB">Dog&nbsp;</span><span style="color: #FF8000">//&nbsp;返回类的类型不仅限于&nbsp;Animal，还可以是&nbsp;Dog&nbsp;类型<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;new&nbsp;</span><span style="color: #0000BB">Dog</span><span style="color: #007700">(</span><span style="color: #0000BB">$name</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br /></span><span style="color: #0000BB">$kitty&nbsp;</span><span style="color: #007700">=&nbsp;(new&nbsp;</span><span style="color: #0000BB">CatShelter</span><span style="color: #007700">)-&gt;</span><span style="color: #0000BB">adopt</span><span style="color: #007700">(</span><span style="color: #DD0000">"Ricky"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$kitty</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">speak</span><span style="color: #007700">();<br />echo&nbsp;</span><span style="color: #DD0000">"\n"</span><span style="color: #007700">;<br /><br /></span><span style="color: #0000BB">$doggy&nbsp;</span><span style="color: #007700">=&nbsp;(new&nbsp;</span><span style="color: #0000BB">DogShelter</span><span style="color: #007700">)-&gt;</span><span style="color: #0000BB">adopt</span><span style="color: #007700">(</span><span style="color: #DD0000">"Mavrick"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$doggy</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">speak</span><span style="color: #007700">();</span>
+</span>
+</code></div>
+   </div>
+
+   <p class="para">以上例程会输出：</p>
+   <div class="example-contents screen">
+<div class="cdata"><pre>
+Ricky meows
+Mavrick barks
+</pre></div>
+   </div>
+  </div>
+ </div>
+
+ <div class="sect2" id="language.oop5.variance.contravariance">
+  <h3 class="title">逆变</h3>
+
+  <p class="para">
+   继续上一个例子，除了 <var class="varname">Animal</var>、
+   <var class="varname">Cat</var>、<var class="varname">Dog</var>，我们还添加了 <var class="varname">Food</var>、<var class="varname">AnimalFood</var> 类，
+   同时为抽象类 <var class="varname">Animal</var> 添加了一个 <var class="varname">eat(AnimalFood $food)</var> 方法。
+  </p>
+
+  <div class="informalexample">
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /><br /></span><span style="color: #007700">class&nbsp;</span><span style="color: #0000BB">Food&nbsp;</span><span style="color: #007700">{}<br /><br />class&nbsp;</span><span style="color: #0000BB">AnimalFood&nbsp;</span><span style="color: #007700">extends&nbsp;</span><span style="color: #0000BB">Food&nbsp;</span><span style="color: #007700">{}<br /><br />abstract&nbsp;class&nbsp;</span><span style="color: #0000BB">Animal<br /></span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;protected&nbsp;</span><span style="color: #0000BB">string&nbsp;$name</span><span style="color: #007700">;<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">__construct</span><span style="color: #007700">(</span><span style="color: #0000BB">string&nbsp;$name</span><span style="color: #007700">)<br />&nbsp;&nbsp;&nbsp;&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$this</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">name&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$name</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">eat</span><span style="color: #007700">(</span><span style="color: #0000BB">AnimalFood&nbsp;$food</span><span style="color: #007700">)<br />&nbsp;&nbsp;&nbsp;&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #0000BB">$this</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">name&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">"&nbsp;eats&nbsp;"&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">get_class</span><span style="color: #007700">(</span><span style="color: #0000BB">$food</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+
+  <p class="para">
+   为了演示什么是逆变，<var class="varname">Dog</var> 类重写（overridden）了 <var class="varname">eat</var> 方法，
+   允许传入任意 <var class="varname">Food</var> 类型的对象。
+   而 <var class="varname">Cat</var> 类保持不变。
+  </p>
+
+  <div class="informalexample">
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /><br /></span><span style="color: #007700">class&nbsp;</span><span style="color: #0000BB">Dog&nbsp;</span><span style="color: #007700">extends&nbsp;</span><span style="color: #0000BB">Animal<br /></span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">eat</span><span style="color: #007700">(</span><span style="color: #0000BB">Food&nbsp;$food</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #0000BB">$this</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">name&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">"&nbsp;eats&nbsp;"&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">get_class</span><span style="color: #007700">(</span><span style="color: #0000BB">$food</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+
+  <p class="para">
+  下面的例子展示了逆变。
+  </p>
+
+  <div class="informalexample">
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /><br />$kitty&nbsp;</span><span style="color: #007700">=&nbsp;(new&nbsp;</span><span style="color: #0000BB">CatShelter</span><span style="color: #007700">)-&gt;</span><span style="color: #0000BB">adopt</span><span style="color: #007700">(</span><span style="color: #DD0000">"Ricky"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$catFood&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">AnimalFood</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">$kitty</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">eat</span><span style="color: #007700">(</span><span style="color: #0000BB">$catFood</span><span style="color: #007700">);<br />echo&nbsp;</span><span style="color: #DD0000">"\n"</span><span style="color: #007700">;<br /><br /></span><span style="color: #0000BB">$doggy&nbsp;</span><span style="color: #007700">=&nbsp;(new&nbsp;</span><span style="color: #0000BB">DogShelter</span><span style="color: #007700">)-&gt;</span><span style="color: #0000BB">adopt</span><span style="color: #007700">(</span><span style="color: #DD0000">"Mavrick"</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$banana&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">Food</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">$doggy</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">eat</span><span style="color: #007700">(</span><span style="color: #0000BB">$banana</span><span style="color: #007700">);</span>
+</span>
+</code></div>
+   </div>
+
+   <p class="para">以上例程会输出：</p>
+   <div class="example-contents screen">
+<div class="cdata"><pre>
+Ricky eats AnimalFood
+Mavrick eats Food
+</pre></div>
+   </div>
+
+   <p class="para">
+   但 <var class="varname">$kitty</var> 若尝试 
+   <var class="varname">eat</var> <var class="varname">$banana</var>
+   会发生什么呢？
+   </p>
+
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+$kitty-&gt;eat($banana);</span>
+</code></div>
+   </div>
+
+   <p class="para">以上例程会输出：</p>
+   <div class="example-contents screen">
+<div class="cdata"><pre>
+Fatal error: Uncaught TypeError: Argument 1 passed to Animal::eat() must be an instance of AnimalFood, instance of Food given
+</pre></div>
+   </div>
+  </div>
+ </div>
+</div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="125704""></a>
+  <div class="note">
+   <strong class="user">phpnet-at-kennel17-dotco-dotuk</strong>
+   <a href="#125704" class="date">20-Jan-2021 05:51</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Following the examples above, you might assume the following would be possible.<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">class </span><span class="default">CatFood </span><span class="keyword">extends </span><span class="default">AnimalFood </span><span class="keyword">{ ... }<br />
+<br />
+class </span><span class="default">Cat </span><span class="keyword">extends </span><span class="default">Animal<br />
+</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">eat</span><span class="keyword">(</span><span class="default">CatFood $food</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">name </span><span class="keyword">. </span><span class="string">" eats " </span><span class="keyword">. </span><span class="default">get_class</span><span class="keyword">(</span><span class="default">$food</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+However, the Liskov Substitution Prinicpal, and therefore PHP, forbids this.&nbsp; There's no way for cats to eat cat food, if animals are defined as eating animal food.<br />
+<br />
+There are a large number of legitimate abstractions that are forbidden by PHP, due to this restriction.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="124712""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#124712" class="date">12-Feb-2020 08:47</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Covariance also works with general type-hinting, note also the interface:<br />
+<br />
+interface xInterface<br />
+{<br />
+&nbsp;&nbsp;&nbsp; public function y() : object;<br />
+}<br />
+<br />
+abstract class x implements xInterface<br />
+{<br />
+&nbsp;&nbsp;&nbsp; abstract public function y() : object;<br />
+}<br />
+<br />
+class a extends x<br />
+{<br />
+&nbsp;&nbsp;&nbsp; public function y() : \DateTime<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return new \DateTime("now");<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+$a = new a;<br />
+echo '&lt;pre&gt;';<br />
+var_dump($a-&gt;y());<br />
+echo '&lt;/pre&gt;';</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="124609""></a>
+  <div class="note">
+   <strong class="user">xedin dot unknown at gmail dot com</strong>
+   <a href="#124609" class="date">13-Jan-2020 04:20</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I would like to explain why covariance and contravariance are important, and why they apply to return types and parameter types respectively, and not the other way around.<br />
+<br />
+Covariance is probably easiest to understand, and is directly related to the Liskov Substitution Principle. Using the above example, let's say that we receive an `AnimalShelter` object, and then we want to use it by invoking its `adopt()` method. We know that it returns an `Animal` object, and no matter what exactly that object is, i.e. whether it is a `Cat` or a `Dog`, we can treat them the same. Therefore, it is OK to specialize the return type: we know at least the common interface of any thing that can be returned, and we can treat all of those values in the same way.<br />
+<br />
+Contravariance is slightly more complicated. It is related very much to the practicality of increasing the flexibility of a method. Using the above example again, perhaps the "base" method `eat()` accepts a specific type of food; however, a _particular_ animal may want to support a _wider range_ of food types. Maybe it, like in the above example, adds functionality to the original method that allows it to consume _any_ kind of food, not just that meant for animals. The "base" method in `Animal` already implements the functionality allowing it to consume food specialized for animals. The overriding method in the `Dog` class can check if the parameter is of type `AnimalFood`, and simply invoke `parent::eat($food)`. If the parameter is _not_ of the specialized type, it can perform additional or even completely different processing of that parameter - without breaking the original signature, because it _still_ handles the specialized type, but also more. That's why it is also related closely to the Liskov Substitution: consumers may still pass a specialized food type to the `Animal` without knowing exactly whether it is a `Cat` or `Dog`.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

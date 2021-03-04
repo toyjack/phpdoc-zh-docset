@@ -12,7 +12,7 @@
   <div class="navbar-inner clearfix">
     <ul class="nav" style="width: 100%">
       <li style="float: left;"><a href="function.shmop-size.html">? shmop_size</a></li>
-      <li style="float: right;"><a href="book.sync.html">Sync ?</a></li>
+      <li style="float: right;"><a href="class.shmop.html">Shmop ?</a></li>
     </ul>
   </div>
 </div>
@@ -27,14 +27,14 @@
   <div id="layout-content"><div id="function.shmop-write" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">shmop_write</h1>
-  <p class="verinfo">(PHP 4 &gt;= 4.0.4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">shmop_write</span> &mdash; <span class="dc-title">Write data into shared memory block</span></p>
+  <p class="verinfo">(PHP 4 &gt;= 4.0.4, PHP 5, PHP 7, PHP 8)</p><p class="refpurpose"><span class="refname">shmop_write</span> &mdash; <span class="dc-title">Write data into shared memory block</span></p>
 
  </div>
  <div class="refsect1 description" id="refsect1-function.shmop-write-description">
   <h3 class="title">说明</h3>
   <div class="methodsynopsis dc-description">
    <span class="methodname"><strong>shmop_write</strong></span>
-    ( <span class="methodparam"><span class="type">resource</span> <code class="parameter">$shmid</code></span>
+    ( <span class="methodparam"><span class="type"><a href="class.shmop.html" class="type Shmop">Shmop</a></span> <code class="parameter">$shmop</code></span>
    , <span class="methodparam"><span class="type">string</span> <code class="parameter">$data</code></span>
    , <span class="methodparam"><span class="type">int</span> <code class="parameter">$offset</code></span>
    ) : <span class="type">int</span></div>
@@ -51,7 +51,7 @@
 
     
      <dt>
-<code class="parameter">shmid</code></dt>
+<code class="parameter">shmop</code></dt>
 
      <dd>
 
@@ -95,8 +95,7 @@
  <div class="refsect1 returnvalues" id="refsect1-function.shmop-write-returnvalues">
   <h3 class="title">返回值</h3>
   <p class="para">
-   The size of the written <code class="parameter">data</code>, or <strong><code>FALSE</code></strong> on 
-   failure.
+   The size of the written <code class="parameter">data</code>.
   </p>
  </div>
 
@@ -115,10 +114,17 @@
 
     <tbody class="tbody">
      <tr>
-      <td>7.0.0</td>
+      <td>8.0.0</td>
       <td>
-       The type of <code class="parameter">shmid</code> has been changed from
-       <span class="type"><a href="language.types.integer.html" class="type int">int</a></span> to <span class="type"><a href="language.types.resource.html" class="type resource">resource</a></span>.
+       Prior to PHP 8.0.0, <strong><code>false</code></strong> was returned on failure.
+      </td>
+     </tr>
+
+     <tr>
+      <td>8.0.0</td>
+      <td>
+       <code class="parameter">shmop</code> expects a <a href="class.shmop.html" class="classname">Shmop</a>
+       instance now; previously, a <span class="type">resource</span> was expected.
       </td>
      </tr>
 
@@ -132,7 +138,7 @@
  <div class="refsect1 examples" id="refsect1-function.shmop-write-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-4495">
+   <div class="example" id="example-3767">
     <p><strong>Example #1 Writing to shared memory block</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -144,8 +150,8 @@
    </div>
   </p>
   <p class="para">
-   This example will write data inside <em>$my_string</em> into
-   shared memory block, <em>$shm_bytes_written</em> will contain
+   This example will write data inside <code class="literal">$my_string</code> into
+   shared memory block, <code class="literal">$shm_bytes_written</code> will contain
    the number of bytes written.
   </p>
  </div>
@@ -163,6 +169,45 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
- <div class="note">There are no user contributed notes for this page.</div>
+<div id="allnotes">  <a name="125555""></a>
+  <div class="note">
+   <strong class="user">radupb at yahoo dot com</strong>
+   <a href="#125555" class="date">30-Nov-2020 09:13</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I guess pack-unpack are the handy functions for encoding/decoding data as/from a binary string for shmop_write/shmop_read. Example:<br />
+<br />
+$format='LLLLSSCCCC';&nbsp; //data format for pack<br />
+$key=1; <br />
+if( !($shmid=shmop_open($key,'n',0660,30)) )<br />
+&nbsp; die('shmop_open failed.'); <br />
+<br />
+//my data to encode:<br />
+$hd=array('ALIVE1'=&gt;1,'ALIVE2'=&gt;2,'ALIVE3'=&gt;3,'ALIVE4'=&gt;4,<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 'CRTPTR'=&gt;5,'CRTSEQ'=&gt;6,<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 'CTW'=&gt;7,'LOCK'=&gt;8,'PLAY'=&gt;9,'MISS'=&gt;10<br />
+);<br />
+<br />
+$tmp=pack( $format, $hd['ALIVE1'],$hd['ALIVE2'],$hd['ALIVE3'],$hd['ALIVE4'],&nbsp; $hd['CRTPTR'],$hd['CRTSEQ'],$hd['CTW'],$hd['LOCK'],$hd['PLAY'],$hd['MISS'] );<br />
+<br />
+if( ($w=shmop_write($shmid,$tmp,0))!=24 )<br />
+&nbsp; die('write error $w='.$w);<br />
+<br />
+And reading from some other process:<br />
+$key=1; <br />
+if( !($shmid=shmop_open($key,'w',0,0)) )<br />
+&nbsp; die('shmop_open failed.'); <br />
+<br />
+$formatR='L4ALIVE/SCRTPTR/SCRTSEQ/CCTW/CLOCK/CPLAY/CMISS'; //data format for unpack<br />
+<br />
+$hd=unpack( $formatR, shmop_read( $shmid,0,24) );<br />
+echo'hd:&lt;pre&gt;';print_r($hd);echo'&lt;/pre&gt;';</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
 </div>
 </div></div></body></html>

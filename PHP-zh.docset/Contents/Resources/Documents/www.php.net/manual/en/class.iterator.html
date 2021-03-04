@@ -63,23 +63,23 @@
     <div class="classsynopsisinfo classsynopsisinfo_comment">/* 方法 */</div>
     <div class="methodsynopsis dc-description">
    <span class="modifier">abstract</span> <span class="modifier">public</span> <span class="methodname"><a href="iterator.current.html" class="methodname">current</a></span>
-    ( <span class="methodparam">void</span>
-   ) : <span class="type"><a href="language.pseudo-types.html#language.types.mixed" class="type mixed">mixed</a></span></div>
+    (
+   ) : <span class="type"><a href="language.types.declarations.html#language.types.declarations.mixed" class="type mixed">mixed</a></span></div>
 <div class="methodsynopsis dc-description">
    <span class="modifier">abstract</span> <span class="modifier">public</span> <span class="methodname"><a href="iterator.key.html" class="methodname">key</a></span>
-    ( <span class="methodparam">void</span>
+    (
    ) : <span class="type"><span class="type scalar">scalar</span></span></div>
 <div class="methodsynopsis dc-description">
    <span class="modifier">abstract</span> <span class="modifier">public</span> <span class="methodname"><a href="iterator.next.html" class="methodname">next</a></span>
-    ( <span class="methodparam">void</span>
+    (
    ) : <span class="type"><span class="type void">void</span></span></div>
 <div class="methodsynopsis dc-description">
    <span class="modifier">abstract</span> <span class="modifier">public</span> <span class="methodname"><a href="iterator.rewind.html" class="methodname">rewind</a></span>
-    ( <span class="methodparam">void</span>
+    (
    ) : <span class="type"><span class="type void">void</span></span></div>
 <div class="methodsynopsis dc-description">
    <span class="modifier">abstract</span> <span class="modifier">public</span> <span class="methodname"><a href="iterator.valid.html" class="methodname">valid</a></span>
-    ( <span class="methodparam">void</span>
+    (
    ) : <span class="type">bool</span></div>
 
    }</div>
@@ -97,7 +97,7 @@
   
   <div class="section" id="iterator.examples">
   <h2 class="title">范例</h2>
-   <div class="example" id="variable.httpresponseheader.basic">
+   <div class="example" id="example-356">
     <p><strong>Example #1 基本用法</strong></p>
     <div class="example-contents"><p>
      这个例子展示了使用 <a href="control-structures.foreach.html" class="link">foreach</a> 时，迭代器方法的调用顺序。
@@ -195,7 +195,128 @@ string(17) &quot;myIterator::valid&quot;
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="124513""></a>
+<div id="allnotes">  <a name="125802""></a>
+  <div class="note">
+   <strong class="user">Andrew Roffey</strong>
+   <a href="#125802" class="date">09-Feb-2021 10:41</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+/**<br />
+&nbsp;* Iterate&nbsp; a directory tree by walking the tree. For each directory in<br />
+&nbsp;* the tree rooted at directory $parent_dir (including $parent_dir<br />
+&nbsp;* itself), it returns $dirpath =&gt; array($dirnames, $filenames).<br />
+&nbsp;*<br />
+&nbsp;* $dirpath is a string, the path to the directory. $dirnames is a list<br />
+&nbsp;* of the names of the subdirectories in dirpath (excluding '.' and<br />
+&nbsp;* '..'). $filenames is a list of the names of the non-directory files in<br />
+&nbsp;* $dirpath.<br />
+&nbsp;*<br />
+&nbsp;* Inspired by Python os.walk; see<br />
+&nbsp;* https://docs.python.org/3/library/os.html#os.walk<br />
+&nbsp;* Implemented as an iterator rather than a generator.<br />
+&nbsp;*<br />
+&nbsp;* @return array<br />
+&nbsp;*/<br />
+<br />
+class walker implements Iterator {<br />
+&nbsp; private $parent_dir = '';<br />
+&nbsp; private $d = 0; // iterator<br />
+&nbsp; private $dirs = array(); // indexed by iterator<br />
+&nbsp; private $dirstack;<br />
+&nbsp; private $discovered = array(); // indexed by directory<br />
+&nbsp; private $v; // current directory<br />
+&nbsp; private $cur_dirnames = array(); // current subdirs<br />
+&nbsp; private $cur_filenames = array(); // current files in directory<br />
+<br />
+&nbsp; public function __construct($parent_dir) {<br />
+&nbsp;&nbsp;&nbsp; $this-&gt;parent_dir = $parent_dir;<br />
+&nbsp;&nbsp;&nbsp; $this-&gt;d = 0;<br />
+&nbsp;&nbsp;&nbsp; $this-&gt;dirs[$this-&gt;d] = $parent_dir;<br />
+&nbsp;&nbsp;&nbsp; $this-&gt;dirstack = new SplStack();<br />
+&nbsp;&nbsp;&nbsp; $this-&gt;dirstack-&gt;push($parent_dir);<br />
+&nbsp;&nbsp;&nbsp; $this-&gt;discovered = array($parent_dir =&gt; true);<br />
+&nbsp;&nbsp;&nbsp; $this-&gt;v = $parent_dir;<br />
+&nbsp;&nbsp;&nbsp; $this-&gt;cur_dirnames = array();<br />
+&nbsp;&nbsp;&nbsp; $this-&gt;cur_filenames = array();<br />
+&nbsp;&nbsp;&nbsp; $this-&gt;next();<br />
+&nbsp; }<br />
+<br />
+&nbsp; public function rewind() {<br />
+&nbsp;&nbsp;&nbsp; $this-&gt;__construct($this-&gt;parent_dir);<br />
+&nbsp; }<br />
+<br />
+&nbsp; public function current() {<br />
+&nbsp;&nbsp;&nbsp; return array($this-&gt;cur_dirnames, $this-&gt;cur_filenames);<br />
+&nbsp; }<br />
+<br />
+&nbsp; public function key() {<br />
+&nbsp;&nbsp;&nbsp; return $this-&gt;v;<br />
+&nbsp; }<br />
+<br />
+&nbsp; public function next() {<br />
+&nbsp;&nbsp;&nbsp; ++$this-&gt;d;<br />
+&nbsp;&nbsp;&nbsp; $this-&gt;v = $this-&gt;dirstack-&gt;pop();<br />
+&nbsp;&nbsp;&nbsp; $this-&gt;dirs[$this-&gt;d] = $this-&gt;v;<br />
+&nbsp;&nbsp;&nbsp; $this-&gt;cur_dirnames = array();<br />
+&nbsp;&nbsp;&nbsp; $this-&gt;cur_filenames = array();<br />
+&nbsp;&nbsp;&nbsp; if (!$dh = opendir($this-&gt;v)) {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; // opendir emits E_WARNING if unable to open directory, likely due<br />
+&nbsp;&nbsp; &nbsp;&nbsp; // to a permissions issue or directory removed before we could get<br />
+&nbsp;&nbsp; &nbsp;&nbsp; // there<br />
+&nbsp;&nbsp; &nbsp;&nbsp; return;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; // discover the directories, return directories and files<br />
+&nbsp;&nbsp;&nbsp; while (false !== ($fn = readdir($dh))) {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; if ($fn != '.' &amp;&amp; $fn !== '..') {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $fullfn = $this-&gt;v . '/' . $fn;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (is_dir($fullfn)) {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; $this-&gt;cur_dirnames[] = $fn;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (!array_key_exists($fullfn, $this-&gt;discovered)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;discovered[$fullfn] = true;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;dirstack-&gt;push($fullfn);<br />
+&nbsp;&nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;cur_filenames[] = $fn;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; closedir($dh);<br />
+&nbsp; }<br />
+<br />
+&nbsp; public function valid() {<br />
+&nbsp;&nbsp;&nbsp; return $this-&gt;dirstack-&gt;count();<br />
+&nbsp; }<br />
+}<br />
+<br />
+$tree = new walker("/tmp");<br />
+foreach ($tree as $parent_dir =&gt; $nodes) {<br />
+&nbsp; $subdirs = $nodes[0];<br />
+&nbsp; $files = $nodes[1];<br />
+&nbsp; printf("%s\n", $parent_dir);<br />
+&nbsp; if ($subdirs) printf("&nbsp; %s\n", implode("/\n&nbsp; ", $subdirs));<br />
+&nbsp; if ($files) printf("&nbsp; %s\n", implode("\n&nbsp; ", $files));<br />
+&nbsp; print("\n");<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="125201""></a>
+  <div class="note">
+   <strong class="user">sofe2038 at gmail dot com</strong>
+   <a href="#125201" class="date">22-Jul-2020 03:26</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The "scalar" restriction on key() is no longer true. A simple example is that Generators can yield non-scalar keys.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="124513""></a>
   <div class="note">
    <strong class="user">jeroen at asystance dot nl</strong>
    <a href="#124513" class="date">16-Dec-2019 03:57</a>

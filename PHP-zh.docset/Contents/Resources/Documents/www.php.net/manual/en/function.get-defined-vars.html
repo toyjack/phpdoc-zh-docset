@@ -12,7 +12,7 @@
   <div class="navbar-inner clearfix">
     <ul class="nav" style="width: 100%">
       <li style="float: left;"><a href="function.floatval.html">? floatval</a></li>
-      <li style="float: right;"><a href="function.get-resource-type.html">get_resource_type ?</a></li>
+      <li style="float: right;"><a href="function.get-resource-id.html">get_resource_id ?</a></li>
     </ul>
   </div>
 </div>
@@ -27,7 +27,7 @@
   <div id="layout-content"><div id="function.get-defined-vars" class="refentry">
    <div class="refnamediv">
     <h1 class="refname">get_defined_vars</h1>
-    <p class="verinfo">(PHP 4 &gt;= 4.0.4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">get_defined_vars</span> &mdash; <span class="dc-title">
+    <p class="verinfo">(PHP 4 &gt;= 4.0.4, PHP 5, PHP 7, PHP 8)</p><p class="refpurpose"><span class="refname">get_defined_vars</span> &mdash; <span class="dc-title">
      返回由所有已定义变量所组成的数组
     </span></p>
 
@@ -36,7 +36,7 @@
     <h3 class="title">描述</h3>
      <div class="methodsynopsis dc-description">
       <span class="methodname"><strong>get_defined_vars</strong></span>
-       ( <span class="methodparam">void</span>
+       (
       ) : <span class="type">array</span></div>
 
     <p class="para rdfs-comment">
@@ -61,7 +61,70 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="122823""></a>
+<div id="allnotes">  <a name="125778""></a>
+  <div class="note">
+   <strong class="user">antonfedonyuk at gmail dot com</strong>
+   <a href="#125778" class="date">05-Feb-2021 09:29</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+NOTE: when you call code by eval() PHP append self vars to result, they have "__" prefix ("__source_code" and "__bootstrap_file" in PHP 7.3).<br />
+<br />
+Fix:<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">filter_eval_vars</span><span class="keyword">(array </span><span class="default">$vars</span><span class="keyword">): array<br />
+{<br />
+&nbsp;&nbsp;&nbsp; foreach (</span><span class="default">$vars </span><span class="keyword">as </span><span class="default">$key </span><span class="keyword">=&gt; </span><span class="default">$value</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; if (</span><span class="default">$key</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">] === </span><span class="string">'_' </span><span class="keyword">&amp;&amp; </span><span class="default">$key</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">] === </span><span class="string">'_'</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; unset(</span><span class="default">$vars</span><span class="keyword">[</span><span class="default">$key</span><span class="keyword">]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$vars</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="125755""></a>
+  <div class="note">
+   <strong class="user">npelov at croler dot net</strong>
+   <a href="#125755" class="date">02-Feb-2021 12:35</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+get_defined_vars() returns all variables - locally defined vars and global vars (well actually only super globals). If you need local vars only&nbsp; - for example you need to get variables from a file - let's say config.php and you don't want a missing value to be replaced with a global defined somewhere else.<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+&nbsp; </span><span class="comment">/**<br />
+&nbsp;&nbsp; * Filters out global vars from get_defined_vars() in order to get local vars only<br />
+&nbsp;&nbsp; * @param array $localVars pass get_defined_vars() here<br />
+&nbsp;&nbsp; *<br />
+&nbsp;&nbsp; * @return array local vars only<br />
+&nbsp;&nbsp; */<br />
+&nbsp; </span><span class="keyword">function </span><span class="default">removeGlobals</span><span class="keyword">(array </span><span class="default">$localVars</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">array_diff_key</span><span class="keyword">(</span><span class="default">$localVars</span><span class="keyword">, </span><span class="default">$GLOBALS</span><span class="keyword">);<br />
+&nbsp; }<br />
+<br />
+&nbsp; </span><span class="default">define</span><span class="keyword">(</span><span class="string">'CONFIG_FILE_PATH'</span><span class="keyword">, </span><span class="string">'/path/to/config.php'</span><span class="keyword">);<br />
+&nbsp; function </span><span class="default">readConfig</span><span class="keyword">() {<br />
+&nbsp;&nbsp;&nbsp; require </span><span class="default">CONFIG_FILE_PATH</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$config </span><span class="keyword">= </span><span class="default">removeGlobals</span><span class="keyword">(</span><span class="default">get_defined_vars</span><span class="keyword">());<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$config</span><span class="keyword">;<br />
+&nbsp; }<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="122823""></a>
   <div class="note">
    <strong class="user">Joey</strong>
    <a href="#122823" class="date">11-Jun-2018 07:22</a>

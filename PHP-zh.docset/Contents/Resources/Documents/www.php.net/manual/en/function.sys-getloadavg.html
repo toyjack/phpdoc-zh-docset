@@ -27,14 +27,14 @@
   <div id="layout-content"><div id="function.sys-getloadavg" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">sys_getloadavg</h1>
-  <p class="verinfo">(PHP 5 &gt;= 5.1.3, PHP 7)</p><p class="refpurpose"><span class="refname">sys_getloadavg</span> &mdash; <span class="dc-title">获取系统的负载（load average）</span></p>
+  <p class="verinfo">(PHP 5 &gt;= 5.1.3, PHP 7, PHP 8)</p><p class="refpurpose"><span class="refname">sys_getloadavg</span> &mdash; <span class="dc-title">获取系统的负载（load average）</span></p>
 
  </div>
  <div class="refsect1 description" id="refsect1-function.sys-getloadavg-description">
   <h3 class="title">说明</h3>
   <div class="methodsynopsis dc-description">
    <span class="methodname"><strong>sys_getloadavg</strong></span>
-    ( <span class="methodparam">void</span>
+    (
    ) : <span class="type">array</span></div>
 
   <p class="para rdfs-comment">
@@ -46,7 +46,7 @@
  <div class="refsect1 returnvalues" id="refsect1-function.sys-getloadavg-returnvalues">
   <h3 class="title">返回值</h3>
   <p class="para">
-   返回一个包含1分钟、5分钟和15分钟之前采样数据的<span class="type"><a href="language.types.array.html" class="type array">array</a></span>。
+   返回一个包含1分钟、5分钟和15分钟之前采样数据的<span class="type">array</span>。
   </p>
  </div>
 
@@ -54,7 +54,7 @@
  <div class="refsect1 examples" id="refsect1-function.sys-getloadavg-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-4594">
+   <div class="example" id="example-3866">
     <p><strong>Example #1 <span class="function"><strong>sys_getloadavg()</strong></span> 的例子</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -78,7 +78,84 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="118673""></a>
+<div id="allnotes">  <a name="125595""></a>
+  <div class="note">
+   <strong class="user">wowabbs+php at gmail dot com</strong>
+   <a href="#125595" class="date">11-Dec-2020 03:02</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+<span class="default">&lt;?php </span><span class="comment">// Usage processor in Windows using FFI<br />
+&nbsp; </span><span class="keyword">if(!</span><span class="default">dl</span><span class="keyword">(</span><span class="string">"ffi"</span><span class="keyword">)) </span><span class="comment">// Load the extension<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">throw new </span><span class="default">Exception</span><span class="keyword">(</span><span class="string">'Cound not load the FFI extension.'</span><span class="keyword">);<br />
+<br />
+&nbsp; function </span><span class="default">GetSystemTimes</span><span class="keyword">()<br />
+&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; static </span><span class="default">$Kernel32</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$Kernel32</span><span class="keyword">??=</span><span class="default">FFI</span><span class="keyword">::</span><span class="default">cdef</span><span class="keyword">(&lt;&lt;&lt;'IDL'<br />
+</span><span class="string">&nbsp; &nbsp; &nbsp; bool GetSystemTimes(long long *IdleTime, long long *KernelTime, long long *UserTime);<br />
+&nbsp;&nbsp; &nbsp;&nbsp; int GetLastError();<br />
+&nbsp;&nbsp;&nbsp; IDL, 'Kernel32.dll');<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; $IdleTime&nbsp;&nbsp; = FFI::new('long long');<br />
+&nbsp;&nbsp;&nbsp; $KernelTime = FFI::new('long long'); // already has idle time<br />
+&nbsp;&nbsp;&nbsp; $UserTime&nbsp;&nbsp; = FFI::new('long long');<br />
+&nbsp; <br />
+&nbsp;&nbsp;&nbsp; if($Kernel32-&gt;GetSystemTimes(FFI::addr($IdleTime), FFI::addr($KernelTime), FFI::addr($UserTime)))<br />
+&nbsp;&nbsp; &nbsp;&nbsp; return [<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; 'Idle'&nbsp;&nbsp; =&gt;$IdleTime&nbsp;&nbsp; -&gt;cdata,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; 'Kernel' =&gt;$KernelTime -&gt;cdata, // already has idle time<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; 'User'&nbsp;&nbsp; =&gt;$UserTime&nbsp;&nbsp; -&gt;cdata,<br />
+&nbsp;&nbsp; &nbsp;&nbsp; ];<br />
+&nbsp;&nbsp;&nbsp; return [];<br />
+&nbsp; }<br />
+&nbsp; <br />
+&nbsp; function GetSystemTimesDelta()<br />
+&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; static $Last=null;<br />
+&nbsp;&nbsp;&nbsp; static $Delta=[0,1];<br />
+&nbsp;&nbsp;&nbsp; $Times=GetSystemTimes();<br />
+&nbsp;&nbsp;&nbsp; $Last??=$Times;<br />
+&nbsp;&nbsp;&nbsp; $Idle =$Times['Idle'&nbsp;&nbsp; ]-$Last['Idle'&nbsp;&nbsp; ];<br />
+&nbsp;&nbsp;&nbsp; $All&nbsp; =$Times['Kernel' ]-$Last['Kernel' ]+&nbsp; // Kernel already has idle time<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; $Times['User'&nbsp;&nbsp; ]-$Last['User'&nbsp;&nbsp; ];<br />
+&nbsp;&nbsp;&nbsp; if($All&gt;1_000_000) // 100ms<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; $Delta=[$Idle, $All];<br />
+&nbsp;&nbsp; &nbsp;&nbsp; $Last=$Times;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; return $Delta;<br />
+&nbsp; }<br />
+<br />
+&nbsp; function ProcessorLoad()<br />
+&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; static $Load=0;<br />
+&nbsp;&nbsp;&nbsp; [$Idle, $All]=GetSystemTimesDelta();<br />
+&nbsp;&nbsp;&nbsp; if($All&gt;0.0)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; $Load=1-$Idle/$All;<br />
+&nbsp;&nbsp;&nbsp; return $Load;<br />
+&nbsp; }<br />
+&nbsp; <br />
+&nbsp; function KbHit()<br />
+&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; Static $Sys;<br />
+&nbsp;&nbsp;&nbsp; $Sys??=FFI::cdef('bool _kbhit();', 'msvcrt.dll');<br />
+&nbsp;&nbsp;&nbsp; return $Sys-&gt;_kbhit();<br />
+&nbsp; }<br />
+&nbsp; <br />
+&nbsp; while(!KbHit())<br />
+&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; echo str_pad((string)round(ProcessorLoad()*100), 3, ' ', STR_PAD_LEFT), "%\n";<br />
+&nbsp;&nbsp;&nbsp; sleep(1);<br />
+&nbsp; }<br />
+?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118673""></a>
   <div class="note">
    <strong class="user">stanislav dot eckert at vizson dot de</strong>
    <a href="#118673" class="date">18-Jan-2016 05:15</a>

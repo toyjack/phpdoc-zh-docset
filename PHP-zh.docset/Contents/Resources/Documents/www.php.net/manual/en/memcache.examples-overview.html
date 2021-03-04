@@ -26,7 +26,7 @@
 <div id="layout">
   <div id="layout-content"><div id="memcache.examples-overview" class="section">
   <p class="para">
-   <div class="example" id="example-5458">
+   <div class="example" id="example-4714">
     <p><strong>Example #1 memcache扩展概览示例</strong></p>
     <div class="example-contents"><p>
     在这个例子中，一个对象被保存到缓存中，又被取回。对象和其他非标量类型在存储
@@ -43,7 +43,7 @@
    </div>
   </p>
   <p class="para">
-   <div class="example" id="example-5459">
+   <div class="example" id="example-4715">
     <p><strong>Example #2 使用memcache的session处理器</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -58,7 +58,89 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="91243""></a>
+<div id="allnotes">  <a name="125247""></a>
+  <div class="note">
+   <strong class="user">atesin &gt; gmail</strong>
+   <a href="#125247" class="date">06-Aug-2020 08:20</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+moderator please merge these posts<br />
+<br />
+an errata to my comment done on 2020-07-28 01:05 about tmpfs session dir...<br />
+<br />
+the tmpfs directory i used to install session files is "/run" not "/tmp"...&nbsp; as /tmp is auto (or manual) deleted sometimes</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="125216""></a>
+  <div class="note">
+   <strong class="user">atesin &gt; gmail</strong>
+   <a href="#125216" class="date">28-Jul-2020 01:05</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+memcached is great, is lightning fast, very versatile and useful, scalable, and is a must have for many projects<br />
+<br />
+but if you only want speed to minimize session file blocking there is also a good alternative, tmpfs<br />
+<br />
+https://eddmann.com/posts/storing-php-sessions-file-caches-in-memory-using-tmpfs/<br />
+<br />
+maybe if you are in debian you already had session directory in tmp (mounted as tmpfs), but beware of daily cleaning process that can mess up your sessions<br />
+<br />
+you can use this trick if you are in centos/other (like me) or even if you are in debian but want to get ride of /tmp cleaning task<br />
+<br />
+i realized in my system /run is also mounted as tmpfs, so i shut php-fpm down, moved my php session dir to /tmp/, reconfigure php and start again... (you can adapt it to your situation)<br />
+<br />
+&nbsp; systemctl stop php-fpm<br />
+&nbsp; cp -a /var/lib/php/session /tmp/php-session<br />
+&nbsp; vim /etc/php-fpm-d/www.conf<br />
+&nbsp; ------<br />
+&nbsp; php_value[session.save_path] = /run/php-session<br />
+&nbsp; ------<br />
+&nbsp; systemctl start php-fpm<br />
+<br />
+the only drawback is tmpfs is VOLATILE, just like memcached (data is lost on unmount/shutdown/power fail), to&nbsp; circumvent this risk i wrote another service that restores/backup php session dir before/after php starts/stops... (UNTESTED!)<br />
+<br />
+&nbsp; vim /etc/systemd/system/php-session-backup.service<br />
+&nbsp; ------<br />
+&nbsp; # basic persistence for tmpfs php sessions<br />
+&nbsp; <br />
+&nbsp; [Unit]<br />
+&nbsp; Description=PHP tmpfs sessions backup/restore on shutdown/boot<br />
+&nbsp; Before=php-fpm.service<br />
+&nbsp; <br />
+&nbsp; [Service]<br />
+&nbsp; Type=oneshot<br />
+&nbsp; RemainAfterExit=true<br />
+&nbsp; ExecStart=rm -fr /run/php-session<br />
+&nbsp; ExecStart=cp -fa /var/lib/php/session /run/php-session<br />
+&nbsp; ExecStop=rm -fr /var/lib/php/session<br />
+&nbsp; ExecStop=cp -fa /run/php-session /var/lib/php/session<br />
+&nbsp; <br />
+&nbsp; [Install]<br />
+&nbsp; WantedBy=multi-user.target<br />
+&nbsp; ------<br />
+&nbsp; systemctl enable php-session-backup<br />
+<br />
+you can also complement this with a daily backup task in case of system crash so you will lose just one day<br />
+<br />
+&nbsp; crontab -e<br />
+&nbsp; ------<br />
+&nbsp; 0 4 * * * rm -fr /var/lib/php/session;cp -fa /run/php-session /var/lib/php/session<br />
+&nbsp; ------<br />
+<br />
+this is very rough though, you can better use inotify + rsync, could take some ideas from here<br />
+<br />
+https://blog.jmdawson.co.uk/persistent-ramdisk-on-debain-ubuntu/</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="91243""></a>
   <div class="note">
    <strong class="user">dkreuter at gmail dot com</strong>
    <a href="#91243" class="date">01-Jun-2009 11:45</a>

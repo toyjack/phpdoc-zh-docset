@@ -2,7 +2,7 @@
 <html>
  <head>
   <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
-  <title>Windows支持</title>
+  <title>Windows 支持</title>
 <link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
 <link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -11,28 +11,155 @@
  <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
   <div class="navbar-inner clearfix">
     <ul class="nav" style="width: 100%">
-      <li style="float: left;"><a href="migration71.other-changes.html">? Other changes</a></li>
-      <li style="float: right;"><a href="migration70.html">从PHP 5.6.x 移植到 PHP 7.0.x ?</a></li>
+      <li style="float: left;"><a href="migration71.other-changes.html">? 其它改动</a></li>
+      <li style="float: right;"><a href="migration70.html">从 PHP 5.6.x 移植到 PHP 7.0.x ?</a></li>
     </ul>
   </div>
 </div>
 <div id="breadcrumbs" class="clearfix">
   <ul class="breadcrumbs-container">
     <li><a href="index.html">PHP Manual</a></li>
-    <li><a href="migration71.html">从PHP 7.0.x 移植到 PHP 7.1.x</a></li>
-    <li>Windows支持</li>
+    <li><a href="migration71.html">从 PHP 7.0.x 移植到 PHP 7.1.x</a></li>
+    <li>Windows 支持</li>
   </ul>
 </div>
 <div id="layout">
   <div id="layout-content"><div id="migration71.windows-support" class="sect1">
- <h2 class="title">Windows支持</h2>
+ <h2 class="title">Windows 支持</h2>
+
+ <div class="sect2" id="migration71.windows-support.long-and-utf8-path">
+  <h3 class="title">Support for long and UTF-8 path</h3>
+  <p class="para">
+    If a web application is UTF-8 conform, no further action is required. For
+    applications depending on paths in non UTF-8 encodings for I/O, an explicit
+    INI directive has to be set. The encoding INI settings check relies on the
+    order in the core:
+  </p>
+  <ul class="itemizedlist">
+   <li class="listitem">
+    <span class="simpara">
+     internal_encoding
+    </span>
+   </li>
+    <li class="listitem">
+    <span class="simpara">
+     default_charset
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     zend.multibyte
+    </span>
+   </li>
+  </ul>
+  <p class="para">
+    Several functions for codepage handling were introduced:
+  </p>
+      <ul class="itemizedlist">
+       <li class="listitem">
+        <span class="simpara">
+         sapi_windows_cp_set() to set the default codepage
+        </span>
+       </li>
+       <li class="listitem">
+        <span class="simpara">
+         sapi_windows_cp_get() to retrieve the current codepage
+        </span>
+       </li>
+       <li class="listitem">
+        <span class="simpara">
+         sapi_windows_cp_is_utf8()
+        </span>
+       </li>
+       <li class="listitem">
+        <span class="simpara">
+         sapi_windows_cp_conv() to convert between codepages, using iconv() compatible signature
+        </span>
+       </li>
+      </ul>
+  <p class="para">
+   These functions are thread safe.
+  </p>
+  <p class="para">
+    The console output codepage is adjusted depending on the encoding used in
+    PHP. Depending on the concrete system OEM codepage, the visible output
+    might or might be not correct. For example, in the default cmd.exe and on
+    a system with the OEM codepage 437, outputs in codepages 1251, 1252, 1253
+    and some others can be shown correctly when using UTF-8. On the same system,
+    chars in codepage like 20932 probably won&#039;t be shown correctly. This refers
+    to the particular system rules for codepage, font compatibility and the
+    particular console program used. PHP automatically sets the console codepage
+    according to the encoding rules from php.ini. Using alternative consoles
+    instead of cmd.exe directly might bring better experience in some cases.
+  </p>
+  <p class="para">
+    Nevertheless be aware, runtime codepage switch after the request start
+    might bring unexpected side effects on CLI. The preferable way is php.ini,
+    When PHP CLI is used in a console emulator, that doesn&#039;t support Unicode,
+    it might possibly be required, to avoid changing the console codepage. The
+    best way to achieve it is by setting the default or internal encoding to
+    correspond the ANSI codepage. Another method is to set the INI directives
+    output_encoding and input_encoding to the required codepage, in which case
+    however the difference between internal and I/O codepage is likely to cause
+    mojibake. In rare cases, if PHP happens to crash gracefully, the original
+    console codepage might be not restored. In this case, the chcp command
+    can be used, to restore it manually.
+  </p>
+  <p class="para">
+    Special awareness for the DBCS systems - the codepage switch on runtime
+    using <span class="function"><a href="function.ini-set.html" class="function">ini_set()</a></span> is likely to cause display issues. The difference to the
+    non DBCS systems is, that the extended characters require two console cells
+    to be displayed. In certain case, only the mapping of the characters into
+    the glyph set of the font could happen, no actual font change. This is the
+    nature of DBCS systems, the most simple way to prevent display issues is
+    to avoid usage of <span class="function"><a href="function.ini-set.html" class="function">ini_set()</a></span> for the codepage change.
+  </p>
+  <p class="para">
+    As a result of UTF-8 support in the streams, PHP scripts are not limited
+    to ASCII or ANSI filenames anymore. This is supported out of the box on
+    CLI. For other SAPI, the documentation for the corresponding server
+    is useful.
+  </p>
+  <p class="para">
+    Long paths support is transparent. Paths longer than 260 bytes get
+    automatically prefixed with <code class="literal">\\?\</code>. The max path length is limited to
+    2048 bytes. Be aware, that the path segment limit (basename length) still
+    persists.
+  </p>
+  <p class="para">
+    For the best portability, it is strongely recommended to handle filenames,
+    I/O and other related topics UTF-8. Additionally, for the console applications,
+    the usage of a TrueType font is preferable and the usage of ini_set() for
+    the codepage change is discouraged.
+  </p>
+  <p class="para">
+  </p>
+  <p class="para">
+  </p>
+ </div>
 
  <div class="sect2" id="migration71.windows-support.readline">
   <h3 class="title">readline</h3>
 
   <p class="para">
    <a href="book.readline.html" class="link">readline 扩展</a> 现在通过 <a href="http://mingweditline.sourceforge.net/" class="link external" title="Link : http://mingweditline.sourceforge.net/">&raquo;&nbsp;WinEditLine
-   库</a> 来实现了支持。因此，一个交互式的 <acronym title="Command Line Interpreter/Interface">CLI</acronym> 命令行也得到了支持。(<em>php.exe -a</em>)。
+   库</a> 来实现了支持。因此，一个交互式的 <acronym title="Command Line Interpreter/Interface">CLI</acronym> 命令行也得到了支持。(<code class="literal">php.exe -a</code>)。
+  </p>
+ </div>
+
+  <div class="sect2" id="migration71.windows-support.php-fcgi-children">
+  <h3 class="title">PHP_FCGI_CHILDREN</h3>
+  <p class="para">
+  <var class="varname">PHP_FCGI_CHILDREN</var> is now respected. If this environment variable is 
+  defined, the first <var class="filename">php-cgi.exe</var> process will exec the specified number 
+  of children. These will share the same TCP socket.
+  </p>
+ </div>
+
+ <div class="sect2" id="migration71.windows-support.ftok">
+  <h3 class="title">ftok()</h3>
+  <p class="para">
+   Added support for <span class="function"><a href="function.ftok.html" class="function">ftok()</a></span>
   </p>
  </div>
 

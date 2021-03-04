@@ -2,7 +2,7 @@
 <html>
  <head>
   <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
-  <title>异常处理</title>
+  <title>异常</title>
 <link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
 <link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -12,7 +12,7 @@
   <div class="navbar-inner clearfix">
     <ul class="nav" style="width: 100%">
       <li style="float: left;"><a href="language.errors.php7.html">? PHP 7 错误处理</a></li>
-      <li style="float: right;"><a href="language.exceptions.extending.html">扩展（extend） PHP 内置的异常处理类 ?</a></li>
+      <li style="float: right;"><a href="language.exceptions.extending.html">扩展（extend） 异常处理类 ?</a></li>
     </ul>
   </div>
 </div>
@@ -20,78 +20,126 @@
   <ul class="breadcrumbs-container">
     <li><a href="index.html">PHP Manual</a></li>
     <li><a href="langref.html">语言参考</a></li>
-    <li>异常处理</li>
+    <li>异常</li>
   </ul>
 </div>
 <div id="layout">
   <div id="layout-content"><div id="language.exceptions" class="chapter">
-  <h1>异常处理</h1>
-<h2>Table of Contents</h2><ul class="chunklist chunklist_chapter"><li><a href="language.exceptions.extending.html">扩展（extend） PHP 内置的异常处理类</a></li></ul>
+  <h1>异常</h1>
+<h2>Table of Contents</h2><ul class="chunklist chunklist_chapter"><li><a href="language.exceptions.extending.html">扩展（extend） 异常处理类</a></li></ul>
 
    
   
 
   <div class="simplesect" id="language.exceptions.introduction">
    <p class="para">
-    PHP 5 has an exception model similar to that of other programming
-    languages.  An exception can be <a href="language.exceptions.html" class="link"><em>throw</em></a>n, and caught (&quot;<a href="language.exceptions.html#language.exceptions.catch" class="link"><em>catch</em></a>ed&quot;) within
-    PHP. Code may be surrounded in a <a href="language.exceptions.html" class="link"><em>try</em></a> block, to facilitate the catching
-    of potential exceptions. Each <a href="language.exceptions.html" class="link"><em>try</em></a> must have at least one corresponding
-    <a href="language.exceptions.html#language.exceptions.catch" class="link"><em>catch</em></a> or <a href="language.exceptions.html#language.exceptions.finally" class="link"><em>finally</em></a> block.
+    PHP 有一个和其他语言相似的异常模型。
+    在 PHP 里可以 <a href="language.exceptions.html" class="link"><code class="literal">throw</code></a> 并 <a href="language.exceptions.html#language.exceptions.catch" class="link"><code class="literal">catch</code></a> 异常。
+    为了捕获潜在的异常，可以将代码包含在 <a href="language.exceptions.html" class="link"><code class="literal">try</code></a> 块里。
+    每个 <a href="language.exceptions.html" class="link"><code class="literal">try</code></a> 都必须有一个相应的
+    <a href="language.exceptions.html#language.exceptions.catch" class="link"><code class="literal">catch</code></a> 或 <a href="language.exceptions.html#language.exceptions.finally" class="link"><code class="literal">finally</code></a> 代码块。
+   </p>
+   <p class="para">
+    如果抛出异常的函数范围内没有 <a href="language.exceptions.html#language.exceptions.catch" class="link"><code class="literal">catch</code></a> 块，异常会沿调用栈"向上冒泡"，
+    直到找到匹配的 <a href="language.exceptions.html#language.exceptions.catch" class="link"><code class="literal">catch</code></a> 块。
+    沿途会执行所有遇到的 <a href="language.exceptions.html#language.exceptions.finally" class="link"><code class="literal">finally</code></a> 块。
+    在没有设置全局异常处理程序（exception handler）时，
+    如果调用栈向上都没有遇到匹配的 <a href="language.exceptions.html#language.exceptions.catch" class="link"><code class="literal">catch</code></a>，程序会抛出 fatal 错误并终止执行。
+   </p>
+   <p class="para">
+   抛出的对象必须是 <a href="class.exception.html" class="classname">Exception</a> 自身或
+   <a href="class.exception.html" class="classname">Exception</a>的子类。
+    抛出其他对象会导致 PHP 报 Fatal 错误。
+   </p>
+   <p class="para">
+   PHP 8.0.0 起，<a href="language.exceptions.html" class="link"><code class="literal">throw</code></a> 关键词现在开始是一个表达式，可用于任何表达式的场景。
+   在此之前，它是一个语句，必须独占一行。
    </p>
 
-   <p class="para">
-    The thrown object must be an instance of the
-    <a href="class.exception.html" class="classname">Exception</a> class or a subclass of
-    <a href="class.exception.html" class="classname">Exception</a>. Trying to throw an object that is not
-    will result in a PHP Fatal Error.
-   </p>
   </div>
 
   <div class="simplesect" id="language.exceptions.catch">
-   <h3 class="title"><em>catch</em></h3>
+   <h3 class="title"><code class="literal">catch</code></h3>
    <p class="para">
-    Multiple <a href="language.exceptions.html#language.exceptions.catch" class="link"><em>catch</em></a> blocks can be used to catch different classes of
-    exceptions. Normal execution (when no exception is thrown within the <a href="language.exceptions.html" class="link"><em>try</em></a>
-    block) will continue after that last <a href="language.exceptions.html#language.exceptions.catch" class="link"><em>catch</em></a> block defined in sequence.
-    Exceptions can be <a href="language.exceptions.html" class="link"><em>throw</em></a>n (or re-thrown) within a <a href="language.exceptions.html#language.exceptions.catch" class="link"><em>catch</em></a> block.
+    <a href="language.exceptions.html#language.exceptions.catch" class="link"><code class="literal">catch</code></a> 定义了处理抛出异常的方式。
+    <a href="language.exceptions.html#language.exceptions.catch" class="link"><code class="literal">catch</code></a> 块定义了它能处理的异常/错误的类型，并可以选择将异常赋值到变量中。
+    （在 PHP 8.0.0 之前的版本中必须要赋值到变量）
+    如果遇到抛出对象的类型匹配了首个 <a href="language.exceptions.html#language.exceptions.catch" class="link"><code class="literal">catch</code></a> 块的异常或错误，将会处理该对象。
    </p>
    <p class="para">
-    When an exception is thrown, code following the statement will not be
-    executed, and PHP will attempt to find the first matching <a href="language.exceptions.html#language.exceptions.catch" class="link"><em>catch</em></a> block.
-    If an exception is not caught, a PHP Fatal Error will be issued with an
-    &quot;<em>Uncaught Exception ...</em>&quot; message, unless a handler has
-    been defined with <span class="function"><a href="function.set-exception-handler.html" class="function">set_exception_handler()</a></span>.
+    可用多个 <a href="language.exceptions.html#language.exceptions.catch" class="link"><code class="literal">catch</code></a> 捕获不同的异常类。
+    正常情况下（<a href="language.exceptions.html" class="link"><code class="literal">try</code></a> 代码块里没有抛出异常）会在最后一个定义的 <a href="language.exceptions.html#language.exceptions.catch" class="link"><code class="literal">catch</code></a> 后面继续执行。
+    <a href="language.exceptions.html#language.exceptions.catch" class="link"><code class="literal">catch</code></a> 代码块里也可以 <a href="language.exceptions.html" class="link"><code class="literal">throw</code></a> 或者重新抛出异常。
+    不抛出的话，会在触发的 <a href="language.exceptions.html#language.exceptions.catch" class="link"><code class="literal">catch</code></a> 后面继续执行。
+   </p>
+   <p class="para">
+    当 PHP 抛出一个异常时，将不会执行后续的代码语句，并会尝试查找首个匹配的 <a href="language.exceptions.html#language.exceptions.catch" class="link"><code class="literal">catch</code></a> 代码块。
+    如果没有用 <span class="function"><a href="function.set-exception-handler.html" class="function">set_exception_handler()</a></span> 设置异常处理函数，
+    PHP 会在异常未被捕获时产生 Fatal 级错误，提示 &quot;<code class="literal">Uncaught Exception ...</code>&quot;
+    消息。
+   </p>
+   <p class="para">
+    从 PHP 7.1.0 起 <a href="language.exceptions.html#language.exceptions.catch" class="link"><code class="literal">catch</code></a> 可以用竖线符（<code class="literal">|</code>） 指定多个异常。
+    如果在不同的类层次结构中，不同异常的异常需要用同样的方式处理，就特别适用这种方式。
+   </p>
+   <p class="para">
+    从 PHP 8.0.0 起，捕获的异常不再强制要求指定变量名。
+    <a href="language.exceptions.html#language.exceptions.catch" class="link"><code class="literal">catch</code></a> 代码块会在未指定时继续执行，只是无法访问到抛出的对象。
    </p>
   </div>
 
   <div class="simplesect" id="language.exceptions.finally">
-   <h3 class="title"><em>finally</em></h3>
+   <h3 class="title"><code class="literal">finally</code></h3>
    <p class="para">
-    In PHP 5.5 and later, a <a href="language.exceptions.html#language.exceptions.finally" class="link"><em>finally</em></a> block may also be specified after or
-    instead of <a href="language.exceptions.html#language.exceptions.catch" class="link"><em>catch</em></a> blocks. Code within the <a href="language.exceptions.html#language.exceptions.finally" class="link"><em>finally</em></a> block will always be
-    executed after the <a href="language.exceptions.html" class="link"><em>try</em></a> and <a href="language.exceptions.html#language.exceptions.catch" class="link"><em>catch</em></a> blocks, regardless of whether an
-    exception has been thrown, and before normal execution resumes.
+    <a href="language.exceptions.html#language.exceptions.finally" class="link"><code class="literal">finally</code></a> 代码块可以放在 <a href="language.exceptions.html#language.exceptions.catch" class="link"><code class="literal">catch</code></a> 之后，或者直接代替它。 
+    无论是否抛出了异常，在 <a href="language.exceptions.html" class="link"><code class="literal">try</code></a> 和 <a href="language.exceptions.html#language.exceptions.catch" class="link"><code class="literal">catch</code></a> 之后、在执行后续代码之前，
+    放在 <a href="language.exceptions.html#language.exceptions.finally" class="link"><code class="literal">finally</code></a> 里的代码总是会执行。
+   </p>
+   <p class="para">
+    值得注意的是 <a href="language.exceptions.html#language.exceptions.finally" class="link"><code class="literal">finally</code></a> 和 <a href="function.return.html" class="link"><code class="literal">return</code></a> 语句之间存在相互影响。
+    如果在 <a href="language.exceptions.html" class="link"><code class="literal">try</code></a> 或 <a href="language.exceptions.html#language.exceptions.catch" class="link"><code class="literal">catch</code></a> 里遇到 <a href="function.return.html" class="link"><code class="literal">return</code></a>，仍然会执行 <a href="language.exceptions.html#language.exceptions.finally" class="link"><code class="literal">finally</code></a> 里的代码。
+    而且，遇到 <a href="function.return.html" class="link"><code class="literal">return</code></a> 语句时，会先执行 <a href="language.exceptions.html#language.exceptions.finally" class="link"><code class="literal">finally</code></a> 再返回结果。
+    此外，如果 <a href="language.exceptions.html#language.exceptions.finally" class="link"><code class="literal">finally</code></a> 里也包含了 <a href="function.return.html" class="link"><code class="literal">return</code></a> 语句，将返回 <a href="language.exceptions.html#language.exceptions.finally" class="link"><code class="literal">finally</code></a> 里的值。
    </p>
   </div>
 
-  <div class="simplesect" id="language.exceptions.notes">
+ <div class="simplesect" id="language.exceptions.exception-handler">
+  <h3 class="title"><code class="literal">全局异常处理器</code></h3>
+  <p class="para">
+   当允许异常冒泡到全局范围时，它可以被全局异常处理器捕获到。
+   <span class="function"><a href="function.set-exception-handler.html" class="function">set_exception_handler()</a></span> 
+   可以设置一个函数，在没有调用其他块时代替 <a href="language.exceptions.html#language.exceptions.catch" class="link"><code class="literal">catch</code></a>。
+   在本质上，实现的效果等同于整个程序被 <a href="language.exceptions.html" class="link"><code class="literal">try</code></a>-<a href="language.exceptions.html#language.exceptions.catch" class="link"><code class="literal">catch</code></a> 包裹起来，
+   而该函数就是 <a href="language.exceptions.html#language.exceptions.catch" class="link"><code class="literal">catch</code></a>。
+  </p>
+ </div>
+
+ <div class="simplesect" id="language.exceptions.notes">
    <h3 class="title">注释</h3>
 
    <blockquote class="note"><p><strong class="note">Note</strong>: 
     <p class="para">
-     Internal PHP functions mainly use
-     <a href="errorfunc.configuration.html#ini.error-reporting" class="link">Error reporting</a>, only modern
-     <a href="language.oop5.html" class="link">Object oriented</a>
-     extensions use exceptions. However, errors can be simply translated to
-     exceptions with <a href="class.errorexception.html" class="link">ErrorException</a>.
+     PHP 内部函数主要使用 <a href="errorfunc.configuration.html#ini.error-reporting" class="link">错误报告</a>，
+     只有一些现代 <a href="language.oop5.html" class="link">面向对象</a> 的扩展使用异常。
+     不过，错误很容易用 <a href="class.errorexception.html" class="link">ErrorException</a>
+     转化成异常。
+     然而，这个技术方案仅适用非 Fatal 级的错误。
     </p>
+    <div class="example" id="example-302">
+     <p><strong>Example #3 将错误报告转成异常</strong></p>
+     <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">function&nbsp;</span><span style="color: #0000BB">exceptions_error_handler</span><span style="color: #007700">(</span><span style="color: #0000BB">$severity</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$message</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$filename</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$lineno</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;throw&nbsp;new&nbsp;</span><span style="color: #0000BB">ErrorException</span><span style="color: #007700">(</span><span style="color: #0000BB">$message</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">0</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$severity</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$filename</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$lineno</span><span style="color: #007700">);<br />}<br /><br /></span><span style="color: #0000BB">set_error_handler</span><span style="color: #007700">(</span><span style="color: #DD0000">'exceptions_error_handler'</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+     </div>
+
+    </div>
    </p></blockquote>
    <div class="tip"><strong class="tip">Tip</strong>
     <p class="para">
-     The <a href="intro.spl.html" class="link">Standard PHP Library (SPL)</a> provides
-     a good number of <a href="spl.exceptions.html" class="link">built-in
-     exceptions</a>.
+     <a href="intro.spl.html" class="link">PHP 标准库（SPL）</a> 
+     提供了大量的 <a href="spl.exceptions.html" class="link">标准内置异常</a>。
     </p>
    </div>
   </div>
@@ -99,8 +147,8 @@
   <div class="simplesect" id="language.exceptions.examples">
    <h3 class="title">范例</h3>
 
-   <div class="example" id="example-284">
-    <p><strong>Example #3 Throwing an Exception</strong></p>
+   <div class="example" id="example-303">
+    <p><strong>Example #4 抛出一个异常</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
 <span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">function&nbsp;</span><span style="color: #0000BB">inverse</span><span style="color: #007700">(</span><span style="color: #0000BB">$x</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(!</span><span style="color: #0000BB">$x</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw&nbsp;new&nbsp;</span><span style="color: #0000BB">Exception</span><span style="color: #007700">(</span><span style="color: #DD0000">'Division&nbsp;by&nbsp;zero.'</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">/</span><span style="color: #0000BB">$x</span><span style="color: #007700">;<br />}<br /><br />try&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #0000BB">inverse</span><span style="color: #007700">(</span><span style="color: #0000BB">5</span><span style="color: #007700">)&nbsp;.&nbsp;</span><span style="color: #DD0000">"\n"</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #0000BB">inverse</span><span style="color: #007700">(</span><span style="color: #0000BB">0</span><span style="color: #007700">)&nbsp;.&nbsp;</span><span style="color: #DD0000">"\n"</span><span style="color: #007700">;<br />}&nbsp;catch&nbsp;(</span><span style="color: #0000BB">Exception&nbsp;$e</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'Caught&nbsp;exception:&nbsp;'</span><span style="color: #007700">,&nbsp;&nbsp;</span><span style="color: #0000BB">$e</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">getMessage</span><span style="color: #007700">(),&nbsp;</span><span style="color: #DD0000">"\n"</span><span style="color: #007700">;<br />}<br /><br /></span><span style="color: #FF8000">//&nbsp;Continue&nbsp;execution<br /></span><span style="color: #007700">echo&nbsp;</span><span style="color: #DD0000">"Hello&nbsp;World\n"</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">?&gt;</span>
@@ -117,11 +165,11 @@ Hello World
 </pre></div>
     </div>
    </div>
-   <div class="example" id="example-285">
-    <p><strong>Example #4 Exception handling with a <em>finally</em> block</strong></p>
+   <div class="example" id="example-304">
+    <p><strong>Example #5 带 <a href="language.exceptions.html#language.exceptions.finally" class="link"><code class="literal">finally</code></a> 块的异常处理</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
-<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">function&nbsp;</span><span style="color: #0000BB">inverse</span><span style="color: #007700">(</span><span style="color: #0000BB">$x</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(!</span><span style="color: #0000BB">$x</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw&nbsp;new&nbsp;</span><span style="color: #0000BB">Exception</span><span style="color: #007700">(</span><span style="color: #DD0000">'Division&nbsp;by&nbsp;zero.'</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">/</span><span style="color: #0000BB">$x</span><span style="color: #007700">;<br />}<br /><br />try&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #0000BB">inverse</span><span style="color: #007700">(</span><span style="color: #0000BB">5</span><span style="color: #007700">)&nbsp;.&nbsp;</span><span style="color: #DD0000">"\n"</span><span style="color: #007700">;<br />}&nbsp;catch&nbsp;(</span><span style="color: #0000BB">Exception&nbsp;$e</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'Caught&nbsp;exception:&nbsp;'</span><span style="color: #007700">,&nbsp;&nbsp;</span><span style="color: #0000BB">$e</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">getMessage</span><span style="color: #007700">(),&nbsp;</span><span style="color: #DD0000">"\n"</span><span style="color: #007700">;<br />}&nbsp;finally&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"First&nbsp;finally.\n"</span><span style="color: #007700">;<br />}<br /><br />try&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #0000BB">inverse</span><span style="color: #007700">(</span><span style="color: #0000BB">0</span><span style="color: #007700">)&nbsp;.&nbsp;</span><span style="color: #DD0000">"\n"</span><span style="color: #007700">;<br />}&nbsp;catch&nbsp;(</span><span style="color: #0000BB">Exception&nbsp;$e</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'Caught&nbsp;exception:&nbsp;'</span><span style="color: #007700">,&nbsp;&nbsp;</span><span style="color: #0000BB">$e</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">getMessage</span><span style="color: #007700">(),&nbsp;</span><span style="color: #DD0000">"\n"</span><span style="color: #007700">;<br />}&nbsp;finally&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"Second&nbsp;finally.\n"</span><span style="color: #007700">;<br />}<br /><br /></span><span style="color: #FF8000">//&nbsp;Continue&nbsp;execution<br /></span><span style="color: #007700">echo&nbsp;</span><span style="color: #DD0000">"Hello&nbsp;World\n"</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">?&gt;</span>
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">function&nbsp;</span><span style="color: #0000BB">inverse</span><span style="color: #007700">(</span><span style="color: #0000BB">$x</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(!</span><span style="color: #0000BB">$x</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw&nbsp;new&nbsp;</span><span style="color: #0000BB">Exception</span><span style="color: #007700">(</span><span style="color: #DD0000">'Division&nbsp;by&nbsp;zero.'</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">/</span><span style="color: #0000BB">$x</span><span style="color: #007700">;<br />}<br /><br />try&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #0000BB">inverse</span><span style="color: #007700">(</span><span style="color: #0000BB">5</span><span style="color: #007700">)&nbsp;.&nbsp;</span><span style="color: #DD0000">"\n"</span><span style="color: #007700">;<br />}&nbsp;catch&nbsp;(</span><span style="color: #0000BB">Exception&nbsp;$e</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'Caught&nbsp;exception:&nbsp;'</span><span style="color: #007700">,&nbsp;&nbsp;</span><span style="color: #0000BB">$e</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">getMessage</span><span style="color: #007700">(),&nbsp;</span><span style="color: #DD0000">"\n"</span><span style="color: #007700">;<br />}&nbsp;finally&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"First&nbsp;finally.\n"</span><span style="color: #007700">;<br />}<br /><br />try&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #0000BB">inverse</span><span style="color: #007700">(</span><span style="color: #0000BB">0</span><span style="color: #007700">)&nbsp;.&nbsp;</span><span style="color: #DD0000">"\n"</span><span style="color: #007700">;<br />}&nbsp;catch&nbsp;(</span><span style="color: #0000BB">Exception&nbsp;$e</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'Caught&nbsp;exception:&nbsp;'</span><span style="color: #007700">,&nbsp;&nbsp;</span><span style="color: #0000BB">$e</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">getMessage</span><span style="color: #007700">(),&nbsp;</span><span style="color: #DD0000">"\n"</span><span style="color: #007700">;<br />}&nbsp;finally&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"Second&nbsp;finally.\n"</span><span style="color: #007700">;<br />}<br /><br /></span><span style="color: #FF8000">//&nbsp;继续执行<br /></span><span style="color: #007700">echo&nbsp;</span><span style="color: #DD0000">"Hello&nbsp;World\n"</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">?&gt;</span>
 </span>
 </code></div>
     </div>
@@ -137,11 +185,27 @@ Hello World
 </pre></div>
     </div>
    </div>
-   <div class="example" id="example-286">
-    <p><strong>Example #5 Nested Exception</strong></p>
+   <div class="example" id="example-305">
+    <p><strong>Example #6 <a href="language.exceptions.html#language.exceptions.finally" class="link"><code class="literal">finally</code></a> 和 <a href="function.return.html" class="link"><code class="literal">return</code></a> 相互之间的影响</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
-<span style="color: #0000BB">&lt;?php<br /><br /></span><span style="color: #007700">class&nbsp;</span><span style="color: #0000BB">MyException&nbsp;</span><span style="color: #007700">extends&nbsp;</span><span style="color: #0000BB">Exception&nbsp;</span><span style="color: #007700">{&nbsp;}<br /><br />class&nbsp;</span><span style="color: #0000BB">Test&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">testing</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw&nbsp;new&nbsp;</span><span style="color: #0000BB">MyException</span><span style="color: #007700">(</span><span style="color: #DD0000">'foo!'</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;catch&nbsp;(</span><span style="color: #0000BB">MyException&nbsp;$e</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;rethrow&nbsp;it<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">throw&nbsp;</span><span style="color: #0000BB">$e</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;catch&nbsp;(</span><span style="color: #0000BB">Exception&nbsp;$e</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$e</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">getMessage</span><span style="color: #007700">());<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br /></span><span style="color: #0000BB">$foo&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">Test</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$foo</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">testing</span><span style="color: #007700">();<br /><br /></span><span style="color: #0000BB">?&gt;</span>
+<span style="color: #0000BB">&lt;?php<br /><br /></span><span style="color: #007700">function&nbsp;</span><span style="color: #0000BB">test</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;try&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw&nbsp;new&nbsp;</span><span style="color: #0000BB">Exception</span><span style="color: #007700">(</span><span style="color: #DD0000">'foo'</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;catch&nbsp;(</span><span style="color: #0000BB">Exception&nbsp;$e</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;</span><span style="color: #DD0000">'catch'</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;finally&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;</span><span style="color: #DD0000">'finally'</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br />echo&nbsp;</span><span style="color: #0000BB">test</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+    <div class="example-contents"><p>以上例程会输出：</p></div>
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+finally
+</pre></div>
+    </div>
+   </div>
+   <div class="example" id="example-306">
+    <p><strong>Example #7 异常嵌套</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /><br /></span><span style="color: #007700">class&nbsp;</span><span style="color: #0000BB">MyException&nbsp;</span><span style="color: #007700">extends&nbsp;</span><span style="color: #0000BB">Exception&nbsp;</span><span style="color: #007700">{&nbsp;}<br /><br />class&nbsp;</span><span style="color: #0000BB">Test&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">testing</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw&nbsp;new&nbsp;</span><span style="color: #0000BB">MyException</span><span style="color: #007700">(</span><span style="color: #DD0000">'foo!'</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;catch&nbsp;(</span><span style="color: #0000BB">MyException&nbsp;$e</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;重新&nbsp;throw<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">throw&nbsp;</span><span style="color: #0000BB">$e</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;catch&nbsp;(</span><span style="color: #0000BB">Exception&nbsp;$e</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$e</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">getMessage</span><span style="color: #007700">());<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br /></span><span style="color: #0000BB">$foo&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">Test</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$foo</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">testing</span><span style="color: #007700">();<br /><br /></span><span style="color: #0000BB">?&gt;</span>
 </span>
 </code></div>
     </div>
@@ -153,6 +217,44 @@ string(4) &quot;foo!&quot;
 </pre></div>
     </div>
    </div>
+   <div class="example" id="example-307">
+    <p><strong>Example #8 多个异常的捕获处理</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /><br /></span><span style="color: #007700">class&nbsp;</span><span style="color: #0000BB">MyException&nbsp;</span><span style="color: #007700">extends&nbsp;</span><span style="color: #0000BB">Exception&nbsp;</span><span style="color: #007700">{&nbsp;}<br /><br />class&nbsp;</span><span style="color: #0000BB">MyOtherException&nbsp;</span><span style="color: #007700">extends&nbsp;</span><span style="color: #0000BB">Exception&nbsp;</span><span style="color: #007700">{&nbsp;}<br /><br />class&nbsp;</span><span style="color: #0000BB">Test&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">testing</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw&nbsp;new&nbsp;</span><span style="color: #0000BB">MyException</span><span style="color: #007700">();<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;catch&nbsp;(</span><span style="color: #0000BB">MyException&nbsp;</span><span style="color: #007700">|&nbsp;</span><span style="color: #0000BB">MyOtherException&nbsp;$e</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">get_class</span><span style="color: #007700">(</span><span style="color: #0000BB">$e</span><span style="color: #007700">));<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br /></span><span style="color: #0000BB">$foo&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">Test</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$foo</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">testing</span><span style="color: #007700">();<br /><br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+    <div class="example-contents"><p>以上例程会输出：</p></div>
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+string(11) &quot;MyException&quot;
+</pre></div>
+    </div>
+   </div>
+   <div class="example" id="example-308">
+    <p><strong>Example #9 忽略捕获的变量</strong></p>
+    <div class="example-contents"><p>仅仅在 PHP 8.0.0 及以上版本有效</p></div>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /><br /></span><span style="color: #007700">class&nbsp;</span><span style="color: #0000BB">SpecificException&nbsp;</span><span style="color: #007700">extends&nbsp;</span><span style="color: #0000BB">Exception&nbsp;</span><span style="color: #007700">{}<br /><br />function&nbsp;</span><span style="color: #0000BB">test</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;throw&nbsp;new&nbsp;</span><span style="color: #0000BB">SpecificException</span><span style="color: #007700">(</span><span style="color: #DD0000">'Oopsie'</span><span style="color: #007700">);<br />}<br /><br />try&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">test</span><span style="color: #007700">();<br />}&nbsp;catch&nbsp;(</span><span style="color: #0000BB">SpecificException</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;print&nbsp;</span><span style="color: #DD0000">"A&nbsp;SpecificException&nbsp;was&nbsp;thrown,&nbsp;but&nbsp;we&nbsp;don't&nbsp;care&nbsp;about&nbsp;the&nbsp;details."</span><span style="color: #007700">;<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+   </div>
+   <div class="example" id="example-309">
+    <p><strong>Example #10 以表达式的形式抛出</strong></p>
+    <div class="example-contents"><p>仅仅在 PHP 8.0.0 及以上版本有效</p></div>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /><br /></span><span style="color: #007700">class&nbsp;</span><span style="color: #0000BB">SpecificException&nbsp;</span><span style="color: #007700">extends&nbsp;</span><span style="color: #0000BB">Exception&nbsp;</span><span style="color: #007700">{}<br /><br />function&nbsp;</span><span style="color: #0000BB">test</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">do_something_risky</span><span style="color: #007700">()&nbsp;or&nbsp;throw&nbsp;new&nbsp;</span><span style="color: #0000BB">Exception</span><span style="color: #007700">(</span><span style="color: #DD0000">'It&nbsp;did&nbsp;not&nbsp;work'</span><span style="color: #007700">);<br />}<br /><br />try&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">test</span><span style="color: #007700">();<br />}&nbsp;catch&nbsp;(</span><span style="color: #0000BB">Exception&nbsp;$e</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;print&nbsp;</span><span style="color: #0000BB">$e</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">getMessage</span><span style="color: #007700">();<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+   </div>
   </div>
 
  </div>
@@ -160,105 +262,7 @@ string(4) &quot;foo!&quot;
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="124312""></a>
-  <div class="note">
-   <strong class="user">shaman_master at list dot ru</strong>
-   <a href="#124312" class="date">20-Oct-2019 12:07</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Example for PHP 7.0 or latest:<br />
-<span class="default">&lt;?php<br />
-</span><span class="keyword">namespace </span><span class="default">SomeNamespace</span><span class="keyword">;<br />
-<br />
-use </span><span class="default">Throwable</span><span class="keyword">, </span><span class="default">Exception</span><span class="keyword">, </span><span class="default">Error</span><span class="keyword">;<br />
-<br />
-class </span><span class="default">SomeClass<br />
-</span><span class="keyword">{<br />
-&nbsp;&nbsp;&nbsp; public function </span><span class="default">someMethod</span><span class="keyword">()<br />
-&nbsp;&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; try {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">rand</span><span class="keyword">(</span><span class="default">0</span><span class="keyword">, </span><span class="default">1</span><span class="keyword">)) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; throw new </span><span class="default">Exception</span><span class="keyword">(</span><span class="string">'Some message'</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; throw new </span><span class="default">Error</span><span class="keyword">(</span><span class="string">'Some message'</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; } catch (</span><span class="default">Throwable $e</span><span class="keyword">) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; \</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$e</span><span class="keyword">-&gt;</span><span class="default">getMessage</span><span class="keyword">());<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; <br />
-&nbsp;&nbsp;&nbsp; public function </span><span class="default">__toString</span><span class="keyword">()<br />
-&nbsp;&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; try {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return (string) </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">someMethod</span><span class="keyword">();<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; } finally {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="string">''</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; }<br />
-}<br />
-</span><span class="default">?&gt;</span>
-</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="124019""></a>
-  <div class="note">
-   <strong class="user">David Spector</strong>
-   <a href="#124019" class="date">06-Jul-2019 12:40</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-This page states, "Code may be surrounded in a try block, to facilitate the catching of potential exceptions." There are two ways in which code may be "surrounded". The obvious (intuitive) way is lexical enclosure: all the code to be protected by the try block is surrounded like this:<br />
-<br />
-try<br />
-&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; A();<br />
-<br />
-&nbsp;&nbsp; function A()<br />
-&nbsp;&nbsp; &nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp;&nbsp; throw new Exception('error');<br />
-&nbsp;&nbsp; &nbsp;&nbsp; echo "A()";<br />
-&nbsp;&nbsp; &nbsp;&nbsp; } // A<br />
-&nbsp;&nbsp; } // try<br />
-catch...<br />
-<br />
-The other way to enclose is by execution (dynamic enclosure), like this:<br />
-<br />
-try<br />
-&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; A();<br />
-&nbsp;&nbsp; } // try<br />
-catch...<br />
-<br />
-function A()<br />
-&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; throw new Exception('error');<br />
-&nbsp;&nbsp; echo "A()";<br />
-&nbsp;&nbsp; } // A<br />
-<br />
-The sense in which code is "surrounded" for exception handling is dynamic (the second example above). This is because exception handling is dynamic and works by "unwinding" the execution stack.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="123296""></a>
-  <div class="note">
-   <strong class="user">wisetips at gmail dot com</strong>
-   <a href="#123296" class="date">01-Nov-2018 06:28</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-You should put your whole program into a try/catch block. Doing so is considered a best practice, because it will allow the user to continue to work even when there are errors in the page!</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="122434""></a>
+<div id="allnotes">  <a name="122434""></a>
   <div class="note">
    <strong class="user">mlaopane at gmail dot com</strong>
    <a href="#122434" class="date">24-Feb-2018 09:49</a>
@@ -297,34 +301,6 @@ function </span><span class="default">boss</span><span class="keyword">()<br />
    </div>
   </div>
  <div class="foot"></div>
-  <a name="121843""></a>
-  <div class="note">
-   <strong class="user">jake at NOSPAM dot qzdesign dot co dot uk</strong>
-   <a href="#121843" class="date">08-Nov-2017 12:03</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Don't forget if your source file is in a namespace you will need to<br />
-<span class="default">&lt;?php<br />
-</span><span class="keyword">use </span><span class="default">Throwable</span><span class="keyword">; </span><span class="comment">// PHP 7<br />
-</span><span class="keyword">use </span><span class="default">Exception</span><span class="keyword">;<br />
-</span><span class="default">?&gt;<br />
-</span>or type the fully qualified class name (prefixed with `\`) as in<br />
-<span class="default">&lt;?php<br />
-</span><span class="keyword">try {<br />
-&nbsp; </span><span class="comment">// ...<br />
-</span><span class="keyword">} catch(\</span><span class="default">Throwable $e</span><span class="keyword">) {<br />
-&nbsp; </span><span class="comment">// PHP 7<br />
-</span><span class="keyword">} catch(\</span><span class="default">Exception $e</span><span class="keyword">) {<br />
-&nbsp; </span><span class="comment">// PHP 5<br />
-</span><span class="keyword">}<br />
-</span><span class="default">?&gt;<br />
-</span>otherwise you will only ever catch exceptions of the possibly non-existent classes `\YourNamespace\Throwable` and `\YourNamespace\Exception`!</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
   <a name="121673""></a>
   <div class="note">
    <strong class="user">daviddlowe dot flimm at gmail dot com</strong>
@@ -347,31 +323,6 @@ catch (</span><span class="default">Throwable $e</span><span class="keyword">) {
 <br />
 </span><span class="default">?&gt;</span>
 </span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="121339""></a>
-  <div class="note">
-   <strong class="user">jenshausdorf at gmail dot com</strong>
-   <a href="#121339" class="date">08-Jul-2017 09:10</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Please don't do something like this:<br />
-<br />
-<span class="default">&lt;?php<br />
-</span><span class="keyword">try {<br />
-&nbsp;&nbsp;&nbsp; </span><span class="comment">// experimental stuff to check whether something works<br />
-</span><span class="keyword">} catch(\</span><span class="default">Throwable $e</span><span class="keyword">) {<br />
-&nbsp;&nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;<br />
-} finally {<br />
-&nbsp;&nbsp;&nbsp; return </span><span class="default">true</span><span class="keyword">;<br />
-}<br />
-</span><span class="default">?&gt;<br />
-</span><br />
-Well, it is allowed syntax, it is bad practice, because once it hits the exception block, finally won't be called(because it exits the scope). Finally was invented to prevent duplicated code after one operation, regardless whether it was successful(for example closing the connection to a server). This way, you don't have any duplicated code. So you don't need to use this structure.</span>
 </code>
     </div>
    </div>
@@ -412,195 +363,6 @@ In case your E_WARNING type of errors aren't catchable with try/catch you can ch
    </div>
   </div>
  <div class="foot"></div>
-  <a name="119726""></a>
-  <div class="note">
-   <strong class="user">ohcc at 163 dot com</strong>
-   <a href="#119726" class="date">11-Aug-2016 09:25</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-If a TRY has a FINALLY, a RETURN either in the TRY or a CATCH won't terminate the script. Code in the same block after the RETURN will not be executed, and the RETURN itself will be "copied" to the bottom of the FINALLY block to be executed.<br />
-<br />
-a RETURN in the FINALLY block will override value(s) returned from the TRY or a CATCH block.<br />
-<br />
-An EXIT or a DIE always terminate the script after themselves.<br />
-<br />
-code 1<br />
-<br />
-<span class="default">&lt;?php<br />
-&nbsp;&nbsp;&nbsp; </span><span class="keyword">function </span><span class="default">foo</span><span class="keyword">(){<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$bar </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; try{<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; throw new </span><span class="default">Exception</span><span class="keyword">(</span><span class="string">'I am Wu Xiancheng.'</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }catch(</span><span class="default">Exception $e</span><span class="keyword">){<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$bar</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$bar</span><span class="keyword">--; </span><span class="comment">// this line will be ignored<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">}finally{<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$bar</span><span class="keyword">++;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; echo </span><span class="default">foo</span><span class="keyword">(); </span><span class="comment">// 2<br />
-</span><span class="default">?&gt;<br />
-</span><br />
-code 2<br />
-<br />
-<span class="default">&lt;?php<br />
-&nbsp;&nbsp;&nbsp; </span><span class="keyword">function </span><span class="default">foo</span><span class="keyword">(){<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$bar </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; try{<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; throw new </span><span class="default">Exception</span><span class="keyword">(</span><span class="string">'I am Wu Xiancheng.'</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }catch(</span><span class="default">Exception $e</span><span class="keyword">){<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$bar</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$bar</span><span class="keyword">--; </span><span class="comment">// this line will be ignored<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">}finally{<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$bar</span><span class="keyword">++;<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$bar</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; echo </span><span class="default">foo</span><span class="keyword">(); </span><span class="comment">//2 <br />
-</span><span class="default">?&gt;<br />
-</span><br />
-code 3<br />
-<br />
-<span class="default">&lt;?php<br />
-&nbsp;&nbsp;&nbsp; </span><span class="keyword">function </span><span class="default">foo</span><span class="keyword">(){<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$bar </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; try{<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; throw new </span><span class="default">Exception</span><span class="keyword">(</span><span class="string">'I am Wu Xiancheng.'</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }catch(</span><span class="default">Exception $e</span><span class="keyword">){<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$bar</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$bar</span><span class="keyword">--; </span><span class="comment">// this line will be ignored<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">}finally{<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">100</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; echo </span><span class="default">foo</span><span class="keyword">(); </span><span class="comment">//100<br />
-</span><span class="default">?&gt;</span>
-</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="119147""></a>
-  <div class="note">
-   <strong class="user">Mohammad Hossein Darvishanpour</strong>
-   <a href="#119147" class="date">11-Apr-2016 07:05</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-<span class="default">&lt;?php<br />
-</span><span class="keyword">function </span><span class="default">Test_Extention</span><span class="keyword">(</span><span class="default">$var1</span><span class="keyword">)<br />
-{<br />
-&nbsp;&nbsp;&nbsp; if(</span><span class="default">$var1 </span><span class="keyword">== </span><span class="default">false</span><span class="keyword">)<br />
-&nbsp;&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; throw new </span><span class="default">Exception</span><span class="keyword">(</span><span class="string">'Invalid !'</span><span class="keyword">);<br />
-&nbsp;&nbsp;&nbsp; }<br />
-}</span><span class="comment">//end function<br />
-<br />
-</span><span class="keyword">try<br />
-{<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">Test_Extention</span><span class="keyword">(</span><span class="default">false</span><span class="keyword">);<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">printf</span><span class="keyword">(</span><span class="string">"%s"</span><span class="keyword">,</span><span class="string">"Valid"</span><span class="keyword">);<br />
-}<br />
-<br />
-catch(</span><span class="default">Exception $e</span><span class="keyword">)<br />
-{<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">printf</span><span class="keyword">(</span><span class="string">"%s"</span><span class="keyword">,</span><span class="string">"Message : " </span><span class="keyword">. </span><span class="default">$e</span><span class="keyword">-&gt;</span><span class="default">getMessage</span><span class="keyword">());<br />
-}<br />
-</span><span class="default">?&gt;</span>
-</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="118280""></a>
-  <div class="note">
-   <strong class="user">ohcc at 163 dot com</strong>
-   <a href="#118280" class="date">07-Nov-2015 05:40</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Type declarations will trigger Uncaught TypeError when a different type is passed. And it cannot be caught with the Exception class.<br />
-<span class="default">&lt;?php<br />
-&nbsp;&nbsp;&nbsp; </span><span class="keyword">function </span><span class="default">xc</span><span class="keyword">(array </span><span class="default">$a</span><span class="keyword">){&nbsp; &nbsp; &nbsp; &nbsp; <br />
-&nbsp;&nbsp;&nbsp; }&nbsp; &nbsp; <br />
-&nbsp;&nbsp;&nbsp; try{<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">xc</span><span class="keyword">(</span><span class="default">4</span><span class="keyword">);<br />
-&nbsp;&nbsp;&nbsp; }catch (</span><span class="default">Exception $e</span><span class="keyword">){ </span><span class="comment">// failed to catch it<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">echo </span><span class="default">$e</span><span class="keyword">-&gt;</span><span class="default">getMessage</span><span class="keyword">();<br />
-&nbsp;&nbsp;&nbsp; }<br />
-</span><span class="default">?&gt;<br />
-</span><br />
-You should use TypeError instead for PHP 7+,<br />
-<br />
-<span class="default">&lt;?php<br />
-&nbsp;&nbsp;&nbsp; </span><span class="keyword">function </span><span class="default">xc</span><span class="keyword">(array </span><span class="default">$a</span><span class="keyword">){&nbsp; &nbsp; <br />
-&nbsp;&nbsp;&nbsp; }&nbsp; &nbsp; <br />
-&nbsp;&nbsp;&nbsp; try{<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">xc</span><span class="keyword">(</span><span class="default">4</span><span class="keyword">);<br />
-&nbsp;&nbsp;&nbsp; }catch (</span><span class="default">TypeError $e</span><span class="keyword">){<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="default">$e</span><span class="keyword">-&gt;</span><span class="default">getMessage</span><span class="keyword">();<br />
-&nbsp;&nbsp;&nbsp; }<br />
-</span><span class="default">?&gt;<br />
-</span><br />
-In php version prior to 7.0, you should translate Catchable fatal errors to an exception and then catch it.<br />
-<br />
-<span class="default">&lt;?php<br />
-&nbsp;&nbsp;&nbsp; </span><span class="keyword">function </span><span class="default">exceptionErrorHandler</span><span class="keyword">(</span><span class="default">$errNumber</span><span class="keyword">, </span><span class="default">$errStr</span><span class="keyword">, </span><span class="default">$errFile</span><span class="keyword">, </span><span class="default">$errLine </span><span class="keyword">) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; throw new </span><span class="default">ErrorException</span><span class="keyword">(</span><span class="default">$errStr</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">, </span><span class="default">$errNumber</span><span class="keyword">, </span><span class="default">$errFile</span><span class="keyword">, </span><span class="default">$errLine</span><span class="keyword">);<br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">set_error_handler</span><span class="keyword">(</span><span class="string">'exceptionErrorHandler'</span><span class="keyword">);<br />
-&nbsp;&nbsp;&nbsp; function </span><span class="default">s</span><span class="keyword">(array </span><span class="default">$a</span><span class="keyword">){&nbsp; &nbsp; &nbsp; &nbsp; <br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; try{<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">s</span><span class="keyword">(</span><span class="default">4</span><span class="keyword">);<br />
-&nbsp;&nbsp;&nbsp; }catch (</span><span class="default">Exception $e</span><span class="keyword">){<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="default">$e</span><span class="keyword">-&gt;</span><span class="default">getMessage</span><span class="keyword">();<br />
-&nbsp;&nbsp;&nbsp; }<br />
-</span><span class="default">?&gt;</span>
-</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="118056""></a>
-  <div class="note">
-   <strong class="user">hweidmann at online dot de</strong>
-   <a href="#118056" class="date">26-Sep-2015 08:20</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-catch doesn't check for the existence of the Exception class, so avoid typo.<br />
-<br />
-<span class="default">&lt;?php<br />
-&nbsp;&nbsp; </span><span class="keyword">class </span><span class="default">MyException </span><span class="keyword">extends </span><span class="default">Exception<br />
-&nbsp;&nbsp; </span><span class="keyword">{<br />
-&nbsp;&nbsp; &nbsp;&nbsp; ...<br />
-&nbsp;&nbsp; }<br />
-<br />
-&nbsp;&nbsp; try<br />
-&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp;&nbsp; throw new </span><span class="default">MyException</span><span class="keyword">(...);<br />
-&nbsp;&nbsp; }<br />
-&nbsp;&nbsp; catch (</span><span class="default">MuException $e</span><span class="keyword">) </span><span class="comment">// &lt;--- typo<br />
-&nbsp;&nbsp; </span><span class="keyword">{<br />
-&nbsp;&nbsp; &nbsp;&nbsp; ...<br />
-&nbsp;&nbsp; }<br />
-</span><span class="default">?&gt;</span> <br />
-<br />
-You WON'T get<br />
-&nbsp;&nbsp; Fatal error: Class MuException could not be loaded ...<br />
-<br />
-You WILL get<br />
-&nbsp;&nbsp; Fatal error: Uncaught exception 'MyException' ...</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
   <a name="117029""></a>
   <div class="note">
    <strong class="user">Simo</strong>
@@ -622,21 +384,6 @@ You WILL get<br />
     <div class="phpcode">
 <code><span class="html">
 Contrary to the documentation it is possible in PHP 5.5 and higher use only try-finally blocks without any catch block.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="115257""></a>
-  <div class="note">
-   <strong class="user">Hayley Watson</strong>
-   <a href="#115257" class="date">23-Jun-2014 06:58</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Remember that Exceptions are also objects and can be handled as such; they can be constructed in and returned as values from functions, passed as arguments to other functions, and examined before being thrown. You don't have to throw it as soon as you have constructed it (the stack trace will of course reflect the moment the Exception was constructed, not the moment it was thrown).<br />
-<br />
-You might, for example, want to collect additional information to include in YourException but you don't want to clutter up the YourException class or the code containing the "throw" statement by collecting the information there. Or you might want to do something (such as logging) with each Exception that is thrown from a certain region (catch it, pass it to the logging function, then rethrow it).</span>
 </code>
     </div>
    </div>
@@ -679,205 +426,6 @@ When using finally keep in mind that when a exit/die statement is used in the ca
 <br />
 </span><span class="comment">// try block<br />
 // catch block<br />
-</span><span class="default">?&gt;</span>
-</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="114207""></a>
-  <div class="note">
-   <strong class="user">php at marcuspope dot com</strong>
-   <a href="#114207" class="date">24-Jan-2014 05:42</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Using a return statement inside a finally block will override any other return statement or thrown exception from the try block and all defined catch blocks.&nbsp;&nbsp; Code execution in the parent stack will continue as if the exception was never thrown.&nbsp; <br />
-<br />
-Frankly this is a good design decision because it means I can optionally dismiss all thrown exceptions from 1 or more catch blocks in one place, without having to nest my whole try block inside an additional (and otherwise needless) try/catch block.<br />
-<br />
-This is the same behavior as Java, whereas C# throws a compile time error when a return statement exists inside a finally block.&nbsp; So I figured it was worth pointing out to PHP devs who may not have any exposure to finally blocks or how other languages do it.<br />
-<br />
-<span class="default">&lt;?php<br />
-<br />
-</span><span class="keyword">function </span><span class="default">asdf</span><span class="keyword">()<br />
-{<br />
-&nbsp;&nbsp;&nbsp; try {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; throw new </span><span class="default">Exception</span><span class="keyword">(</span><span class="string">'error'</span><span class="keyword">);<br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; catch(</span><span class="default">Exception $e</span><span class="keyword">) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"An error occurred"</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; throw </span><span class="default">$e</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; finally {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">//This overrides the exception as if it were never thrown<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">return </span><span class="string">"\nException erased"</span><span class="keyword">;<br />
-&nbsp;&nbsp;&nbsp; }<br />
-}<br />
-<br />
-try {<br />
-&nbsp;&nbsp;&nbsp; echo </span><span class="default">asdf</span><span class="keyword">();<br />
-}<br />
-catch(</span><span class="default">Exception $e</span><span class="keyword">) {<br />
-&nbsp;&nbsp;&nbsp; echo </span><span class="string">"\nResult: " </span><span class="keyword">. </span><span class="default">$e</span><span class="keyword">-&gt;</span><span class="default">getMessage</span><span class="keyword">();<br />
-}<br />
-</span><span class="default">?&gt;<br />
-</span><br />
-The output from above will look like this:<br />
-<br />
-&nbsp;&nbsp;&nbsp; An error occurred<br />
-&nbsp;&nbsp;&nbsp; Exception erased<br />
-<br />
-Without the return statement in the finally block it would look like this:<br />
-<br />
-&nbsp;&nbsp;&nbsp; An error occurred<br />
-&nbsp;&nbsp;&nbsp; Result: error</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="113368""></a>
-  <div class="note">
-   <strong class="user">cyrus+php at boadway dot ca</strong>
-   <a href="#113368" class="date">02-Oct-2013 02:50</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-There's some inconsistent behaviour associated with PHP 5.5.3's finally and return statements. If a method returns a variable in a try block (e.g. return $foo;), and finally modifies that variable, the /modified/ value is returned. However, if the try block has a return that has to be evaluated in-line (e.g. return $foo+0;), finally's changes to $foo will /not/ affect the return value.<br />
-<br />
-[code]<br />
-function returnVariable(){<br />
-&nbsp;&nbsp;&nbsp; $foo = 1;<br />
-&nbsp;&nbsp;&nbsp; try{<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return $foo;<br />
-&nbsp;&nbsp;&nbsp; } finally {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $foo++;<br />
-&nbsp;&nbsp;&nbsp; }<br />
-}<br />
-<br />
-function returnVariablePlusZero(){<br />
-&nbsp;&nbsp;&nbsp; $foo = 1;<br />
-&nbsp;&nbsp;&nbsp; try{<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return $foo + 0;<br />
-&nbsp;&nbsp;&nbsp; } finally {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $foo++;<br />
-&nbsp;&nbsp;&nbsp; }<br />
-}<br />
-<br />
-$test1 = returnVariable(); // returns 2, not the correct value of 1.<br />
-$test2 = returnVariablePlusZero(); // returns correct value of 1, but inconsistent with $test1.<br />
-[/code]<br />
-<br />
-It looks like it's trying to be efficient by not allocating additional memory for the return value when it thinks it doesn't have to, but the spec is that finally is run after try is completed execution, and that includes the evaluation of the return expression.<br />
-<br />
-One could argue (weakly) that the first method should be the correct result, but at least the two methods should be consistent.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="113328""></a>
-  <div class="note">
-   <strong class="user">jim at anderos dot com</strong>
-   <a href="#113328" class="date">27-Sep-2013 05:22</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-If you are using a namespace, you must indicate the global namespace when using Exceptions.<br />
-<span class="default">&lt;?php<br />
-</span><span class="keyword">namespace </span><span class="default">alpha</span><span class="keyword">;<br />
-function </span><span class="default">foo</span><span class="keyword">(){<br />
-&nbsp;&nbsp;&nbsp; throw new \</span><span class="default">Exception</span><span class="keyword">(</span><span class="string">"Something is wrong!"</span><span class="keyword">);<br />
-&nbsp;&nbsp;&nbsp; </span><span class="comment">// throw new Exception(""); will fail<br />
-</span><span class="keyword">}<br />
-<br />
-try {<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">foo</span><span class="keyword">();<br />
-} catch( \</span><span class="default">Exception $e </span><span class="keyword">) {<br />
-&nbsp;&nbsp;&nbsp; </span><span class="comment">// catch( Exception $e ) will give no warning, but will not catch Exception<br />
-&nbsp;&nbsp;&nbsp; </span><span class="keyword">echo </span><span class="string">"ERROR: </span><span class="default">$e</span><span class="string">"</span><span class="keyword">;<br />
-}<br />
-<br />
-</span><span class="default">?&gt;</span>
-</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="112529""></a>
-  <div class="note">
-   <strong class="user">sander at rotorsolutions dot nl</strong>
-   <a href="#112529" class="date">26-Jun-2013 02:08</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Just an example why finally blocks are usefull (5.5)<br />
-<br />
-<span class="default">&lt;?php<br />
-<br />
-</span><span class="comment">//without catch<br />
-</span><span class="keyword">function </span><span class="default">example</span><span class="keyword">() {<br />
-&nbsp; try {<br />
-&nbsp;&nbsp;&nbsp; </span><span class="comment">//do something that throws an exeption<br />
-&nbsp; </span><span class="keyword">}<br />
-&nbsp; finally {<br />
-&nbsp;&nbsp;&nbsp; </span><span class="comment">//this code will be executed even when the exception is executed<br />
-&nbsp; </span><span class="keyword">}<br />
-}<br />
-<br />
-function </span><span class="default">example2</span><span class="keyword">() {<br />
-&nbsp; try {<br />
-&nbsp;&nbsp; &nbsp; </span><span class="comment">//open sql connection check user as example<br />
-&nbsp;&nbsp; &nbsp; </span><span class="keyword">if(</span><span class="default">condition</span><span class="keyword">) { <br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; }<br />
-&nbsp; }<br />
-&nbsp; finally {<br />
-&nbsp;&nbsp;&nbsp; </span><span class="comment">//close the sql connection, this will be executed even if the return is called.<br />
-&nbsp; </span><span class="keyword">}<br />
-}</span>
-</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="112527""></a>
-  <div class="note">
-   <strong class="user">sander at rotorsolutions dot nl</strong>
-   <a href="#112527" class="date">26-Jun-2013 02:05</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Just an example why finally blocks are usefull (5.5)<br />
-<br />
-<span class="default">&lt;?php<br />
-<br />
-</span><span class="comment">//without catch<br />
-</span><span class="keyword">function </span><span class="default">example</span><span class="keyword">() {<br />
-&nbsp; try {<br />
-&nbsp;&nbsp;&nbsp; </span><span class="comment">//do something that throws an exeption<br />
-&nbsp; </span><span class="keyword">}<br />
-&nbsp; finally {<br />
-&nbsp;&nbsp;&nbsp; </span><span class="comment">//this code will be executed even when the exception is executed<br />
-&nbsp; </span><span class="keyword">}<br />
-}<br />
-<br />
-function </span><span class="default">example2</span><span class="keyword">() {<br />
-&nbsp; try {<br />
-&nbsp;&nbsp; &nbsp; </span><span class="comment">//open sql connection check user as example<br />
-&nbsp;&nbsp; &nbsp; </span><span class="keyword">if(</span><span class="default">condition</span><span class="keyword">) { <br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;<br />
-&nbsp;&nbsp; &nbsp; }<br />
-&nbsp; }<br />
-&nbsp; finally {<br />
-&nbsp;&nbsp;&nbsp; </span><span class="comment">//close the sql connection, this will be executed even if the return is called.<br />
-&nbsp; </span><span class="keyword">}<br />
-}<br />
-<br />
 </span><span class="default">?&gt;</span>
 </span>
 </code>
@@ -971,58 +519,6 @@ catch (</span><span class="default">Exception $e</span><span class="keyword">)<b
    </div>
   </div>
  <div class="foot"></div>
-  <a name="105102""></a>
-  <div class="note">
-   <strong class="user">alex dowgailenko [at] g mail . com</strong>
-   <a href="#105102" class="date">27-Jul-2011 12:20</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-If you use the set_error_handler() to throw exceptions of errors, you may encounter issues with __autoload() functionality saying that your class doesn't exist and that's it.<br />
-<br />
-If you do this:<br />
-<br />
-<span class="default">&lt;?php<br />
-<br />
-</span><span class="keyword">class </span><span class="default">MyException </span><span class="keyword">extends </span><span class="default">Exception<br />
-</span><span class="keyword">{<br />
-}<br />
-<br />
-class </span><span class="default">Tester<br />
-</span><span class="keyword">{<br />
-&nbsp;&nbsp;&nbsp; public function </span><span class="default">foobar</span><span class="keyword">()<br />
-&nbsp;&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; try<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">helloWorld</span><span class="keyword">();<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; } catch (</span><span class="default">MyException $e</span><span class="keyword">) {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; throw new </span><span class="default">Exception</span><span class="keyword">(</span><span class="string">'Problem in foobar'</span><span class="keyword">,</span><span class="default">0</span><span class="keyword">,</span><span class="default">$e</span><span class="keyword">);<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; <br />
-&nbsp;&nbsp;&nbsp; protected function </span><span class="default">helloWorld</span><span class="keyword">()<br />
-&nbsp;&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; throw new </span><span class="default">MyException</span><span class="keyword">(</span><span class="string">'Problem in helloWorld()'</span><span class="keyword">);<br />
-&nbsp;&nbsp;&nbsp; }<br />
-}<br />
-<br />
-</span><span class="default">$tester </span><span class="keyword">= new </span><span class="default">Tester</span><span class="keyword">;<br />
-try<br />
-{<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">$tester</span><span class="keyword">-&gt;</span><span class="default">foobar</span><span class="keyword">();<br />
-} catch (</span><span class="default">Exception $e</span><span class="keyword">) {<br />
-&nbsp;&nbsp;&nbsp; echo </span><span class="default">$e</span><span class="keyword">-&gt;</span><span class="default">getTraceAsString</span><span class="keyword">();<br />
-}<br />
-</span><span class="default">?&gt;<br />
-</span><br />
-The trace will only show $tester-&gt;foobar() and not the call made to $tester-&gt;helloWorld().<br />
-<br />
-In other words, if you pass a previous exception to a new one, the previous exception's stack trace is taken into account in the new exception.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
   <a name="103819""></a>
   <div class="note">
    <strong class="user">Johan</strong>
@@ -1042,36 +538,6 @@ try {<br />
 &nbsp; </span><span class="default">ob_end_clean</span><span class="keyword">();<br />
 &nbsp; </span><span class="default">displayErrorPage</span><span class="keyword">(</span><span class="default">$e</span><span class="keyword">-&gt;</span><span class="default">getMessage</span><span class="keyword">());<br />
 }<br />
-</span><span class="default">?&gt;</span>
-</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="97963""></a>
-  <div class="note">
-   <strong class="user">zmunoz at gmail dot com</strong>
-   <a href="#97963" class="date">18-May-2010 01:05</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-When catching an exception inside a namespace it is important that you escape to the global space:<br />
-<br />
-<span class="default">&lt;?php<br />
-&nbsp;</span><span class="keyword">namespace </span><span class="default">SomeNamespace</span><span class="keyword">;<br />
-<br />
-&nbsp;class </span><span class="default">SomeClass </span><span class="keyword">{<br />
-<br />
-&nbsp; function </span><span class="default">SomeFunction</span><span class="keyword">() {<br />
-&nbsp;&nbsp; try {<br />
-&nbsp;&nbsp;&nbsp; throw new </span><span class="default">Exception</span><span class="keyword">(</span><span class="string">'Some Error Message'</span><span class="keyword">);<br />
-&nbsp;&nbsp; } catch (\</span><span class="default">Exception $e</span><span class="keyword">) {<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$e</span><span class="keyword">-&gt;</span><span class="default">getMessage</span><span class="keyword">());<br />
-&nbsp;&nbsp; }<br />
-&nbsp; }<br />
-<br />
-&nbsp;}<br />
 </span><span class="default">?&gt;</span>
 </span>
 </code>
@@ -1178,111 +644,6 @@ TestException 'Unknown TestException' in C:\xampp\htdocs\CustomException\CustomE
 'If an exception is not caught, a PHP Fatal Error will be issued with an "Uncaught Exception ..." message, unless a handler has been defined with set_exception_handler().'<br />
 <br />
 These two sentences seem a bit contradicting about what happens 'when a catch matching the thrown exception's class is not present' (and the second sentence is actually correct).</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="81960""></a>
-  <div class="note">
-   <strong class="user">michael dot ochs at gmx dot net</strong>
-   <a href="#81960" class="date">21-Mar-2008 03:44</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Actually it isn't possible to do:<br />
-<span class="default">&lt;?php<br />
-someFunction</span><span class="keyword">() OR throw new </span><span class="default">Exception</span><span class="keyword">();<br />
-</span><span class="default">?&gt;<br />
-</span><br />
-This leads to a T_THROW Syntax Error. If you want to use this kind of exceptions, you can do the following:<br />
-<br />
-<span class="default">&lt;?php<br />
-</span><span class="keyword">function </span><span class="default">throwException</span><span class="keyword">(</span><span class="default">$message </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">,</span><span class="default">$code </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">) {<br />
-&nbsp;&nbsp;&nbsp; throw new </span><span class="default">Exception</span><span class="keyword">(</span><span class="default">$message</span><span class="keyword">,</span><span class="default">$code</span><span class="keyword">);<br />
-}<br />
-<br />
-</span><span class="default">someFunction</span><span class="keyword">() OR </span><span class="default">throwException</span><span class="keyword">();<br />
-</span><span class="default">?&gt;</span>
-</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="72567""></a>
-  <div class="note">
-   <strong class="user">jon at hackcraft dot net</strong>
-   <a href="#72567" class="date">24-Jan-2007 09:52</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Further to dexen at google dot me dot up with "use destructors to perform a cleanup in case of exception". The fact that PHP5 has destructors, exception handling, and predictable garbage collection (if there's a single reference in scope and the scope is left then the destructor is called immediately) allows for the use of the RAII idiom.<br />
-<br />
-<a href="http://en.wikipedia.org/wiki/Resource_Acquisition_Is_Initialization and my own http://www.hackcraft.net/RAII/ describe this." rel="nofollow" target="_blank">http://en.wikipedia.org/wiki/Resource_Acquisition_Is_Initialization and my own http://www.hackcraft.net/RAII/ describe this.</a></span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="68697""></a>
-  <div class="note">
-   <strong class="user">jazfresh at hotmail.com</strong>
-   <a href="#68697" class="date">07-Aug-2006 10:18</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Sometimes you want a single catch() to catch multiple types of Exception. In a language like Python, you can specify multiple types in a catch(), but in PHP you can only specify one. This can be annoying when you want handle many different Exceptions with the same catch() block.<br />
-<br />
-However, you can replicate the functionality somewhat, because catch(&lt;classname&gt; $var) will match the given &lt;classname&gt; *or any of it's sub-classes*.<br />
-<br />
-For example:<br />
-<br />
-<span class="default">&lt;?php<br />
-</span><span class="keyword">class </span><span class="default">DisplayException </span><span class="keyword">extends </span><span class="default">Exception </span><span class="keyword">{};<br />
-class </span><span class="default">FileException </span><span class="keyword">extends </span><span class="default">Exception </span><span class="keyword">{};<br />
-class </span><span class="default">AccessControl </span><span class="keyword">extends </span><span class="default">FileException </span><span class="keyword">{}; </span><span class="comment">// Sub-class of FileException<br />
-</span><span class="keyword">class </span><span class="default">IOError </span><span class="keyword">extends </span><span class="default">FileException </span><span class="keyword">{}; </span><span class="comment">// Sub-class of FileException<br />
-<br />
-</span><span class="keyword">try {<br />
-&nbsp; if(!</span><span class="default">is_readable</span><span class="keyword">(</span><span class="default">$somefile</span><span class="keyword">))<br />
-&nbsp;&nbsp; &nbsp; throw new </span><span class="default">IOError</span><span class="keyword">(</span><span class="string">"File is not readable!"</span><span class="keyword">);<br />
-&nbsp; if(!</span><span class="default">user_has_access_to_file</span><span class="keyword">(</span><span class="default">$someuser</span><span class="keyword">, </span><span class="default">$somefile</span><span class="keyword">))<br />
-&nbsp;&nbsp; &nbsp; throw new </span><span class="default">AccessControl</span><span class="keyword">(</span><span class="string">"Permission denied!"</span><span class="keyword">);<br />
-&nbsp; if(!</span><span class="default">display_file</span><span class="keyword">(</span><span class="default">$somefile</span><span class="keyword">))<br />
-&nbsp;&nbsp; &nbsp; throw new </span><span class="default">DisplayException</span><span class="keyword">(</span><span class="string">"Couldn't display file!"</span><span class="keyword">);<br />
-<br />
-} catch (</span><span class="default">FileException $e</span><span class="keyword">) {<br />
-&nbsp; </span><span class="comment">// This block will catch FileException, AccessControl or IOError exceptions, but not Exceptions or DisplayExceptions.<br />
-&nbsp; </span><span class="keyword">echo </span><span class="string">"File error: "</span><span class="keyword">.</span><span class="default">$e</span><span class="keyword">-&gt;</span><span class="default">getMessage</span><span class="keyword">();<br />
-&nbsp; exit(</span><span class="default">1</span><span class="keyword">);<br />
-}<br />
-</span><span class="default">?&gt;<br />
-</span><br />
-Corollary: If you want to catch *any* exception, no matter what the type, just use "catch(Exception $var)", because all exceptions are sub-classes of the built-in Exception.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="65203""></a>
-  <div class="note">
-   <strong class="user">fjoggen at gmail dot com</strong>
-   <a href="#65203" class="date">26-Apr-2006 01:58</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-This code will turn php errors into exceptions:<br />
-<br />
-<span class="default">&lt;?php<br />
-</span><span class="keyword">function </span><span class="default">exceptions_error_handler</span><span class="keyword">(</span><span class="default">$severity</span><span class="keyword">, </span><span class="default">$message</span><span class="keyword">, </span><span class="default">$filename</span><span class="keyword">, </span><span class="default">$lineno</span><span class="keyword">) { <br />
-&nbsp;&nbsp;&nbsp; throw new </span><span class="default">ErrorException</span><span class="keyword">(</span><span class="default">$message</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">, </span><span class="default">$severity</span><span class="keyword">, </span><span class="default">$filename</span><span class="keyword">, </span><span class="default">$lineno</span><span class="keyword">); <br />
-}<br />
-<br />
-</span><span class="default">set_error_handler</span><span class="keyword">(</span><span class="string">'exceptions_error_handler'</span><span class="keyword">);<br />
-</span><span class="default">?&gt;<br />
-</span><br />
-However since <span class="default">&lt;?php set_error_handler</span><span class="keyword">()</span><span class="default">?&gt;</span> doesn't work with fatal errors, you will not be able to throw them as Exceptions.</span>
 </code>
     </div>
    </div>

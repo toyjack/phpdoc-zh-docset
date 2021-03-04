@@ -27,7 +27,7 @@
   <div id="layout-content"><div id="function.quoted-printable-decode" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">quoted_printable_decode</h1>
-  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">quoted_printable_decode</span> &mdash; <span class="dc-title">½« quoted-printable ×Ö·û´®×ª»»Îª 8-bit ×Ö·û´®</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7, PHP 8)</p><p class="refpurpose"><span class="refname">quoted_printable_decode</span> &mdash; <span class="dc-title">½« quoted-printable ×Ö·û´®×ª»»Îª 8-bit ×Ö·û´®</span></p>
 
  </div>
  
@@ -92,7 +92,60 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="124477""></a>
+<div id="allnotes">  <a name="125548""></a>
+  <div class="note">
+   <strong class="user">jab_creations at yahoo dot com</strong>
+   <a href="#125548" class="date">28-Nov-2020 08:01</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you're getting black diamonds or weird characters that seemingly block an echo but still encounter strlen($string) &gt; 0 you're probably encountering an encoding issue. Unlike the people writing ENCODE functions on a DECODE page I will actually talk about DECODE on a DECODE page.<br />
+<br />
+The specific problem I encountered was that an email was encoded using a Russian encoding (KOI8-R) though I output everything as UTF-8 because: compatibility.<br />
+<br />
+If you try to do this with a Russian encoding:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">echo </span><span class="default">quoted_printable_decode</span><span class="keyword">(</span><span class="string">'=81'</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+You'll get that corrupted data.<br />
+<br />
+I did a couple of tests and it turns out the following is how you nest the mb_convert_encoding function:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">echo </span><span class="string">'&lt;p&gt;Test: "'</span><span class="keyword">.</span><span class="default">mb_convert_encoding</span><span class="keyword">(</span><span class="default">quoted_printable_decode</span><span class="keyword">(</span><span class="string">'=81'</span><span class="keyword">), </span><span class="string">'UTF-8'</span><span class="keyword">, </span><span class="string">'KOI8-R'</span><span class="keyword">).</span><span class="string">'".&lt;/p&gt;'</span><span class="keyword">;<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Unfortunately I could not find a character mapping table or anything listed under RFC 2045 Section 6.7. However I came across the website https://dencode.com/en/string/quoted-printable which allows you to manually choose the encoding (it's an open source site, they have a GIT repository for the morbidly curious).<br />
+<br />
+As it turns out the start of the range is relative to the encoding. So Latin (ISO-8859-1) and Russian (KOI8-R) will likely (not tested this) encode to different characters **relative to the string encoding**.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="125044""></a>
+  <div class="note">
+   <strong class="user">naitsirch at e dot mail dot de</strong>
+   <a href="#125044" class="date">25-May-2020 02:31</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If there is a NULL byte in the string that is passed, quoted_printable_decode will crop everything after the NULL byte and the NULL byte itself.<br />
+<br />
+<span class="default">&lt;?php<br />
+$result </span><span class="keyword">= </span><span class="default">quoted_printable_decode</span><span class="keyword">(</span><span class="string">"This is a\0 test."</span><span class="keyword">);<br />
+</span><span class="comment">// $result === 'This is a'<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+This is not a bug, but the intended behaviour and defined by RFC 2045 (see https://www.ietf.org/rfc/rfc2045.txt) in paragraph 2.7 and 2.8.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="124477""></a>
   <div class="note">
    <strong class="user">sven at e7o dot de</strong>
    <a href="#124477" class="date">06-Dec-2019 12:13</a>
@@ -363,44 +416,6 @@ function quoted_printable_encode($txt) {<br />
 &nbsp;&nbsp;&nbsp; $tmp.="$line\n";<br />
 &nbsp;&nbsp;&nbsp; return $tmp;<br />
 }</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="84403""></a>
-  <div class="note">
-   <strong class="user">Bobo</strong>
-   <a href="#84403" class="date">12-Jul-2008 09:20</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Following up to Hoffa's function, return the result like:<br />
-<br />
-chunk_split($string, 76, "=\n");<br />
-<br />
-to conform to the RFC, which requires that lines are no longer than 76 chars.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="82204""></a>
-  <div class="note">
-   <strong class="user">h atnospam hoffa dotelidot se</strong>
-   <a href="#82204" class="date">31-Mar-2008 05:32</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-I do like this to encode<br />
-<br />
-function quoted_printable_encode($string) {<br />
-&nbsp; $string = rawurlencode($string);<br />
-&nbsp; $string = str_replace("%","=",$string);<br />
-&nbsp; RETURN $string;<br />
-}<br />
-<br />
-best regards / Hoffa</span>
 </code>
     </div>
    </div>

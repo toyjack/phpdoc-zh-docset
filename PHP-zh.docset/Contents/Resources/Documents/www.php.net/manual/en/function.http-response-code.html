@@ -27,7 +27,7 @@
   <div id="layout-content"><div id="function.http-response-code" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">http_response_code</h1>
-  <p class="verinfo">(PHP 5 &gt;= 5.4.0, PHP 7)</p><p class="refpurpose"><span class="refname">http_response_code</span> &mdash; <span class="dc-title">获取/设置响应的 HTTP 状态码</span></p>
+  <p class="verinfo">(PHP 5 &gt;= 5.4.0, PHP 7, PHP 8)</p><p class="refpurpose"><span class="refname">http_response_code</span> &mdash; <span class="dc-title">获取/设置响应的 HTTP 状态码</span></p>
 
  </div>
 
@@ -35,8 +35,8 @@
   <h3 class="title">说明</h3>
   <div class="methodsynopsis dc-description">
    <span class="methodname"><strong>http_response_code</strong></span>
-    ([ <span class="methodparam"><span class="type">int</span> <code class="parameter">$response_code</code></span>
-  ] ) : <span class="type"><a href="language.pseudo-types.html#language.types.mixed" class="type mixed">mixed</a></span></div>
+    ( <span class="methodparam"><span class="type">int</span> <code class="parameter">$response_code</code> = ?</span>
+   ) : <span class="type"><a href="language.types.declarations.html#language.types.declarations.mixed" class="type mixed">mixed</a></span></div>
 
   <p class="para rdfs-comment">
    获取或者设置响应的 HTTP 状态码。
@@ -72,12 +72,12 @@
   <p class="para">
    如果提供了 <code class="parameter">response_code</code>，将返回先前的状态码。
    如果未提供 <code class="parameter">response_code</code>，会返回当前的状态码。
-   在 Web 服务器环境里，这些状态码的默认值都是 <em>200</em>。
+   在 Web 服务器环境里，这些状态码的默认值都是 <code class="literal">200</code>。
   </p>
   <p class="para">
    如果在非 Web 服务器环境里调用（比如 CLI 应用里），
-   不提供 <code class="parameter">response_code</code> 就会返回 <strong><code>FALSE</code></strong> 。
-   在非 Web 服务器环境里，提供 <code class="parameter">response_code</code>  会返回 <strong><code>TRUE</code></strong> 
+   不提供 <code class="parameter">response_code</code> 就会返回 <strong><code>false</code></strong> 。
+   在非 Web 服务器环境里，提供 <code class="parameter">response_code</code>  会返回 <strong><code>true</code></strong> 
    （仅仅在先前没有设置过状态码的时候）。
   </p>
  </div>
@@ -86,7 +86,7 @@
  <div class="refsect1 examples" id="refsect1-function.http-response-code-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-5542">
+   <div class="example" id="example-4797">
     <p><strong>Example #1 Web 服务器环境内使用 <span class="function"><strong>http_response_code()</strong></span></strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -103,7 +103,7 @@ int(404)
 </pre></div>
     </div>
    </div>
-   <div class="example" id="example-5543">
+   <div class="example" id="example-4798">
     <p><strong>Example #2 在 CLI 环境内使用 <span class="function"><strong>http_response_code()</strong></span></strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -141,7 +141,60 @@ int(201)
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="122811""></a>
+<div id="allnotes">  <a name="125538""></a>
+  <div class="note">
+   <strong class="user">viaujoc at videotron dot ca</strong>
+   <a href="#125538" class="date">24-Nov-2020 12:53</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Do not mix the use of http_response_code() and manually setting&nbsp; the response code header because the actual HTTP status code being returned by the web server may not end up as expected. http_response_code() does not work if the response code has previously been set using the header() function. Example:<br />
+<br />
+<span class="default">&lt;?php<br />
+header</span><span class="keyword">(</span><span class="string">'HTTP/1.1 401 Unauthorized'</span><span class="keyword">);<br />
+</span><span class="default">http_response_code</span><span class="keyword">(</span><span class="default">403</span><span class="keyword">);<br />
+print(</span><span class="default">http_response_code</span><span class="keyword">());<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+The raw HTTP response will be (notice the actual status code on the first line does not match the printed http_response_code in the body):<br />
+<br />
+HTTP/1.1 401 Unauthorized<br />
+Date: Tue, 24 Nov 2020 13:49:08 GMT<br />
+Server: Apache<br />
+Connection: Upgrade, Keep-Alive<br />
+Keep-Alive: timeout=5, max=100<br />
+Transfer-Encoding: chunked<br />
+Content-Type: text/html; CHARSET=gb2312<br />
+<br />
+403<br />
+<br />
+I only tested it on Apache. I am not sure if this behavior is specific to Apache or common to all PHP distributions.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="124894""></a>
+  <div class="note">
+   <strong class="user">divinity76 at gmail dot com</strong>
+   <a href="#124894" class="date">09-Apr-2020 08:33</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+if you need a response code not supported by http_response_code(), such as WebDAV / RFC4918's "HTTP 507 Insufficient Storage", try:<br />
+<br />
+<span class="default">&lt;?php<br />
+header</span><span class="keyword">(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'SERVER_PROTOCOL'</span><span class="keyword">] . </span><span class="string">' 507 Insufficient Storage'</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span>result: something like<br />
+<br />
+HTTP/1.1 507 Insufficient Storage</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="122811""></a>
   <div class="note">
    <strong class="user">Anonymous</strong>
    <a href="#122811" class="date">08-Jun-2018 09:16</a>
