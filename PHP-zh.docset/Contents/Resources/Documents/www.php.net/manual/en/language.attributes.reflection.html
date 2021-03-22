@@ -1,0 +1,76 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>使用反射 API 读取注解</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="language.attributes.syntax.html">? 注解语法</a></li>
+      <li style="float: right;"><a href="language.attributes.classes.html">声明注解类 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="language.attributes.html">注解</a></li>
+    <li>使用反射 API 读取注解</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="language.attributes.reflection" class="sect1">
+   <h2 class="title">使用反射 API 读取注解</h2>
+
+   <p class="para">
+    反射 API 提供了 <span class="function"><strong>getAttributes()</strong></span> 方法，
+    类、方法、函数、参数、属性、类常量的反射对象可通过它获取相应的注解。
+    该方法返回了 <strong class="classname">ReflectionAttribute</strong> 实例的数组，
+    可用于查询注解名称、参数、也可以实例化一个注解。
+   </p>
+
+   <p class="para">
+    实例和反射注解的分离使得程序员增加了在丢失反射类、类型错误、丢失参数等情况下的处理能力，也能处理错误。
+    只有调用 <span class="function"><strong>newInstance()</strong></span> 后，注解类的对象才会以验证过匹配的参数来实例化。
+   </p>
+
+   <div class="example" id="example-320">
+    <p><strong>Example #1 通过反射 API 读取注解</strong></p>
+
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /><br /></span><span style="color: #FF8000">#[Attribute]<br /></span><span style="color: #007700">class&nbsp;</span><span style="color: #0000BB">MyAttribute<br /></span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;</span><span style="color: #0000BB">$value</span><span style="color: #007700">;<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;function&nbsp;</span><span style="color: #0000BB">__construct</span><span style="color: #007700">(</span><span style="color: #0000BB">$value</span><span style="color: #007700">)<br />&nbsp;&nbsp;&nbsp;&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$this</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">value&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$value</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br /></span><span style="color: #FF8000">#[MyAttribute(value:&nbsp;1234)]<br /></span><span style="color: #007700">class&nbsp;</span><span style="color: #0000BB">Thing<br /></span><span style="color: #007700">{<br />}<br /><br />function&nbsp;</span><span style="color: #0000BB">dumpAttributeData</span><span style="color: #007700">(</span><span style="color: #0000BB">$reflection</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$attributes&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$reflection</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">getAttributes</span><span style="color: #007700">();<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;foreach&nbsp;(</span><span style="color: #0000BB">$attributes&nbsp;</span><span style="color: #007700">as&nbsp;</span><span style="color: #0000BB">$attribute</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$attribute</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">getName</span><span style="color: #007700">());<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$attribute</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">getArguments</span><span style="color: #007700">());<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$attribute</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">newInstance</span><span style="color: #007700">());<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br /></span><span style="color: #0000BB">dumpAttributeData</span><span style="color: #007700">(new&nbsp;</span><span style="color: #0000BB">ReflectionClass</span><span style="color: #007700">(</span><span style="color: #0000BB">Thing</span><span style="color: #007700">::class));<br /></span><span style="color: #FF8000">/*<br />string(11)&nbsp;"MyAttribute"<br />array(1)&nbsp;{<br />&nbsp;&nbsp;["value"]=&gt;<br />&nbsp;&nbsp;int(1234)<br />}<br />object(MyAttribute)#3&nbsp;(1)&nbsp;{<br />&nbsp;&nbsp;["value"]=&gt;<br />&nbsp;&nbsp;int(1234)<br />}<br />*/</span>
+</span>
+</code></div>
+    </div>
+
+   </div>
+
+   <p class="para">
+    通过传入参数：待搜索的注解类名，可返回指定的注解类，
+    而不需要再到反射类中迭代循环获取所有注解。
+   </p>
+
+   <div class="example" id="example-321">
+    <p><strong>Example #2 使用反射 API 读取指定的注解</strong></p>
+
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /><br /></span><span style="color: #007700">function&nbsp;</span><span style="color: #0000BB">dumpMyAttributeData</span><span style="color: #007700">(</span><span style="color: #0000BB">$reflection</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$attributes&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$reflection</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">getAttributes</span><span style="color: #007700">(</span><span style="color: #0000BB">MyAttribute</span><span style="color: #007700">::class);<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;foreach&nbsp;(</span><span style="color: #0000BB">$attributes&nbsp;</span><span style="color: #007700">as&nbsp;</span><span style="color: #0000BB">$attribute</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$attribute</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">getName</span><span style="color: #007700">());<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$attribute</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">getArguments</span><span style="color: #007700">());<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$attribute</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">newInstance</span><span style="color: #007700">());<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br /></span><span style="color: #0000BB">dumpAttributeData</span><span style="color: #007700">(new&nbsp;</span><span style="color: #0000BB">ReflectionClass</span><span style="color: #007700">(</span><span style="color: #0000BB">Thing</span><span style="color: #007700">::class));</span>
+</span>
+</code></div>
+     </div>
+
+    </div>
+  </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+ <div class="note">There are no user contributed notes for this page.</div>
+</div>
+</div></div></body></html>

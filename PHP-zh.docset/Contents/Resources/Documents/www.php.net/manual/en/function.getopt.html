@@ -27,7 +27,7 @@
   <div id="layout-content"><div id="function.getopt" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">getopt</h1>
-  <p class="verinfo">(PHP 4 &gt;= 4.3.0, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">getopt</span> &mdash; <span class="dc-title">从命令行参数列表中获取选项</span></p>
+  <p class="verinfo">(PHP 4 &gt;= 4.3.0, PHP 5, PHP 7, PHP 8)</p><p class="refpurpose"><span class="refname">getopt</span> &mdash; <span class="dc-title">从命令行参数列表中获取选项</span></p>
 
  </div>
 
@@ -35,10 +35,10 @@
   <h3 class="title">说明</h3>
   <div class="methodsynopsis dc-description">
    <span class="methodname"><strong>getopt</strong></span>
-    ( <span class="methodparam"><span class="type">string</span> <code class="parameter">$options</code></span>
-   [, <span class="methodparam"><span class="type">array</span> <code class="parameter">$longopts</code></span>
-      [, <span class="methodparam"><span class="type">int</span> <code class="parameter reference">&$optind</code></span>
-  ]] ) : <span class="type">array</span></div>
+    ( <span class="methodparam"><span class="type">string</span> <code class="parameter">$short_options</code></span>
+   , <span class="methodparam"><span class="type">array</span> <code class="parameter">$long_options</code><span class="initializer"> = []</span></span>
+   , <span class="methodparam"><span class="type">int</span> <code class="parameter reference">&$rest_index</code><span class="initializer"> = <strong><code>null</code></strong></span></span>
+   ) : <span class="type"><span class="type">array</span>|<span class="type"><span class="type false">false</span></span></span></div>
 
   <p class="para rdfs-comment">
    解析传入脚本的选项。
@@ -53,15 +53,16 @@
 
     
      <dt>
-<code class="parameter">options</code></dt>
+<code class="parameter">short_options</code></dt>
 
      <dd>
 
       <span class="simpara">
-       该字符串中的每个字符会被当做选项字符，匹配传入脚本的选项以单个连字符(-)开头。
+       该字符串中的每个字符会被当做选项字符，匹配传入脚本的选项以单个连字符 (<code class="literal">-</code>) 开头。
       </span>
       <span class="simpara">
-       比如，一个选项字符串 <em>&quot;x&quot;</em> 识别了一个选项 <em>-x</em>。
+       比如，一个选项字符串 <code class="literal">&quot;x&quot;</code> 识别了一个选项
+       <code class="literal">-x</code>。
       </span>
       <span class="simpara">
        只允许 a-z、A-Z 和 0-9。
@@ -71,28 +72,30 @@
     
     
      <dt>
-<code class="parameter">longopts</code></dt>
+<code class="parameter">long_options</code></dt>
 
      <dd>
 
       <span class="simpara">
-       选项数组。此数组中的每个元素会被作为选项字符串，匹配了以两个连字符(<em>--</em>)传入到脚本的选项。
+       选项数组。此数组中的每个元素会被作为选项字符串，匹配了以两个连字符
+       (<code class="literal">--</code>) 传入到脚本的选项。
       </span>
       <span class="simpara">
-       例如，长选项元素 <em>&quot;opt&quot;</em> 识别了一个选项 <em>--opt</em>。
+       例如，长选项元素 <code class="literal">&quot;opt&quot;</code> 识别了一个选项
+       <code class="literal">--opt</code>。
       </span>
      </dd>
 
     
     
      <dt>
-<code class="parameter">optind</code></dt>
+<code class="parameter">rest_index</code></dt>
 
      <dd>
 
       <span class="simpara">
-       If the <code class="parameter">optind</code> parameter is present, then the
-       index where argument parsing stopped will be written to this variable.
+       如果传递了 <code class="parameter">rest_index</code>
+       参数，那么参数解析停止时的索引，将被赋值给此变量。
       </span>
      </dd>
 
@@ -101,7 +104,7 @@
 
   </p>
   <p class="para">
-   <code class="parameter">options</code> 可能包含了以下元素：
+   <code class="parameter">short_options</code> 可能包含了以下元素：
    <ul class="simplelist">
     <li class="member">单独的字符（不接受值）</li>
     <li class="member">后面跟随冒号的字符（此选项需要值）</li>
@@ -110,13 +113,23 @@
    选项的值是字符串后的第一个参数。如果需要一个值，它不介意值之前是否有前置的空格，参见以下内容。
    <blockquote class="note"><p><strong class="note">Note</strong>: 
     <span class="simpara">
-     选项的值不接受空格（<em>&quot; &quot;</em>）作为分隔符。
+     选项的值不接受空格（<code class="literal">&quot; &quot;</code>）作为分隔符。
     </span>
    </p></blockquote>
   </p>
+  <p class="para">
+   <code class="parameter">long_options</code> 数组可能包含了以下元素：
+    <ul class="simplelist">
+      <li class="member">字符串（参数不接受任何值）</li>
+      <li class="member">后面跟随冒号的字符串（此选项需要值）</li>
+      <li class="member">后面跟随两个冒号的字符串（此选项的值可选）</li>
+    </ul>
+  </p>
   <blockquote class="note"><p><strong class="note">Note</strong>: 
    <p class="para">
-    <code class="parameter">options</code> 和 <code class="parameter">longopts</code> 的格式几乎是一样的，唯一的不同之处是 <code class="parameter">longopts</code> 需要是选项的数组（每个元素为一个选项），而 <code class="parameter">options</code> 需要一个字符串（每个字符是个选项）。
+    <code class="parameter">options</code> 和 <code class="parameter">longopts</code> 的格式几乎是一样的，唯一的不同之处是
+    <code class="parameter">longopts</code> 需要是选项的数组（每个元素为一个选项），而 <code class="parameter">options</code>
+    需要一个字符串（每个字符是个选项）。
    </p>
   </p></blockquote>
  </div>
@@ -125,7 +138,7 @@
  <div class="refsect1 returnvalues" id="refsect1-function.getopt-returnvalues">
   <h3 class="title">返回值</h3>
   <p class="para">
-   此函数会返回选项/参数对， 或者在失败时返回 <strong><code>FALSE</code></strong>。
+   此函数会返回选项/参数对， 或者在失败时返回 <strong><code>false</code></strong>。
   </p>
   <blockquote class="note"><p><strong class="note">Note</strong>: 
    <p class="para">
@@ -156,34 +169,6 @@
        </td>
       </tr>
 
-      <tr>
-       <td>5.3.0</td>
-       <td>
-        支持 &quot;=&quot; 作为 参数和值的分隔符。
-       </td>
-      </tr>
-
-      <tr>
-       <td>5.3.0</td>
-       <td>
-        增加了可选值的支持（用&quot;::&quot;指定）。
-       </td>
-      </tr>
-
-      <tr>
-       <td>5.3.0</td>
-       <td>
-        参数 <code class="parameter">longopts</code> 在所有系统平台上均可用。
-       </td>
-      </tr>
-
-      <tr>
-       <td>5.3.0</td>
-       <td>
-        此函数不再依赖于操作系统，现在也能够在 Windows 上运行。
-       </td>
-      </tr>
-
      </tbody>
     
    </table>
@@ -195,7 +180,7 @@
  <div class="refsect1 examples" id="refsect1-function.getopt-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-516">
+   <div class="example" id="example-508">
     <p><strong>Example #1 <span class="function"><strong>getopt()</strong></span> 例子：基本用法</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -223,7 +208,7 @@ array(2) {
    </div>
   </p>
   <p class="para">
-   <div class="example" id="example-517">
+   <div class="example" id="example-509">
     <p><strong>Example #2 <span class="function"><strong>getopt()</strong></span> 例子：引入长选项</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -259,7 +244,7 @@ array(6) {
    </div>
   </p>
   <p class="para">
-   <div class="example" id="example-518">
+   <div class="example" id="example-510">
     <p><strong>Example #3 <span class="function"><strong>getopt()</strong></span> 例子：传递同一多个选项</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -294,7 +279,7 @@ array(2) {
    </div>
   </p>
   <p class="para">
-   <div class="example" id="example-519">
+   <div class="example" id="example-511">
     <p><strong>Example #4 <span class="function"><strong>getopt()</strong></span> 例子：使用 <code class="parameter">optind</code></strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -326,7 +311,7 @@ array(1) {
   <h3 class="title">参见</h3>
   <p class="para">
    <ul class="simplelist">
-    <li class="member"><a href="reserved.variables.argv.html" class="link"><var class="varname"><var class="varname"><a href="reserved.variables.argv.html" class="classname">$argv</a></var></var></a></li>
+    <li class="member"><a href="reserved.variables.argv.html" class="link"><var class="varname"><a href="reserved.variables.argv.html" class="classname">$argv</a></var></a></li>
    </ul>
   </p>
  </div>
@@ -336,7 +321,75 @@ array(1) {
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="124552""></a>
+<div id="allnotes">  <a name="125129""></a>
+  <div class="note">
+   <strong class="user">taka8aru at gmail dot com</strong>
+   <a href="#125129" class="date">20-Jun-2020 08:40</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+getopt() simply ignores unnecessary options specified in argv.<br />
+Many times, it does not work well to handle errors in command line.<br />
+<br />
+A package PEAR::Console_Getopt can handle this problem, but it requires additonal installation.<br />
+GNU getopt(1) does well at shell level.<br />
+<br />
+Following is my extended getopt() can detect unnecessary options:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">getoptex</span><span class="keyword">(</span><span class="default">$sopt</span><span class="keyword">, </span><span class="default">$lopt</span><span class="keyword">, &amp;</span><span class="default">$ind</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; global </span><span class="default">$argv</span><span class="keyword">, </span><span class="default">$argc</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$sopts </span><span class="keyword">= </span><span class="default">getopt</span><span class="keyword">(</span><span class="default">$sopt</span><span class="keyword">, </span><span class="default">$lopt</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$sopts_cnt </span><span class="keyword">= </span><span class="default">count</span><span class="keyword">(</span><span class="default">$sopts</span><span class="keyword">); </span><span class="comment">// single-option count based on original sopt<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$asopt </span><span class="keyword">= </span><span class="default">$sopt </span><span class="keyword">. </span><span class="default">implode</span><span class="keyword">(</span><span class="string">""</span><span class="keyword">, </span><span class="default">range</span><span class="keyword">(</span><span class="string">"a"</span><span class="keyword">, </span><span class="string">"z"</span><span class="keyword">)) . </span><span class="default">implode</span><span class="keyword">(</span><span class="string">""</span><span class="keyword">, </span><span class="default">range</span><span class="keyword">(</span><span class="string">"A"</span><span class="keyword">, </span><span class="string">"Z"</span><span class="keyword">)) . </span><span class="default">implode</span><span class="keyword">(</span><span class="string">""</span><span class="keyword">, </span><span class="default">range</span><span class="keyword">(</span><span class="string">"0"</span><span class="keyword">, </span><span class="string">"9"</span><span class="keyword">));<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$asopts </span><span class="keyword">= </span><span class="default">getopt</span><span class="keyword">(</span><span class="default">$asopt</span><span class="keyword">, </span><span class="default">$lopt</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$asopts_cnt </span><span class="keyword">= </span><span class="default">count</span><span class="keyword">(</span><span class="default">$asopts</span><span class="keyword">); </span><span class="comment">// actual single-option count including all single options even if is not listed as sopt<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$lopt_trim </span><span class="keyword">= array();<br />
+&nbsp;&nbsp;&nbsp; foreach (</span><span class="default">$lopt </span><span class="keyword">as </span><span class="default">$o</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$lopt_trim</span><span class="keyword">[] = </span><span class="default">trim</span><span class="keyword">(</span><span class="default">$o</span><span class="keyword">, </span><span class="string">":"</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$alopts_cnt </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$alopts_flag </span><span class="keyword">= </span><span class="default">true</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; for (</span><span class="default">$i </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">; </span><span class="default">$i </span><span class="keyword">&lt; </span><span class="default">$argc</span><span class="keyword">; </span><span class="default">$i</span><span class="keyword">++) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$argv</span><span class="keyword">[</span><span class="default">$i</span><span class="keyword">] === </span><span class="string">"--"</span><span class="keyword">) { </span><span class="comment">// end of option<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">strpos</span><span class="keyword">(</span><span class="default">$argv</span><span class="keyword">[</span><span class="default">$i</span><span class="keyword">], </span><span class="string">"--"</span><span class="keyword">) === </span><span class="default">0</span><span class="keyword">) { </span><span class="comment">// actual long-option<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$alopts_cnt</span><span class="keyword">++;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$o </span><span class="keyword">= </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$argv</span><span class="keyword">[</span><span class="default">$i</span><span class="keyword">], </span><span class="default">2</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (! </span><span class="default">in_array</span><span class="keyword">(</span><span class="default">$o</span><span class="keyword">, </span><span class="default">$lopt_trim</span><span class="keyword">)) { </span><span class="comment">// but it is not listed as lopt<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$alopts_flag </span><span class="keyword">= </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">in_array</span><span class="keyword">((</span><span class="default">$o </span><span class="keyword">. </span><span class="string">":"</span><span class="keyword">), </span><span class="default">$lopt</span><span class="keyword">)) { </span><span class="comment">// if the option requires value<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$i</span><span class="keyword">++; </span><span class="comment">// assume next is the value<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if (</span><span class="default">$i </span><span class="keyword">&gt;= </span><span class="default">$argc</span><span class="keyword">) { </span><span class="comment">// and the value is missing<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$alopts_flag </span><span class="keyword">= </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">//var_dump($sopts, $asopts, $lopts, $alopts_cnt, $alopts_flag);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">if (</span><span class="default">$sopts_cnt </span><span class="keyword">!= </span><span class="default">$asopts_cnt </span><span class="keyword">|| (! </span><span class="default">$alopts_flag</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">getopt</span><span class="keyword">(</span><span class="default">$sopt</span><span class="keyword">, </span><span class="default">$lopt</span><span class="keyword">, </span><span class="default">$ind</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="124552""></a>
   <div class="note">
    <strong class="user">rastyazhenko dot anton at gmail dot com</strong>
    <a href="#124552" class="date">29-Dec-2019 03:14</a>

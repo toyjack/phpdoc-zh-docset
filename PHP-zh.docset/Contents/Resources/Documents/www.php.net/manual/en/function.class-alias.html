@@ -11,7 +11,7 @@
  <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
   <div class="navbar-inner clearfix">
     <ul class="nav" style="width: 100%">
-      <li style="float: left;"><a href="function.call-user-method.html">? call_user_method</a></li>
+      <li style="float: left;"><a href="function.autoload.html">? __autoload</a></li>
       <li style="float: right;"><a href="function.class-exists.html">class_exists ?</a></li>
     </ul>
   </div>
@@ -27,7 +27,7 @@
   <div id="layout-content"><div id="function.class-alias" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">class_alias</h1>
-  <p class="verinfo">(PHP 5 &gt;= 5.3.0, PHP 7)</p><p class="refpurpose"><span class="refname">class_alias</span> &mdash; <span class="dc-title">为一个类创建别名</span></p>
+  <p class="verinfo">(PHP 5 &gt;= 5.3.0, PHP 7, PHP 8)</p><p class="refpurpose"><span class="refname">class_alias</span> &mdash; <span class="dc-title">为一个类创建别名</span></p>
 
  </div>
  <div class="refsect1 description" id="refsect1-function.class-alias-description">
@@ -36,8 +36,8 @@
    <span class="methodname"><strong>class_alias</strong></span>
     ( <span class="methodparam"><span class="type">string</span> <code class="parameter">$original</code></span>
    , <span class="methodparam"><span class="type">string</span> <code class="parameter">$alias</code></span>
-   [, <span class="methodparam"><span class="type">bool</span> <code class="parameter">$autoload</code><span class="initializer"> = <strong><code>TRUE</code></strong></span></span>
-  ] ) : <span class="type">bool</span></div>
+   , <span class="methodparam"><span class="type">bool</span> <code class="parameter">$autoload</code><span class="initializer"> = <strong><code>true</code></strong></span></span>
+   ) : <span class="type">bool</span></div>
 
   <p class="para rdfs-comment">
    基于用户定义的类 <code class="parameter">original</code> 创建别名 <code class="parameter">alias</code>。
@@ -94,7 +94,7 @@
  <div class="refsect1 returnvalues" id="refsect1-function.class-alias-returnvalues">
   <h3 class="title">返回值</h3>
   <p class="para">
-   成功时返回 <strong><code>TRUE</code></strong>， 或者在失败时返回 <strong><code>FALSE</code></strong>。
+   成功时返回 <strong><code>true</code></strong>， 或者在失败时返回 <strong><code>false</code></strong>。
   </p>
  </div>
 
@@ -102,7 +102,7 @@
  <div class="refsect1 examples" id="refsect1-function.class-alias-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-6173">
+   <div class="example" id="example-5358">
     <p><strong>Example #1 <span class="function"><strong>class_alias()</strong></span> 例子</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -132,7 +132,7 @@ bool(true)
   <p class="para">
    <ul class="simplelist">
     <li class="member"><span class="function"><a href="function.get-parent-class.html" class="function" rel="rdfs-seeAlso">get_parent_class()</a> - 返回对象或类的父类名</span></li>
-    <li class="member"><span class="function"><a href="function.is-subclass-of.html" class="function" rel="rdfs-seeAlso">is_subclass_of()</a> - 如果此对象是该类的子类，则返回 TRUE</span></li>
+    <li class="member"><span class="function"><a href="function.is-subclass-of.html" class="function" rel="rdfs-seeAlso">is_subclass_of()</a> - 如果此对象是该类的子类，则返回 true</span></li>
    </ul>
   </p>
  </div>
@@ -141,7 +141,147 @@ bool(true)
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="122825""></a>
+<div id="allnotes">  <a name="125441""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#125441" class="date">16-Oct-2020 06:48</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Check is alias:<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">/**<br />
+&nbsp;* @param string $class Class name<br />
+&nbsp;* @return bool<br />
+&nbsp;*/<br />
+</span><span class="keyword">function </span><span class="default">is_alias</span><span class="keyword">(</span><span class="default">string $class</span><span class="keyword">): </span><span class="default">bool<br />
+</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$class </span><span class="keyword">!== (new </span><span class="default">ReflectionClass</span><span class="keyword">(</span><span class="default">$class</span><span class="keyword">))-&gt;</span><span class="default">name</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span>Get class aliases:<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">/**<br />
+&nbsp;* @param string $class Class name<br />
+&nbsp;* @param bool $throw Throw exception at error?<br />
+&nbsp;* @return string[]|null Aliases or null at error in silent mode<br />
+&nbsp;* @throws InvalidArgumentException Class not exists or it's alias<br />
+&nbsp;*/<br />
+</span><span class="keyword">function </span><span class="default">get_class_aliases</span><span class="keyword">(</span><span class="default">string $class</span><span class="keyword">, </span><span class="default">bool $throw </span><span class="keyword">= </span><span class="default">false</span><span class="keyword">): ?array<br />
+{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">/**<br />
+&nbsp;&nbsp; &nbsp; * @var array An array of defined classes: keys - classes, values - aliases<br />
+&nbsp;&nbsp; &nbsp; */<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">static </span><span class="default">$classes </span><span class="keyword">= [];<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// check: class exists<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">if (! </span><span class="default">class_exists</span><span class="keyword">(</span><span class="default">$class</span><span class="keyword">, </span><span class="default">true</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$throw</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; throw new </span><span class="default">InvalidArgumentException</span><span class="keyword">(</span><span class="string">'Class ' </span><span class="keyword">. </span><span class="default">$class </span><span class="keyword">. </span><span class="string">' not exists'</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">null</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// refresh list<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$newClasses </span><span class="keyword">= </span><span class="default">array_diff</span><span class="keyword">(</span><span class="default">get_declared_classes</span><span class="keyword">(), </span><span class="default">array_keys</span><span class="keyword">(</span><span class="default">$classes</span><span class="keyword">));<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">$newClasses</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$abc </span><span class="keyword">= </span><span class="default">range</span><span class="keyword">(</span><span class="string">'a'</span><span class="keyword">, </span><span class="string">'z'</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach (</span><span class="default">$newClasses </span><span class="keyword">as </span><span class="default">$newClass</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// fast check first char: class_alias() convert alias to lower case<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if (</span><span class="default">in_array</span><span class="keyword">(</span><span class="default">$newClass</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">], </span><span class="default">$abc</span><span class="keyword">, </span><span class="default">true</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$realClass </span><span class="keyword">= (new </span><span class="default">ReflectionClass</span><span class="keyword">(</span><span class="default">$newClass</span><span class="keyword">))-&gt;</span><span class="default">getName</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$classes</span><span class="keyword">[</span><span class="default">$newClass</span><span class="keyword">] = </span><span class="default">$newClass </span><span class="keyword">!== </span><span class="default">$realClass </span><span class="keyword">? </span><span class="default">$realClass </span><span class="keyword">: </span><span class="default">null</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$classes</span><span class="keyword">[</span><span class="default">$newClass</span><span class="keyword">] = </span><span class="default">null</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; unset(</span><span class="default">$abc</span><span class="keyword">, </span><span class="default">$newClasses</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// check: is alias?<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">if (! empty(</span><span class="default">$classes</span><span class="keyword">[</span><span class="default">$class</span><span class="keyword">])) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$throw</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; throw new </span><span class="default">InvalidArgumentException</span><span class="keyword">(</span><span class="default">$class </span><span class="keyword">. </span><span class="string">' is alias for class ' </span><span class="keyword">. </span><span class="default">$classes</span><span class="keyword">[</span><span class="default">$class</span><span class="keyword">]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">null</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// find aliases<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">return </span><span class="default">array_keys</span><span class="keyword">(</span><span class="default">$classes</span><span class="keyword">, </span><span class="default">$class</span><span class="keyword">, </span><span class="default">true</span><span class="keyword">);<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span>Usage:<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">Foo </span><span class="keyword">{}<br />
+</span><span class="default">class_alias</span><span class="keyword">(</span><span class="string">'Foo'</span><span class="keyword">, </span><span class="string">'Bar'</span><span class="keyword">);<br />
+</span><span class="default">class_alias</span><span class="keyword">(</span><span class="string">'Bar'</span><span class="keyword">, </span><span class="string">'Baz'</span><span class="keyword">);<br />
+</span><span class="default">$aliases </span><span class="keyword">= </span><span class="default">get_class_aliases</span><span class="keyword">(</span><span class="string">'Foo'</span><span class="keyword">, </span><span class="default">true</span><span class="keyword">); </span><span class="comment">// ['bar', 'baz']<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="125410""></a>
+  <div class="note">
+   <strong class="user">info at ensostudio dot ru</strong>
+   <a href="#125410" class="date">03-Oct-2020 07:30</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Note: this function set alias for user classes, you can't use something like this<br />
+<span class="default">&lt;?php<br />
+class_alias</span><span class="keyword">(</span><span class="string">'ArrayObject'</span><span class="keyword">, </span><span class="string">'ArrObj'</span><span class="keyword">);<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="124962""></a>
+  <div class="note">
+   <strong class="user">elliseproduction at gmail dot com</strong>
+   <a href="#124962" class="date">29-Apr-2020 12:09</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+You can add a alias inside a class :<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">class </span><span class="default">foo</span><span class="keyword">{<br />
+<br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">__construct</span><span class="keyword">(){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo(</span><span class="string">'yes!'</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+class </span><span class="default">bar </span><span class="keyword">{<br />
+<br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">__construct</span><span class="keyword">(){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">class_alias</span><span class="keyword">(</span><span class="string">'foo'</span><span class="keyword">, </span><span class="string">'fooAlias'</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">test</span><span class="keyword">(){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; new </span><span class="default">fooAlias</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+}<br />
+<br />
+</span><span class="default">$bar</span><span class="keyword">=new </span><span class="default">bar</span><span class="keyword">;<br />
+<br />
+</span><span class="default">$bar</span><span class="keyword">-&gt;</span><span class="default">test</span><span class="keyword">(); </span><span class="comment">// yes!</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="122825""></a>
   <div class="note">
    <strong class="user">Hayley Watson</strong>
    <a href="#122825" class="date">12-Jun-2018 01:55</a>

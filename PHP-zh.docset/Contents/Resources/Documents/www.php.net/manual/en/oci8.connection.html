@@ -45,7 +45,7 @@
    only occur once per PHP process (or Apache child).
   </p>
   <p class="para">
-   If the application connects to Oracle using a different set of
+   If the application connects to Oracle using a different set of database
    credentials for each web user, the persistent cache employed by
    <span class="function"><a href="function.oci-pconnect.html" class="function">oci_pconnect()</a></span> will become less useful as the
    number of concurrent users increases, to the point where it may
@@ -84,7 +84,7 @@
    The <span class="function"><a href="function.oci-pconnect.html" class="function">oci_pconnect()</a></span> cache is cleared and any
    database connections closed when the PHP process terminates, so
    effective use of persistent connections requires that PHP be an
-   Apache module or used with FCGI, or similar.  Persistent connections
+   Apache module or used with FPM, or similar.  Persistent connections
    will not have any benefits over <span class="function"><a href="function.oci-connect.html" class="function">oci_connect()</a></span>
    when PHP is used with CGI or via the command-line.
   </p>
@@ -95,6 +95,26 @@
    should avoid using
    <span class="function"><a href="function.oci-new-connect.html" class="function">oci_new_connect()</a></span>, especially in the busiest sections of
    the application.
+  </p>
+  <p class="para">
+   From OCI8 1.3, persistent connections can be
+   closed by the user, allowing greater control over connection
+   resource usage.  Persistent connections will now also be closed
+   automatically when there is no PHP variable referencing them, such
+   as at the end of scope of a PHP user function.  This will rollback
+   any uncommitted transaction.  These changes to persistent
+   connections make them behave similarly to non-persistent
+   connections, simplifying the interface, allowing for greater
+   application consistency and predictability.
+   Use <a href="oci8.configuration.html#ini.oci8.old-oci-close-semantics" class="link">oci8.old_oci_close_semantics</a>
+   set to
+   <em class="emphasis">On</em> to retain the historical behavior.
+  </p>
+  <p class="para">
+   The automatic re-establishment of PHP persistent connections after an Apache
+   or FPM process respawns means Oracle Database <code class="literal">LOGON</code>
+   triggers are only recommended for setting session attributes and not for
+   per-application user connection requests.
   </p>
  </div>
  <div class="section">
@@ -109,8 +129,8 @@
    DRCP is suited for applications that connect using few database
    schemas and hold database connections open for a short period of
    time.  Other applications should use Oracle&#039;s
-   default <em>Dedicated</em> database server processes, or
-   use <em>Shared</em> servers.
+   default <code class="literal">Dedicated</code> database server processes, or
+   use <code class="literal">Shared</code> servers.
   </p>
   <p class="para">
    DRCP benefits all three connection functions, but gives the highest
@@ -124,14 +144,14 @@
   <p class="para">
    Documentation on DRCP is found in several Oracle manuals. For
    example,
-   see <a href="https://docs.oracle.com/cd/B28359_01/server.111/b28310/manproc004.htm" class="link external" title="Link : https://docs.oracle.com/cd/B28359_01/server.111/b28310/manproc004.htm">&raquo;&nbsp;Configuring
+   see <a href="https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-82FF6896-F57E-41CF-89F7-755F3BC9C924" class="link external" title="Link : https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-82FF6896-F57E-41CF-89F7-755F3BC9C924">&raquo;&nbsp;Configuring
    Database Resident Connection Pooling</a> in the Oracle
    documentation for usage information.
-   A <a href="http://www.oracle.com/technetwork/topics/php/whatsnew/php-scalability-ha-twp-128842.pdf" class="link external" title="Link : http://www.oracle.com/technetwork/topics/php/whatsnew/php-scalability-ha-twp-128842.pdf">&raquo;&nbsp;DRCP
+   A <a href="https://www.oracle.com/technetwork/topics/php/whatsnew/php-scalability-ha-twp-128842.pdf" class="link external" title="Link : https://www.oracle.com/technetwork/topics/php/whatsnew/php-scalability-ha-twp-128842.pdf">&raquo;&nbsp;DRCP
    white paper</a> contains background information on DRCP.
   </p>
   <p class="para">
-   To use DRCP, build PHP with the OCI8 1.3 (or later) extension and Oracle 11g (or later)
+   To use DRCP, install the OCI8 1.3 (or later) extension and Oracle 11g (or later)
    libraries and then follow these steps:
   </p>
   <p class="para">
@@ -154,16 +174,16 @@
     <li class="listitem">
      <p class="para">
       Optionally
-      use <em>dbms_connection_pool.alter_param()</em> to
+      use <code class="literal">dbms_connection_pool.alter_param()</code> to
       configure DRCP settings.  The current pool settings can be
-      queried from the <em>DBA_CPOOL_INFO</em> view.
+      queried from the <code class="literal">DBA_CPOOL_INFO</code> view.
      </p>
     </li>
     <li class="listitem">
      <p class="para">
       Update the connection strings used.  For PHP applications that
       currently connect using a Network Connect Name
-      like <em>MYDB</em>:
+      like <code class="literal">MYDB</code>:
      </p>
      <p class="para">
       <div class="informalexample">
@@ -176,7 +196,7 @@
      </p>
      <p class="para">
       modify the tnsnames.ora file and add
-      a <em>(SERVER=POOLED)</em> clause, for example:
+      a <code class="literal">(SERVER=POOLED)</code> clause, for example:
      </p>
      <p class="para">
       <div class="informalexample">
@@ -191,7 +211,7 @@
      </p>
      <p class="para">
       Alternatively, modify the Easy Connect syntax in PHP and add
-      <em>:POOLED</em> after the service name:
+      <code class="literal">:POOLED</code> after the service name:
      </p>
      <p class="para">
       <div class="informalexample">
@@ -231,107 +251,20 @@
   </p>
   <blockquote class="note"><p><strong class="note">Note</strong>: 
    <p class="para">
-    Applications using Oracle 10g that require the performance of
+    Applications using Oracle Client libraries 10g that require the performance of
     persistent connections can reduce the amount of database server
-    memory needed by using Oracle <em>Shared</em> servers
+    memory needed by using Oracle <code class="literal">Shared</code> servers
     (previously known as Multi Threaded Servers).  Refer to Oracle
     documentation for information.
    </p>
   </p></blockquote>
- </div>
- <div class="section">
-  <h2 class="title">DRCP Recommendations and Known Limitations</h2>
-  <p class="para">
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <p class="para">
    Changing a password over DRCP connections will fail with the error
    <em class="emphasis">ORA-56609: Usage not supported with DRCP</em>.
    This is a documented restriction of Oracle Database 11g.
-  </p>
-  <p class="para">
-   From OCI8 1.3, persistent connections can be
-   closed by the user, allowing greater control over connection
-   resource usage.  Persistent connections will now also be closed
-   automatically when there is no PHP variable referencing them, such
-   as at the end of scope of a PHP user function.  This will rollback
-   any uncommitted transaction.  These changes to persistent
-   connections make them behave similarly to non-persistent
-   connections, simplifying the interface, allowing for greater
-   application consistency and predictability.
-   Use <a href="oci8.configuration.html#ini.oci8.old-oci-close-semantics" class="link">oci8.old_oci_close_semantics</a>
-   set to
-   <em class="emphasis">On</em> to retain the historical behavior.
-  </p>
-  <p class="para">
-   If the Oracle Database is version 11.1.0.6, then the Oracle
-   database patch for Oracle bug 6474441 must be applied to use DRCP.
-   Without this patch, errors such as <em class="emphasis">ORA-01000: maximum
-   open cursors exceeded</em>, <em class="emphasis">ORA-01001 invalid
-   cursor</em> or <em class="emphasis">ORA-01002 fetch out of
-   sequence</em> may occur.  This bug was fixed in Oracle
-   11.1.0.7 onwards.
-  </p>
-   <p class="para">
-   If the Oracle 11.1.0.6 database patch cannot be applied, one of the
-   following three workarounds can be used instead:
-  </p>
-  <p class="para">
-   <ul class="itemizedlist">
-    <li class="listitem">
-     <span class="simpara">
-      Connect using Oracle <em>Dedicated</em>
-      or <em>Shared</em> servers instead of DRCP.
-     </span>
-    </li>
-    <li class="listitem">
-     <span class="simpara">
-      Set PHP&#039;s <a href="oci8.configuration.html#ini.oci8.statement-cache-size" class="link">oci8.statement_cache_size</a>
-      to 0.
-     </span>
-    </li>
-    <li class="listitem">
-     <span class="simpara">
-      Set an event in the database initialization parameter file:
-      <em class="emphasis">event=&quot;56699 trace name context forever, level 128&quot;</em>.
-     </span>
-    </li>
-   </ul>
-  </p>
-  <p class="para">
-   Oracle Database 11.1.0.7 and the Oracle Database 11.1.0.6 patch for
-   Oracle bug 6474441 allow PHP applications with DRCP connection to
-   use a database <em>LOGON</em> trigger to set session
-   properties at the time of session creation.  Examples of such
-   settings are the NLS language and the date format.
-  </p>
-  <p class="para">
-   If the Oracle 11.1.0.6 database patch cannot be applied, one of the
-   following workarounds can be used instead
-   of using <em>LOGON</em> triggers:
-  </p>
-  <p class="para">
-   <ul class="itemizedlist">
-    <li class="listitem">
-     <span class="simpara">
-      After logon, explicitly set the session properties using PHP
-      application code.
-     </span>
-    </li>
-    <li class="listitem">
-     <span class="simpara">
-      Connect using Oracle <em>Dedicated</em>
-      or <em>Shared</em> servers instead of DRCP.
-     </span>
-    </li>
-   </ul>
-  </p>
-  <p class="para">
-   The automatic re-establishment of PHP persistent connections after
-   an Apache or FCGI process respawns means <em>LOGON</em>
-   triggers in PHP are only recommended for setting session attributes
-   and not for per-application user connection requests.  This is even
-   more so with DRCP due to the automatic pool sizing and with the
-   way <em>LOGON</em> triggers fire with DRCP
-   authentication.
-  </p>
+   </p>
+  </p></blockquote>
  </div>
 </div>
 <div id="usernotes">

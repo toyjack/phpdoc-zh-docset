@@ -27,7 +27,7 @@
   <div id="layout-content"><div id="function.imap-mail-compose" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">imap_mail_compose</h1>
-  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">imap_mail_compose</span> &mdash; <span class="dc-title">Create a MIME message based on given envelope and body sections</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7, PHP 8)</p><p class="refpurpose"><span class="refname">imap_mail_compose</span> &mdash; <span class="dc-title">Create a MIME message based on given envelope and body sections</span></p>
 
  </div>
  <div class="refsect1 description" id="refsect1-function.imap-mail-compose-description">
@@ -35,12 +35,12 @@
   <div class="methodsynopsis dc-description">
    <span class="methodname"><strong>imap_mail_compose</strong></span>
     ( <span class="methodparam"><span class="type">array</span> <code class="parameter">$envelope</code></span>
-   , <span class="methodparam"><span class="type">array</span> <code class="parameter">$body</code></span>
-   ) : <span class="type">string</span></div>
+   , <span class="methodparam"><span class="type">array</span> <code class="parameter">$bodies</code></span>
+   ) : <span class="type"><span class="type">string</span>|<span class="type"><span class="type false">false</span></span></span></div>
 
   <p class="para rdfs-comment">
    Create a MIME message based on the given <code class="parameter">envelope</code>
-   and <code class="parameter">body</code> sections.
+   and <code class="parameter">bodies</code> sections.
   </p>
  </div>
 
@@ -56,28 +56,133 @@
      <dd>
 
       <p class="para">
-       An associative array of headers fields. Valid keys are: &quot;remail&quot;,
-       &quot;return_path&quot;, &quot;date&quot;, &quot;from&quot;, &quot;reply_to&quot;, &quot;in_reply_to&quot;, &quot;subject&quot;,
-       &quot;to&quot;, &quot;cc&quot;, &quot;bcc&quot;, &quot;message_id&quot; and &quot;custom_headers&quot; (which contains
-       associative array of other headers).
+       An associative array of header fields. Valid keys are: <code class="literal">&quot;remail&quot;</code>,
+       <code class="literal">&quot;return_path&quot;</code>, <code class="literal">&quot;date&quot;</code>, <code class="literal">&quot;from&quot;</code>, <code class="literal">&quot;reply_to&quot;</code>, <code class="literal">&quot;in_reply_to&quot;</code>, <code class="literal">&quot;subject&quot;</code>,
+       <code class="literal">&quot;to&quot;</code>, <code class="literal">&quot;cc&quot;</code>, <code class="literal">&quot;bcc&quot;</code> and <code class="literal">&quot;message_id&quot;</code>, which set the respective message headers to the given <span class="type">string</span>.
+       To set additional headers, the key <code class="literal">&quot;custom_headers&quot;</code> is supported, which expects
+       an array of those headers, e.g. <code class="code">[&quot;User-Agent: My Mail Client&quot;]</code>.
       </p>
      </dd>
 
     
     
      <dt>
-<code class="parameter">body</code></dt>
+<code class="parameter">bodies</code></dt>
 
      <dd>
 
       <p class="para">
-       An indexed array of bodies
+       An indexed array of bodies. The first body is the main body of the message;
+       only if it has a type of <strong><code>TYPEMULTIPART</code></strong>, further bodies
+       are processed; these bodies constitute the bodies of the parts.
       </p>
       <p class="para">
-       A body is an associative array which can consist of the following keys:
-       &quot;type&quot;, &quot;encoding&quot;, &quot;charset&quot;, &quot;type.parameters&quot;, &quot;subtype&quot;, &quot;id&quot;,
-       &quot;description&quot;, &quot;disposition.type&quot;, &quot;disposition&quot;, &quot;contents.data&quot;,
-       &quot;lines&quot;, &quot;bytes&quot; and &quot;md5&quot;.
+       <table class="doctable table">
+        <caption><strong>Body Array Structure</strong></caption>
+        
+         <thead>
+          <tr>
+           <th>Key</th>
+           <th>Type</th>
+           <th>Description</th>
+          </tr>
+
+         </thead>
+
+         <tbody class="tbody">
+          <tr>
+           <td><code class="literal">type</code></td>
+           <td><span class="type">int</span></td>
+           <td>
+            The MIME type.
+            One of <strong><code>TYPETEXT</code></strong> (default), <strong><code>TYPEMULTIPART</code></strong>,
+            <strong><code>TYPEMESSAGE</code></strong>, <strong><code>TYPEAPPLICATION</code></strong>,
+            <strong><code>TYPEAUDIO</code></strong>, <strong><code>TYPEIMAGE</code></strong>,
+            <strong><code>TYPEMODEL</code></strong> or <strong><code>TYPEOTHER</code></strong>.
+           </td>
+          </tr>
+
+          <tr>
+           <td><code class="literal">encoding</code></td>
+           <td><span class="type">int</span></td>
+           <td>
+            The <code class="literal">Content-Transfer-Encoding</code>.
+            One of <strong><code>ENC7BIT</code></strong> (default), <strong><code>ENC8BIT</code></strong>,
+            <strong><code>ENCBINARY</code></strong>, <strong><code>ENCBASE64</code></strong>,
+            <strong><code>ENCQUOTEDPRINTABLE</code></strong> or <strong><code>ENCOTHER</code></strong>.
+           </td>
+          </tr>
+
+          <tr>
+           <td><code class="literal">charset</code></td>
+           <td><span class="type">string</span></td>
+           <td>The charset parameter of the MIME type.</td>
+          </tr>
+
+          <tr>
+           <td><code class="literal">type.parameters</code></td>
+           <td><span class="type">array</span></td>
+           <td>An associative <span class="type">array</span> of <code class="literal">Content-Type</code> parameter names and their values.</td>
+          </tr>
+
+          <tr>
+           <td><code class="literal">subtype</code></td>
+           <td><span class="type">string</span></td>
+           <td>The MIME subtype, e.g. <code class="literal">&#039;jpeg&#039;</code> for <strong><code>TYPEIMAGE</code></strong>.</td>
+          </tr>
+
+          <tr>
+           <td><code class="literal">id</code></td>
+           <td><span class="type">string</span></td>
+           <td>The <code class="literal">Content-ID</code>.</td>
+          </tr>
+
+          <tr>
+           <td><code class="literal">description</code></td>
+           <td><span class="type">string</span></td>
+           <td>The <code class="literal">Content-Description</code>.</td>
+          </tr>
+
+          <tr>
+           <td><code class="literal">disposition.type</code></td>
+           <td><span class="type">string</span></td>
+           <td>The <code class="literal">Content-Disposition</code>, e.g. <code class="literal">&#039;attachment&#039;</code>.</td>
+          </tr>
+
+          <tr>
+           <td><code class="literal">disposition</code></td>
+           <td><span class="type">array</span></td>
+           <td>An associative <span class="type">array</span> of <code class="literal">Content-Disposition</code> parameter names and values.</td>
+          </tr>
+
+          <tr>
+           <td><code class="literal">contents.data</code></td>
+           <td><span class="type">string</span></td>
+           <td>The payload.</td>
+          </tr>
+
+          <tr>
+           <td><code class="literal">lines</code></td>
+           <td><span class="type">int</span></td>
+           <td>The size of the payload in lines.</td>
+          </tr>
+
+          <tr>
+           <td><code class="literal">bytes</code></td>
+           <td><span class="type">int</span></td>
+           <td>The size of the payload in bytes.</td>
+          </tr>
+
+          <tr>
+           <td><code class="literal">md5</code></td>
+           <td><span class="type">string</span></td>
+           <td>The MD5 checksum of the payload.</td>
+          </tr>
+
+         </tbody>
+        
+       </table>
+
       </p>
      </dd>
 
@@ -90,14 +195,14 @@
  <div class="refsect1 returnvalues" id="refsect1-function.imap-mail-compose-returnvalues">
   <h3 class="title">返回值</h3>
   <p class="para">
-   Returns the MIME message.
+   Returns the MIME message as <span class="type">string</span>,  或者在失败时返回 <strong><code>false</code></strong>.
   </p>
  </div>
 
  <div class="refsect1 examples" id="refsect1-function.imap-mail-compose-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-4060">
+   <div class="example" id="example-3365">
     <p><strong>Example #1 <span class="function"><strong>imap_mail_compose()</strong></span> example</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -346,24 +451,6 @@ $envelope['date']=date('r');</span>
    </div>
   </div>
  <div class="foot"></div>
-  <a name="35572""></a>
-  <div class="note">
-   <strong class="user">thomas dot hebinck at digionline dot de</strong>
-   <a href="#35572" class="date">06-Sep-2003 05:26</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-imap_mail_compose modifies $envelope! Subsequent calls with the same $envelope may not work depending on the contents of the header. The best way (at least it works) I found, is:<br />
-<br />
-$temp_env=unserialize(serialize($envelope));<br />
-$mail=imap_mail_compose($temp_env,$body);<br />
-<br />
-(just $temp_env=$envelope does not work either)</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
   <a name="28784""></a>
   <div class="note">
    <strong class="user">Los Olvidados</strong>
@@ -372,122 +459,6 @@ $mail=imap_mail_compose($temp_env,$body);<br />
     <div class="phpcode">
 <code><span class="html">
 If you wish to send the output of this function, simply use it for the headers argument of imap_mail() or mail().&nbsp; Keep in mind that those functions set the To: and Subject: headers, so including them in the envelope will create double entries.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="22434""></a>
-  <div class="note">
-   <strong class="user">derf dot m at reseaunix dot net</strong>
-   <a href="#22434" class="date">18-Jun-2002 09:25</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-class ImapCompose<br />
-{<br />
-&nbsp;&nbsp;&nbsp; var $DATA;<br />
-&nbsp;&nbsp;&nbsp; var $MIME;<br />
-&nbsp;&nbsp;&nbsp; var $TYPE;<br />
-&nbsp;&nbsp;&nbsp; var $BASENAME;<br />
-&nbsp;&nbsp;&nbsp; <br />
-&nbsp;&nbsp;&nbsp; function ImapCompose()<br />
-&nbsp;&nbsp;&nbsp; {}<br />
-&nbsp;&nbsp;&nbsp; <br />
-&nbsp;&nbsp;&nbsp; function LECTURE_FICHIER($filename,$mime,$filetmp)<br />
-&nbsp;&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $filetmp = "/tmp/".$filetmp;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $fp=fopen($filetmp,"r");<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;DATA&nbsp; &nbsp;&nbsp; = fread($fp,filesize($filetmp));<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; fclose($fp);<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; //unlink($filetmp);<br />
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $mime = explode("/",$mime);<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;BASENAME = basename($filename);<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;TYPE&nbsp; &nbsp; &nbsp; &nbsp; = $mime[1]; <br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; switch($mime[0])<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case "image":&nbsp; &nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;MIME = TYPEIMAGE;<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break;<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case "text":<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;MIME = TYPETEXT;<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break;<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case "audio":<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;MIME = TYPEAUDIO;<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break;<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case "autre":<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; default:<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;MIME = TYPEAPPLICATION;<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }&nbsp; &nbsp; <br />
-&nbsp;&nbsp;&nbsp; }<br />
-<br />
-&nbsp;&nbsp;&nbsp; function LECTURE_FILE_MAIL($file,$data,$mime,$type)<br />
-&nbsp;&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;BASENAME = $file;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;MIME&nbsp; &nbsp; &nbsp; &nbsp; = $mime;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;DATA&nbsp; &nbsp;&nbsp; = $data;&nbsp; &nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;TYPE&nbsp; &nbsp; &nbsp; &nbsp; = $type;<br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; <br />
-&nbsp;&nbsp;&nbsp; function ATTACHER_FICHIER()<br />
-&nbsp;&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $part["type"]&nbsp; &nbsp; &nbsp; &nbsp; =$this-&gt;MIME."&lt;br&gt;";<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $part["encoding"]&nbsp; &nbsp; =ENCBINARY."&lt;br&gt;";<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $part["subtype"]&nbsp; &nbsp;&nbsp; =$this-&gt;TYPE."&lt;br&gt;";<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $part["description"]=$this-&gt;BASENAME."&lt;br&gt;";<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $part["contents.data"]=$this-&gt;DATA."&lt;br&gt;";<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return $part;<br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
-&nbsp;&nbsp;&nbsp; function ATTACHER_MSG($msg)<br />
-&nbsp;&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $part["type"]=TEXT;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $part["subtype"]="plain";<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $part["description"]="message mode texte";<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $part["contents.data"]="$msg\n\n\n\t";<br />
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return $part;<br />
-&nbsp;&nbsp;&nbsp; }<br />
-<br />
-&nbsp;&nbsp;&nbsp; function ENVELLOPE_MAIL($from,$to,$cc,$sujet="")<br />
-&nbsp;&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $envelope["from"]=$from;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $envelope["to"]=$to;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $envelope["cc"]=$cc;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if($sujet != "")<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $envelope["subject"]=$sujet;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return $envelope;<br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; <br />
-&nbsp;&nbsp;&nbsp; function ENETE_MAIL()<br />
-&nbsp;&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $part["type"]=TYPEMULTIPART;<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $part["subtype"]="mixed";&nbsp; &nbsp; &nbsp; &nbsp; <br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return $part;<br />
-&nbsp;&nbsp;&nbsp; }<br />
-}&nbsp; &nbsp; <br />
-?&gt;</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="18729""></a>
-  <div class="note">
-   <strong class="user">prices at dflytech dot com</strong>
-   <a href="#18729" class="date">02-Feb-2002 12:32</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-In regards to my earlier note about "charset", this feature seems to have been added in the 4.1.X series&nbsp; I have not actually checked 4.1.0, but it is in 4.1.1 and not it 4.0.6.</span>
 </code>
     </div>
    </div>
@@ -523,38 +494,6 @@ $part['disposition'] = array ('filename'=&gt;'file.txt');<br />
 This will transform in such part header:<br />
 <br />
 Content-disposition: attachment; filename="file.txt"</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="18244""></a>
-  <div class="note">
-   <strong class="user">vlad ( at php dot net)</strong>
-   <a href="#18244" class="date">15-Jan-2002 06:18</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-... and the headers (elements of the envelope) are case-sensitive and are listed below:<br />
-<br />
-remail<br />
-return_path<br />
-date<br />
-from<br />
-reply_to<br />
-in_reply_to<br />
-subject<br />
-to<br />
-cc<br />
-bcc<br />
-message_id<br />
-custom_headers<br />
-<br />
-If you can't find a header you need in this list, you can use 'custom_headers'. It is just an array of lines to be appended to the header without any formatting, like this:<br />
-<br />
-$envelope["custom_headers"] = Array("User-Agent: My Mail Client", "My-Header: My Value");<br />
-<br />
-TODO: This should really migrate from a note to documentation</span>
 </code>
     </div>
    </div>

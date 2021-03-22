@@ -27,7 +27,7 @@
   <div id="layout-content"><div id="function.fwrite" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">fwrite</h1>
-  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">fwrite</span> &mdash; <span class="dc-title">写入文件（可安全用于二进制文件）</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7, PHP 8)</p><p class="refpurpose"><span class="refname">fwrite</span> &mdash; <span class="dc-title">写入文件（可安全用于二进制文件）</span></p>
 
  </div>
  
@@ -37,8 +37,8 @@
    <span class="methodname"><strong>fwrite</strong></span>
     ( <span class="methodparam"><span class="type">resource</span> <code class="parameter">$handle</code></span>
    , <span class="methodparam"><span class="type">string</span> <code class="parameter">$string</code></span>
-   [, <span class="methodparam"><span class="type">int</span> <code class="parameter">$length</code></span>
-  ] ) : <span class="type">int</span></div>
+   , <span class="methodparam"><span class="type">int</span> <code class="parameter">$length</code> = ?</span>
+   ) : <span class="type">int</span></div>
 
   <p class="simpara">
    <span class="function"><strong>fwrite()</strong></span> 把 <code class="parameter">string</code> 的内容写入
@@ -59,7 +59,7 @@
      <dd>
 
       <p class="para">文件系统指针，是典型地由
-<span class="function"><a href="function.fopen.html" class="function">fopen()</a></span> 创建的 <span class="type"><a href="language.types.resource.html" class="type resource">resource</a></span>(资源)。</p>
+<span class="function"><a href="function.fopen.html" class="function">fopen()</a></span> 创建的 <span class="type">resource</span>(资源)。</p>
      </dd>
 
     
@@ -106,7 +106,7 @@
   <div class="refsect1 returnvalues" id="refsect1-function.fwrite-returnvalues">
   <h3 class="title">返回值</h3>
   <p class="simpara">
-   <span class="function"><strong>fwrite()</strong></span> 返回写入的字符数，出现错误时则返回 <strong><code>FALSE</code></strong> 。
+   <span class="function"><strong>fwrite()</strong></span> 返回写入的字符数，出现错误时则返回 <strong><code>false</code></strong> 。
   </p>
  </div>
 
@@ -163,7 +163,7 @@
   <div class="refsect1 examples" id="refsect1-function.fwrite-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-2843">
+   <div class="example" id="example-2572">
     <p><strong>Example #1 一个简单的 <span class="function"><strong>fwrite()</strong></span> 例子</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -195,7 +195,69 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="124293""></a>
+<div id="allnotes">  <a name="125731""></a>
+  <div class="note">
+   <strong class="user">divinity76 at gmail dot com</strong>
+   <a href="#125731" class="date">28-Jan-2021 01:09</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+if you need a function that writes all data, maybe try<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">/**<br />
+&nbsp;&nbsp; &nbsp; * writes all data or throws<br />
+&nbsp;&nbsp; &nbsp; *<br />
+&nbsp;&nbsp; &nbsp; * @param mixed $handle<br />
+&nbsp;&nbsp; &nbsp; * @param string $data<br />
+&nbsp;&nbsp; &nbsp; * @throws \RuntimeException when fwrite returned &lt;1 but still more data to write<br />
+&nbsp;&nbsp; &nbsp; * @return void<br />
+&nbsp;&nbsp; &nbsp; */<br />
+&nbsp;&nbsp;&nbsp; /*private static*/ </span><span class="keyword">function </span><span class="default">fwrite_all</span><span class="keyword">(</span><span class="default">$handle</span><span class="keyword">, </span><span class="default">string $data</span><span class="keyword">): </span><span class="default">void<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">{<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$original_len </span><span class="keyword">= </span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$original_len </span><span class="keyword">&gt; </span><span class="default">0</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$len </span><span class="keyword">= </span><span class="default">$original_len</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$written_total </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; for (;;) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$written_now </span><span class="keyword">= </span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$handle</span><span class="keyword">, </span><span class="default">$data</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$written_now </span><span class="keyword">=== </span><span class="default">$len</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$written_now </span><span class="keyword">&lt; </span><span class="default">1</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; throw new \</span><span class="default">RuntimeException</span><span class="keyword">(</span><span class="string">"could only write </span><span class="keyword">{</span><span class="default">$written_total</span><span class="keyword">}</span><span class="string">/</span><span class="keyword">{</span><span class="default">$original_len</span><span class="keyword">}</span><span class="string"> bytes!"</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$written_total </span><span class="keyword">+= </span><span class="default">$written_now</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$data </span><span class="keyword">= </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$data</span><span class="keyword">, </span><span class="default">$written_now</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$len </span><span class="keyword">-= </span><span class="default">$written_now</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// assert($len &gt; 0);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; // assert($len === strlen($data));<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">}<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="125121""></a>
+  <div class="note">
+   <strong class="user">niklesh at example dot com</strong>
+   <a href="#125121" class="date">16-Jun-2020 10:54</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+$handles can also be used to output in console like below example<br />
+<br />
+fwrite(STDOUT, "Console Output");</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="124293""></a>
   <div class="note">
    <strong class="user">2184364 at gmail dot com</strong>
    <a href="#124293" class="date">14-Oct-2019 11:31</a>

@@ -27,7 +27,7 @@
   <div id="layout-content"><div id="function.number-format" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">number_format</h1>
-  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">number_format</span> &mdash; <span class="dc-title">以千位分隔符方式格式化一个数字</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7, PHP 8)</p><p class="refpurpose"><span class="refname">number_format</span> &mdash; <span class="dc-title">以千位分隔符方式格式化一个数字</span></p>
 
  </div>
  
@@ -36,8 +36,8 @@
   <div class="methodsynopsis dc-description">
    <span class="methodname"><strong>number_format</strong></span>
     ( <span class="methodparam"><span class="type">float</span> <code class="parameter">$number</code></span>
-   [, <span class="methodparam"><span class="type">int</span> <code class="parameter">$decimals</code><span class="initializer"> = 0</span></span>
-  ] ) : <span class="type">string</span></div>
+   , <span class="methodparam"><span class="type">int</span> <code class="parameter">$decimals</code><span class="initializer"> = 0</span></span>
+   ) : <span class="type">string</span></div>
 
   <div class="methodsynopsis dc-description">
    <span class="methodname"><strong>number_format</strong></span>
@@ -167,7 +167,7 @@
  <div class="refsect1 examples" id="refsect1-function.number-format-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-5976">
+   <div class="example" id="example-5153">
     <p><strong>Example #1 <span class="function"><strong>number_format()</strong></span> Example</strong></p>
     <div class="example-contents"><p>
      For instance, French notation usually use two decimals,
@@ -203,7 +203,7 @@
       <tr>
        <td>7.2.0</td>
        <td>
-        <span class="function"><strong>number_format()</strong></span> 现在无法返回 <em>-0</em>，之前可能返回 <em>-0</em>，因为 <code class="parameter">number</code> 可能会是 <em>-0.01</em>。
+        <span class="function"><strong>number_format()</strong></span> 现在无法返回 <code class="literal">-0</code>，之前可能返回 <code class="literal">-0</code>，因为 <code class="parameter">number</code> 可能会是 <code class="literal">-0.01</code>。
        </td>
       </tr>
 
@@ -232,7 +232,96 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="124620""></a>
+<div id="allnotes">  <a name="124968""></a>
+  <div class="note">
+   <strong class="user">markagius at markagius co uk</strong>
+   <a href="#124968" class="date">30-Apr-2020 02:48</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you want a number of digits after the point, but not unnecessary zeros.<br />
+Eg.<br />
+number_format(1.20000,4) = 1.2000<br />
+num_format(1.20000,4,0) = 1.2<br />
+<br />
+number_format(1.20000,4) = 1.2000<br />
+num_format(1.20000,4,2) = 1.20<br />
+<br />
+number_format(1.23456,4) = 1.2345<br />
+num_format(1.23456,4,2) = 1.2345<br />
+<br />
+function num_format($numVal,$afterPoint=2,$minAfterPoint=0,$thousandSep=",",$decPoint="."){<br />
+&nbsp; // Same as number_format() but without unnecessary zeros.<br />
+&nbsp; $ret = number_format($numVal,$afterPoint,$decPoint,$thousandSep);<br />
+&nbsp; if($afterPoint!=$minAfterPoint){<br />
+&nbsp;&nbsp;&nbsp; while(($afterPoint&gt;$minAfterPoint) &amp;&amp; (substr($ret,-1) =="0") ){<br />
+&nbsp;&nbsp; &nbsp;&nbsp; // $minAfterPoint!=$minAfterPoint and number ends with a '0'<br />
+&nbsp;&nbsp; &nbsp;&nbsp; // Remove '0' from end of string and set $afterPoint=$afterPoint-1<br />
+&nbsp;&nbsp; &nbsp;&nbsp; $ret = substr($ret,0,-1);<br />
+&nbsp;&nbsp; &nbsp;&nbsp; $afterPoint = $afterPoint-1;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp; }<br />
+&nbsp; if(substr($ret,-1)==$decPoint) {$ret = substr($ret,0,-1);}<br />
+&nbsp; return $ret;<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="124908""></a>
+  <div class="note">
+   <strong class="user">festuc at festuc dot info</strong>
+   <a href="#124908" class="date">13-Apr-2020 08:42</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+<span class="default">&lt;?php<br />
+</span><span class="comment">//&nbsp; &nbsp; &nbsp; &nbsp; by www.festuc.info<br />
+//&nbsp; &nbsp; &nbsp; &nbsp; If you need trim unnecessary&nbsp; right zeros&nbsp; part of a string to decimal number,<br />
+//&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; for a human readable you can trim it with this little hack.<br />
+</span><span class="keyword">function </span><span class="default">number_format_rtrim</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">,</span><span class="default">$maxdecimal</span><span class="keyword">=</span><span class="default">0</span><span class="keyword">,</span><span class="default">$decimalsing</span><span class="keyword">=</span><span class="string">'.'</span><span class="keyword">,</span><span class="default">$thousandsing</span><span class="keyword">=</span><span class="string">','</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">is_numeric</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">)){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$value</span><span class="keyword">=</span><span class="default">number_format</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">,</span><span class="default">$maxdecimal</span><span class="keyword">,</span><span class="string">'.'</span><span class="keyword">,</span><span class="string">''</span><span class="keyword">);</span><span class="comment">//to change input type to string<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$i</span><span class="keyword">=-</span><span class="default">1</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">strpos</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">,</span><span class="string">'.'</span><span class="keyword">))while (</span><span class="default">substr</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">,</span><span class="default">$i</span><span class="keyword">)==</span><span class="default">0</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$i</span><span class="keyword">--;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$maxdecimal</span><span class="keyword">--;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; else </span><span class="default">$maxdecimal</span><span class="keyword">=</span><span class="default">0</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">number_format</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">,</span><span class="default">$maxdecimal</span><span class="keyword">,</span><span class="default">$decimalsing</span><span class="keyword">,</span><span class="default">$thousandsing</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+</span><span class="default">$decimalsing</span><span class="keyword">=</span><span class="string">','</span><span class="keyword">; </span><span class="comment">//french mode<br />
+</span><span class="default">$thousandsing</span><span class="keyword">=</span><span class="string">' '</span><span class="keyword">;<br />
+</span><span class="default">$a </span><span class="keyword">= array (</span><span class="default">10000</span><span class="keyword">/</span><span class="default">3</span><span class="keyword">,</span><span class="default">10.15000</span><span class="keyword">,</span><span class="string">'58.0000'</span><span class="keyword">,</span><span class="default">1.01000</span><span class="keyword">,</span><span class="string">'pastafarism'</span><span class="keyword">,</span><span class="string">'1001.00100'</span><span class="keyword">,</span><span class="default">30.05</span><span class="keyword">,</span><span class="default">25</span><span class="keyword">/</span><span class="default">2</span><span class="keyword">,</span><span class="string">'0.2500'</span><span class="keyword">,</span><span class="string">'potato'</span><span class="keyword">);<br />
+foreach (</span><span class="default">$a </span><span class="keyword">as </span><span class="default">$w</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; unset(</span><span class="default">$o</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$o</span><span class="keyword">=</span><span class="default">number_format_rtrim</span><span class="keyword">(</span><span class="default">$w</span><span class="keyword">,</span><span class="default">5</span><span class="keyword">,</span><span class="default">$decimalsing</span><span class="keyword">,</span><span class="default">$thousandsing</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; if(isset(</span><span class="default">$o</span><span class="keyword">))<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"</span><span class="default">$w</span><span class="string">: </span><span class="default">$o</span><span class="string">"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; else<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"</span><span class="default">$w</span><span class="string"> is not a number"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">'&lt;br/&gt;'</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span>This is the output<br />
+3333.3333333333: 3 333,33333<br />
+10.15: 10,15<br />
+58.0000: 58<br />
+1.01: 1,01<br />
+pastafarism is not a number<br />
+1001.00100: 1 001,001<br />
+30.05: 30,05<br />
+12.5: 12,5<br />
+0.2500: 0,25<br />
+potato is not a number</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="124620""></a>
   <div class="note">
    <strong class="user">divinity76 at gmail dot com</strong>
    <a href="#124620" class="date">16-Jan-2020 10:29</a>

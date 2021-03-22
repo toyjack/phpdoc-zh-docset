@@ -27,7 +27,7 @@
   <div id="layout-content"><div id="function.shell-exec" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">shell_exec</h1>
-  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">shell_exec</span> &mdash; <span class="dc-title">通过 shell 环境执行命令，并且将完整的输出以字符串的方式返回。</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7, PHP 8)</p><p class="refpurpose"><span class="refname">shell_exec</span> &mdash; <span class="dc-title">通过 shell 环境执行命令，并且将完整的输出以字符串的方式返回。</span></p>
 
  </div>
 
@@ -41,6 +41,13 @@
   <p class="para rdfs-comment">
    本函数同 <a href="language.operators.execution.html" class="link">执行操作符</a>。
   </p>
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <p class="para">
+    On Windows, the underlying pipe is opened in text mode which can cause the
+    function to fail for binary output. Consider to use <span class="function"><a href="function.popen.html" class="function">popen()</a></span>
+    instead for such cases.
+   </p>
+  </p></blockquote>
  </div>
 
 
@@ -71,11 +78,11 @@
   <h3 class="title">返回值</h3>
   <p class="para">
     命令执行的输出。
-    如果执行过程中发生错误或者进程不产生输出，则返回 <strong><code>NULL</code></strong>。
+    如果执行过程中发生错误或者进程不产生输出，则返回 <strong><code>null</code></strong>。
   </p>
   <blockquote class="note"><p><strong class="note">Note</strong>: 
    <p class="para">
-    当进程执行过程中发生错误，或者进程不产生输出的情况下，都会返回 <strong><code>NULL</code></strong>，
+    当进程执行过程中发生错误，或者进程不产生输出的情况下，都会返回 <strong><code>null</code></strong>，
     所以，使用本函数无法通过返回值检测进程是否成功执行。
     如果需要检查进程执行的退出码，请使用 <span class="function"><a href="function.exec.html" class="function">exec()</a></span> 函数。
    </p>
@@ -86,7 +93,7 @@
  <div class="refsect1 examples" id="refsect1-function.shell-exec-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-4395">
+   <div class="example" id="example-3668">
     <p><strong>Example #1 <span class="function"><strong>shell_exec()</strong></span> 例程</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -99,17 +106,7 @@
   </p>
  </div>
 
-
- <div class="refsect1 notes" id="refsect1-function.shell-exec-notes">
-  <h3 class="title">注释</h3>
-  <blockquote class="note"><p><strong class="note">Note</strong>: 
-   <p class="para">
-    当 PHP 运行在 <a href="features.safe-mode.html" class="link">安全模式</a> 时，不能使用此函数。
-   </p>
-  </p></blockquote>
- </div>
-
-
+ 
  <div class="refsect1 seealso" id="refsect1-function.shell-exec-seealso">
   <h3 class="title">参见</h3>
   <p class="para">
@@ -124,7 +121,35 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="123710""></a>
+<div id="allnotes">  <a name="125577""></a>
+  <div class="note">
+   <strong class="user">smcbride at msn dot com</strong>
+   <a href="#125577" class="date">07-Dec-2020 10:47</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+proc_open is probably a better solution for most use cases as of PHP 7.4.&nbsp; There is better control and platform independence.&nbsp; If you still want to use shell_exec(), I like to wrap it with a function that allows better control.<br />
+<br />
+Something like below solves some problems with background process issues on apache/php.&nbsp; It also <br />
+<br />
+public function sh_exec(string $cmd, string $outputfile = "", string $pidfile = "", bool $mergestderror = true, bool $bg = false) {<br />
+&nbsp; $fullcmd = $cmd;<br />
+&nbsp; if(strlen($outputfile) &gt; 0) $fullcmd .= " &gt;&gt; " . $outputfile;<br />
+&nbsp; if($mergestderror) $fullcmd .= " 2&gt;&amp;1";<br />
+&nbsp; if($bg) {<br />
+&nbsp;&nbsp;&nbsp; $fullcmd = "nohup " . $fullcmd . " &amp;";<br />
+&nbsp;&nbsp;&nbsp; if(strlen($pidfile)) $fullcmd .= " echo $! &gt; " . $pidfile;<br />
+&nbsp; } else {<br />
+&nbsp;&nbsp;&nbsp; if(strlen($pidfile) &gt; 0) $fullcmd .= "; echo $$ &gt; " . $pidfile;<br />
+&nbsp; }<br />
+&nbsp; shell_exec($fullcmd);<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="123710""></a>
   <div class="note">
    <strong class="user">pedroxam at gmail dot com</strong>
    <a href="#123710" class="date">20-Mar-2019 10:50</a>

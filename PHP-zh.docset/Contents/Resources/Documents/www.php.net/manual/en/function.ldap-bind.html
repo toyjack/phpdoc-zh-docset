@@ -27,7 +27,7 @@
   <div id="layout-content"><div id="function.ldap-bind" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">ldap_bind</h1>
-  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">ldap_bind</span> &mdash; <span class="dc-title">绑定 LDAP 目录</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7, PHP 8)</p><p class="refpurpose"><span class="refname">ldap_bind</span> &mdash; <span class="dc-title">绑定 LDAP 目录</span></p>
 
  </div>
  
@@ -36,9 +36,9 @@
   <div class="methodsynopsis dc-description">
    <span class="methodname"><strong>ldap_bind</strong></span>
     ( <span class="methodparam"><span class="type">resource</span> <code class="parameter">$link_identifier</code></span>
-   [, <span class="methodparam"><span class="type">string</span> <code class="parameter">$bind_rdn</code><span class="initializer"> = <strong><code>NULL</code></strong></span></span>
-   [, <span class="methodparam"><span class="type">string</span> <code class="parameter">$bind_password</code><span class="initializer"> = <strong><code>NULL</code></strong></span></span>
-  ]] ) : <span class="type">bool</span></div>
+   , <span class="methodparam"><span class="type">string</span> <code class="parameter">$bind_rdn</code><span class="initializer"> = <strong><code>null</code></strong></span></span>
+   , <span class="methodparam"><span class="type">string</span> <code class="parameter">$bind_password</code><span class="initializer"> = <strong><code>null</code></strong></span></span>
+   ) : <span class="type">bool</span></div>
 
   <p class="para rdfs-comment">
    使用指定的 RDN 和密码绑定到 LDAP 目录。 
@@ -97,7 +97,7 @@
  <div class="refsect1 returnvalues" id="refsect1-function.ldap-bind-returnvalues">
   <h3 class="title">返回值</h3>
   <p class="para">
-   成功时返回 <strong><code>TRUE</code></strong>， 或者在失败时返回 <strong><code>FALSE</code></strong>。
+   成功时返回 <strong><code>true</code></strong>， 或者在失败时返回 <strong><code>false</code></strong>。
   </p>
  </div>
 
@@ -105,7 +105,7 @@
  <div class="refsect1 examples" id="refsect1-function.ldap-bind-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-5431">
+   <div class="example" id="example-4687">
     <p><strong>Example #1 使用 LDAP Bind</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -115,7 +115,7 @@
     </div>
 
    </div>
-   <div class="example" id="example-5432">
+   <div class="example" id="example-4688">
     <p><strong>Example #2 Using LDAP Bind Anonymously</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -143,7 +143,120 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="124188""></a>
+<div id="allnotes">  <a name="125082""></a>
+  <div class="note">
+   <strong class="user">peter dot mlich at volny dot cz</strong>
+   <a href="#125082" class="date">05-Jun-2020 07:07</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Example code from my ldap class.<br />
+this-&gt;query i send notes under ldap_search function documentation.<br />
+<br />
+public function queryUserLogin($user_name='', $user_psw='', $tls_bool=true) // na localhostu pouzit tls=false<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; var_dump('queryUserLogin');<br />
+//$tls_bool = false;&nbsp; &nbsp; // for localhost<br />
+&nbsp;&nbsp;&nbsp; $fn&nbsp; &nbsp;&nbsp; = 'queryUser';<br />
+&nbsp;&nbsp;&nbsp; $config = $this-&gt;config;<br />
+&nbsp;&nbsp;&nbsp; $conn&nbsp;&nbsp; = $this-&gt;conn;<br />
+&nbsp;&nbsp;&nbsp; if (!$conn)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {return $this-&gt;errorConnection($fn);}<br />
+&nbsp;&nbsp;&nbsp; // user - exist name?<br />
+&nbsp;&nbsp;&nbsp; $user_name = $this-&gt;escapeValue($user_name);<br />
+&nbsp;&nbsp;&nbsp; $user_psw&nbsp; = $this-&gt;escapeValue($user_psw);<br />
+&nbsp;&nbsp;&nbsp; $filter = "(&amp;(objectclass=person)(cn=".$user_name."))";<br />
+//var_dump($filter);<br />
+&nbsp;&nbsp;&nbsp; $att&nbsp; &nbsp; = array('dn');<br />
+&nbsp;&nbsp;&nbsp; $data&nbsp;&nbsp; = $this-&gt;query($filter, $att, 2, true);<br />
+&nbsp;&nbsp;&nbsp; if ($data===false)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;error("User error, nenalezen v ldap!");<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;disconnect();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return false;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; // user - exist user in LDAP (name, psw)<br />
+&nbsp;&nbsp;&nbsp; $user = is_array($data) &amp;&amp; isset($data[0]) &amp;&amp; isset($data[0]['dn']) ? $data[0]['dn'] : '';&nbsp; &nbsp; // "cn=mynickname,ou=users,o=su" <br />
+&nbsp;&nbsp;&nbsp; $psw&nbsp; = $user_psw;<br />
+&nbsp;&nbsp;&nbsp; if ($user=='' || $psw=='')<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;error("User error, prazdne prihlasovaci udaje!");<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;disconnect();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return false;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; if ($tls_bool==true)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (ldap_start_tls($conn))&nbsp; &nbsp; //php7<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $result = @ldap_bind($conn, $user, $psw);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; else&nbsp; &nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;error("Unable to start TLS!");&nbsp; // SSL encrypt protocol, certificate, deprecated?<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; else&nbsp; &nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $result = @ldap_bind($conn, $user, $psw);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; if ($result==false)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;error("Bind user error! bindDN = ".$user);&nbsp; &nbsp; //".ldap_error($conn)."<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;disconnect();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return false;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; // user - get user info, bind to ldap user with more permitions and get data (login to intercon user)<br />
+&nbsp;&nbsp;&nbsp; $user&nbsp;&nbsp; = $config['userInterconDn'];<br />
+&nbsp;&nbsp;&nbsp; $psw&nbsp; &nbsp; = $config['userInterconPsw'];<br />
+&nbsp;&nbsp;&nbsp; if ($tls_bool==true)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (ldap_start_tls($conn))&nbsp; &nbsp; //php7<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $result = ldap_bind($conn, $user, $psw);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; else&nbsp; &nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;error("Unable to start TLS!");&nbsp; // SSL encrypt protocol, certificate, deprecated?<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; else&nbsp; &nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $result = ldap_bind($conn, $user, $psw);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; if ($result==false)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;error("Bind user intercon error!");&nbsp; &nbsp; // . ldap_error($conn) !Nezobrazovat jmeno usera interconu<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;out = array(<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 'uid'&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; =&gt; $user<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; );<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return true;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; // search user data<br />
+&nbsp;&nbsp;&nbsp; $filter = "(&amp;(objectclass=person)(cn=" . $user_name . "))";<br />
+//var_dump($filter);<br />
+&nbsp;&nbsp;&nbsp; $att&nbsp; &nbsp; = array(<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; 'uid', <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; 'workforceID',<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; 'employeeID',<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; 'givenName',<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; 'sn',<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; 'mail'<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; );<br />
+&nbsp;&nbsp;&nbsp; $data&nbsp;&nbsp; = $this-&gt;query($filter, $att, 2, true);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; // get data from ldap entires structure<br />
+&nbsp;&nbsp;&nbsp; $this-&gt;out = array(<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; 'uid'&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; =&gt; $this-&gt;dataGetValue($data, 'uid'&nbsp; &nbsp; &nbsp; &nbsp; , ''),<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; 'workforceID' =&gt; $this-&gt;dataGetValue($data, 'workforceid', ''),&nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; 'employeeID'&nbsp; =&gt; $this-&gt;dataGetValue($data, 'employeeid' , ''),&nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; 'givenName'&nbsp;&nbsp; =&gt; $this-&gt;dataGetValue($data, 'givenname'&nbsp; , ''),<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; 'sn'&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; =&gt; $this-&gt;dataGetValue($data, 'sn'&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; , ''),&nbsp; &nbsp; // prijmeni<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; 'mail'&nbsp; &nbsp; &nbsp; &nbsp; =&gt; $this-&gt;dataGetValue($data, 'mail'&nbsp; &nbsp; &nbsp;&nbsp; , '')&nbsp; &nbsp; // mail<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; );<br />
+&nbsp;&nbsp;&nbsp; $this-&gt;conn = $conn;<br />
+&nbsp;&nbsp;&nbsp; return true;<br />
+&nbsp;&nbsp;&nbsp; }</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="124188""></a>
   <div class="note">
    <strong class="user">Victor</strong>
    <a href="#124188" class="date">11-Sep-2019 10:42</a>

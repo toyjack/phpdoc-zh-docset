@@ -12,7 +12,7 @@
   <div class="navbar-inner clearfix">
     <ul class="nav" style="width: 100%">
       <li style="float: left;"><a href="language.generators.overview.html">? 生成器总览</a></li>
-      <li style="float: right;"><a href="language.generators.comparison.html">Comparing generators with Iterator objects ?</a></li>
+      <li style="float: right;"><a href="language.generators.comparison.html">生成器与 Iterator 对象的比较 ?</a></li>
     </ul>
   </div>
 </div>
@@ -28,20 +28,21 @@
   <h2 class="title">生成器语法</h2>
 
   <p class="para">
-   一个生成器函数看起来像一个普通的函数，不同的是普通函数返回一个值，而一个生成器可以<a href="language.generators.syntax.html#control-structures.yield" class="link">yield</a>生成许多它所需要的值。
+   生成器函数看起来像普通函数&mdash;&mdash;不同的是普通函数返回一个值，而生成器可以 <a href="language.generators.syntax.html#control-structures.yield" class="link">yield</a> 生成多个想要的值。
+   任何包含 <a href="language.generators.syntax.html#control-structures.yield" class="link">yield</a> 的函数都是一个生成器函数。
   </p>
 
   <p class="para">
-   当一个生成器被调用的时候，它返回一个可以被遍历的对象.当你遍历这个对象的时候(例如通过一个<a href="control-structures.foreach.html" class="link">foreach</a>循环)，PHP  将会在每次需要值的时候调用生成器函数，并在产生一个值之后保存生成器的状态，这样它就可以在需要产生下一个值的时候恢复调用状态。
+   当一个生成器被调用的时候，它返回一个可以被遍历的对象.当你遍历这个对象的时候(例如通过一个<a href="control-structures.foreach.html" class="link">foreach</a>循环)，PHP  将会在每次需要值的时候调用对象的遍历方法，并在产生一个值之后保存生成器的状态，这样它就可以在需要产生下一个值的时候恢复调用状态。
   </p>
 
   <p class="para">
-   一旦不再需要产生更多的值，生成器函数可以简单退出，而调用生成器的代码还可以继续执行，就像一个数组已经被遍历完了。
+   一旦不再需要产生更多的值，生成器可以简单退出，而调用生成器的代码还可以继续执行，就像一个数组已经被遍历完了。
   </p>
 
   <blockquote class="note"><p><strong class="note">Note</strong>: 
    <p class="para">
-    一个生成器不可以返回值： 这样做会产生一个编译错误。然而<strong class="command">return</strong>空是一个有效的语法并且它将会终止生成器继续执行。
+    生成器能够返回多个值，通过 <span class="methodname"><strong>Generator::getReturn()</strong></span> 可以获取到。
    </p>
   </p></blockquote>
 
@@ -52,7 +53,7 @@
     生成器函数的核心是<strong class="command">yield</strong>关键字。它最简单的调用形式看起来像一个return申明，不同之处在于普通return会返回值并终止函数的执行，而yield会返回一个值给循环调用此生成器的代码并且只是暂停执行生成器函数。
    </p>
 
-   <div class="example" id="example-288">
+   <div class="example" id="example-311">
     <p><strong>Example #1 一个简单的生成值的例子</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -79,37 +80,8 @@
 
    <div class="caution"><strong class="caution">Caution</strong>
     <p class="para">
-     如果在一个表达式上下文(例如在一个赋值表达式的右侧)中使用yield，你必须使用圆括号把yield申明包围起来。 例如这样是有效的：
-    </p>
-
-    <div class="informalexample">
-     <div class="example-contents">
-<div class="phpcode"><code><span style="color: #000000">
-$data&nbsp;=&nbsp;(yield&nbsp;$value);</span>
-</code></div>
-     </div>
-
-    </div>
-
-    <p class="para">
-     而这样就不合法，并且在PHP5中会产生一个编译错误：
-    </p>
-
-    <div class="informalexample">
-     <div class="example-contents">
-<div class="phpcode"><code><span style="color: #000000">
-$data&nbsp;=&nbsp;yield&nbsp;$value;</span>
-</code></div>
-     </div>
-
-    </div>
-
-    <p class="para">
-     The parenthetical restrictions do not apply in PHP 7.
-    </p>
-
-    <p class="para">
-     这个语法可以和生成器对象的<span class="methodname"><a href="generator.send.html" class="methodname">Generator::send()</a></span>方法配合使用。
+      传入 <span class="methodname"><a href="generator.send.html" class="methodname">Generator::send()</a></span> 的值会被赋值到 <var class="varname">$data</var>，
+      或者直接调用 <span class="methodname"><a href="generator.next.html" class="methodname">Generator::next()</a></span> 时，赋的值将是 <strong><code>null</code></strong>。
     </p>
    </div>
    
@@ -124,7 +96,7 @@ $data&nbsp;=&nbsp;yield&nbsp;$value;</span>
      如下所示，生成一个键值对与定义一个关联数组十分相似。
     </p>
     
-    <div class="example" id="example-289">
+    <div class="example" id="example-312">
      <p><strong>Example #2 生成一个键值对</strong></p>
      <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -166,14 +138,14 @@ $data&nbsp;=&nbsp;(yield&nbsp;$key&nbsp;=&gt;&nbsp;$value);</span>
    </div>
    
    <div class="sect3" id="control-structures.yield.null">
-    <h4 class="title">生成null值</h4>
+    <h4 class="title">生成 null 值</h4>
     
     <p class="para">
-     Yield可以在没有参数传入的情况下被调用来生成一个 <strong><code>NULL</code></strong>值并配对一个自动的键名。
+     Yield 可以在没有参数传入的情况下被调用来生成一个 <strong><code>null</code></strong> 值并配对一个自动的键名。
     </p>
     
-    <div class="example" id="example-290">
-     <p><strong>Example #3 生成<strong><code>NULL</code></strong>s</strong></p>
+    <div class="example" id="example-313">
+     <p><strong>Example #3 生成<strong><code>null</code></strong>s</strong></p>
      <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
 <span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">function&nbsp;</span><span style="color: #0000BB">gen_three_nulls</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;foreach&nbsp;(</span><span style="color: #0000BB">range</span><span style="color: #007700">(</span><span style="color: #0000BB">1</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">3</span><span style="color: #007700">)&nbsp;as&nbsp;</span><span style="color: #0000BB">$i</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;yield;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br /></span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">iterator_to_array</span><span style="color: #007700">(</span><span style="color: #0000BB">gen_three_nulls</span><span style="color: #007700">()));<br /></span><span style="color: #0000BB">?&gt;</span>
@@ -201,14 +173,14 @@ array(3) {
     <h4 class="title">使用引用来生成值</h4>
     
     <p class="para">
-     生成函数可以像使用值一样来使用引用生成。这个和<a href="functions.returning-values.html" class="link">returning references from functions</a>（从函数返回一个引用）一样：通过在函数名前面加一个引用符号。
+     生成函数可以像使用值一样来使用引用生成。这个和<a href="functions.returning-values.html" class="link">从函数返回一个引用</a>一样：通过在函数名前面加一个引用符号。
     </p>
     
-    <div class="example" id="example-291">
+    <div class="example" id="example-314">
      <p><strong>Example #4 使用引用来生成值</strong></p>
      <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
-<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">function&nbsp;&amp;</span><span style="color: #0000BB">gen_reference</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$value&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">3</span><span style="color: #007700">;<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;while&nbsp;(</span><span style="color: #0000BB">$value&nbsp;</span><span style="color: #007700">&gt;&nbsp;</span><span style="color: #0000BB">0</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;</span><span style="color: #0000BB">$value</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br /></span><span style="color: #FF8000">/*&nbsp;<br />&nbsp;*&nbsp;我们可以在循环中修改$number的值，而生成器是使用的引用值来生成，所以gen_reference()内部的$value值也会跟着变化。<br />&nbsp;*/<br /></span><span style="color: #007700">foreach&nbsp;(</span><span style="color: #0000BB">gen_reference</span><span style="color: #007700">()&nbsp;as&nbsp;&amp;</span><span style="color: #0000BB">$number</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;(--</span><span style="color: #0000BB">$number</span><span style="color: #007700">).</span><span style="color: #DD0000">'...&nbsp;'</span><span style="color: #007700">;<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">function&nbsp;&amp;</span><span style="color: #0000BB">gen_reference</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$value&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">3</span><span style="color: #007700">;<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;while&nbsp;(</span><span style="color: #0000BB">$value&nbsp;</span><span style="color: #007700">&gt;&nbsp;</span><span style="color: #0000BB">0</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;</span><span style="color: #0000BB">$value</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br /><br /></span><span style="color: #FF8000">/*&nbsp;<br />&nbsp;*&nbsp;我们可以在循环中修改&nbsp;$number&nbsp;的值，而生成器是使用的引用值来生成，所以&nbsp;gen_reference()&nbsp;内部的&nbsp;$value&nbsp;值也会跟着变化。<br />&nbsp;*/<br /></span><span style="color: #007700">foreach&nbsp;(</span><span style="color: #0000BB">gen_reference</span><span style="color: #007700">()&nbsp;as&nbsp;&amp;</span><span style="color: #0000BB">$number</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;(--</span><span style="color: #0000BB">$number</span><span style="color: #007700">).</span><span style="color: #DD0000">'...&nbsp;'</span><span style="color: #007700">;<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
 </span>
 </code></div>
      </div>
@@ -226,9 +198,9 @@ array(3) {
     <h4 class="title">Generator delegation via <strong class="command">yield from</strong></h4>
 
     <p class="para">
-     In PHP 7, generator delegation allows you to yield values from another
+     Generator delegation allows you to yield values from another
      generator, <strong class="classname">Traversable</strong> object, or
-     <span class="type"><a href="language.types.array.html" class="type array">array</a></span> by using the <strong class="command">yield from</strong> keyword.
+     <span class="type">array</span> by using the <strong class="command">yield from</strong> keyword.
      The outer generator will then yield all values from the inner generator,
      object, or array until that is no longer valid, after which execution
      will continue in the outer generator.
@@ -240,8 +212,52 @@ array(3) {
      returned by the inner generator.
     </p>
 
-    <div class="example" id="example-292">
-     <p><strong>Example #5 Basic use of <strong class="command">yield from</strong></strong></p>
+    <div class="caution"><strong class="caution">Caution</strong>
+      <h1 class="title">Storing into an array (e.g. with <span class="function"><a href="function.iterator-to-array.html" class="function">iterator_to_array()</a></span>)</h1>
+
+        <p class="para">
+        <strong class="command">yield from</strong> does not reset the keys. It preserves
+        the keys returned by the <strong class="classname">Traversable</strong> object, or
+        <span class="type">array</span>. Thus some values may share a common key with another
+        <strong class="command">yield</strong> or <strong class="command">yield from</strong>, which, upon
+        insertion into an array, will overwrite former values with that key.
+       </p>
+
+        <p class="para">
+        A common case where this matters is <span class="function"><a href="function.iterator-to-array.html" class="function">iterator_to_array()</a></span>
+        returning a keyed array by default, leading to possibly unexpected results.
+        <span class="function"><a href="function.iterator-to-array.html" class="function">iterator_to_array()</a></span> has a second parameter
+        <code class="parameter">use_keys</code> which can be set to <strong><code>false</code></strong> to collect
+        all the values while ignoring the keys returned by the <strong class="classname">Generator</strong>.
+       </p>
+
+        <div class="example" id="example-315">
+        <p><strong>Example #5 <strong class="command">yield from</strong> with <span class="function"><a href="function.iterator-to-array.html" class="function">iterator_to_array()</a></span></strong></p>
+        <div class="example-contents">
+ <div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />&nbsp;</span><span style="color: #007700">function&nbsp;</span><span style="color: #0000BB">inner</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">;&nbsp;</span><span style="color: #FF8000">//&nbsp;key&nbsp;0<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">yield&nbsp;</span><span style="color: #0000BB">2</span><span style="color: #007700">;&nbsp;</span><span style="color: #FF8000">//&nbsp;key&nbsp;1<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">yield&nbsp;</span><span style="color: #0000BB">3</span><span style="color: #007700">;&nbsp;</span><span style="color: #FF8000">//&nbsp;key&nbsp;2<br />&nbsp;</span><span style="color: #007700">}<br />&nbsp;function&nbsp;</span><span style="color: #0000BB">gen</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;</span><span style="color: #0000BB">0</span><span style="color: #007700">;&nbsp;</span><span style="color: #FF8000">//&nbsp;key&nbsp;0<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">yield&nbsp;from&nbsp;</span><span style="color: #0000BB">inner</span><span style="color: #007700">();&nbsp;</span><span style="color: #FF8000">//&nbsp;keys&nbsp;0-2<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">yield&nbsp;</span><span style="color: #0000BB">4</span><span style="color: #007700">;&nbsp;</span><span style="color: #FF8000">//&nbsp;key&nbsp;1<br />&nbsp;</span><span style="color: #007700">}<br />&nbsp;</span><span style="color: #FF8000">//&nbsp;pass&nbsp;false&nbsp;as&nbsp;second&nbsp;parameter&nbsp;to&nbsp;get&nbsp;an&nbsp;array&nbsp;[0,&nbsp;1,&nbsp;2,&nbsp;3,&nbsp;4]<br />&nbsp;</span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">iterator_to_array</span><span style="color: #007700">(</span><span style="color: #0000BB">gen</span><span style="color: #007700">()));<br />&nbsp;</span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+        </div>
+
+        <div class="example-contents"><p>以上例程会输出：</p></div>
+        <div class="example-contents screen">
+ <div class="cdata"><pre>
+ array(3) {
+   [0]=&gt;
+   int(1)
+   [1]=&gt;
+   int(4)
+   [2]=&gt;
+   int(3)
+ }
+ </pre></div>
+        </div>
+       </div>
+     </div>
+
+    <div class="example" id="example-316">
+     <p><strong>Example #6 <strong class="command">yield from</strong> 的基本用法</strong></p>
      <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
 <span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">function&nbsp;</span><span style="color: #0000BB">count_to_ten</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;</span><span style="color: #0000BB">2</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;from&nbsp;[</span><span style="color: #0000BB">3</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">4</span><span style="color: #007700">];<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;from&nbsp;new&nbsp;</span><span style="color: #0000BB">ArrayIterator</span><span style="color: #007700">([</span><span style="color: #0000BB">5</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">6</span><span style="color: #007700">]);<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;from&nbsp;</span><span style="color: #0000BB">seven_eight</span><span style="color: #007700">();<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;</span><span style="color: #0000BB">9</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;</span><span style="color: #0000BB">10</span><span style="color: #007700">;<br />}<br /><br />function&nbsp;</span><span style="color: #0000BB">seven_eight</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;</span><span style="color: #0000BB">7</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;from&nbsp;</span><span style="color: #0000BB">eight</span><span style="color: #007700">();<br />}<br /><br />function&nbsp;</span><span style="color: #0000BB">eight</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;</span><span style="color: #0000BB">8</span><span style="color: #007700">;<br />}<br /><br />foreach&nbsp;(</span><span style="color: #0000BB">count_to_ten</span><span style="color: #007700">()&nbsp;as&nbsp;</span><span style="color: #0000BB">$num</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"</span><span style="color: #0000BB">$num</span><span style="color: #DD0000">&nbsp;"</span><span style="color: #007700">;<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
@@ -257,8 +273,8 @@ array(3) {
      </div>
     </div>
 
-    <div class="example" id="example-293">
-     <p><strong>Example #6 <strong class="command">yield from</strong> and return values</strong></p>
+    <div class="example" id="example-317">
+     <p><strong>Example #7 <strong class="command">yield from</strong> 并返回多个值</strong></p>
      <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
 <span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">function&nbsp;</span><span style="color: #0000BB">count_to_ten</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;</span><span style="color: #0000BB">2</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;from&nbsp;[</span><span style="color: #0000BB">3</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">4</span><span style="color: #007700">];<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;from&nbsp;new&nbsp;</span><span style="color: #0000BB">ArrayIterator</span><span style="color: #007700">([</span><span style="color: #0000BB">5</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">6</span><span style="color: #007700">]);<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;from&nbsp;</span><span style="color: #0000BB">seven_eight</span><span style="color: #007700">();<br />&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;yield&nbsp;from&nbsp;</span><span style="color: #0000BB">nine_ten</span><span style="color: #007700">();<br />}<br /><br />function&nbsp;</span><span style="color: #0000BB">seven_eight</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;</span><span style="color: #0000BB">7</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;from&nbsp;</span><span style="color: #0000BB">eight</span><span style="color: #007700">();<br />}<br /><br />function&nbsp;</span><span style="color: #0000BB">eight</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;</span><span style="color: #0000BB">8</span><span style="color: #007700">;<br />}<br /><br />function&nbsp;</span><span style="color: #0000BB">nine_ten</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;yield&nbsp;</span><span style="color: #0000BB">9</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;</span><span style="color: #0000BB">10</span><span style="color: #007700">;<br />}<br /><br /></span><span style="color: #0000BB">$gen&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">count_to_ten</span><span style="color: #007700">();<br />foreach&nbsp;(</span><span style="color: #0000BB">$gen&nbsp;</span><span style="color: #007700">as&nbsp;</span><span style="color: #0000BB">$num</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"</span><span style="color: #0000BB">$num</span><span style="color: #DD0000">&nbsp;"</span><span style="color: #007700">;<br />}<br />echo&nbsp;</span><span style="color: #0000BB">$gen</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">getReturn</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">?&gt;</span>

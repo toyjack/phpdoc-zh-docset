@@ -27,7 +27,7 @@
   <div id="layout-content"><div id="function.openssl-dh-compute-key" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">openssl_dh_compute_key</h1>
-  <p class="verinfo">(PHP 5 &gt;= 5.3.0, PHP 7)</p><p class="refpurpose"><span class="refname">openssl_dh_compute_key</span> &mdash; <span class="dc-title">计算远程DH密钥(公钥)和本地DH密钥的共享密钥</span></p>
+  <p class="verinfo">(PHP 5 &gt;= 5.3.0, PHP 7, PHP 8)</p><p class="refpurpose"><span class="refname">openssl_dh_compute_key</span> &mdash; <span class="dc-title">计算远程DH密钥(公钥)和本地DH密钥的共享密钥</span></p>
 
  </div>
 
@@ -83,7 +83,7 @@
  <div class="refsect1 returnvalues" id="refsect1-function.openssl-dh-compute-key-returnvalues">
   <h3 class="title">返回值</h3>
   <p class="para">
-   成功，返回计算的密钥， 或者在失败时返回 <strong><code>FALSE</code></strong>.
+   成功，返回计算的密钥， 或者在失败时返回 <strong><code>false</code></strong>.
   </p>
  </div>
 
@@ -92,6 +92,152 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
- <div class="note">There are no user contributed notes for this page.</div>
+<div id="allnotes">  <a name="125714""></a>
+  <div class="note">
+   <strong class="user">vangelier at hotmail dot com</strong>
+   <a href="#125714" class="date">23-Jan-2021 07:35</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+After some challenges I decided to write a C++ and PHP code samples.<br />
+<br />
+As it can be very tricky to get a grib on how the Diffie and Hellman algoritm work. The code samples are cross compatible.<br />
+<br />
+Gist with PHP code and C++ code:<br />
+<br />
+https://gist.github.com/digitalhuman/2a2b85d61672e4bf83596d41351723ba<br />
+<br />
+Enjoy!</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="125624""></a>
+  <div class="note">
+   <strong class="user">vangelier at hotmail dot com</strong>
+   <a href="#125624" class="date">22-Dec-2020 08:08</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+A working example. After some study and reading I finally get how this method is working.<br />
+<br />
+You need to follow the below 4 steps;<br />
+<br />
+1. You create a public key which is known to 1:n parties.<br />
+2. Each party creates their own keypair.<br />
+2a. Each party shared their public key with the members.<br />
+3. Each user can re-create the shared secret by using his Private Key and the Public Key of the other parties.<br />
+4. Compare the secrets as a handshake<br />
+<br />
+/* 1. Create the first, global known public key. */<br />
+<br />
+/**<br />
+&nbsp;&nbsp; &nbsp; * Get DH public/private keys<br />
+&nbsp;&nbsp; &nbsp; * @return array<br />
+&nbsp;&nbsp; &nbsp; */<br />
+&nbsp;&nbsp;&nbsp; public static function get_keypair()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $keys = [];<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $config = [<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; "digest_alg" =&gt; "sha512",<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; "private_key_bits" =&gt; 2048,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; "private_key_type" =&gt; OPENSSL_KEYTYPE_DH,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; ];<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; // Create the private and public key<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $res = openssl_pkey_new($config);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $pubKey = openssl_pkey_get_details($res);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $keys["public"] = $pubKey["key"];<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; openssl_pkey_export($res, $privKey);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $keys["private"] = $privKey;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return $keys;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+Now you share the Public Key with every member of the party.<br />
+<br />
+/* 2. Each user creates a new Key Pair with the P,G from the global public key info */<br />
+<br />
+$key = openssl_get_publickey(base64_decode($publicKey));<br />
+$info = openssl_pkey_get_details($key);<br />
+$params = $info["dh"];<br />
+<br />
+Now you have the P,G from the public key. Use it;<br />
+<br />
+/**<br />
+&nbsp;&nbsp; &nbsp; * Create keypair from Prime and Generator for KeyExchange<br />
+&nbsp;&nbsp; &nbsp; * @param $prime<br />
+&nbsp;&nbsp; &nbsp; * @param $generator<br />
+&nbsp;&nbsp; &nbsp; */<br />
+&nbsp;&nbsp;&nbsp; public static function create_keypair_from_pg($prime, $generator)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $config = [<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; "digest_alg" =&gt; "sha512",<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; "private_key_bits" =&gt; 2048,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; "dh" =&gt; [<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; "p" =&gt; $prime,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; "g" =&gt; $generator<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; ],<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; "private_key_type" =&gt; OPENSSL_KEYTYPE_DH,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; ];<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return openssl_pkey_new($config);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+/* 3. Create a shared secret with your Private Key, and User 1:n's Public Key */<br />
+<br />
+$privateKey = openssl_get_publickey(base64_decode($privateKeyData));<br />
+<br />
+$secret1 = openssl_dh_compute_key($user1PublicKey, $privateKey);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if($secret !== false) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return bin2hex($secret);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }else{<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; print_r(openssl_error_string());<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+$secret2 = openssl_dh_compute_key($user2PublicKey, $privateKey);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if($secret !== false) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return bin2hex($secret);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }else{<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; print_r(openssl_error_string());<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+/* 4. Compare the secrets as a handshake method */<br />
+<br />
+if(strcmp($secret1, $secret2) === 0) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return true;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return false;<br />
+<br />
+Good luck, enjoy!. Keep me posted about improvements and updates.&nbsp; vangelier AT hotmail DOT com</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="125623""></a>
+  <div class="note">
+   <strong class="user">vangelier at hotmail dot com</strong>
+   <a href="#125623" class="date">21-Dec-2020 06:02</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Is it possible for someone to post a working example?&nbsp; I have written many test and examples, and I just can't seem to get 2 secrets that are alike with this method.<br />
+<br />
+I am following this; https://sandilands.info/sgordon/diffie-hellman-secret-key-exchange-with-openssl<br />
+<br />
+With the console, it works great. With openssl_dh_compute_key it does not work.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
 </div>
 </div></div></body></html>

@@ -27,18 +27,18 @@
   <div id="layout-content"><div id="function.odbc-primarykeys" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">odbc_primarykeys</h1>
-  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">odbc_primarykeys</span> &mdash; <span class="dc-title">Gets the primary keys for a table</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7, PHP 8)</p><p class="refpurpose"><span class="refname">odbc_primarykeys</span> &mdash; <span class="dc-title">Gets the primary keys for a table</span></p>
 
  </div>
  <div class="refsect1 description" id="refsect1-function.odbc-primarykeys-description">
   <h3 class="title">说明</h3>
   <div class="methodsynopsis dc-description">
    <span class="methodname"><strong>odbc_primarykeys</strong></span>
-    ( <span class="methodparam"><span class="type">resource</span> <code class="parameter">$connection_id</code></span>
-   , <span class="methodparam"><span class="type">string</span> <code class="parameter">$qualifier</code></span>
-   , <span class="methodparam"><span class="type">string</span> <code class="parameter">$owner</code></span>
+    ( <span class="methodparam"><span class="type">resource</span> <code class="parameter">$odbc</code></span>
+   , <span class="methodparam"><span class="type"><span class="type">string</span>|<span class="type">null</span></span> <code class="parameter">$catalog</code></span>
+   , <span class="methodparam"><span class="type">string</span> <code class="parameter">$schema</code></span>
    , <span class="methodparam"><span class="type">string</span> <code class="parameter">$table</code></span>
-   ) : <span class="type">resource</span></div>
+   ) : <span class="type"><span class="type">resource</span>|<span class="type"><span class="type false">false</span></span></span></div>
 
   <p class="para rdfs-comment">
    Returns a result identifier that can be used to fetch the column names
@@ -53,7 +53,7 @@
 
     
      <dt>
-<code class="parameter">connection_id</code></dt>
+<code class="parameter">odbc</code></dt>
 
      <dd>
 
@@ -64,22 +64,24 @@
     
     
      <dt>
-<code class="parameter">qualifier</code></dt>
+<code class="parameter">catalog</code></dt>
 
      <dd>
 
       <p class="para">
+       The catalog (&#039;qualifier&#039; in ODBC 2 parlance).
       </p>
      </dd>
 
     
     
      <dt>
-<code class="parameter">owner</code></dt>
+<code class="parameter">schema</code></dt>
 
      <dd>
 
       <p class="para">
+       The schema (&#039;owner&#039; in ODBC 2 parlance).
       </p>
      </dd>
 
@@ -103,20 +105,66 @@
  <div class="refsect1 returnvalues" id="refsect1-function.odbc-primarykeys-returnvalues">
   <h3 class="title">返回值</h3>
   <p class="para">
-   Returns an ODBC result identifier 或者在失败时返回 <strong><code>FALSE</code></strong>.
+   Returns an ODBC result identifier 或者在失败时返回 <strong><code>false</code></strong>.
   </p>
   <p class="para">
    The result set has the following columns:
    <ul class="itemizedlist">
-    <li class="listitem"><span class="simpara">TABLE_QUALIFIER</span></li>
-    <li class="listitem"><span class="simpara">TABLE_OWNER</span></li>
-    <li class="listitem"><span class="simpara">TABLE_NAME</span></li>
-    <li class="listitem"><span class="simpara">COLUMN_NAME</span></li>
-    <li class="listitem"><span class="simpara">KEY_SEQ</span></li>
-    <li class="listitem"><span class="simpara">PK_NAME</span></li>
+    <li class="listitem"><span class="simpara"><code class="literal">TABLE_CAT</code></span></li>
+    <li class="listitem"><span class="simpara"><code class="literal">TABLE_SCHEM</code></span></li>
+    <li class="listitem"><span class="simpara"><code class="literal">TABLE_NAME</code></span></li>
+    <li class="listitem"><span class="simpara"><code class="literal">COLUMN_NAME</code></span></li>
+    <li class="listitem"><span class="simpara"><code class="literal">KEY_SEQ</code></span></li>
+    <li class="listitem"><span class="simpara"><code class="literal">PK_NAME</code></span></li>
+   </ul>
+   Drivers can report additional columns.
+  </p>
+  <p class="simpara">
+   The result set is ordered by <code class="literal">TABLE_CAT</code>, <code class="literal">TABLE_SCHEM</code>,
+   <code class="literal">TABLE_NAME</code> and <code class="literal">KEY_SEQ</code>.
+  </p>
+ </div>
+
+
+ <div class="refsect1 examples" id="refsect1-function.odbc-primarykeys-examples">
+  <h3 class="title">范例</h3>
+  <div class="example" id="example-945">
+   <p><strong>Example #1 List primary Keys of a Column</strong></p>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$conn&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">odbc_connect</span><span style="color: #007700">(</span><span style="color: #0000BB">$dsn</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$user</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$pass</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$primarykeys&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">odbc_primarykeys</span><span style="color: #007700">(</span><span style="color: #0000BB">$conn</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'TutorialDB'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'dbo'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'TEST'</span><span style="color: #007700">);<br />while&nbsp;((</span><span style="color: #0000BB">$row&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">odbc_fetch_array</span><span style="color: #007700">(</span><span style="color: #0000BB">$primarykeys</span><span style="color: #007700">)))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">print_r</span><span style="color: #007700">(</span><span style="color: #0000BB">$row</span><span style="color: #007700">);<br />&nbsp;&nbsp;&nbsp;&nbsp;break;&nbsp;</span><span style="color: #FF8000">//&nbsp;further&nbsp;rows&nbsp;omitted&nbsp;for&nbsp;brevity<br /></span><span style="color: #007700">}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+   <div class="example-contents"><p>以上例程的输出类似于：</p></div>
+   <div class="example-contents screen">
+<div class="cdata"><pre>
+Array
+(
+    [TABLE_CAT] =&gt; TutorialDB
+    [TABLE_SCHEM] =&gt; dbo
+    [TABLE_NAME] =&gt; TEST
+    [COLUMN_NAME] =&gt; id
+    [KEY_SEQ] =&gt; 1
+    [PK_NAME] =&gt; PK__TEST__3213E83FE141F843
+)
+</pre></div>
+   </div>
+  </div>
+ </div>
+
+
+ <div class="refsect1 seealso" id="refsect1-function.odbc-primarykeys-seealso">
+  <h3 class="title">参见</h3>
+  <p class="para">
+   <ul class="simplelist">
+    <li class="member"><span class="function"><a href="function.odbc-tables.html" class="function" rel="rdfs-seeAlso">odbc_tables()</a> - Get the list of table names stored in a specific data source</span></li>
+    <li class="member"><span class="function"><a href="function.odbc-foreignkeys.html" class="function" rel="rdfs-seeAlso">odbc_foreignkeys()</a> - Retrieves a list of foreign keys</span></li>
    </ul>
   </p>
  </div>
+
 
 </div><div id="usernotes">
  <div class="head">

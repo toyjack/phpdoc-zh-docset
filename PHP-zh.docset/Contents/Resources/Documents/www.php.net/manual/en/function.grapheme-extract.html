@@ -37,10 +37,10 @@
    <span class="methodname"><strong>grapheme_extract</strong></span>
     ( <span class="methodparam"><span class="type">string</span> <code class="parameter">$haystack</code></span>
    , <span class="methodparam"><span class="type">int</span> <code class="parameter">$size</code></span>
-   [, <span class="methodparam"><span class="type">int</span> <code class="parameter">$extract_type</code></span>
-   [, <span class="methodparam"><span class="type">int</span> <code class="parameter">$start</code><span class="initializer"> = 0</span></span>
-   [, <span class="methodparam"><span class="type">int</span> <code class="parameter reference">&$next</code></span>
-  ]]] ) : <span class="type">string</span></div>
+   , <span class="methodparam"><span class="type">int</span> <code class="parameter">$type</code><span class="initializer"> = <strong><code>GRAPHEME_EXTR_COUNT</code></strong></span></span>
+   , <span class="methodparam"><span class="type">int</span> <code class="parameter">$offset</code><span class="initializer"> = 0</span></span>
+   , <span class="methodparam"><span class="type">int</span> <code class="parameter reference">&$next</code><span class="initializer"> = <strong><code>null</code></strong></span></span>
+   ) : <span class="type"><span class="type">string</span>|<span class="type"><span class="type false">false</span></span></span></div>
 
   <p class="para rdfs-comment">
    Function to extract a sequence of default grapheme clusters from a text buffer, which must be encoded in UTF-8. 
@@ -79,7 +79,7 @@
     
     
      <dt>
-<code class="parameter">extract_type</code></dt>
+<code class="parameter">type</code></dt>
 
      <dd>
 
@@ -101,7 +101,7 @@
     
     
      <dt>
-<code class="parameter">start</code></dt>
+<code class="parameter">offset</code></dt>
 
      <dd>
 
@@ -140,7 +140,8 @@
   <h3 class="title">返回值</h3>
   <p class="para">
    A string starting at offset $start and ending on a default grapheme cluster
-   boundary that conforms to the $size and $extract_type specified.
+   boundary that conforms to the $size and $extract_type specified,
+    或者在失败时返回 <strong><code>false</code></strong>.
   </p>
  </div>
 
@@ -161,7 +162,7 @@
      <tr>
       <td>7.1.0</td>
       <td>
-       Support for negative <code class="parameter">start</code>s has been added.
+       Support for negative <code class="parameter">offset</code>s has been added.
       </td>
      </tr>
 
@@ -174,7 +175,7 @@
 
  <div class="refsect1 examples" id="refsect1-function.grapheme-extract-examples">
   <h3 class="title">范例</h3>
-  <div class="example" id="example-3126">
+  <div class="example" id="example-2854">
    <p><strong>Example #1 <span class="function"><strong>grapheme_extract()</strong></span> example</strong></p>
    <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -211,7 +212,47 @@ o%CC%88
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="104872""></a>
+<div id="allnotes">  <a name="125444""></a>
+  <div class="note">
+   <strong class="user">yevgen dot grytsay at gmail dot com</strong>
+   <a href="#125444" class="date">19-Oct-2020 01:35</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Looping through grapheme clusters:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="comment">// Example taken from Rust documentation: https://doc.rust-lang.org/book/ch08-02-strings.html#bytes-and-scalar-values-and-grapheme-clusters-oh-my<br />
+</span><span class="default">$str </span><span class="keyword">= </span><span class="string">"??????"</span><span class="keyword">;<br />
+</span><span class="comment">// Alternatively:<br />
+//$str = pack('C*', ...[224, 164, 168, 224, 164, 174, 224, 164, 184, 224, 165, 141, 224, 164, 164, 224, 165, 135]);<br />
+</span><span class="default">$next </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">;<br />
+</span><span class="default">$maxbytes </span><span class="keyword">= </span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$str</span><span class="keyword">);<br />
+<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$str</span><span class="keyword">);<br />
+<br />
+while (</span><span class="default">$next </span><span class="keyword">&lt; </span><span class="default">$maxbytes</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$char </span><span class="keyword">= </span><span class="default">grapheme_extract</span><span class="keyword">(</span><span class="default">$str</span><span class="keyword">, </span><span class="default">1</span><span class="keyword">, </span><span class="default">GRAPHEME_EXTR_COUNT</span><span class="keyword">, </span><span class="default">$next</span><span class="keyword">, </span><span class="default">$next</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; if (empty(</span><span class="default">$char</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; continue;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"</span><span class="keyword">{</span><span class="default">$char</span><span class="keyword">}</span><span class="string"> - This utf8 character is " </span><span class="keyword">. </span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$char</span><span class="keyword">) . </span><span class="string">' bytes long'</span><span class="keyword">, </span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="comment">//string(18) "??????"<br />
+//? - This utf8 character is 3 bytes long<br />
+//? - This utf8 character is 3 bytes long<br />
+//?? - This utf8 character is 6 bytes long<br />
+//?? - This utf8 character is 6 bytes long<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="104872""></a>
   <div class="note">
    <strong class="user">AJH</strong>
    <a href="#104872" class="date">12-Jul-2011 04:37</a>

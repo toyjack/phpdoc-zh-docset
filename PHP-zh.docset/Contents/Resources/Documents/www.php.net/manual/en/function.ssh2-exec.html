@@ -37,12 +37,12 @@
    <span class="methodname"><strong>ssh2_exec</strong></span>
     ( <span class="methodparam"><span class="type">resource</span> <code class="parameter">$session</code></span>
    , <span class="methodparam"><span class="type">string</span> <code class="parameter">$command</code></span>
-   [, <span class="methodparam"><span class="type">string</span> <code class="parameter">$pty</code></span>
-   [, <span class="methodparam"><span class="type">array</span> <code class="parameter">$env</code></span>
-   [, <span class="methodparam"><span class="type">int</span> <code class="parameter">$width</code><span class="initializer"> = 80</span></span>
-   [, <span class="methodparam"><span class="type">int</span> <code class="parameter">$height</code><span class="initializer"> = 25</span></span>
-   [, <span class="methodparam"><span class="type">int</span> <code class="parameter">$width_height_type</code><span class="initializer"> = SSH2_TERM_UNIT_CHARS</span></span>
-  ]]]]] ) : <span class="type">resource</span></div>
+   , <span class="methodparam"><span class="type">string</span> <code class="parameter">$pty</code> = ?</span>
+   , <span class="methodparam"><span class="type">array</span> <code class="parameter">$env</code> = ?</span>
+   , <span class="methodparam"><span class="type">int</span> <code class="parameter">$width</code><span class="initializer"> = 80</span></span>
+   , <span class="methodparam"><span class="type">int</span> <code class="parameter">$height</code><span class="initializer"> = 25</span></span>
+   , <span class="methodparam"><span class="type">int</span> <code class="parameter">$width_height_type</code><span class="initializer"> = SSH2_TERM_UNIT_CHARS</span></span>
+   ) : <span class="type"><span class="type">resource</span>|<span class="type"><span class="type false">false</span></span></span></div>
 
   <p class="para rdfs-comment">
    Execute a command at the remote end and allocate a channel for it.
@@ -150,7 +150,7 @@
  <div class="refsect1 returnvalues" id="refsect1-function.ssh2-exec-returnvalues">
   <h3 class="title">返回值</h3>
   <p class="para">
-   Returns a stream on success 或者在失败时返回 <strong><code>FALSE</code></strong>.
+   Returns a stream on success 或者在失败时返回 <strong><code>false</code></strong>.
   </p>
  </div>
 
@@ -158,7 +158,7 @@
  <div class="refsect1 examples" id="refsect1-function.ssh2-exec-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-5663">
+   <div class="example" id="example-4872">
     <p><strong>Example #1 Executing a command</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -188,7 +188,65 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="124818""></a>
+<div id="allnotes">  <a name="125100""></a>
+  <div class="note">
+   <strong class="user">Rainer Perske</strong>
+   <a href="#125100" class="date">09-Jun-2020 02:50</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The following function can be used to read both stdout and stderr even if both streams contain gigabytes of data. It solves most problems mentioned in other comments, like blocking, like further using the existing connection etc.<br />
+<br />
+&nbsp; function ssh2_run($ssh2,$cmd,&amp;$out=null,&amp;$err=null){<br />
+&nbsp;&nbsp;&nbsp; $result=false;<br />
+&nbsp;&nbsp;&nbsp; $out='';<br />
+&nbsp;&nbsp;&nbsp; $err='';<br />
+&nbsp;&nbsp;&nbsp; $sshout=ssh2_exec($ssh2,$cmd);<br />
+&nbsp;&nbsp;&nbsp; if($sshout){<br />
+&nbsp;&nbsp; &nbsp;&nbsp; $ssherr=ssh2_fetch_stream($sshout,SSH2_STREAM_STDERR);<br />
+&nbsp;&nbsp; &nbsp;&nbsp; if($ssherr){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; # we cannot use stream_select() with SSH2 streams<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; # so use non-blocking stream_get_contents() and usleep()<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(stream_set_blocking($sshout,false) and<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; stream_set_blocking($ssherr,false)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; ){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $result=true;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; # loop until end of output on both stdout and stderr<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $wait=0;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; while(!feof($sshout) or !feof($ssherr)){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; # sleep only after not reading any data<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if($wait)usleep($wait);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $wait=50000; # 1/20 second<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(!feof($sshout)){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $one=stream_get_contents($sshout);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if($one===false){ $result=false; break; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if($one!=''){ $out.=$one; $wait=0; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(!feof($ssherr)){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $one=stream_get_contents($ssherr);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if($one===false){ $result=false; break; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if($one!=''){ $err.=$one; $wait=0; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; # we need to wait for end of command<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; stream_set_blocking($sshout,true);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; stream_set_blocking($ssherr,true);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; # these will not get any output<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; stream_get_contents($sshout);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; stream_get_contents($ssherr);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; fclose($ssherr);<br />
+&nbsp;&nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp;&nbsp; fclose($sshout);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; return $result;<br />
+&nbsp; }</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="124818""></a>
   <div class="note">
    <strong class="user">dosentnd at gmail dot com</strong>
    <a href="#124818" class="date">12-Mar-2020 08:39</a>

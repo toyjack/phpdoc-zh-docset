@@ -27,16 +27,16 @@
   <div id="layout-content"><div id="imagick.identifyimage" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">Imagick::identifyImage</h1>
-  <p class="verinfo">(PECL imagick 2.0.0)</p><p class="refpurpose"><span class="refname">Imagick::identifyImage</span> &mdash; <span class="dc-title">Identifies an image and fetches attributes</span></p>
+  <p class="verinfo">(PECL imagick 2, PECL imagick 3)</p><p class="refpurpose"><span class="refname">Imagick::identifyImage</span> &mdash; <span class="dc-title">Identifies an image and fetches attributes</span></p>
 
  </div>
 
  <div class="refsect1 description" id="refsect1-imagick.identifyimage-description">
   <h3 class="title">หตร๗</h3>
   <div class="methodsynopsis dc-description">
-   <span class="methodname"><strong>Imagick::identifyImage</strong></span>
-    ([ <span class="methodparam"><span class="type">bool</span> <code class="parameter">$appendRawOutput</code><span class="initializer"> = <strong><code>FALSE</code></strong></span></span>
-  ] ) : <span class="type">array</span></div>
+   <span class="modifier">public</span> <span class="methodname"><strong>Imagick::identifyImage</strong></span>
+    ( <span class="methodparam"><span class="type">bool</span> <code class="parameter">$appendRawOutput</code><span class="initializer"> = <strong><code>false</code></strong></span></span>
+   ) : <span class="type">array</span></div>
 
   <p class="para rdfs-comment">
    Identifies an image and returns the attributes.  Attributes include
@@ -57,7 +57,7 @@
      <dd>
 
       <p class="para">
-         If <strong><code>TRUE</code></strong> then the raw output is appended to the array.
+         If <strong><code>true</code></strong> then the raw output is appended to the array.
       </p>
      </dd>
 
@@ -79,7 +79,7 @@
  
  <div class="refsect1 examples" id="refsect1-imagick.identifyimage-examples">
   <p class="para">
-   <div class="example" id="example-3852">
+   <div class="example" id="example-3157">
    <p><strong>Example #1 Example Result Format</strong></p>
    <div class="example-contents screen">
 <div class="examplescode"><pre class="examplescode">Array
@@ -124,7 +124,122 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="101048""></a>
+<div id="allnotes">  <a name="125037""></a>
+  <div class="note">
+   <strong class="user">rhuanpachecok at gmail dot com</strong>
+   <a href="#125037" class="date">23-May-2020 03:41</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I have created a function to parse the "rawOutput" because the information provided by this function is quite useless.<br />
+<br />
+function parseIdentify($info) {<br />
+&nbsp;&nbsp;&nbsp; $lines = explode("\n", $info);<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; $outputs = [];<br />
+&nbsp;&nbsp;&nbsp; $output = [];<br />
+&nbsp;&nbsp;&nbsp; $keys = [];<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; $currSpaces = 0;<br />
+&nbsp;&nbsp;&nbsp; $raw = false;<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; foreach($lines as $line) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $trimLine = trim($line);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(empty($trimLine)) continue;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if($raw) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; preg_match('/^[0-9]+:\s/', $trimLine, $match);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(!empty($match)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $regex = '/([\d]+):';<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $regex .= '\s(\([\d|\s]{1,3},[\d|\s]{1,3},[\d|\s]{1,3},[\d|\s]{1,3}\))';<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $regex .= '\s(#\w+)';<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $regex .= '\s(srgba\([\d|\s]{1,3},[\d|\s]{1,3},[\d|\s]{1,3},[\d|\s|.]+\)|\w+)/';<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; preg_match($regex, $trimLine, $matches);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; array_shift($matches);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $output['Image'][$raw][] = $matches;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; continue;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $raw = false;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; array_pop($keys);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; preg_match('/^\s+/', $line, $match);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $spaces = isset($match[0]) ? strlen($match[0]) : $spaces = 0;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $parts = preg_split('/:\s/', $trimLine, 2);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $_key = ucwords($parts[0]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $_key = str_replace(' ', '', $_key);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $_val = isset($parts[1]) ? $parts[1] : [];<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if($_key == 'Image') {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(!empty($output)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $outputs[] = $output['Image'];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $output = [];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $_val = [];<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if($spaces &lt; $currSpaces) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; for($i = 0; $i &lt; ($currSpaces - $spaces) / 2; $i++) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; array_pop($keys);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(is_array($_val)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $_key = rtrim($_key, ':');<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $keys[] = $_key;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if($_key == 'Histogram' || $_key == 'Colormap') {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $raw = $_key;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $currSpaces = $spaces;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $arr = &amp;$output;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach($keys as $key) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(!isset($arr[$key])) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $arr[$key] = $_val;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $arr = &amp;$arr[$key];<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(!is_array($_val)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $arr[$_key] = $_val;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; $outputs[] = $output['Image'];<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; return count($outputs) &gt; 1 ? $outputs : $outputs[0];<br />
+}<br />
+<br />
+Usage example:<br />
+<br />
+$img = new Imagick('example.png');<br />
+$identify = parseIdentify($img-&gt;identifyImage(true)['rawOutput']);<br />
+<br />
+But the "rawOutput" that this function returns only contains the first frame if it is a GIF. Alternatively you can use the command "identify" to get the data of all the frames:<br />
+<br />
+$identify = parseIdentify(shell_exec('identify -verbose example.gif'));</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="101048""></a>
   <div class="note">
    <strong class="user">php at ontheroad dot net dot nz</strong>
    <a href="#101048" class="date">22-Nov-2010 08:04</a>

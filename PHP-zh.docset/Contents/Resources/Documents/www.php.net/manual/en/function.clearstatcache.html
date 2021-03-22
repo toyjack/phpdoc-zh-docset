@@ -27,7 +27,7 @@
   <div id="layout-content"><div id="function.clearstatcache" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">clearstatcache</h1>
-  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">clearstatcache</span> &mdash; <span class="dc-title">清除文件状态缓存</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7, PHP 8)</p><p class="refpurpose"><span class="refname">clearstatcache</span> &mdash; <span class="dc-title">清除文件状态缓存</span></p>
 
  </div>
  
@@ -35,9 +35,9 @@
   <h3 class="title">说明</h3>
   <div class="methodsynopsis dc-description">
    <span class="methodname"><strong>clearstatcache</strong></span>
-    ([ <span class="methodparam"><span class="type">bool</span> <code class="parameter">$clear_realpath_cache</code><span class="initializer"> = false</span></span>
-   [, <span class="methodparam"><span class="type">string</span> <code class="parameter">$filename</code></span>
-  ]] ) : <span class="type"><span class="type void">void</span></span></div>
+    ( <span class="methodparam"><span class="type">bool</span> <code class="parameter">$clear_realpath_cache</code><span class="initializer"> = false</span></span>
+   , <span class="methodparam"><span class="type">string</span> <code class="parameter">$filename</code> = ?</span>
+   ) : <span class="type"><span class="type void">void</span></span></div>
 
   <p class="para rdfs-comment">
    当使用 <span class="function"><a href="function.stat.html" class="function">stat()</a></span>，<span class="function"><a href="function.lstat.html" class="function">lstat()</a></span>
@@ -49,7 +49,7 @@
   <p class="para">
    必须注意的是，对于不存在的文件，PHP 并不会缓存其信息。所以如果调用
    <span class="function"><a href="function.file-exists.html" class="function">file_exists()</a></span> 来检查不存在的文件，在该文件没有被创建之前，它都会返回
-   <strong><code>FALSE</code></strong>。如果该文件被创建了，就算以后被删除，它都会返回 <strong><code>TRUE</code></strong>
+   <strong><code>false</code></strong>。如果该文件被创建了，就算以后被删除，它都会返回 <strong><code>true</code></strong>
    函数 <span class="function"><a href="function.unlink.html" class="function">unlink()</a></span> 会自动清除该缓存.
   </p>
   <blockquote class="note"><p><strong class="note">Note</strong>: 
@@ -107,7 +107,7 @@
 
       <p class="para">
        清除文件名指定的文件的真实路径缓存; 只在
-       <code class="parameter">clear_realpath_cache</code> 为 <strong><code>TRUE</code></strong> 
+       <code class="parameter">clear_realpath_cache</code> 为 <strong><code>true</code></strong> 
        时启用
       </p>
      </dd>
@@ -160,7 +160,7 @@
  <div class="refsect1 examples" id="refsect1-function.clearstatcache-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-2797">
+   <div class="example" id="example-2526">
     <p><strong>Example #1 <span class="function"><strong>clearstatcache()</strong></span> 例子</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -187,7 +187,39 @@ UID @ Sun, 12 Oct 2008 20:48:28 +0100: ross
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="124497""></a>
+<div id="allnotes">  <a name="125163""></a>
+  <div class="note">
+   <strong class="user">vechenjivot  at  gmail dot com</strong>
+   <a href="#125163" class="date">03-Jul-2020 06:09</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Not documented, but seems like clearstatcache() is clearing the cache only for the process it is being called from. I have 2 PHP scripts running simultaneously, and the first one does call clearstatcache(), but still the second one deadlocks, unless I call clearstatcache() in it too:<br />
+<br />
+script1:<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; touch</span><span class="keyword">(</span><span class="string">'system.lock'</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; ...<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">unlink</span><span class="keyword">(</span><span class="string">'system.lock'</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">clearstatcache</span><span class="keyword">(); </span><span class="comment">// should be done by unlink?<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+script2:<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">while (</span><span class="default">is_file</span><span class="keyword">(</span><span class="string">'system.lock'</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">sleep</span><span class="keyword">(</span><span class="default">1</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">clearstatcache</span><span class="keyword">(); </span><span class="comment">// without this, script 2 will deadlock forever!<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+I also found this page, which leads to the same conclusion:<br />
+https://stackoverflow.com/questions/9251237/clearstatcache-include-path-sessions</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="124497""></a>
   <div class="note">
    <strong class="user">msaladna at apisnetworks dot com</strong>
    <a href="#124497" class="date">10-Dec-2019 11:10</a>

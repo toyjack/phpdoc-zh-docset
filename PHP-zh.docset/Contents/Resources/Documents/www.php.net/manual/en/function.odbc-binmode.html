@@ -27,30 +27,37 @@
   <div id="layout-content"><div id="function.odbc-binmode" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">odbc_binmode</h1>
-  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">odbc_binmode</span> &mdash; <span class="dc-title">Handling of binary column data</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7, PHP 8)</p><p class="refpurpose"><span class="refname">odbc_binmode</span> &mdash; <span class="dc-title">Handling of binary column data</span></p>
 
  </div>
  <div class="refsect1 description" id="refsect1-function.odbc-binmode-description">
   <h3 class="title">说明</h3>
   <div class="methodsynopsis dc-description">
    <span class="methodname"><strong>odbc_binmode</strong></span>
-    ( <span class="methodparam"><span class="type">resource</span> <code class="parameter">$result_id</code></span>
+    ( <span class="methodparam"><span class="type">resource</span> <code class="parameter">$statement</code></span>
    , <span class="methodparam"><span class="type">int</span> <code class="parameter">$mode</code></span>
    ) : <span class="type">bool</span></div>
 
   <p class="para rdfs-comment">
-   Enables handling of binary column data. ODBC SQL types affected are
-   <em>BINARY</em>, <em>VARBINARY</em>, and
-   <em>LONGVARBINARY</em>.
+   Controls handling of binary column data. ODBC SQL types affected are
+   <code class="literal">BINARY</code>, <code class="literal">VARBINARY</code>, and
+   <code class="literal">LONGVARBINARY</code>.
+   The default mode can be set using the
+   <a href="odbc.configuration.html#ini.uodbc.defaultbinmode" class="link">uodbc.defaultbinmode</a> <var class="filename">php.ini</var> directive.
   </p>
   <p class="para">
-   When binary SQL data is converted to character C data, each byte
+   When binary SQL data is converted to character C data (<strong><code>ODBC_BINMODE_CONVERT</code></strong>), each byte
    (8 bits) of source data is represented as two ASCII characters.
    These characters are the ASCII character representation of the
    number in its hexadecimal form. For example, a binary
-   <em>00000001</em> is converted to
-   <em>&quot;01&quot;</em> and a binary <em>11111111</em>
-   is converted to <em>&quot;FF&quot;</em>.
+   <code class="literal">00000001</code> is converted to
+   <code class="literal">&quot;01&quot;</code> and a binary <code class="literal">11111111</code>
+   is converted to <code class="literal">&quot;FF&quot;</code>.
+  </p>
+  <p class="para">
+   While the handling of <code class="literal">BINARY</code> and <code class="literal">VARBINARY</code>
+   columns only depend on the binmode, the handling of <code class="literal">LONGVARBINARY</code>
+   columns also depends on the longreadlen as well:
    <table class="doctable table">
     <caption><strong>LONGVARBINARY handling</strong></caption>
     
@@ -84,12 +91,6 @@
 
       <tr>
        <td><strong><code>ODBC_BINMODE_PASSTHRU</code></strong></td>
-       <td>0</td>
-       <td>passthru</td>
-      </tr>
-
-      <tr>
-       <td><strong><code>ODBC_BINMODE_PASSTHRU</code></strong></td>
        <td>&gt;0</td>
        <td>passthru</td>
       </tr>
@@ -114,6 +115,8 @@
   <p class="para">
    If <span class="function"><a href="function.odbc-fetch-into.html" class="function">odbc_fetch_into()</a></span> is used, passthru means that an
    empty string is returned for these columns.
+   If <span class="function"><a href="function.odbc-result.html" class="function">odbc_result()</a></span> is used, passthru means that the data are
+   sent directly to the client (i.e. printed).
   </p>
  </div>
 
@@ -124,7 +127,7 @@
 
     
      <dt>
-<code class="parameter">result_id</code></dt>
+<code class="parameter">statement</code></dt>
 
      <dd>
 
@@ -132,16 +135,8 @@
        The result identifier.
       </p>
       <p class="para">
-       If <code class="parameter">result_id</code> is <em>0</em>, the
+       If <code class="parameter">statement</code> is <code class="literal">0</code>, the
        settings apply as default for new results.
-       <blockquote class="note"><p><strong class="note">Note</strong>: 
-        <span class="simpara">
-         Default for <em>longreadlen</em> is <em>4096</em> and
-         <code class="parameter">mode</code> defaults to
-         <em>ODBC_BINMODE_RETURN</em>. Handling of binary long
-         columns is also affected by <span class="function"><a href="function.odbc-longreadlen.html" class="function">odbc_longreadlen()</a></span>.
-        </span>
-       </p></blockquote>
       </p>
      </dd>
 
@@ -171,6 +166,12 @@
          </span>
         </li>
        </ul>
+       <blockquote class="note"><p><strong class="note">Note</strong>: 
+        <span class="simpara">
+         Handling of binary long
+         columns is also affected by <span class="function"><a href="function.odbc-longreadlen.html" class="function">odbc_longreadlen()</a></span>.
+        </span>
+       </p></blockquote>
       </p>
      </dd>
 
@@ -183,7 +184,7 @@
  <div class="refsect1 returnvalues" id="refsect1-function.odbc-binmode-returnvalues">
   <h3 class="title">返回值</h3>
   <p class="para">
-   成功时返回 <strong><code>TRUE</code></strong>， 或者在失败时返回 <strong><code>FALSE</code></strong>。
+   成功时返回 <strong><code>true</code></strong>， 或者在失败时返回 <strong><code>false</code></strong>。
   </p>
  </div>
 

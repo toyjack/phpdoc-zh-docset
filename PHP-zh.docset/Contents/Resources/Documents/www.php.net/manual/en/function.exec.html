@@ -27,7 +27,7 @@
   <div id="layout-content"><div id="function.exec" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">exec</h1>
-  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">exec</span> &mdash; <span class="dc-title">执行一个外部程序</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7, PHP 8)</p><p class="refpurpose"><span class="refname">exec</span> &mdash; <span class="dc-title">执行一个外部程序</span></p>
 
  </div>
 
@@ -36,9 +36,9 @@
   <div class="methodsynopsis dc-description">
    <span class="methodname"><strong>exec</strong></span>
     ( <span class="methodparam"><span class="type">string</span> <code class="parameter">$command</code></span>
-   [, <span class="methodparam"><span class="type">array</span> <code class="parameter reference">&$output</code></span>
-   [, <span class="methodparam"><span class="type">int</span> <code class="parameter reference">&$return_var</code></span>
-  ]] ) : <span class="type">string</span></div>
+   , <span class="methodparam"><span class="type">array</span> <code class="parameter reference">&$output</code> = ?</span>
+   , <span class="methodparam"><span class="type">int</span> <code class="parameter reference">&$return_var</code> = ?</span>
+   ) : <span class="type">string</span></div>
 
   <p class="para rdfs-comment">
    <span class="function"><strong>exec()</strong></span> 执行
@@ -74,7 +74,7 @@
         如果提供了 <code class="parameter">output</code> 参数，
         那么会用命令执行的输出填充此数组，
         每行输出填充数组中的一个元素。
-        数组中的数据不包含行尾的空白字符，例如 <em>\n</em> 字符。
+        数组中的数据不包含行尾的空白字符，例如 <code class="literal">\n</code> 字符。
         请注意，如果数组中已经包含了部分元素，<span class="function"><strong>exec()</strong></span>
         函数会在数组末尾追加内容。如果你不想在数组末尾进行追加，
         请在传入 <span class="function"><strong>exec()</strong></span> 函数之前
@@ -121,7 +121,7 @@
  <div class="refsect1 examples" id="refsect1-function.exec-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-4392">
+   <div class="example" id="example-3665">
     <p><strong>Example #1 <span class="function"><strong>exec()</strong></span> 例程</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -142,14 +142,9 @@
 来确保用户欺骗系统从而执行任意命令。</p></div>
   <blockquote class="note"><p><strong class="note">Note</strong>: <p class="para">如何程序使用此函数启动，为了能保持在后台运行，此程序必须将输出重定向到文件或其它输出流。否则会导致
 PHP 挂起，直至程序执行结束。</p></p></blockquote>
-  <blockquote class="note"><p><strong class="note">Note</strong>: <p class="para">On Windows <span class="function"><strong>exec()</strong></span>
-will first start cmd.exe to launch the command. If you want to start an external program without starting cmd.exe
-use <span class="function"><a href="function.proc-open.html" class="function">proc_open()</a></span> with the <code class="parameter">bypass_shell</code> option set.</p></p></blockquote>
-  <blockquote class="note"><p><strong class="note">Note</strong>: <span class="simpara"><a href="features.safe-mode.html" class="link">安全模式</a> 启用时，可仅可用
-<a href="ini.sect.safe-mode.html#ini.safe-mode-exec-dir" class="link">safe_mode_exec_dir</a> 执行文件。实际上，现在不允许在到可执行的路径中存在 <em>..</em> 组件。</span></p></blockquote>
-  <div class="warning"><strong class="warning">Warning</strong><p class="simpara"><a href="features.safe-mode.html" class="link">安全模式</a> 启用时，命令字符串会被
-<span class="function"><a href="function.escapeshellcmd.html" class="function">escapeshellcmd()</a></span> 转换。因此，<em>echo y | echo x</em> 会变成
-<em>echo y \| echo x</em>。</p></div>
+  <blockquote class="note"><p><strong class="note">Note</strong>: <p class="para">在 Windows 下，<span class="function"><strong>exec()</strong></span>
+函数会先启动 cmd.exe 来执行指定的命令。如果你希望启动一个额外的应用而不用先启动 cmd.exe
+可使用 <span class="function"><a href="function.proc-open.html" class="function">proc_open()</a></span> 函数加上 <code class="parameter">bypass_shell</code> 参数。</p></p></blockquote>
  </div>
 
 
@@ -170,7 +165,33 @@ use <span class="function"><a href="function.proc-open.html" class="function">pr
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="119331""></a>
+<div id="allnotes">  <a name="124878""></a>
+  <div class="note">
+   <strong class="user">Hypolite Petovan</strong>
+   <a href="#124878" class="date">03-Apr-2020 03:48</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+On Unix, to execute a command $cmd in the background, the one and only allowed standard output redirection syntax is "&gt; /path/to/file &amp;". No other valid standard output redirection syntax will allow a command to be ran in the background.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">// The following will be ran in the background<br />
+</span><span class="default">exec</span><span class="keyword">(</span><span class="default">$cmd </span><span class="keyword">. </span><span class="string">" &gt; /path/to/file &amp;"</span><span class="keyword">); <br />
+<br />
+</span><span class="comment">// All the following will NOT be ran in the background<br />
+</span><span class="default">exec</span><span class="keyword">(</span><span class="default">$cmd </span><span class="keyword">. </span><span class="string">" &gt;&gt; /path/to/file &amp;"</span><span class="keyword">); <br />
+</span><span class="default">exec</span><span class="keyword">(</span><span class="default">$cmd </span><span class="keyword">. </span><span class="string">" &amp;&gt; /path/to/file &amp;"</span><span class="keyword">); <br />
+</span><span class="default">exec</span><span class="keyword">(</span><span class="default">$cmd </span><span class="keyword">. </span><span class="string">" &amp;&gt;&gt; /path/to/file &amp;"</span><span class="keyword">); <br />
+</span><span class="default">exec</span><span class="keyword">(</span><span class="default">$cmd </span><span class="keyword">. </span><span class="string">" 2&gt;&amp;1 &gt; /path/to/file &amp;"</span><span class="keyword">); <br />
+</span><span class="default">exec</span><span class="keyword">(</span><span class="default">$cmd </span><span class="keyword">. </span><span class="string">" 2&gt;&amp;1 &gt;&gt; /path/to/file &amp;"</span><span class="keyword">); <br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119331""></a>
   <div class="note">
    <strong class="user">Paul Sommer</strong>
    <a href="#119331" class="date">14-May-2016 01:33</a>

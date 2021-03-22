@@ -27,7 +27,7 @@
   <div id="layout-content"><div id="function.openssl-pkcs7-encrypt" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">openssl_pkcs7_encrypt</h1>
-  <p class="verinfo">(PHP 4 &gt;= 4.0.6, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">openssl_pkcs7_encrypt</span> &mdash; <span class="dc-title">加密一个 S/MIME 消息</span></p>
+  <p class="verinfo">(PHP 4 &gt;= 4.0.6, PHP 5, PHP 7, PHP 8)</p><p class="refpurpose"><span class="refname">openssl_pkcs7_encrypt</span> &mdash; <span class="dc-title">加密一个 S/MIME 消息</span></p>
 
  </div>
  
@@ -37,11 +37,11 @@
    <span class="methodname"><strong>openssl_pkcs7_encrypt</strong></span>
     ( <span class="methodparam"><span class="type">string</span> <code class="parameter">$infile</code></span>
    , <span class="methodparam"><span class="type">string</span> <code class="parameter">$outfile</code></span>
-   , <span class="methodparam"><span class="type"><a href="language.pseudo-types.html#language.types.mixed" class="type mixed">mixed</a></span> <code class="parameter">$recipcerts</code></span>
+   , <span class="methodparam"><span class="type"><a href="language.types.declarations.html#language.types.declarations.mixed" class="type mixed">mixed</a></span> <code class="parameter">$recipcerts</code></span>
    , <span class="methodparam"><span class="type">array</span> <code class="parameter">$headers</code></span>
-   [, <span class="methodparam"><span class="type">int</span> <code class="parameter">$flags</code><span class="initializer"> = 0</span></span>
-   [, <span class="methodparam"><span class="type">int</span> <code class="parameter">$cipherid</code><span class="initializer"> = OPENSSL_CIPHER_RC2_40</span></span>
-  ]] ) : <span class="type">bool</span></div>
+   , <span class="methodparam"><span class="type">int</span> <code class="parameter">$flags</code><span class="initializer"> = 0</span></span>
+   , <span class="methodparam"><span class="type">int</span> <code class="parameter">$cipherid</code><span class="initializer"> = OPENSSL_CIPHER_RC2_40</span></span>
+   ) : <span class="type">bool</span></div>
 
   <p class="para rdfs-comment">
    <span class="function"><strong>openssl_pkcs7_encrypt()</strong></span> 获取文件名为<code class="parameter">infile</code>的文件内容并使用 RC2 40位的密码将之加密，以至于他们只能被预期的名为<code class="parameter">recipcerts</code>的接收者阅读。
@@ -137,7 +137,7 @@
  <div class="refsect1 returnvalues" id="refsect1-function.openssl-pkcs7-encrypt-returnvalues">
   <h3 class="title">返回值</h3>
   <p class="para">
-   成功时返回 <strong><code>TRUE</code></strong>， 或者在失败时返回 <strong><code>FALSE</code></strong>。
+   成功时返回 <strong><code>true</code></strong>， 或者在失败时返回 <strong><code>false</code></strong>。
   </p>
  </div>
 
@@ -145,7 +145,7 @@
  <div class="refsect1 examples" id="refsect1-function.openssl-pkcs7-encrypt-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-965">
+   <div class="example" id="example-896">
     <p><strong>Example #1 <span class="function"><strong>openssl_pkcs7_encrypt()</strong></span> 范例</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -163,7 +163,32 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="119071""></a>
+<div id="allnotes">  <a name="124938""></a>
+  <div class="note">
+   <strong class="user">Matthias Barkhausen</strong>
+   <a href="#124938" class="date">23-Apr-2020 12:34</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+To successfully sign and encrypt an plain text E-Mail to send to and to be able to read by Outlook and iOS Mail you need to first sign w/o headers and use the PKCS7_TEXT constant, then encrypt with headers and cipherid 3DES, then send with sendmail/ssmtp with -t option.<br />
+<br />
+Reason for 3DES ist that iOS (or Apple in general) doesnt further accept the RC40 default encryption openssl-pkcs7-encrypt is using. Outlook would decrypt such encryption, but iOS Mail just said "this mail has no content" and "install a profile containing your identity...".<br />
+<br />
+$headers = array("To" =&gt; ...,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; "From" =&gt; ...,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; "Subject" =&gt; ...);<br />
+<br />
+openssl_pkcs7_sign("msg.txt","signed.txt", $mMyCertFileToIncludeForRecipient,array($mMyPrivKeyFileAsPEM, "passphrase"),array(),PKCS7_TEXT);<br />
+<br />
+openssl_pkcs7_encrypt("signed.txt","enc.txt",$pubkeyContents,$headers,0,OPENSSL_CIPHER_3DES);<br />
+<br />
+shell_exec("ssmtp -t &lt; enc.txt") #sendmail same syntax</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119071""></a>
   <div class="note">
    <strong class="user">Anonymous</strong>
    <a href="#119071" class="date">28-Mar-2016 09:07</a>

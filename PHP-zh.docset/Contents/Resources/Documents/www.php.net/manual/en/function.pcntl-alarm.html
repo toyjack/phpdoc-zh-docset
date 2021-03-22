@@ -27,7 +27,7 @@
   <div id="layout-content"><div id="function.pcntl-alarm" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">pcntl_alarm</h1>
-  <p class="verinfo">(PHP 4 &gt;= 4.3.0, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">pcntl_alarm</span> &mdash; <span class="dc-title">为进程设置一个alarm闹钟信号</span></p>
+  <p class="verinfo">(PHP 4 &gt;= 4.3.0, PHP 5, PHP 7, PHP 8)</p><p class="refpurpose"><span class="refname">pcntl_alarm</span> &mdash; <span class="dc-title">为进程设置一个alarm闹钟信号</span></p>
 
  </div>
  
@@ -72,7 +72,7 @@
   <h3 class="title">返回值</h3>
   <p class="para">
   返回上次alarm调度（离alarm信号发送）剩余的秒数，或者之前没有alarm调度（译注：或者之前调度已完成）
-  时返回<em>0</em>。
+  时返回<code class="literal">0</code>。
   </p>
  </div>
 
@@ -81,7 +81,68 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="122637""></a>
+<div id="allnotes">  <a name="125458""></a>
+  <div class="note">
+   <strong class="user">kuba at valentine dot dev</strong>
+   <a href="#125458" class="date">24-Oct-2020 08:25</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+This is that universal timeout functionality you dreamed about and always wanted to have and guess what - it's as reliable as it gets, it's basically bulletproof. It can interrupt absolutely anything you throw at it and more, you name it - socket_connect(), socket_read(), fread(), infinite while() loops, sleep(), semaphores - seriously, any blocking operation. You can specify your own handler and just get over anything that normally would make your code unresponsive.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">/**<br />
+&nbsp;* Because we shouldn't handle asynchronous<br />
+&nbsp;* events in synchronous manner.<br />
+&nbsp;*/<br />
+</span><span class="default">pcntl_async_signals</span><span class="keyword">(</span><span class="default">TRUE</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">/**<br />
+&nbsp;* Some flag we can change to know for sure<br />
+&nbsp;* that our operation timed out.<br />
+&nbsp;*/<br />
+</span><span class="default">$timed_out </span><span class="keyword">= </span><span class="default">FALSE</span><span class="keyword">;<br />
+<br />
+</span><span class="comment">/**<br />
+&nbsp;* Register SIGALRM signal handler to avoid<br />
+&nbsp;* getting our process killed when signal arrives.<br />
+&nbsp;*/<br />
+</span><span class="default">pcntl_signal</span><span class="keyword">(</span><span class="default">SIGALRM</span><span class="keyword">, function(</span><span class="default">$signal</span><span class="keyword">) use (</span><span class="default">$timed_out</span><span class="keyword">) {<br />
+&nbsp; </span><span class="default">$timed_out </span><span class="keyword">= </span><span class="default">TRUE</span><span class="keyword">;<br />
+});<br />
+<br />
+</span><span class="comment">/**<br />
+&nbsp;* Now we set our timeout for 2 seconds, but it's not set in stone<br />
+&nbsp;* we can call pcntl_alarm() anytime to extend or to turn if off.<br />
+&nbsp;*/<br />
+</span><span class="default">pcntl_alarm</span><span class="keyword">(</span><span class="default">2</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">/**<br />
+&nbsp;* Here we do something with unpredictable outcome that could<br />
+&nbsp;* possibly block our program for a very long time.<br />
+&nbsp;* I like sockets as an example, but it can be anything.<br />
+&nbsp;*/<br />
+</span><span class="default">$socket </span><span class="keyword">= </span><span class="default">socket_create</span><span class="keyword">(</span><span class="default">AF_INET</span><span class="keyword">, </span><span class="default">SOCK_STREAM</span><span class="keyword">, </span><span class="default">SOL_TCP</span><span class="keyword">);<br />
+</span><span class="default">$connection </span><span class="keyword">= </span><span class="default">socket_connect</span><span class="keyword">(</span><span class="default">$socket</span><span class="keyword">, </span><span class="string">'irc.ircnet.com'</span><span class="keyword">, </span><span class="default">6667</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">/**<br />
+&nbsp;* If our blocking operation didn't timed out then <br />
+&nbsp;* timer is still ticking, we should turn it off ASAP.<br />
+&nbsp;*/<br />
+</span><span class="default">$timed_out </span><span class="keyword">|| </span><span class="default">pcntl_alarm</span><span class="keyword">(</span><span class="default">0</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">/**<br />
+&nbsp;* And now we do whatever we want to do.<br />
+&nbsp;*/<br />
+</span><span class="default">$status </span><span class="keyword">= </span><span class="default">$connection </span><span class="keyword">? </span><span class="string">'Connected.' </span><span class="keyword">: (</span><span class="default">$timed_out </span><span class="keyword">? </span><span class="string">'Timed out.' </span><span class="keyword">: </span><span class="default">socket_strerror</span><span class="keyword">(</span><span class="default">socket_last_error</span><span class="keyword">(</span><span class="default">$socket</span><span class="keyword">)));<br />
+echo </span><span class="string">'STATUS: '</span><span class="keyword">. </span><span class="default">$status </span><span class="keyword">. </span><span class="default">PHP_EOL</span><span class="keyword">;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="122637""></a>
   <div class="note">
    <strong class="user">Gao,Shengwei</strong>
    <a href="#122637" class="date">19-Apr-2018 05:12</a>

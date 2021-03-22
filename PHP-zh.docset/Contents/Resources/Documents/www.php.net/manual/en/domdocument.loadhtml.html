@@ -37,8 +37,8 @@
   <div class="methodsynopsis dc-description">
    <span class="modifier">public</span> <span class="methodname"><strong>DOMDocument::loadHTML</strong></span>
     ( <span class="methodparam"><span class="type">string</span> <code class="parameter">$source</code></span>
-   [, <span class="methodparam"><span class="type">int</span> <code class="parameter">$options</code><span class="initializer"> = 0</span></span>
-  ] ) : <span class="type">bool</span></div>
+   , <span class="methodparam"><span class="type">int</span> <code class="parameter">$options</code><span class="initializer"> = 0</span></span>
+   ) : <span class="type"><span class="type"><a href="class.domdocument.html" class="type DOMDocument">DOMDocument</a></span>|<span class="type">bool</span></span></div>
 
   <p class="para rdfs-comment">
    The function parses the HTML contained in the string <code class="parameter">source</code>. 
@@ -88,8 +88,8 @@
  <div class="refsect1 returnvalues" id="refsect1-domdocument.loadhtml-returnvalues">
   <h3 class="title">返回值</h3>
   <p class="para">
-   成功时返回 <strong><code>TRUE</code></strong>， 或者在失败时返回 <strong><code>FALSE</code></strong>。 If called statically, returns a
-   <a href="class.domdocument.html" class="classname">DOMDocument</a> 或者在失败时返回 <strong><code>FALSE</code></strong>.
+   成功时返回 <strong><code>true</code></strong>， 或者在失败时返回 <strong><code>false</code></strong>。 If called statically, returns a
+   <a href="class.domdocument.html" class="classname">DOMDocument</a> 或者在失败时返回 <strong><code>false</code></strong>.
   </p>
  </div>
 
@@ -107,7 +107,7 @@
  <div class="refsect1 examples" id="refsect1-domdocument.loadhtml-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-6523">
+   <div class="example" id="example-5698">
     <p><strong>Example #1 Creating a Document</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -120,36 +120,7 @@
   </p>
  </div>
 
- 
- <div class="refsect1 changelog" id="refsect1-domdocument.loadhtml-changelog">
-  <h3 class="title">更新日志</h3>
-  <p class="para">
-   <table class="doctable informaltable">
-    
-     <thead>
-      <tr>
-       <th>版本</th>
-       <th>说明</th>
-      </tr>
 
-     </thead>
-
-     <tbody class="tbody">
-      <tr>
-       <td>5.4.0</td>
-       <td>
-        Added <code class="parameter">options</code> parameter.
-       </td>
-      </tr>
-
-     </tbody>
-    
-   </table>
-
-  </p>
- </div>
-
- 
  <div class="refsect1 seealso" id="refsect1-domdocument.loadhtml-seealso">
   <h3 class="title">参见</h3>
   <p class="para">
@@ -165,7 +136,136 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="120372""></a>
+<div id="allnotes">  <a name="125526""></a>
+  <div class="note">
+   <strong class="user">deepakrajpal dot com at gmail dot com</strong>
+   <a href="#125526" class="date">20-Nov-2020 06:16</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If we are loading html5 tags such as &lt;section&gt;, &lt;svg&gt; there is following error:<br />
+<br />
+DOMDocument::loadHTML(): Tag section invalid in Entity<br />
+<br />
+We can disable standard libxml errors (and enable user error handling) using libxml_use_internal_errors(true); before loadHTML();<br />
+<br />
+This is quite useful in phpunit custom assertions as given in following example (if using phpunit test cases):<br />
+<br />
+// Create a DOMDocument<br />
+$dom = new DOMDocument();<br />
+<br />
+// fix html5/svg errors<br />
+libxml_use_internal_errors(true);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+// Load html <br />
+$dom-&gt;loadHTML("&lt;section&gt;&lt;/section&gt;");<br />
+$htmlNodes = $dom-&gt;getElementsByTagName('section');<br />
+<br />
+if ($htmlNodes-&gt;length == 0) {<br />
+&nbsp;&nbsp;&nbsp; $this-&gt;assertFalse(TRUE);<br />
+} else {<br />
+&nbsp;&nbsp;&nbsp; $this-&gt;assertTrue(TRUE);<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="125361""></a>
+  <div class="note">
+   <strong class="user">divinity76+spam at gmail dot com</strong>
+   <a href="#125361" class="date">14-Sep-2020 09:25</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+if you want to get rid of all the "DOMText elements containing ONLY whitespace", maybe try<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">function </span><span class="default">loadHTML_noemptywhitespace</span><span class="keyword">(</span><span class="default">string $html</span><span class="keyword">, </span><span class="default">int $extra_flags </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">, </span><span class="default">int $exclude_flags </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">): </span><span class="default">DOMDocument<br />
+</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$flags </span><span class="keyword">= </span><span class="default">LIBXML_HTML_NODEFDTD </span><span class="keyword">| </span><span class="default">LIBXML_NOBLANKS </span><span class="keyword">| </span><span class="default">LIBXML_NONET</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$flags </span><span class="keyword">= (</span><span class="default">$flags </span><span class="keyword">| </span><span class="default">$extra_flags</span><span class="keyword">) &amp; ~ </span><span class="default">$exclude_flags</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$domd </span><span class="keyword">= new </span><span class="default">DOMDocument</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$domd</span><span class="keyword">-&gt;</span><span class="default">preserveWhiteSpace </span><span class="keyword">= </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; @</span><span class="default">$domd</span><span class="keyword">-&gt;</span><span class="default">loadHTML</span><span class="keyword">(</span><span class="string">'&lt;?xml encoding="UTF-8"&gt;' </span><span class="keyword">. </span><span class="default">$html</span><span class="keyword">, </span><span class="default">$flags</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$removeAnnoyingWhitespaceTextNodes </span><span class="keyword">= function (\</span><span class="default">DOMNode $node</span><span class="keyword">) use (&amp;</span><span class="default">$removeAnnoyingWhitespaceTextNodes</span><span class="keyword">): </span><span class="default">void </span><span class="keyword">{<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$node</span><span class="keyword">-&gt;</span><span class="default">hasChildNodes</span><span class="keyword">()) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Warning: it's important to do it backwards; if you do it forwards, the index for DOMNodeList might become invalidated;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; // that's why i don't use foreach() - don't change it (unless you know what you're doing, ofc)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">for (</span><span class="default">$i </span><span class="keyword">= </span><span class="default">$node</span><span class="keyword">-&gt;</span><span class="default">childNodes</span><span class="keyword">-&gt;</span><span class="default">length </span><span class="keyword">- </span><span class="default">1</span><span class="keyword">; </span><span class="default">$i </span><span class="keyword">&gt;= </span><span class="default">0</span><span class="keyword">; --</span><span class="default">$i</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$removeAnnoyingWhitespaceTextNodes</span><span class="keyword">(</span><span class="default">$node</span><span class="keyword">-&gt;</span><span class="default">childNodes</span><span class="keyword">-&gt;</span><span class="default">item</span><span class="keyword">(</span><span class="default">$i</span><span class="keyword">));<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$node</span><span class="keyword">-&gt;</span><span class="default">nodeType </span><span class="keyword">=== </span><span class="default">XML_TEXT_NODE </span><span class="keyword">&amp;&amp; !</span><span class="default">$node</span><span class="keyword">-&gt;</span><span class="default">hasChildNodes</span><span class="keyword">() &amp;&amp; !</span><span class="default">$node</span><span class="keyword">-&gt;</span><span class="default">hasAttributes</span><span class="keyword">() &amp;&amp; empty(</span><span class="default">trim</span><span class="keyword">(</span><span class="default">$node</span><span class="keyword">-&gt;</span><span class="default">textContent</span><span class="keyword">))) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">//echo "Removing annoying POS";<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; // var_dump($node);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$node</span><span class="keyword">-&gt;</span><span class="default">parentNode</span><span class="keyword">-&gt;</span><span class="default">removeChild</span><span class="keyword">(</span><span class="default">$node</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; } </span><span class="comment">//elseif ($node instanceof DOMText) { echo "not removed"; var_dump($node, $node-&gt;hasChildNodes(), $node-&gt;hasAttributes(), trim($node-&gt;textContent)); }<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">};<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$removeAnnoyingWhitespaceTextNodes</span><span class="keyword">(</span><span class="default">$domd</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$domd</span><span class="keyword">;<br />
+}</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="124877""></a>
+  <div class="note">
+   <strong class="user">BychkovVV at mail dot ru</strong>
+   <a href="#124877" class="date">03-Apr-2020 08:30</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you are loading html content from any website, in "utf-8" encoding, when meta width content-type is not first child of HEAD, it would not be acknowledged by parser (encoding); So you can make this fix:<br />
+&nbsp; function domLoadHTML($html)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {$testDOM = new DOMDocument('1.0', 'UTF-8');<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $testDOM-&gt;loadHTML($html);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $charset = NULL;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $searchInElemnt = function(&amp;$item) use (&amp;$searchInElemnt, &amp;$charset)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; {if($item-&gt;childNodes)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {foreach($item-&gt;childNodes as $childItem)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; {switch($childItem-&gt;nodeName)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {case 'html':<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case 'head':<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $searchInElemnt($childItem);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case 'meta':<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $attributes = array();<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; foreach ($childItem-&gt;attributes as $attr) <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; {$attributes[mb_strtoupper($attr-&gt;localName)] = $attr-&gt;nodeValue;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(array_key_exists('HTTP-EQUIV', $attributes) &amp;&amp; (mb_strtoupper($attributes['HTTP-EQUIV']) == 'CONTENT-TYPE') &amp;&amp; array_key_exists('CONTENT', $attributes) &amp;&amp; preg_match('~[\s]*;[\s]*charset[\s]*=[\s]*([^\s]+)~', $attributes['CONTENT'], $matches))<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; {$charset = preg_replace('~[\s\']~', '', $matches[1]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; };<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $searchInElemnt($testDOM);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(isset($charset))<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; {$dom = new DOMDocument('1.0', $charset);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; $dom-&gt;loadHTML('&lt;?xml encoding="'.$charset.'"&gt;'.$html);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; foreach ($dom-&gt;childNodes as $item)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if($item-&gt;nodeType == XML_PI_NODE)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; {$dom-&gt;removeChild($item);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; $dom-&gt;encoding = $charset;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; else<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; {$dom = $testDOM;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return $dom;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; };</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="120372""></a>
   <div class="note">
    <strong class="user">kerim-yagmurcu at gmx dot de</strong>
    <a href="#120372" class="date">24-Dec-2016 03:13</a>

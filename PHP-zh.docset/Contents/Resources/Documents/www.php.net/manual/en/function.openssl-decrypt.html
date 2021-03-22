@@ -27,7 +27,7 @@
   <div id="layout-content"><div id="function.openssl-decrypt" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">openssl_decrypt</h1>
-  <p class="verinfo">(PHP 5 &gt;= 5.3.0, PHP 7)</p><p class="refpurpose"><span class="refname">openssl_decrypt</span> &mdash; <span class="dc-title">解密数据</span></p>
+  <p class="verinfo">(PHP 5 &gt;= 5.3.0, PHP 7, PHP 8)</p><p class="refpurpose"><span class="refname">openssl_decrypt</span> &mdash; <span class="dc-title">解密数据</span></p>
 
  </div>
 
@@ -38,11 +38,11 @@
     ( <span class="methodparam"><span class="type">string</span> <code class="parameter">$data</code></span>
    , <span class="methodparam"><span class="type">string</span> <code class="parameter">$method</code></span>
    , <span class="methodparam"><span class="type">string</span> <code class="parameter">$key</code></span>
-   [, <span class="methodparam"><span class="type">int</span> <code class="parameter">$options</code><span class="initializer"> = 0</span></span>
-   [, <span class="methodparam"><span class="type">string</span> <code class="parameter">$iv</code><span class="initializer"> = &quot;&quot;</span></span>
-   [, <span class="methodparam"><span class="type">string</span> <code class="parameter">$tag</code><span class="initializer"> = &quot;&quot;</span></span>
-   [, <span class="methodparam"><span class="type">string</span> <code class="parameter">$aad</code><span class="initializer"> = &quot;&quot;</span></span>
-  ]]]] ) : <span class="type">string</span></div>
+   , <span class="methodparam"><span class="type">int</span> <code class="parameter">$options</code><span class="initializer"> = 0</span></span>
+   , <span class="methodparam"><span class="type">string</span> <code class="parameter">$iv</code><span class="initializer"> = &quot;&quot;</span></span>
+   , <span class="methodparam"><span class="type">string</span> <code class="parameter">$tag</code><span class="initializer"> = &quot;&quot;</span></span>
+   , <span class="methodparam"><span class="type">string</span> <code class="parameter">$aad</code><span class="initializer"> = &quot;&quot;</span></span>
+   ) : <span class="type">string</span></div>
 
   <p class="para rdfs-comment">
    采用原始或base64编码的字符串，并使用给定的方法和密钥对其进行解密。
@@ -125,7 +125,7 @@
      <dd>
 
       <p class="para">
-       AEAD密码模式中的身份验证标签。 如果是错误的，验证失败，函数返回<strong><code>FALSE</code></strong>.
+       AEAD密码模式中的身份验证标签。 如果是错误的，验证失败，函数返回<strong><code>false</code></strong>.
       </p>
      </dd>
 
@@ -151,7 +151,7 @@
  <div class="refsect1 returnvalues" id="refsect1-function.openssl-decrypt-returnvalues">
   <h3 class="title">返回值</h3>
   <p class="para">
-   The decrypted string on success 或者在失败时返回 <strong><code>FALSE</code></strong>.
+   The decrypted string on success 或者在失败时返回 <strong><code>false</code></strong>.
   </p>
  </div>
 
@@ -220,24 +220,7 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="123058""></a>
-  <div class="note">
-   <strong class="user">Lingasamy Sakthivel</strong>
-   <a href="#123058" class="date">21-Aug-2018 06:53</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-This worked for me.<br />
-<br />
-&nbsp;&nbsp;&nbsp; openssl_decrypt ( $encrypted_value , "AES-256-CFB" , $my_private_key , OPENSSL_RAW_DATA);<br />
-<br />
-OPENSSL_RAW_DATA indicates raw data otherwise it will be treated as base64 encoding by default.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="120987""></a>
+<div id="allnotes">  <a name="120987""></a>
   <div class="note">
    <strong class="user">markagius dot co dot uk</strong>
    <a href="#120987" class="date">16-Apr-2017 09:35</a>
@@ -320,44 +303,6 @@ The following (sometimes) don't work:<br />
    </div>
   </div>
  <div class="foot"></div>
-  <a name="120891""></a>
-  <div class="note">
-   <strong class="user">Bitbang3r</strong>
-   <a href="#120891" class="date">29-Mar-2017 06:56</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-openssl_decrypt assumes that $data is base64-encoded by default, but $key and $iv (when using AES) must be "raw" byte values.<br />
-<br />
-In other words, assume that $data, $key, and $iv are all base64-encoded strings. Both $key and $iv must be base64-decoded before openssl_decrypt can use them.<br />
-<br />
-Example code:<br />
-<br />
-$ciphertext64 = "gfcC6t1BarndpzMuvYj2JFpWHqlWSJMhTtxPN7QjyEg=";<br />
-$key64 = "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=";<br />
-$iv64="AAECAwQFBgcICQoLDA0ODw==";<br />
-<br />
-$key = base64_decode($key64, true);<br />
-$iv = base64_decode($iv64, true);<br />
-<br />
-$decrypted = openssl_decrypt($ciphertext64, 'aes-256-cbc', $key, 0, $iv);<br />
-<br />
-Other 'gotchas' to keep in mind when cipher is 'aes-256-cbc':<br />
-<br />
-*&nbsp; strlen($key) SHOULD be 32. PHP will apparently pad the key if necessary, with potentially unpredictable interoperability with other libraries and platforms, and almost certain reduction in cipher strength. Save yourself the headache, and make sure it's EXACTLY 32.<br />
-<br />
-* strlen($iv) MUST be 16. By definition, AES uses 128-bit blocks, regardless of whether the key length is 128, 192, or 256... and iv's length must be precisely equal to that block length.<br />
-<br />
-* Remember... $iv doesn't necessarily have to be SECRET (it's just a salt), but it MUST be cryptographically random AND different EACH TIME you begin a new round of AES encryption ("round" == "one call to openssl_encrypt or equivalent").<br />
-<br />
-* Don't assume that your random numbers are cryptographically secure unless the function guarantees it. In general, PHP's random numbers AREN'T cryptographically secure (at least, not by default, and not unless the server's admin has gone out of his way to try). There's a HUGE difference between numbers that "look random", and numbers that genuinely ARE random, and it can make the difference between robust long-term encryption and mere obfuscation. See openssl_random_pseudo_bytes.<br />
-<br />
-Finally, if you're attempting to use 'aes-256-gcm' (AEAD), search Google for "67304 gcm" to confirm that it's both supported AND known to work in whatever version of PHP you have available.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
   <a name="120714""></a>
   <div class="note">
    <strong class="user">lucianonapoli at yahoo dot it</strong>
@@ -415,24 +360,6 @@ Parameters may seem obvius to some but not for everyone so:
 <br />
 </span><span class="default">?&gt;</span>
 </span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="114878""></a>
-  <div class="note">
-   <strong class="user">Anonymous</strong>
-   <a href="#114878" class="date">19-Apr-2014 04:33</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-If your using windows os, do not use the text inside the "file previewer" pane, as this is a truncated version of the actual encrypted string.<br />
-<br />
-Instead, you need to open the file directly and use the contents there.<br />
-<br />
-The error message I had been getting was:<br />
-"error:0606506D:digital envelope routines:EVP_DecryptFinal_ex:wrong final block length"</span>
 </code>
     </div>
    </div>

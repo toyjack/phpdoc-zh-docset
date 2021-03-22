@@ -32,7 +32,7 @@
   5.6 提供了一个实验性的功能允许正则表达式递归。
   特殊项 (?R) 提供了递归的这种特殊用法。
   这个PCRE模式解决了圆括号问题(假设 <a href="reference.pcre.pattern.modifiers.html" class="link">PCRE_EXTENDED</a> 选项被设置了，
-  因此空白字符被忽略)： <em>\(  (  (?&gt;[^()]+)  |  (?R)  )*  \)</em>。
+  因此空白字符被忽略)： <code class="literal">\(  (  (?&gt;[^()]+)  |  (?R)  )*  \)</code>。
   </p>
   <p class="para">
   首先，它匹配一个左括号。
@@ -42,16 +42,16 @@
   <p class="para">
   这个例子模式包含无限重复的嵌套，因此使用了一次性子组匹配非括号字符，
   这在模式应用到模式不匹配的字符串时非常重要。比如，
-  当它应用到 <em>(aaaaaaaaaaaaaaaaaaaaaaaaaaaaa()</em> 时就会很快的产生"不匹配"结果。
+  当它应用到 <code class="literal">(aaaaaaaaaaaaaaaaaaaaaaaaaaaaa()</code> 时就会很快的产生"不匹配"结果。
   然而，如果不使用一次性子组，这个匹配将会运行很长时间，
   因为有很多途径让 + 和 * 重复限定分隔目标字符串，
   并且在报告失败之前需要测试所有路径。
   </p>
   <p class="para">
   所有捕获子组最终被设置的捕获值都是从递归最外层子模式捕获的值。
-  如果上面的模式匹配 <em>(ab(cd)ef)</em>，捕获子组最终被设置的值为 "ef"，
-  即顶级得到的最后一个值。如果增加了额外的括号，<em>\(  (  (  (?&gt;[^()]+)  |  (?R)
-  )*  )  \)</em>，捕获到的字符串就是顶层括号的匹配内容 "ab(cd)ef"。
+  如果上面的模式匹配 <code class="literal">(ab(cd)ef)</code>，捕获子组最终被设置的值为 "ef"，
+  即顶级得到的最后一个值。如果增加了额外的括号，<code class="literal">\(  (  (  (?&gt;[^()]+)  |  (?R)
+  )*  )  \)</code>，捕获到的字符串就是顶层括号的匹配内容 "ab(cd)ef"。
   如果在模式中有超过 15 个捕获括号，
   PCRE 在递归期间就会使用 pcre_malloc 分配额外的内存来存储数据，
   随后通过 pcre_free 释放他们。如果没有内存可被分配，它就仅保存前 15 个捕获括号，
@@ -59,16 +59,16 @@
   </p>
   
   <p class="para">
-  从 PHP 4.3.3 开始, <em>(?1)</em>、<em>(?2)</em> 等可以用于递归子组。这同样可以用于命名子组：
-  <em>(?P&gt;name)</em> 或 <em>(?P&amp;name)</em>。
+  从 PHP 4.3.3 开始, <code class="literal">(?1)</code>、<code class="literal">(?2)</code> 等可以用于递归子组。这同样可以用于命名子组：
+  <code class="literal">(?P&gt;name)</code> 或 <code class="literal">(?P&amp;name)</code>。
   </p>
   <p class="para">
   如果递归子组语法在它提到的子组括号外部使用(无论是子组数字序号还是子组名称)，
   这个操作就相当于程序设计语言中的子程序。
-  前面一些有一个例子指出模式 <em>(sens|respons)e and \1ibility</em> 匹配 "sense and
+  前面一些有一个例子指出模式 <code class="literal">(sens|respons)e and \1ibility</code> 匹配 "sense and
   responsibility" 和 "response and responsibility"，但是不匹配 "sense and
-  responsibility"。如果用模式 <em>(sens|respons)e and
-  (?1)ibility</em> 替代，
+  responsibility"。如果用模式 <code class="literal">(sens|respons)e and
+  (?1)ibility</code> 替代，
   它会像匹配那两个字符串一样匹配 "sense and responsibility"。
   这种引用方式意义是紧接着匹配引用的子模式。(译注:
   后向引用只匹配引用的子组之前匹配的结果,
@@ -85,7 +85,68 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="119691""></a>
+<div id="allnotes">  <a name="125521""></a>
+  <div class="note">
+   <strong class="user">mzvarik at gmail dot com</strong>
+   <a href="#125521" class="date">18-Nov-2020 10:53</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+This regexp can be used for parsing IF conditions.<br />
+<br />
+$str = '<br />
+(IF_MYVAR)My var is printed<br />
+(OR_MYVARTWO)My var two is printed<br />
+(OR_ANOTHER)if you use OR you don't have to END everytime<br />
+(ELSE)Whatever bro(END)<br />
+<br />
+(IF_BLUE)Something (IF_SUPERB)super(END) blue - this is simple IF condition(END)<br />
+';<br />
+<br />
+function isCondition($k) {<br />
+&nbsp;&nbsp;&nbsp; // put your user conditions here<br />
+&nbsp;&nbsp;&nbsp; $conds = [];<br />
+&nbsp;&nbsp;&nbsp; $conds['BLUE'] = true;<br />
+&nbsp;&nbsp;&nbsp; $conds['MYVARTWO'] = true;<br />
+&nbsp;&nbsp;&nbsp; $conds['ELSE'] = true; // always true<br />
+&nbsp;&nbsp; &nbsp; return $conds[$k];<br />
+}<br />
+<br />
+function findConditions($str) {<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; $pattern = '~ \(if_([^\)]+)\) ((?: (?!\((end|if_)). | (?R) )*+) \(end\) ~xis';<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; $str = preg_replace_callback($pattern, function($m) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $k = $m[1];<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $v = $m[2];<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $v = findConditions($v) ?: $v;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $ors = preg_split('~(?=\((OR_[^\)]+|ELSE))~is', $v);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $v = array_shift($ors); // hlavní<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (isCondition($k)) return findConditions($v);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; foreach ($ors as $or) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; list($k, $v) = explode(")", $or, 2);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $k = substr($k, 1);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (isCondition($k)) return findConditions($v);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return ''; // no matching condition<br />
+&nbsp;&nbsp;&nbsp; }, $str);<br />
+&nbsp;&nbsp;&nbsp; return $str;<br />
+};<br />
+<br />
+// will output:&nbsp; Whatever bro&nbsp; \n\n&nbsp; Something blue<br />
+echo findConditions($str);</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119691""></a>
   <div class="note">
    <strong class="user">Anonymous</strong>
    <a href="#119691" class="date">04-Aug-2016 09:11</a>

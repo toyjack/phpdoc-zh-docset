@@ -27,7 +27,7 @@
   <div id="layout-content"><div id="function.imap-utf8" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">imap_utf8</h1>
-  <p class="verinfo">(PHP 4, PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">imap_utf8</span> &mdash; <span class="dc-title">Converts MIME-encoded text to UTF-8</span></p>
+  <p class="verinfo">(PHP 4, PHP 5, PHP 7, PHP 8)</p><p class="refpurpose"><span class="refname">imap_utf8</span> &mdash; <span class="dc-title">Converts MIME-encoded text to UTF-8</span></p>
 
  </div>
  <div class="refsect1 description" id="refsect1-function.imap-utf8-description">
@@ -39,7 +39,8 @@
 
   <p class="para rdfs-comment">
    Converts the given <code class="parameter">mime_encoded_text</code> to
-   UTF-8. 
+   UTF-8, if the declared charset is known to libc-client.
+   Otherwise the given text is decoded, but not converted to UTF-8.
   </p>
  </div>
 
@@ -69,9 +70,31 @@
  <div class="refsect1 returnvalues" id="refsect1-function.imap-utf8-returnvalues">
   <h3 class="title">返回值</h3>
   <p class="para">
-   Returns an UTF-8 encoded string.
+   Returns the decoded string, if possible converted to UTF-8.
   </p>
  </div>
+
+
+ <div class="refsect1 examples" id="refsect1-function.imap-utf8-examples">
+  <h3 class="title">范例</h3>
+  <div class="example" id="example-3380">
+   <p><strong>Example #1 Basic <span class="function"><strong>imap_utf8()</strong></span> Usage</strong></p>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">echo&nbsp;</span><span style="color: #0000BB">imap_utf8</span><span style="color: #007700">(</span><span style="color: #DD0000">"Johannes&nbsp;=?ISO-8859-1?Q?Schl=FCter?="</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+   <div class="example-contents"><p>以上例程的输出类似于：</p></div>
+   <div class="example-contents screen">
+<div class="cdata"><pre>
+Johannes Schlu?ter
+</pre></div>
+   </div>
+  </div>
+ </div>
+
 
  <div class="refsect1 seealso" id="refsect1-function.imap-utf8-seealso">
   <h3 class="title">参见</h3>
@@ -254,107 +277,6 @@ function decode_utf8($str){<br />
 &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; return $str;<br />
 } <br />
 #Note: you can to reduce this script in 3 lines.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="43136""></a>
-  <div class="note">
-   <strong class="user">aperez at informatica dot 24ruedas dot com</strong>
-   <a href="#43136" class="date">10-Jun-2004 12:05</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-I got issues decoding strings with spanish characters. I found encodeISO88591() function at this manual as an user note. <br />
-<br />
-After having problems with imap_utf8() and utf8_decode(), I've decided create a function decodeISO88591() for decoding strings encoded with encodeISO88591().<br />
-<br />
-Here's the code(I've translated remarks and variable and array names from spanish to english for better understanding):<br />
-<br />
-function encodeISO88591($string)<br />
-{<br />
-&nbsp; // ISO-8859-1 string header<br />
-&nbsp; $stringISO = "=?iso-8859-1?q?";<br />
-&nbsp; <br />
-&nbsp; // Each character are encoded('equal-to' symbol + hexadecimal value from ASCII code)<br />
-&nbsp; for($i=0;$i&lt;strlen($string);$i++)<br />
-&nbsp; {<br />
-&nbsp;&nbsp;&nbsp; // Basic ASCII characters are not encoded<br />
-&nbsp;&nbsp;&nbsp; if(ord(substr($string,$i,1))&lt;1 || ord(substr($string,$i,1))&gt;127)<br />
-&nbsp;&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp;&nbsp; $char = ord($string[$i]);<br />
-&nbsp;&nbsp; &nbsp;&nbsp; $char = strtoupper(dechex($char));<br />
-&nbsp;&nbsp; &nbsp;&nbsp; $stringISO.="=".$char;<br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; else<br />
-&nbsp;&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp;&nbsp; $stringISO.=substr($string,$i,1);<br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp; }<br />
-&nbsp; <br />
-&nbsp; // ISO-8859-1 string footer<br />
-&nbsp; $stringISO.="?= ";<br />
-&nbsp; <br />
-&nbsp; return($stringISO);<br />
-}<br />
-<br />
-// And this is my function decodeISO88591()<br />
-<br />
-function decodeISO88591($string)<br />
-{ <br />
-&nbsp; // Arrays for obtaining hexadecimal values <br />
-&nbsp; // for each ISO-8859-1 charset<br />
-&nbsp; $mAlfa=array("A","B","C","D","E","F");<br />
-&nbsp; $mNum=array();<br />
-&nbsp; for($n=0;$n&lt;10;$n++)<br />
-&nbsp; {<br />
-&nbsp;&nbsp;&nbsp; $mNum[]=$n;<br />
-&nbsp; }<br />
-&nbsp; <br />
-&nbsp; // ISO-8859-1 charset<br />
-&nbsp; $iso88591=array(" ","?","?","?","?",<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "?","?","?","?","?","?",<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "?","?","?","?","?","?",<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "?","?","?","?","?","?",<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "?","?","?","?","?","?",<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "?","?","?","?","?","?",<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "?","?","?","?","?","?",<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "?","?","?","?","?","?","?",<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "?","?","?","?","?","?",<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "?","?","?","?","?","?",<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "?","?","?","?","?","?","?",<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "?","?","?","?","?","?","?",<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "?","?","?","?","?","?","?","?",<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "?","?","?","?","?","?","?",<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; "?","?","?","?","?","?","?");<br />
-&nbsp; // Hexadecimal values array<br />
-&nbsp; for($a=0;$a&lt;sizeof($mAlfa);$a++)<br />
-&nbsp; {<br />
-&nbsp;&nbsp;&nbsp; for($n=0;$n&lt;sizeof($mNum);$n++)<br />
-&nbsp;&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp;&nbsp; $mHex[]=$mAlfa[$a].$mNum[$n];<br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; for($a2=0;$a2&lt;sizeof($mAlfa);$a2++)<br />
-&nbsp;&nbsp;&nbsp; {<br />
-&nbsp;&nbsp; &nbsp;&nbsp; $mHex[]=$mAlfa[$a].$mAlfa[$a2];<br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp; }<br />
-&nbsp; <br />
-&nbsp; // ISO-8859-1 string header and footer are deleted<br />
-&nbsp; $string=str_replace("=?iso-8859-1?q?","",$string);<br />
-&nbsp; $string=str_replace("?= ","",$string);<br />
-&nbsp; <br />
-&nbsp; // Encoded values are decoded<br />
-&nbsp; for($h=0;$h&lt;sizeof($mHex);$h++)<br />
-&nbsp; {<br />
-&nbsp;&nbsp;&nbsp; $string=str_replace(("=".$mHex[$h]),$iso88591[$h],$string);<br />
-&nbsp; }<br />
-&nbsp; <br />
-&nbsp; return($string);<br />
-}<br />
-<br />
-I hope this helps somebody. :)</span>
 </code>
     </div>
    </div>
