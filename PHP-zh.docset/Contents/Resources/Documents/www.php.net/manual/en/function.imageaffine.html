@@ -34,11 +34,7 @@
  <div class="refsect1 description" id="refsect1-function.imageaffine-description">
   <h3 class="title">说明</h3>
   <div class="methodsynopsis dc-description">
-   <span class="methodname"><strong>imageaffine</strong></span>
-    ( <span class="methodparam"><span class="type">resource</span> <code class="parameter">$image</code></span>
-   , <span class="methodparam"><span class="type">array</span> <code class="parameter">$affine</code></span>
-   , <span class="methodparam"><span class="type">array</span> <code class="parameter">$clip</code> = ?</span>
-   ) : <span class="type">resource</span></div>
+   <span class="methodname"><strong>imageaffine</strong></span>(<span class="methodparam"><span class="type">resource</span> <code class="parameter">$image</code></span>, <span class="methodparam"><span class="type">array</span> <code class="parameter">$affine</code></span>, <span class="methodparam"><span class="type">array</span> <code class="parameter">$clip</code><span class="initializer"> = ?</span></span>): <span class="type">resource</span></div>
 
   <p class="para rdfs-comment">
 
@@ -52,12 +48,12 @@
  <div class="refsect1 parameters" id="refsect1-function.imageaffine-parameters">
   <h3 class="title">参数</h3>
   <dl>
-
    <dt>
-<code class="parameter">image</code></dt>
 
+<code class="parameter">image</code></dt>
 <dd>
-<p class="para">由图象创建函数(例如<span class="function"><a href="function.imagecreatetruecolor.html" class="function">imagecreatetruecolor()</a></span>)返回的图象资源。</p></dd>
+<p class="para">由图象创建函数(例如<span class="function"><a href="function.imagecreatetruecolor.html" class="function">imagecreatetruecolor()</a></span>)返回的 
+<span class="classname"><a href="class.gdimage.html" class="classname">GdImage</a></span> 对象。</p></dd>
 
    
     <dt>
@@ -100,7 +96,105 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="122400""></a>
+<div id="allnotes">  <a name="125882""></a>
+  <div class="note">
+   <strong class="user">der at herrstrietzel dot de</strong>
+   <a href="#125882" class="date">06-Mar-2021 01:43</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Might be an alternative or workaround for imagecopyresampled as imageaffine supports more sophisticated interpolation such as IMG_MITCHELL.<br />
+<br />
+// create image resource<br />
+$img_path = 'test.jpg';<br />
+$img = imagecreatefromstring(file_get_contents($img_path));<br />
+// scale image to 50% with Mitchell interpolation <br />
+$scale = 0.5;<br />
+imagesetinterpolation($img, IMG_MITCHELL);<br />
+$img_scaled = imageaffine($img, [0.5, 0, 0, 0.5, 0, 0]);<br />
+// save image<br />
+$output = 'test_scaledAffine.png';<br />
+imagepng($img_scaled, $output, 9);&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <br />
+echo '&lt;img src="'.$output.'" width="300"&gt;';<br />
+<br />
+Helper function example:<br />
+<br />
+function scaleImgAffine($img, $newWidth, $resized_file='', $interpolation=IMG_MITCHELL)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; // create img resource if $img is file path <br />
+&nbsp;&nbsp;&nbsp; if(!is_resource($img)){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $img = imagecreatefromstring(file_get_contents($img));&nbsp; &nbsp; <br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; // get original img dimensions<br />
+&nbsp;&nbsp;&nbsp; $w = imagesx($img);<br />
+&nbsp;&nbsp;&nbsp; $h = imagesy($img);<br />
+<br />
+&nbsp;&nbsp;&nbsp; /** <br />
+&nbsp;&nbsp;&nbsp; * recommended interpolation method is 'IMG_MITCHELL' <br />
+&nbsp;&nbsp;&nbsp; * providing the overall best precision and <br />
+&nbsp;&nbsp;&nbsp; * compression for most image types <br />
+&nbsp;&nbsp;&nbsp; * in particular for pngs with transparency suffering <br />
+&nbsp;&nbsp;&nbsp; * from artifacted downsampling result <br />
+&nbsp;&nbsp;&nbsp; */<br />
+&nbsp;&nbsp;&nbsp; imagesetinterpolation($img, $interpolation);<br />
+&nbsp;&nbsp;&nbsp; /*<br />
+&nbsp;&nbsp;&nbsp; * imageaffine will scale dimensions in an anamorphic way - <br />
+&nbsp;&nbsp;&nbsp; * even with square based images: <br />
+&nbsp;&nbsp;&nbsp; * 1200x1200 will get something like 1199x1200<br />
+&nbsp;&nbsp;&nbsp; * - improvements are very welcome<br />
+&nbsp;&nbsp;&nbsp; * Workaround: Adjusting both the original width and the clip parameter <br />
+&nbsp;&nbsp;&nbsp; * by adding 1px solved the issue for me<br />
+&nbsp;&nbsp;&nbsp; */<br />
+&nbsp;&nbsp;&nbsp; $scale = ($newWidth+1) / $w;<br />
+&nbsp;&nbsp;&nbsp; $newHeight = floor($h*$scale);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; // scale by affine matrix<br />
+&nbsp;&nbsp;&nbsp; $resized_affine = <br />
+&nbsp;&nbsp;&nbsp; imageaffine(<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $img, <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; [$scale, 0, 0, $scale, 0, 0],<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; ['x' =&gt; 0, 'y' =&gt; 0, 'width' =&gt; $w, 'height' =&gt; $h-1] <br />
+&nbsp;&nbsp;&nbsp; );<br />
+&nbsp;&nbsp;&nbsp; /*<br />
+&nbsp;&nbsp;&nbsp; * 'clip' parameter might be misleading as it expects <br />
+&nbsp;&nbsp;&nbsp; * the original and not the final/transformed width<br />
+&nbsp;&nbsp;&nbsp; */<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; // save to file or return resource<br />
+&nbsp;&nbsp;&nbsp; if($resized_file){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $file_type = pathinfo($resized_file, PATHINFO_EXTENSION );<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; switch($file_type){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case 'jpg':<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case 'jpeg':&nbsp; &nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; // flatten transparency for jpgs<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $tmp_img = imagecreatetruecolor($newWidth, $newHeight );<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $bg = imagecolorallocate($tmp_img, 255,255,255);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; imagefill($tmp_img, 0, 0, $bg);&nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; imagesavealpha($tmp_img, false);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; imagealphablending($tmp_img, true);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; imagecopy($tmp_img, $resized_affine, 0, 0, 0, 0, $newWidth, $newHeight );<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; imagejpeg($tmp_img, $resized_file, 85);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case 'png':<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; imagepng($resized_affine, $resized_file, 9);&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }else{<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return $resized_affine;&nbsp; &nbsp; <br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+$img_scaled_affine = scaleImgAffine($img_path, 400, 'test_scaledAffine.jpg', true);<br />
+<br />
+IMG_MITCHELL is in particular advanced when it comes to scaling png24 with transparency in GDlib environments (... actually png31 due to gds alpha 7bit channel?). Most commonly you'll experience bad compression using png due to imperceptible artifacts after resizing.<br />
+<br />
+Hopefully we'll see an implementation of more advanced interpolation methods in basic GD resizing functions like imagecopyresized or imagescale.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="122400""></a>
   <div class="note">
    <strong class="user">adri at sternschanze dot net</strong>
    <a href="#122400" class="date">17-Feb-2018 01:55</a>

@@ -27,16 +27,14 @@
   <div id="layout-content"><div id="reflectionclass.newinstancewithoutconstructor" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">ReflectionClass::newInstanceWithoutConstructor</h1>
-  <p class="verinfo">(PHP 5 &gt;= 5.4.0, PHP 7)</p><p class="refpurpose"><span class="refname">ReflectionClass::newInstanceWithoutConstructor</span> &mdash; <span class="dc-title">创建一个新的类实例而不调用它的构造函数</span></p>
+  <p class="verinfo">(PHP 5 &gt;= 5.4.0, PHP 7, PHP 8)</p><p class="refpurpose"><span class="refname">ReflectionClass::newInstanceWithoutConstructor</span> &mdash; <span class="dc-title">创建一个新的类实例而不调用它的构造函数</span></p>
 
  </div>
 
  <div class="refsect1 description" id="refsect1-reflectionclass.newinstancewithoutconstructor-description">
   <h3 class="title">说明</h3>
   <div class="methodsynopsis dc-description">
-   <span class="modifier">public</span> <span class="methodname"><strong>ReflectionClass::newInstanceWithoutConstructor</strong></span>
-    (
-   ) : <span class="type">object</span></div>
+   <span class="modifier">public</span> <span class="methodname"><strong>ReflectionClass::newInstanceWithoutConstructor</strong></span>(): <span class="type">object</span></div>
 
   <p class="para rdfs-comment">
    创建一个新的类的实例而不调用它的构造函数。
@@ -91,7 +89,7 @@
  <div class="refsect1 errors" id="refsect1-reflectionclass.newinstancewithoutconstructor-errors">
   <h3 class="title">错误／异常</h3>
   <p class="para">
-   如果这个类是一个不能不调用构造函数来实例化的内置类，将导致一个 <a href="class.reflectionexception.html" class="classname">ReflectionException</a>。在 PHP 
+   如果这个类是一个不能不调用构造函数来实例化的内置类，将导致一个 <span class="classname"><a href="class.reflectionexception.html" class="classname">ReflectionException</a></span>。在 PHP 
   5.6.0 及更高版本中，此异常仅限于
   <a href="language.oop5.final.html" class="link">final</a> 的内置类。
   </p>
@@ -112,7 +110,58 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="118791""></a>
+<div id="allnotes">  <a name="125836""></a>
+  <div class="note">
+   <strong class="user">ben at NOSPAM dot fanmade dot de</strong>
+   <a href="#125836" class="date">17-Feb-2021 07:51</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Such a function should definitely end up in productive code as rarely as possible.<br />
+There are always exceptions though :)<br />
+We have UseCase classes in our library extending an abstract UseCase having a constructor that does some setting up and it will even throw exceptions if some specific conditions are not yet met.<br />
+Within that UseCase the permissions are also defined.<br />
+Simplified example:<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">abstract class </span><span class="default">UseCase </span><span class="keyword">implements </span><span class="default">IUseCase<br />
+</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">/** @var string[] */<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">protected array </span><span class="default">$requiredPermissions </span><span class="keyword">= [];<br />
+<br />
+&nbsp;&nbsp;&nbsp; final public function </span><span class="default">__construct</span><span class="keyword">(</span><span class="default">IPresenter $out</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// several startup checks, including authorization<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">}<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span>We already have a better solution, but it will take some time to refactor that and we will have to live with this for at least a few weeks.<br />
+Now I've had the idea to check the permissions in the application's incoming request way before the individual UseCase will be initialized.<br />
+So after seeing this method here I just introduced this little helper into our abstract UseCase:<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">public static function </span><span class="default">getRequiredPermissions</span><span class="keyword">(): array<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$class </span><span class="keyword">= new </span><span class="default">ReflectionClass</span><span class="keyword">(</span><span class="default">get_called_class</span><span class="keyword">());<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$class</span><span class="keyword">-&gt;</span><span class="default">newInstanceWithoutConstructor</span><span class="keyword">()-&gt;</span><span class="default">requiredPermissions</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+</span><span class="default">?&gt;<br />
+</span>Now I'm able to check the permissions in my request without really touching anything in the library:<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">public function </span><span class="default">authorize</span><span class="keyword">(): </span><span class="default">bool<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">{<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (!</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">user</span><span class="keyword">-&gt;</span><span class="default">hasPermissions</span><span class="keyword">(</span><span class="default">CreatePost</span><span class="keyword">::</span><span class="default">getRequiredPermissions</span><span class="keyword">())) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">true</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+</span><span class="default">?&gt;<br />
+</span>This does also have the benefit of adding one more reason to switch to our new UseCase classes ASAP :)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118791""></a>
   <div class="note">
    <strong class="user">260 at ciemnosc</strong>
    <a href="#118791" class="date">06-Feb-2016 02:11</a>

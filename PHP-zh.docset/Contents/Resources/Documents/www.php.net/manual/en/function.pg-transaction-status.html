@@ -34,9 +34,7 @@
  <div class="refsect1 description" id="refsect1-function.pg-transaction-status-description">
   <h3 class="title">说明</h3>
   <div class="methodsynopsis dc-description">
-   <span class="methodname"><strong>pg_transaction_status</strong></span>
-    ( <span class="methodparam"><span class="type">resource</span> <code class="parameter">$connection</code></span>
-   ) : <span class="type">int</span></div>
+   <span class="methodname"><strong>pg_transaction_status</strong></span>(<span class="methodparam"><span class="type"><a href="class.pgsql-connection.html" class="type PgSql\Connection">PgSql\Connection</a></span> <code class="parameter">$connection</code></span>): <span class="type">int</span></div>
 
   <p class="para rdfs-comment">
     Returns the current in-transaction status of the server.
@@ -56,16 +54,13 @@
   <h3 class="title">参数</h3>
   <p class="para">
    <dl>
-
     
      <dt>
 <code class="parameter">connection</code></dt>
 
      <dd>
 
-      <p class="para">
-       PostgreSQL database connection resource.
-      </p>
+      <p class="para">An <span class="classname"><a href="class.pgsql-connection.html" class="classname">PgSql\Connection</a></span> instance.</p>
      </dd>
 
     
@@ -87,11 +82,39 @@
   </p>
  </div>
 
+
+ <div class="refsect1 changelog" id="refsect1-function.pg-transaction-status-changelog">
+  <h3 class="title">更新日志</h3>
+  <table class="doctable informaltable">
+   
+    <thead>
+     <tr>
+      <th>版本</th>
+      <th>说明</th>
+     </tr>
+
+    </thead>
+
+    <tbody class="tbody">
+     <tr>
+ <td>8.1.0</td>
+ <td>
+  现在 <code class="parameter">connection</code> 参数接受 <span class="classname"><a href="class.pgsql-connection.html" class="classname">PgSql\Connection</a></span>
+  实例，之前接受 <a href="language.types.resource.html" class="link">资源(resource)</a>。
+ </td>
+</tr>
+
+    </tbody>
+   
+  </table>
+
+ </div>
+
  
  <div class="refsect1 examples" id="refsect1-function.pg-transaction-status-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-2309">
+   <div class="example" id="example-1904">
     <p><strong>Example #1 <span class="function"><strong>pg_transaction_status()</strong></span> example</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -109,7 +132,36 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="68199""></a>
+<div id="allnotes">  <a name="126528""></a>
+  <div class="note">
+   <strong class="user">r dot grellmann at agentmulder dot de</strong>
+   <a href="#126528" class="date">23-Oct-2021 02:17</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+After one of the asynchronous functions (pg_send_query(), pg_send_query_params()...) has been used, pg_transaction_status() will always report PGSQL_TRANSACTION_ACTIVE, no matter if a transaction was started or not.<br />
+Even after the first call (or all valid calls) to pg_get_result() the transaction status will stay PGSQL_TRANSACTION_ACTIVE, until either<br />
+- a synchronous function like pq_query() was used, or<br />
+- another call to pg_get_result() was made, which returns false.<br />
+Note: calling pg_free_result() does not change anything.<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp; $conn </span><span class="keyword">= </span><span class="default">pg_connect</span><span class="keyword">(</span><span class="string">"dbname=publisher"</span><span class="keyword">) or die(</span><span class="string">"Could not connect"</span><span class="keyword">);<br />
+&nbsp; </span><span class="default">$status </span><span class="keyword">= </span><span class="default">pg_transaction_status</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">); </span><span class="comment">// PGSQL_TRANSACTION_IDLE<br />
+&nbsp; </span><span class="default">pg_send_query</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">, </span><span class="string">'SELECT 1'</span><span class="keyword">);<br />
+&nbsp; </span><span class="default">$status </span><span class="keyword">= </span><span class="default">pg_transaction_status</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">); </span><span class="comment">// PGSQL_TRANSACTION_ACTIVE<br />
+&nbsp; </span><span class="default">$res </span><span class="keyword">= </span><span class="default">pg_get_result</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">);<br />
+&nbsp; </span><span class="default">$status </span><span class="keyword">= </span><span class="default">pg_transaction_status</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">); </span><span class="comment">// PGSQL_TRANSACTION_ACTIVE<br />
+&nbsp; </span><span class="default">$res </span><span class="keyword">= </span><span class="default">pg_get_result</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">); </span><span class="comment">// false<br />
+&nbsp; </span><span class="default">$status </span><span class="keyword">= </span><span class="default">pg_transaction_status</span><span class="keyword">(</span><span class="default">$conn</span><span class="keyword">); </span><span class="comment">// PGSQL_TRANSACTION_IDLE<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="68199""></a>
   <div class="note">
    <strong class="user">btherl at yahoo dot com dot au</strong>
    <a href="#68199" class="date">17-Jul-2006 07:27</a>

@@ -1,0 +1,301 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>不向后兼容的变更</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="migration81.constants.html">? 新的全局常量</a></li>
+      <li style="float: right;"><a href="migration81.deprecated.html">PHP 8.1.x 废弃的功能 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="migration81.html">从 PHP 8.0.x 移植到 PHP 8.1.x</a></li>
+    <li>不向后兼容的变更</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="migration81.incompatible" class="sect1">
+ <h2 class="title">不向后兼容的变更</h2>
+
+ <div class="sect2" id="migration81.incompatible.core">
+  <h3 class="title">PHP 内核</h3>
+
+  <div class="sect3" id="migration81.incompatible.core.globals-access">
+   <h4 class="title">$GLOBALS 访问限制</h4>
+
+   <p class="para">
+    现在访问 <var class="varname"><a href="reserved.variables.globals.html" class="classname">$GLOBALS</a></var> 数组受到一些限制。
+    对单个数组元素的读写访问 <code class="code">$GLOBALS[&#039;var&#039;]</code> 与之前一样。
+    也将继续支持对整个数组 <var class="varname"><a href="reserved.variables.globals.html" class="classname">$GLOBALS</a></var> 的只读访问。
+    但是，不再支持对整个 <var class="varname"><a href="reserved.variables.globals.html" class="classname">$GLOBALS</a></var> 数组的写访问。
+    例如，<code class="code">array_pop($GLOBALS)</code> 将返回错误。
+   </p>
+  </div>
+
+  <div class="sect3" id="migration81.incompatible.core.static-variable-inheritance">
+   <h4 class="title">
+    在继承的方法中 <span class="modifier">static</span> 变量的用法
+   </h4>
+
+   <p class="para">
+    当一个方法使用继承的（而不是重写的）静态变量时，继承的方法将与父级共享这个静态变量。
+    <div class="informalexample">
+     <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">class&nbsp;</span><span style="color: #0000BB">A&nbsp;</span><span style="color: #007700">{<br />&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;static&nbsp;function&nbsp;</span><span style="color: #0000BB">counter</span><span style="color: #007700">()&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;static&nbsp;</span><span style="color: #0000BB">$counter&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">0</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$counter</span><span style="color: #007700">++;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;</span><span style="color: #0000BB">$counter</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />}<br />class&nbsp;</span><span style="color: #0000BB">B&nbsp;</span><span style="color: #007700">extends&nbsp;</span><span style="color: #0000BB">A&nbsp;</span><span style="color: #007700">{}<br /></span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">A</span><span style="color: #007700">::</span><span style="color: #0000BB">counter</span><span style="color: #007700">());&nbsp;</span><span style="color: #FF8000">//&nbsp;int(1)<br /></span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">A</span><span style="color: #007700">::</span><span style="color: #0000BB">counter</span><span style="color: #007700">());&nbsp;</span><span style="color: #FF8000">//&nbsp;int(2)<br /></span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">B</span><span style="color: #007700">::</span><span style="color: #0000BB">counter</span><span style="color: #007700">());&nbsp;</span><span style="color: #FF8000">//&nbsp;int(3)，之前是&nbsp;int(1)<br /></span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">B</span><span style="color: #007700">::</span><span style="color: #0000BB">counter</span><span style="color: #007700">());&nbsp;</span><span style="color: #FF8000">//&nbsp;int(4)，之前是&nbsp;int(2)<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+     </div>
+
+    </div>
+
+    这意味着方法中的静态变量现在的使用方式与静态属性一样。
+   </p>
+  </div>
+
+  <div class="sect3" id="migration81.incompatible.core.type-compatibility-internal">
+   <h4 class="title">返回类型与内部类的兼容性</h4>
+
+   <p class="para">
+    大多数非 Final 的内部方法现在要求重写方法声明一个可兼容的返回类型，否则在继承时会给出方法废弃的提示。
+    如果由于 PHP 跨版本兼容性的问题，导致不能为重写方法声明返回类型，则可以添加 <code class="code">#[ReturnTypeWillChange]</code> 注解来取消废弃提示。
+   </p>
+  </div>
+
+  <div class="sect3" id="migration81.incompatible.core.new-keywords">
+   <h4 class="title">新的关键词</h4>
+   <p class="para">
+    现在 <code class="literal">readonly</code> 是一个关键词。不过，它仍然可以被用作函数名。
+   </p>
+  </div>
+ </div>
+
+ <div class="sect2" id="migration81.incompatible.resource2object">
+  <h3 class="title">Resource 类型迁移为 Object 类型</h3>
+
+  <p class="para">
+   一些 <a href="language.types.resource.html" class="link">资源(resource)</a> 类型已被迁移到 <span class="type">object</span> 类型。
+   要检查返回值，应该从  <span class="function"><a href="function.is-resource.html" class="function">is_resource()</a></span> 检查是否为资源，更改为检查返回值是否等于 <strong><code>false</code></strong>。
+  </p>
+  <ul class="itemizedlist">
+   <li class="listitem">
+    <p class="para">
+     现在 <a href="book.fileinfo.html" class="link">FileInfo</a> 函数接收并返回 <span class="classname"><a href="class.finfo.html" class="classname">finfo</a></span> 对象类型，
+     而不是 <code class="literal">fileinfo</code> <a href="language.types.resource.html" class="link">资源(resource)</a> 类型。
+    </p>
+   </li>
+   <li class="listitem">
+    <p class="para">
+     现在 <a href="book.ftp.html" class="link">FTP</a> 函数接收并返回 <span class="classname"><strong class="classname">FTP\Connection</strong></span> 对象类型，
+     而不是 <code class="literal">ftp</code> <a href="language.types.resource.html" class="link">资源(resource)</a> 类型。
+    </p>
+   </li>
+   <li class="listitem">
+    <p class="para">
+     现在 <a href="book.imap.html" class="link">IMAP</a> 函数接收并返回 <span class="classname"><strong class="classname">IMAP\Connection</strong></span> 对象类型，
+     而不是 <code class="literal">imap</code> <a href="language.types.resource.html" class="link">资源(resource)</a> 类型。
+    </p>
+   </li>
+   <li class="listitem">
+    <p class="para">
+     现在 <a href="book.ldap.html" class="link">LDAP</a> 函数接收并返回 <span class="classname"><a href="class.ldap-connection.html" class="classname">LDAP\Connection</a></span> 对象类型，
+     而不是 <code class="literal">ldap link</code> <a href="language.types.resource.html" class="link">资源(resource)</a> 类型。
+    </p>
+   </li>
+   <li class="listitem">
+    <p class="para">
+     现在 <a href="book.ldap.html" class="link">LDAP</a> 函数接收并返回 <span class="classname"><a href="class.ldap-result.html" class="classname">LDAP\Result</a></span> 对象类型，
+     而不是 <code class="literal">ldap result</code> <a href="language.types.resource.html" class="link">资源(resource)</a> 类型。
+    </p>
+   </li>
+   <li class="listitem">
+    <p class="para">
+     现在 <a href="book.ldap.html" class="link">LDAP</a> 函数接收并返回 <span class="classname"><a href="class.ldap-result-entry.html" class="classname">LDAP\ResultEntry</a></span> 对象类型，
+     而不是 <code class="literal">ldap result entry</code> <a href="language.types.resource.html" class="link">资源(resource)</a> 类型。
+    </p>
+   </li>
+   <li class="listitem">
+    <p class="para">
+     现在 <a href="book.pgsql.html" class="link">PgSQL</a> 函数接收并返回 <span class="classname"><a href="class.pgsql-connection.html" class="classname">PgSql\Connection</a></span> 对象类型，
+     而不是 <code class="literal">pgsql link</code> <a href="language.types.resource.html" class="link">资源(resource)</a> 类型。
+    </p>
+   </li>
+   <li class="listitem">
+    <p class="para">
+     现在 <a href="book.pgsql.html" class="link">PgSQL</a> 函数接收并返回 <span class="classname"><a href="class.pgsql-result.html" class="classname">PgSql\Result</a></span> 对象类型，
+     而不是 <code class="literal">pgsql result</code> <a href="language.types.resource.html" class="link">资源(resource)</a> 类型。
+    </p>
+   </li>
+   <li class="listitem">
+    <p class="para">
+     现在 <a href="book.pgsql.html" class="link">PgSQL</a> 函数接收并返回 <span class="classname"><a href="class.pgsql-lob.html" class="classname">PgSql\Lob</a></span> 对象类型，
+     而不是 <code class="literal">pgsql large object</code> <a href="language.types.resource.html" class="link">资源(resource)</a> 类型。
+    </p>
+   </li>
+   <li class="listitem">
+    <p class="para">
+     现在 <a href="book.pspell.html" class="link">PSpell</a> 函数接收并返回 <span class="classname"><a href="class.pspell-dictionary.html" class="classname">PSpell\Dictionary</a></span> 对象类型，
+     而不是 <code class="literal">pspell</code> <a href="language.types.resource.html" class="link">资源(resource)</a> 类型。
+    </p>
+   </li>
+   <li class="listitem">
+    <p class="para">
+     现在 <a href="book.pspell.html" class="link">PSpell</a> 函数接收并返回 <span class="classname"><a href="class.pspell-config.html" class="classname">PSpell\Config</a></span> 对象类型，
+     而不是 <code class="literal">pspell config</code> <a href="language.types.resource.html" class="link">资源(resource)</a> 类型。
+    </p>
+   </li>
+  </ul>
+ </div>
+
+ <div class="sect2" id="migration81.incompatible.mysqli">
+  <h3 class="title">MySQLi</h3>
+
+  <p class="para">
+   现在 <span class="function"><a href="mysqli-result.fetch-fields.html" class="function">mysqli_fetch_fields()</a></span> 和
+   <span class="function"><a href="mysqli-result.fetch-field-direct.html" class="function">mysqli_fetch_field_direct()</a></span> 对于 <span class="property">max_length</span> 将返回 <code class="literal">0</code> 值。
+   这一信息可以迭代结果集来计算，并获取最大长度。这是之前 PHP 内部的做法。
+  </p>
+
+  <p class="para">
+   常量 <strong><code>MYSQLI_STMT_ATTR_UPDATE_MAX_LENGTH</code></strong> 不再生效。
+  </p>
+
+  <p class="para">
+   常量 <strong><code>MYSQLI_STORE_RESULT_COPY_DATA</code></strong> 不再生效。
+   传递给 <span class="methodname"><a href="mysqli.store-result.html" class="methodname">mysqli::store_result()</a></span> 的 <code class="parameter">mode</code> 参数的所有值不再生效。
+  </p>
+
+  <p class="para">
+   现在 <span class="methodname"><a href="function.mysqli-connect.html" class="methodname">mysqli::connect()</a></span> 成功时返回 <strong><code>true</code></strong> 而不再返回 <strong><code>null</code></strong>。
+  </p>
+
+  <p class="para">
+   默认错误处理模式已经由 silent 变成了 exceptions，更多详情及如何设置该属性请参见 <a href="mysqli-driver.report-mode.html" class="link">MySQLi reporting mode</a> 。
+   要恢复之前的行为习惯，请使用：
+   <code class="code">mysqli_report(MYSQLI_REPORT_OFF);</code>
+  </p>
+
+  <p class="para">
+   现在，扩展 <span class="methodname"><a href="mysqli-stmt.execute.html" class="methodname">mysqli_stmt::execute()</a></span> 类需要指定额外的可选参数。
+  </p>
+ </div>
+
+ <div class="sect2" id="migration81.incompatible.mysqlnd">
+  <h3 class="title">MySQLnd</h3>
+
+  <p class="para">
+    <a href="mysqlnd.config.html#ini.mysqlnd.fetch_data_copy" class="link">mysqlnd.fetch_data_copy</a>
+   INI 指令已被取消。
+   这不会造成用户可见的变化。
+  </p>
+ </div>
+
+ <div class="sect2" id="migration81.incompatible.openssl">
+  <h3 class="title">OpenSSL</h3>
+
+  <p class="para">
+   现在 EC 私钥将以 PKCS#8 格式导出，而非像其他秘钥那样的传统格式。
+  </p>
+  <p class="para">
+   现在 <span class="function"><a href="function.openssl-pkcs7-encrypt.html" class="function">openssl_pkcs7_encrypt()</a></span> 和
+   <span class="function"><a href="function.openssl-cms-encrypt.html" class="function">openssl_cms_encrypt()</a></span> 将默认使用 AES-128-CBC，而非 RC2-40。
+   RC2-40 加密被认为是不安全的，OpenSSL 3 默认不启用。
+  </p>
+ </div>
+
+ <div class="sect2" id="migration81.incompatible.pdo">
+  <h3 class="title">PHP 数据对象</h3>
+
+  <p class="para">
+   现在 <strong><code>PDO::ATTR_STRINGIFY_FETCHES</code></strong> 的类型从 <span class="type">bool</span> 变成了字符串 <code class="literal">&quot;0&quot;</code> 或
+   <code class="literal">&quot;1&quot;</code>。之前的 <span class="type">bool</span> 类型没有被字符串化。
+  </p>
+  <p class="para">
+   现在当 <strong><code>PDO::ATTR_STRINGIFY_FETCHES</code></strong> 被禁用时，
+   以 <strong><code>PDO::PARAM_LOB</code></strong> 为参数调用 <span class="methodname"><a href="pdostatement.bindcolumn.html" class="methodname">PDOStatement::bindColumn()</a></span> 结果将总是绑定一个流。
+   以前，结果要么是一个流，要么是一个字符串，这取决于所用的数据库驱动及其执行的时间。
+  </p>
+
+  <div class="sect3" id="migration81.incompatible.pdo.mysql">
+   <h4 class="title">MySQL 驱动</h4>
+
+   <p class="para">
+    现在，当使用模拟预处理时，结果集中的整数及浮点数将会以 PHP 原始类型返回，而不是以 <span class="type">string</span> 类型返回。
+    这与原生的预处理方式一样。
+    之前的行为方式可以通过 <strong><code>PDO::ATTR_STRINGIFY_FETCHES</code></strong> 恢复。
+   </p>
+  </div>
+
+  <div class="sect3" id="migration81.incompatible.pdo.sqlite">
+   <h4 class="title">SQLite 驱动</h4>
+
+   <p class="para">
+    现在，结果集中的整数及浮点数将会以 PHP 原始类型返回。
+    之前的行为方式可以通过 <strong><code>PDO::ATTR_STRINGIFY_FETCHES</code></strong> 恢复。
+   </p>
+  </div>
+ </div>
+
+ <div class="sect2" id="migration81.incompatible.phar">
+  <h3 class="title">Phar</h3>
+
+  <p class="para">
+   为了遵守 <span class="interfacename"><a href="class.arrayaccess.html" class="interfacename">ArrayAccess</a></span> 接口，
+   <span class="methodname"><a href="phar.offsetunset.html" class="methodname">Phar::offsetUnset()</a></span> 和
+   <span class="methodname"><a href="phardata.offsetunset.html" class="methodname">PharData::offsetUnset()</a></span> 不再以 <span class="type">bool</span> 类型返回。
+  </p>
+ </div>
+
+ <div class="sect2" id="migration81.incompatible.standard">
+  <h3 class="title">Standard</h3>
+
+  <p class="para">
+   <span class="function"><a href="function.version-compare.html" class="function">version_compare()</a></span> 函数不再接收未经记录的操作符缩写。
+  </p>
+
+  <p class="para">
+   现在 <span class="function"><a href="function.htmlspecialchars.html" class="function">htmlspecialchars()</a></span>、
+   <span class="function"><a href="function.htmlentities.html" class="function">htmlentities()</a></span>、
+   <span class="function"><a href="function.htmlspecialchars-decode.html" class="function">htmlspecialchars_decode()</a></span>、
+   <span class="function"><a href="function.html-entity-decode.html" class="function">html_entity_decode()</a></span>、
+   <span class="function"><a href="function.get-html-translation-table.html" class="function">get_html_translation_table()</a></span>
+   使用 <code class="literal">ENT_QUOTES | ENT_SUBSTITUTE</code> 作为默认值，而不再是 <strong><code>ENT_COMPAT</code></strong>。
+   这意味着 <code class="literal">&#039;</code> 被转义为 <code class="literal">&amp;#039;</code> 而不像之前那样不作处理。
+   此外，有缺陷的 UTF-8 将被 Unicode 替代字符（substitute character）替换，而不是产生一个空字符串。
+  </p>
+
+  <p class="para">
+   现在 <span class="function"><a href="function.debug-zval-dump.html" class="function">debug_zval_dump()</a></span> 函数可以打印封装的引用计数了，不仅仅只是打印 <code class="literal">&amp;</code> 引用计数的值。
+   这更准确地模拟了自 PHP 7.0 以来的引用注解。
+  </p>
+
+  <p class="para">
+   现在 <span class="function"><a href="function.debug-zval-dump.html" class="function">debug_zval_dump()</a></span> 可打印 <code class="literal">interned</code> 字符串，而不是 interned 字符串和不可变数组的虚拟的引用计数。
+  </p>
+ </div>
+
+ <div class="sect2" id="migration81.incompatible.spl">
+  <h3 class="title">PHP 标准库（SPL）</h3>
+
+  <p class="para">
+   <span class="classname"><a href="class.splfixedarray.html" class="classname">SplFixedArray</a></span> 将会像 <span class="type">array</span> 类型一样被 JSON 编码。
+  </p>
+ </div>
+
+</div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+ <div class="note">There are no user contributed notes for this page.</div>
+</div>
+</div></div></body></html>

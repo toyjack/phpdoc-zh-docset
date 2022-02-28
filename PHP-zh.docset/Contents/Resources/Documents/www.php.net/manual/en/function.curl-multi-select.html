@@ -34,10 +34,7 @@
  <div class="refsect1 description" id="refsect1-function.curl-multi-select-description">
   <h3 class="title">说明</h3>
   <div class="methodsynopsis dc-description">
-   <span class="methodname"><strong>curl_multi_select</strong></span>
-    ( <span class="methodparam"><span class="type">resource</span> <code class="parameter">$mh</code></span>
-   , <span class="methodparam"><span class="type">float</span> <code class="parameter">$timeout</code><span class="initializer"> = 1.0</span></span>
-   ) : <span class="type">int</span></div>
+   <span class="methodname"><strong>curl_multi_select</strong></span>(<span class="methodparam"><span class="type">resource</span> <code class="parameter">$mh</code></span>, <span class="methodparam"><span class="type">float</span> <code class="parameter">$timeout</code><span class="initializer"> = 1.0</span></span>): <span class="type">int</span></div>
 
   <p class="para rdfs-comment">
     阻塞直到cURL批处理连接中有活动连接。
@@ -50,7 +47,6 @@
   <h3 class="title">参数</h3>
   <p class="para">
    <dl>
-
     <dt>
 <code class="parameter">multi_handle</code>
 </dt>
@@ -98,7 +94,50 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="123869""></a>
+<div id="allnotes">  <a name="126611""></a>
+  <div class="note">
+   <strong class="user">gib-o-master</strong>
+   <a href="#126611" class="date">14-Nov-2021 10:48</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+NOTE: current implementation of `curl_multi_select` doesn't block and doesn't respect timeout parameter (maybe will be fixed later, in this case just remove the usleep call)<br />
+<br />
+here, i would like to post my working/tested example of proper usage of this function:<br />
+<br />
+```<br />
+$running&nbsp; = 1;<br />
+while ($running)<br />
+{<br />
+&nbsp; # execute request<br />
+&nbsp; if ($a = curl_multi_exec($this-&gt;murl, $running)) {<br />
+&nbsp;&nbsp;&nbsp; throw BotError::text("curl_multi_exec[$a]: ".curl_multi_strerror($a));<br />
+&nbsp; }<br />
+&nbsp; # check finished<br />
+&nbsp; if (!$running) {<br />
+&nbsp;&nbsp;&nbsp; break;<br />
+&nbsp; }<br />
+&nbsp; # wait for activity<br />
+&nbsp; while (!$a)<br />
+&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; if (($a = curl_multi_select($this-&gt;murl, $timeout)) &lt; 0)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; throw BotError::text(<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; ($a = curl_multi_errno($this-&gt;murl))<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; ? "curl_multi_select[$a]: ".curl_multi_strerror($a)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; : 'system select failed'<br />
+&nbsp;&nbsp; &nbsp;&nbsp; );<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; usleep($timeout * 1000000);# should be &lt;=1<br />
+&nbsp; }<br />
+}<br />
+```</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="123869""></a>
   <div class="note">
    <strong class="user">bishop at php dot net</strong>
    <a href="#123869" class="date">22-May-2019 01:50</a>

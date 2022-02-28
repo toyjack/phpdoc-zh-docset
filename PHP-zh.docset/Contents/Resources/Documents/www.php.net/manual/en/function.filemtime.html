@@ -33,9 +33,7 @@
  <div class="refsect1 description" id="refsect1-function.filemtime-description">
   <h3 class="title">说明</h3>
   <div class="methodsynopsis dc-description">
-   <span class="methodname"><strong>filemtime</strong></span>
-    ( <span class="methodparam"><span class="type">string</span> <code class="parameter">$filename</code></span>
-   ) : <span class="type">int</span></div>
+   <span class="methodname"><strong>filemtime</strong></span>(<span class="methodparam"><span class="type">string</span> <code class="parameter">$filename</code></span>): <span class="type">int</span></div>
 
   <p class="para rdfs-comment">
    本函数返回文件中的数据块上次被写入的时间，也就是说，文件的内容上次被修改的时间。
@@ -47,7 +45,6 @@
   <h3 class="title">参数</h3>
   <p class="para">
    <dl>
-
     
      <dt>
 <code class="parameter">filename</code></dt>
@@ -78,7 +75,7 @@
  <div class="refsect1 examples" id="refsect1-function.filemtime-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-2551">
+   <div class="example" id="example-2106">
     <p><strong>Example #1 <span class="function"><strong>filemtime()</strong></span>  例子</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -126,7 +123,55 @@ URL 包装器。请参见 <a href="wrappers.html" class="xref">支持的协议和封装协议</a>
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="124584""></a>
+<div id="allnotes">  <a name="126358""></a>
+  <div class="note">
+   <strong class="user">MarkAgius at markagius dot co dot uk</strong>
+   <a href="#126358" class="date">22-Aug-2021 12:33</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+filemtime(..) only works with files on your server.<br />
+$T=filesize("index.php"); // Works.<br />
+$T=filesize("/public_html/dir/index.php"); // Works.<br />
+<br />
+But the following will not work.<br />
+$T=filesize("https://mydomain.com/dir/index.php"); // Will not work. Same domain but using web address.<br />
+$T=filesize("https://otherdomain.com/dir/index.php"); // Other domain, will not work.<br />
+<br />
+To get file date for other sites try:<br />
+(Note: Time zone may be in G.M.T. and not your local timezone)<br />
+<br />
+$T = getFileDate("https://mydomain.com/dir/index.php");<br />
+$T = getFileDate("https://otherdomain.com/dir/index.php");<br />
+<br />
+function getFileDate($filePath){<br />
+&nbsp; // Same as filemtime(..) but also works with remote files.<br />
+&nbsp; // EG. = print date("j/m/Y, g:i:sa (e)",getFileDate("https://abc.com/file.jpg"));<br />
+&nbsp; // File not found then will return -307756800 ( 1/04/1960)<br />
+&nbsp; $ret = -(3562 *24*60*60); //&nbsp; 1/04/1960&nbsp; 3562= seconds to 1/01/1970<br />
+<br />
+&nbsp; $ch = curl_init($filePath);<br />
+&nbsp; curl_setopt($ch, CURLOPT_NOBODY, true);<br />
+&nbsp; curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);<br />
+&nbsp; // Try and get the file modification date.<br />
+&nbsp; curl_setopt($ch, CURLOPT_FILETIME, true);<br />
+&nbsp; $result = curl_exec($ch);<br />
+&nbsp; if($result===false){<br />
+&nbsp;&nbsp;&nbsp; die(curl_error($ch)); <br />
+&nbsp;&nbsp;&nbsp; return $ret;<br />
+&nbsp; }<br />
+<br />
+&nbsp; $ret = curl_getinfo($ch, CURLINFO_FILETIME);<br />
+&nbsp; curl_close($ch);<br />
+<br />
+&nbsp; return $ret;<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="124584""></a>
   <div class="note">
    <strong class="user">Steve GS</strong>
    <a href="#124584" class="date">09-Jan-2020 10:39</a>

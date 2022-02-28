@@ -2,7 +2,7 @@
 <html>
  <head>
   <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
-  <title>Null 字符问题</title>
+  <title>空字符（Null bytes）相关问题</title>
 <link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
 <link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -20,38 +20,36 @@
   <ul class="breadcrumbs-container">
     <li><a href="index.html">PHP Manual</a></li>
     <li><a href="security.filesystem.html">文件系统安全</a></li>
-    <li>Null 字符问题</li>
+    <li>空字符（Null bytes）相关问题</li>
   </ul>
 </div>
 <div id="layout">
   <div id="layout-content"><div id="security.filesystem.nullbytes" class="sect1">
-    <h2 class="title">Null 字符问题</h2>
+    <h2 class="title">空字符（Null bytes）相关问题</h2>
     <p class="simpara">
-     由于 PHP 的文件系统操作是基于 C 语言的函数的，所以它可能会以您意想不到的方式处理
-     Null 字符。
-     Null字符在 C 语言中用于标识字符串结束，一个完整的字符串是从其开头到遇见
-     Null 字符为止。
+     由于 <acronym title="PHP: Hypertext Preprocessor">PHP</acronym> 使用底层 C 函数进行文件系统相关操作，因此它可能会以完全意想不到的方式处理空字符。
+     在 C 语言中空字符标识字符串的结束，所以一个完整的字符串是从其开头到遇见空字符为止。
 
-     以下代码演示了类似的攻击：
+     下面的示例展示了易受攻击的代码，演示了这个问题：
     </p>
-    <div class="example" id="example-387">
-     <p><strong>Example #1 会被 Null 字符问题攻击的代码</strong></p>
+    <div class="example" id="example-418">
+     <p><strong>Example #1 会被空字符攻击的代码</strong></p>
      <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
-<span style="color: #0000BB">&lt;?php<br />$file&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$_GET</span><span style="color: #007700">[</span><span style="color: #DD0000">'file'</span><span style="color: #007700">];&nbsp;</span><span style="color: #FF8000">//&nbsp;"../../etc/passwd\0"<br /></span><span style="color: #007700">if&nbsp;(</span><span style="color: #0000BB">file_exists</span><span style="color: #007700">(</span><span style="color: #DD0000">'/home/wwwrun/'</span><span style="color: #007700">.</span><span style="color: #0000BB">$file</span><span style="color: #007700">.</span><span style="color: #DD0000">'.php'</span><span style="color: #007700">))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;file_exists&nbsp;will&nbsp;return&nbsp;true&nbsp;as&nbsp;the&nbsp;file&nbsp;/home/wwwrun/../../etc/passwd&nbsp;exists<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">include&nbsp;</span><span style="color: #DD0000">'/home/wwwrun/'</span><span style="color: #007700">.</span><span style="color: #0000BB">$file</span><span style="color: #007700">.</span><span style="color: #DD0000">'.php'</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;the&nbsp;file&nbsp;/etc/passwd&nbsp;will&nbsp;be&nbsp;included<br /></span><span style="color: #007700">}<br /></span><span style="color: #0000BB">?&gt;</span>
+<span style="color: #0000BB">&lt;?php<br />$file&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$_GET</span><span style="color: #007700">[</span><span style="color: #DD0000">'file'</span><span style="color: #007700">];&nbsp;</span><span style="color: #FF8000">//&nbsp;"../../etc/passwd\0"<br /></span><span style="color: #007700">if&nbsp;(</span><span style="color: #0000BB">file_exists</span><span style="color: #007700">(</span><span style="color: #DD0000">'/home/wwwrun/'</span><span style="color: #007700">.</span><span style="color: #0000BB">$file</span><span style="color: #007700">.</span><span style="color: #DD0000">'.php'</span><span style="color: #007700">))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;当&nbsp;/home/wwwrun/../../etc/passwd&nbsp;文件存在的时候&nbsp;file_exists&nbsp;将会返回&nbsp;true<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">include&nbsp;</span><span style="color: #DD0000">'/home/wwwrun/'</span><span style="color: #007700">.</span><span style="color: #0000BB">$file</span><span style="color: #007700">.</span><span style="color: #DD0000">'.php'</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;将会加载&nbsp;/etc/passwd&nbsp;文件<br /></span><span style="color: #007700">}<br /></span><span style="color: #0000BB">?&gt;</span>
 </span>
 </code></div>
      </div>
 
     </div>
     <p class="para">
-     因此，任何用于操作文件系统的字符串（译注：特别是程序外部输入的字符串）都必须经过适当的检查。以下是上述例子的改进版本：
+     因此，在文件系统操作中都应该正确检查任何被污染的字符串。这是上个示例的改进版本：
     </p>
-    <div class="example" id="example-388">
-     <p><strong>Example #2 验证输入的正确做法</strong></p>
+    <div class="example" id="example-419">
+     <p><strong>Example #2 验证输入的正确性</strong></p>
      <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
-<span style="color: #0000BB">&lt;?php<br />$file&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$_GET</span><span style="color: #007700">[</span><span style="color: #DD0000">'file'</span><span style="color: #007700">];&nbsp;<br /><br /></span><span style="color: #FF8000">//&nbsp;对字符串进行白名单检查<br /></span><span style="color: #007700">switch&nbsp;(</span><span style="color: #0000BB">$file</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;case&nbsp;</span><span style="color: #DD0000">'main'</span><span style="color: #007700">:<br />&nbsp;&nbsp;&nbsp;&nbsp;case&nbsp;</span><span style="color: #DD0000">'foo'</span><span style="color: #007700">:<br />&nbsp;&nbsp;&nbsp;&nbsp;case&nbsp;</span><span style="color: #DD0000">'bar'</span><span style="color: #007700">:<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;include&nbsp;</span><span style="color: #DD0000">'/home/wwwrun/include/'</span><span style="color: #007700">.</span><span style="color: #0000BB">$file</span><span style="color: #007700">.</span><span style="color: #DD0000">'.php'</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break;<br />&nbsp;&nbsp;&nbsp;&nbsp;default:<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;include&nbsp;</span><span style="color: #DD0000">'/home/wwwrun/include/main.php'</span><span style="color: #007700">;<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+<span style="color: #0000BB">&lt;?php<br />$file&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$_GET</span><span style="color: #007700">[</span><span style="color: #DD0000">'file'</span><span style="color: #007700">];&nbsp;<br /><br /></span><span style="color: #FF8000">//&nbsp;对值进行白名单检查<br /></span><span style="color: #007700">switch&nbsp;(</span><span style="color: #0000BB">$file</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;case&nbsp;</span><span style="color: #DD0000">'main'</span><span style="color: #007700">:<br />&nbsp;&nbsp;&nbsp;&nbsp;case&nbsp;</span><span style="color: #DD0000">'foo'</span><span style="color: #007700">:<br />&nbsp;&nbsp;&nbsp;&nbsp;case&nbsp;</span><span style="color: #DD0000">'bar'</span><span style="color: #007700">:<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;include&nbsp;</span><span style="color: #DD0000">'/home/wwwrun/include/'</span><span style="color: #007700">.</span><span style="color: #0000BB">$file</span><span style="color: #007700">.</span><span style="color: #DD0000">'.php'</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break;<br />&nbsp;&nbsp;&nbsp;&nbsp;default:<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;include&nbsp;</span><span style="color: #DD0000">'/home/wwwrun/include/main.php'</span><span style="color: #007700">;<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
 </span>
 </code></div>
      </div>

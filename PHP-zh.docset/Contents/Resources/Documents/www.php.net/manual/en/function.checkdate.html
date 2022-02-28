@@ -33,11 +33,7 @@
  <div class="refsect1 description" id="refsect1-function.checkdate-description">
   <h3 class="title">说明</h3>
    <div class="methodsynopsis dc-description">
-    <span class="methodname"><strong>checkdate</strong></span>
-     ( <span class="methodparam"><span class="type">int</span> <code class="parameter">$month</code></span>
-    , <span class="methodparam"><span class="type">int</span> <code class="parameter">$day</code></span>
-    , <span class="methodparam"><span class="type">int</span> <code class="parameter">$year</code></span>
-    ) : <span class="type">bool</span></div>
+    <span class="methodname"><strong>checkdate</strong></span>(<span class="methodparam"><span class="type">int</span> <code class="parameter">$month</code></span>, <span class="methodparam"><span class="type">int</span> <code class="parameter">$day</code></span>, <span class="methodparam"><span class="type">int</span> <code class="parameter">$year</code></span>): <span class="type">bool</span></div>
 
     <p class="para rdfs-comment">
     检查由参数构成的日期的合法性。如果每个参数都正确定义了则会被认为是有效的。
@@ -49,7 +45,6 @@
   <h3 class="title">参数</h3>
   <p class="para">
    <dl>
-
     
      <dt>
 <code class="parameter">month</code></dt>
@@ -105,7 +100,7 @@
  <div class="refsect1 examples" id="refsect1-function.checkdate-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-2462">
+   <div class="example" id="example-2016">
     <p><strong>Example #1 <span class="function"><strong>checkdate()</strong></span> 例子</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -140,7 +135,54 @@ bool(false)
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="125827""></a>
+<div id="allnotes">  <a name="126477""></a>
+  <div class="note">
+   <strong class="user">hugo dot REMOVE dot voerman at priva dot NOTNEEDED dot com</strong>
+   <a href="#126477" class="date">05-Oct-2021 02:03</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I use a slight variation of the validateDate() above, to also allow validating dates like: '2021-10-05T13:55:01Z' with DateTime::ATOM like:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">validateDate</span><span class="keyword">(</span><span class="default">$date</span><span class="keyword">, </span><span class="default">$format </span><span class="keyword">= </span><span class="string">'Y-m-d H:i:s'</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// replace a 'Z' at the end by '+00:00'<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$date </span><span class="keyword">= </span><span class="default">preg_replace</span><span class="keyword">(</span><span class="string">'/(.*)Z$/'</span><span class="keyword">, </span><span class="string">'${1}+00:00'</span><span class="keyword">, </span><span class="default">$date</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$d </span><span class="keyword">= </span><span class="default">DateTime</span><span class="keyword">::</span><span class="default">createFromFormat</span><span class="keyword">(</span><span class="default">$format</span><span class="keyword">, </span><span class="default">$date</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$d </span><span class="keyword">&amp;&amp; </span><span class="default">$d</span><span class="keyword">-&gt;</span><span class="default">format</span><span class="keyword">(</span><span class="default">$format</span><span class="keyword">) == </span><span class="default">$date</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+This means a call like:<br />
+<span class="default">&lt;?php<br />
+var_dump</span><span class="keyword">(</span><span class="default">validateDate</span><span class="keyword">(</span><span class="string">'2021-10-05T13:55:01Z'</span><span class="keyword">, </span><span class="default">DateTime</span><span class="keyword">::</span><span class="default">ATOM</span><span class="keyword">));<br />
+</span><span class="default">?&gt;<br />
+</span>will output true<br />
+<br />
+I use this in a filter_input wrapper like:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">fi_validateDate</span><span class="keyword">(</span><span class="default">$format</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; return function(</span><span class="default">$value </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">) use (</span><span class="default">$format</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">validateDate</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">, </span><span class="default">$format</span><span class="keyword">) ? </span><span class="default">$value </span><span class="keyword">: </span><span class="default">null</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; };<br />
+}</span><span class="default">?&gt;<br />
+</span><br />
+so I can do stuff like:<br />
+<br />
+<span class="default">&lt;?php<br />
+$dateFrom </span><span class="keyword">= </span><span class="default">filter_input</span><span class="keyword">(</span><span class="default">INPUT_GET</span><span class="keyword">, </span><span class="string">'dateFrom'</span><span class="keyword">, </span><span class="default">FILTER_CALLBACK</span><span class="keyword">, [</span><span class="string">'options' </span><span class="keyword">=&gt; </span><span class="default">fi_validateDate</span><span class="keyword">(</span><span class="default">DateTime</span><span class="keyword">::</span><span class="default">ATOM</span><span class="keyword">)]);<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="125827""></a>
   <div class="note">
    <strong class="user">Anonymous</strong>
    <a href="#125827" class="date">15-Feb-2021 06:10</a>

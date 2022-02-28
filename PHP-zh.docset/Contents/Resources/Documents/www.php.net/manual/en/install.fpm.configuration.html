@@ -32,7 +32,6 @@
  <div class="sect2"> 
   <h3 class="title"><var class="filename">php-fpm.conf</var> 全局配置段</h3>
   <dl>
-
    
     <dt id="pid">
      <code class="parameter">pid</code>
@@ -76,6 +75,38 @@
     </dd>
 
    
+     
+      <dt id="log-limit">
+       <code class="parameter">log_limit</code>
+       <span class="type">int</span>
+      </dt>
+
+      <dd>
+
+       <p class="para">
+        日志记录行的限制，允许记录超过 1024 个字符的消息而不需要换行。
+        默认值：1024。
+        PHP 7.3.0 起可用。
+       </p>
+      </dd>
+
+     
+     
+      <dt id="log-buffering">
+       <code class="parameter">log_buffering</code>
+       <span class="type">bool</span>
+      </dt>
+
+      <dd>
+
+       <p class="para">
+        实验性：没有额外缓冲的日志记录。
+        默认值：yes。
+        PHP 7.3.0 后可用。
+       </p>
+      </dd>
+
+     
      
       <dt id="syslog-facility">
        <code class="parameter">syslog.facility</code>
@@ -185,7 +216,7 @@
    
     <dt id="daemonize">
      <code class="parameter">daemonize</code>
-     <span class="type">boolean</span>
+     <span class="type">bool</span>
     </dt>
 
     <dd>
@@ -206,6 +237,7 @@
 
        <p class="para">
           设置 master 进程的打开文件描述符 rlimit 数。
+          默认值：系统定义值。
        </p>
       </dd>
 
@@ -267,7 +299,6 @@
    这些设置可以针对每个进程池单独设置。 
   </p>
   <dl>
-
    
     <dt id="listen">
      <code class="parameter">listen</code>
@@ -307,7 +338,7 @@
      <p class="para">
       设置允许连接到 FastCGI 的服务器 IPV4 地址。等同于 PHP FastCGI (5.2.2+) 中的 FCGI_WEB_SERVER_ADDRS
       环境变量。仅对 TCP 监听起作用。每个地址是用逗号分隔，如果没有设置或者为空，则允许任何服务器请求连接。默认值：any。
-        PHP 5.5.20 和 5.6.4起，开始支持 IPv6 地址。
+      支持 IPv6 地址。
      </p> 
     </dd>
 
@@ -368,7 +399,7 @@
        <p class="para">
         当系统支持 POSIX ACL（Access Control Lists）时，可以设置使用此选项。
         当设置了的时候，将会忽略 <code class="literal">listen.owner</code> 和 <code class="literal">listen.group</code>。
-        值是逗号分割的用户名列表。 PHP 5.6.5 起可用。
+        值是逗号分割的用户名列表。
        </p>
       </dd>
 
@@ -383,7 +414,7 @@
 
        <p class="para">
         参见 <code class="literal">listen.acl_users</code>。
-        值是逗号分割的用户组名称列表。 PHP 5.6.5 起可用。
+        值是逗号分割的用户组名称列表。
        </p>
       </dd>
 
@@ -442,7 +473,7 @@
 
    
    
-    <dt id="pm.max-chidlren">
+    <dt id="pm.max-children">
      <code class="parameter">pm.max_children</code>
      <span class="type">int</span>
     </dt>
@@ -597,6 +628,22 @@
 
      
      
+      <dt id="process-dumpable">
+       <code class="parameter">process.dumpable</code>
+       <span class="type">bool</span>
+      </dt>
+
+      <dd>
+
+       <p class="para">
+        即使进程用户或者组跟主进程用户是不同的，也设置进程可转储标志 (PR_SET_DUMPABLE prctl)。 
+        它允许为用户池创建进程 core dump 和 ptrace 进程。
+        默认值：no。自 PHP 7.0.29、7.1.17 和 7.2.5 起可用。
+       </p>
+      </dd>
+
+     
+     
       <dt id="prefix">
        <code class="parameter">prefix</code>
        <span class="type">string</span>
@@ -715,7 +762,7 @@
    
     <dt id="catch-workers-output">
      <code class="parameter">catch_workers_output</code>
-     <span class="type">boolean</span>
+     <span class="type">bool</span>
     </dt>
 
     <dd>
@@ -728,9 +775,26 @@
 
    
      
+      <dt id="decorate-workers-output">
+       <code class="parameter">decorate_workers_output</code>
+       <span class="type">bool</span>
+      </dt>
+
+      <dd>
+
+       <p class="para">
+       当 <a href="install.fpm.configuration.html#catch-workers-output" class="link">catch_workers_output</a> 启用时，
+        为 worker 输出启用输出装饰。
+        默认值：yes。
+        自 PHP 7.3.0 起可用。
+       </p>
+      </dd>
+
+     
+     
       <dt id="clear-env">
        <code class="parameter">clear_env</code>
-       <span class="type">boolean</span>
+       <span class="type">bool</span>
       </dt>
 
       <dd>
@@ -738,8 +802,7 @@
        <p class="para">
         为 FPM worker 进程清除环境变量。
         在进程池配置文件里设置环境变量前，阻止任意系统的环境变量进入 FPM worker 进程。
-        自 PHP 5.4.27、 5.5.11 和 5.6.0 起。
-        默认值: Yes
+        默认值：Yes
        </p>
       </dd>
 
@@ -786,7 +849,149 @@
 
        <p class="para">
         access log 的格式。
-        默认值: &quot;%R - %u %t \&quot;%m %r\&quot; %s&quot;
+        默认: <code class="literal">&quot;%R - %u %t \&quot;%m %r\&quot; %s&quot;</code>：
+        <table id="fpm.configuration.access.format" class="doctable table">
+         <caption><strong>可用选项</strong></caption>
+         
+          <thead>
+           <tr>
+            <th>占位符</th>
+            <th>描述</th>
+           </tr>
+
+          </thead>
+
+          <tbody class="tbody">
+           <tr>
+            <td>
+             <strong><code>%C</code></strong>
+            </td>
+            <td>%CPU</td>
+           </tr>
+
+           <tr>
+            <td>
+             <strong><code>%d</code></strong>
+            </td>
+            <td>持续时间 μs</td>
+           </tr>
+
+           <tr>
+            <td>
+             <strong><code>%e</code></strong>
+            </td>
+            <td>fastcgi 环境变量</td>
+           </tr>
+
+           <tr>
+            <td>
+             <strong><code>%f</code></strong>
+            </td>
+            <td>脚本文件</td>
+           </tr>
+
+           <tr>
+            <td>
+             <strong><code>%l</code></strong>
+            </td>
+            <td>内容长度</td>
+           </tr>
+
+           <tr>
+            <td>
+             <strong><code>%m</code></strong>
+            </td>
+            <td>请求方法</td>
+           </tr>
+
+           <tr>
+            <td>
+             <strong><code>%M</code></strong>
+            </td>
+            <td>内存</td>
+           </tr>
+
+           <tr>
+            <td>
+             <strong><code>%n</code></strong>
+            </td>
+            <td>进程池（pool）名称</td>
+           </tr>
+
+           <tr>
+            <td>
+             <strong><code>%o</code></strong>
+            </td>
+            <td>header 输出</td>
+           </tr>
+
+           <tr>
+            <td>
+             <strong><code>%p</code></strong>
+            </td>
+            <td>PID</td>
+           </tr>
+
+           <tr>
+            <td>
+             <strong><code>%q</code></strong>
+            </td>
+            <td>查询字符串</td>
+           </tr>
+
+           <tr>
+            <td>
+             <strong><code>%Q</code></strong>
+            </td>
+            <td>%q 和 %r 之间的连接字符</td>
+           </tr>
+
+           <tr>
+            <td>
+             <strong><code>%r</code></strong>
+            </td>
+            <td>请求 URI</td>
+           </tr>
+
+           <tr>
+            <td>
+             <strong><code>%R</code></strong>
+            </td>
+            <td>远程 IP 地址</td>
+           </tr>
+
+           <tr>
+            <td>
+             <strong><code>%s</code></strong>
+            </td>
+            <td>状态码</td>
+           </tr>
+
+           <tr>
+            <td>
+             <strong><code>%T</code></strong>
+            </td>
+            <td>时间</td>
+           </tr>
+
+           <tr>
+            <td>
+             <strong><code>%t</code></strong>
+            </td>
+            <td>时间</td>
+           </tr>
+
+           <tr>
+            <td>
+             <strong><code>%u</code></strong>
+            </td>
+            <td>远程用户</td>
+           </tr>
+
+          </tbody>
+         
+        </table>
+
        </p>
       </dd>
 
@@ -797,20 +1002,20 @@
   <p class="para">
    还可以在为一个运行池传递附加的环境变量，或者更新 PHP
    的配置值。可以在进程池配置文件中如下面的配置参数来做到：
-   <div class="example" id="example-33">
+   <div class="example" id="example-24">
     <p><strong>Example #1 给运行池传递环境变量和设置 PHP 的配置值</strong></p>
     <div class="example-contents">
 <div class="inicode"><pre class="inicode">env[HOSTNAME] = $HOSTNAME
-       env[PATH] = /usr/local/bin:/usr/bin:/bin
-       env[TMP] = /tmp
-       env[TMPDIR] = /tmp
-       env[TEMP] = /tmp
+env[PATH] = /usr/local/bin:/usr/bin:/bin
+env[TMP] = /tmp
+env[TMPDIR] = /tmp
+env[TEMP] = /tmp
 
-       php_admin_value[sendmail_path] = /usr/sbin/sendmail -t -i -f www@my.domain.com
-       php_flag[display_errors] = off
-       php_admin_value[error_log] = /var/log/fpm-php.www.log
-       php_admin_flag[log_errors] = on
-       php_admin_value[memory_limit] = 32M</pre>
+php_admin_value[sendmail_path] = /usr/sbin/sendmail -t -i -f www@my.domain.com
+php_flag[display_errors] = off
+php_admin_value[error_log] = /var/log/fpm-php.www.log
+php_admin_flag[log_errors] = on
+php_admin_value[memory_limit] = 32M</pre>
 </div>
       </div>
 
@@ -826,8 +1031,8 @@
      定义的值，不能被 PHP 代码中的 <span class="function"><a href="function.ini-set.html" class="function">ini_set()</a></span> 覆盖。
     </p>
     <p class="para">
-     自 5.3.3 起，也可以通过 web 服务器设置 PHP 的设定。
-     <div class="example" id="example-34">
+     可以通过 web 服务器设置 PHP 的设定。
+     <div class="example" id="example-25">
       <p><strong>Example #2 在 nginx.conf 中设定 PHP</strong></p>
       <div class="example-contents">
 <div class="inicode"><pre class="inicode">set $php_value &quot;pcre.backtrack_limit=424242&quot;;
@@ -847,6 +1052,11 @@ fastcgi_param  PHP_ADMIN_VALUE &quot;open_basedir=/var/www/htdocs&quot;;</pre>
        <a href="install.fpm.configuration.html#listen-allowed-clients" class="link">listen.allowed_clients</a>。
       </p>
      </div>
+     <blockquote class="note"><p><strong class="note">Note</strong>: 
+      <span class="simpara">
+       进程池不是种安全机制，因为它们不会完全隔离；例如：所有的进程池会使用单个 Opcache 实例。
+      </span>
+     </p></blockquote>
     </p>
    </div>
    
@@ -854,7 +1064,155 @@ fastcgi_param  PHP_ADMIN_VALUE &quot;open_basedir=/var/www/htdocs&quot;;</pre>
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="125502""></a>
+<div id="allnotes">  <a name="126422""></a>
+  <div class="note">
+   <strong class="user">antonfedonyuk at gmail dot com</strong>
+   <a href="#126422" class="date">13-Sep-2021 10:01</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+; The access log format.<br />
+; The following syntax is allowed<br />
+;&nbsp; %%: the '%' character<br />
+;&nbsp; %C: %CPU used by the request<br />
+;&nbsp; &nbsp; &nbsp; it can accept the following format:<br />
+;&nbsp; &nbsp; &nbsp; - %{user}C for user CPU only<br />
+;&nbsp; &nbsp; &nbsp; - %{system}C for system CPU only<br />
+;&nbsp; &nbsp; &nbsp; - %{total}C&nbsp; for user + system CPU (default)<br />
+;&nbsp; %d: time taken to serve the request<br />
+;&nbsp; &nbsp; &nbsp; it can accept the following format:<br />
+;&nbsp; &nbsp; &nbsp; - %{seconds}d (default)<br />
+;&nbsp; &nbsp; &nbsp; - %{milliseconds}d<br />
+;&nbsp; &nbsp; &nbsp; - %{milli}d<br />
+;&nbsp; &nbsp; &nbsp; - %{microseconds}d<br />
+;&nbsp; &nbsp; &nbsp; - %{micro}d<br />
+;&nbsp; %e: an environment variable (same as $_ENV or $_SERVER)<br />
+;&nbsp; &nbsp; &nbsp; it must be associated with embraces to specify the name of the env<br />
+;&nbsp; &nbsp; &nbsp; variable. Some examples:<br />
+;&nbsp; &nbsp; &nbsp; - server specifics like: %{REQUEST_METHOD}e or %{SERVER_PROTOCOL}e<br />
+;&nbsp; &nbsp; &nbsp; - HTTP headers like: %{HTTP_HOST}e or %{HTTP_USER_AGENT}e<br />
+;&nbsp; %f: script filename<br />
+;&nbsp; %l: content-length of the request (for POST request only)<br />
+;&nbsp; %m: request method<br />
+;&nbsp; %M: peak of memory allocated by PHP<br />
+;&nbsp; &nbsp; &nbsp; it can accept the following format:<br />
+;&nbsp; &nbsp; &nbsp; - %{bytes}M (default)<br />
+;&nbsp; &nbsp; &nbsp; - %{kilobytes}M<br />
+;&nbsp; &nbsp; &nbsp; - %{kilo}M<br />
+;&nbsp; &nbsp; &nbsp; - %{megabytes}M<br />
+;&nbsp; &nbsp; &nbsp; - %{mega}M<br />
+;&nbsp; %n: pool name<br />
+;&nbsp; %o: output header<br />
+;&nbsp; &nbsp; &nbsp; it must be associated with embraces to specify the name of the header:<br />
+;&nbsp; &nbsp; &nbsp; - %{Content-Type}o<br />
+;&nbsp; &nbsp; &nbsp; - %{X-Powered-By}o<br />
+;&nbsp; &nbsp; &nbsp; - %{Transfert-Encoding}o<br />
+;&nbsp; &nbsp; &nbsp; - ....<br />
+;&nbsp; %p: PID of the child that serviced the request<br />
+;&nbsp; %P: PID of the parent of the child that serviced the request<br />
+;&nbsp; %q: the query string<br />
+;&nbsp; %Q: the '?' character if query string exists<br />
+;&nbsp; %r: the request URI (without the query string, see %q and %Q)<br />
+;&nbsp; %R: remote IP address<br />
+;&nbsp; %s: status (response code)<br />
+;&nbsp; %t: server time the request was received<br />
+;&nbsp; &nbsp; &nbsp; it can accept a strftime(3) format:<br />
+;&nbsp; &nbsp; &nbsp; %d/%b/%Y:%H:%M:%S %z (default)<br />
+;&nbsp; &nbsp; &nbsp; The strftime(3) format must be encapsulated in a %{&lt;strftime_format&gt;}t tag<br />
+;&nbsp; &nbsp; &nbsp; e.g. for a ISO8601 formatted timestring, use: %{%Y-%m-%dT%H:%M:%S%z}t<br />
+;&nbsp; %T: time the log has been written (the request has finished)<br />
+;&nbsp; &nbsp; &nbsp; it can accept a strftime(3) format:<br />
+;&nbsp; &nbsp; &nbsp; %d/%b/%Y:%H:%M:%S %z (default)<br />
+;&nbsp; &nbsp; &nbsp; The strftime(3) format must be encapsulated in a %{&lt;strftime_format&gt;}t tag<br />
+;&nbsp; &nbsp; &nbsp; e.g. for a ISO8601 formatted timestring, use: %{%Y-%m-%dT%H:%M:%S%z}t<br />
+;&nbsp; %u: remote user<br />
+;<br />
+; Default: "%R - %u %t \"%m %r\" %s"<br />
+access.format = "%R - %u %t \"%m %r%Q%q\" %s %f %{milli}d %{kilo}M %C%%"<br />
+<br />
+https://github.com/php/php-src/blob/master/sapi/fpm/www.conf.in#L257-L318</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="126421""></a>
+  <div class="note">
+   <strong class="user">antonfedonyuk at gmail dot com</strong>
+   <a href="#126421" class="date">13-Sep-2021 09:38</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+NOTE: "access.format" containing "%o" generate error in PHP 7.4 (don't tested in other versions)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="126023""></a>
+  <div class="note">
+   <strong class="user">rob at librobert dot net</strong>
+   <a href="#126023" class="date">18-Apr-2021 12:11</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Correction for my previous note...<br />
+<br />
+I wrote "The 'index' directive that is used in php-fpm.conf".<br />
+<br />
+But obviously I meant "The 'include' directive"...</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="126022""></a>
+  <div class="note">
+   <strong class="user">rob at librobert dot net</strong>
+   <a href="#126022" class="date">18-Apr-2021 11:53</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The 'index' directive that is used in php-fpm.conf is not documented here. However, this directive can also be used in the pool configurations. In the included file, the $pool variable is substituted correctly.<br />
+<br />
+This means that, if you have multiple pools with similar configurations, you can create a file 'default-values.inc' like so:<br />
+<br />
+-----<br />
+listen.allowed_clients = 127.0.0.1<br />
+<br />
+pm = dynamic<br />
+pm.max_children = X<br />
+pm.min_spare_servers = X<br />
+pm.max_spare_servers = X<br />
+<br />
+access.log = /var/log/php-fpm/$pool.access<br />
+access.format = "%R %u [%t] \"%m %r\" %s %d %l"<br />
+slowlog = /var/log/php-fpm/$pool.slow<br />
+<br />
+php_flag[short_open_tag] = off<br />
+-----<br />
+<br />
+And then include that file in each pool configuration like so:<br />
+<br />
+-----<br />
+[vhost1.example.com]<br />
+user = www-vhost1<br />
+group = www-vhost1<br />
+<br />
+listen = 127.0.0.1:9001<br />
+<br />
+include = /usr/local/etc/php-fpm.d/default-values.inc<br />
+-----<br />
+<br />
+This makes things a bit more transparent, and it could potentially save some time if you decide to change settings.<br />
+<br />
+Make sure the name of the included file does not end in '.conf', because all files with that extension are loaded from php-fpm.conf.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="125502""></a>
   <div class="note">
    <strong class="user">david dot cancalon at proxeem dot fr</strong>
    <a href="#125502" class="date">09-Nov-2020 04:08</a>

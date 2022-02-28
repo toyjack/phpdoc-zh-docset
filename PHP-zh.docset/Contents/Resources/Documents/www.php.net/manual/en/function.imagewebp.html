@@ -34,11 +34,7 @@
  <div class="refsect1 description" id="refsect1-function.imagewebp-description">
   <h3 class="title">说明</h3>
   <div class="methodsynopsis dc-description">
-   <span class="methodname"><strong>imagewebp</strong></span>
-    ( <span class="methodparam"><span class="type">resource</span> <code class="parameter">$image</code></span>
-   , <span class="methodparam"><span class="type"><a href="language.types.declarations.html#language.types.declarations.mixed" class="type mixed">mixed</a></span> <code class="parameter">$to</code><span class="initializer"> = <strong><code>null</code></strong></span></span>
-   , <span class="methodparam"><span class="type">int</span> <code class="parameter">$quality</code><span class="initializer"> = 80</span></span>
-   ) : <span class="type">bool</span></div>
+   <span class="methodname"><strong>imagewebp</strong></span>(<span class="methodparam"><span class="type">resource</span> <code class="parameter">$image</code></span>, <span class="methodparam"><span class="type"><a href="language.types.declarations.html#language.types.declarations.mixed" class="type mixed">mixed</a></span> <code class="parameter">$to</code><span class="initializer"> = <strong><code>null</code></strong></span></span>, <span class="methodparam"><span class="type">int</span> <code class="parameter">$quality</code><span class="initializer"> = 80</span></span>): <span class="type">bool</span></div>
 
   <p class="para rdfs-comment">
    将 <code class="parameter">image</code> 参数指定的图像以 WebP 格式输出到浏览器或者保存到文件。
@@ -50,12 +46,12 @@
   <h3 class="title">参数</h3>
   <p class="para">
    <dl>
-
     <dt>
-<code class="parameter">image</code></dt>
 
+<code class="parameter">image</code></dt>
 <dd>
-<p class="para">由图象创建函数(例如<span class="function"><a href="function.imagecreatetruecolor.html" class="function">imagecreatetruecolor()</a></span>)返回的图象资源。</p></dd>
+<p class="para">由图象创建函数(例如<span class="function"><a href="function.imagecreatetruecolor.html" class="function">imagecreatetruecolor()</a></span>)返回的 
+<span class="classname"><a href="class.gdimage.html" class="classname">GdImage</a></span> 对象。</p></dd>
 
     
      <dt>
@@ -63,7 +59,7 @@
 
      <dd>
 
-      <p class="para">文件保存的路径，如果未设置或为 <strong><code>null</code></strong>，将会直接输出原始图象流。</p>
+      <p class="para">文件保存的路径或者已打开的流资源（此方法返回后自动关闭该流资源），如果未设置或为 <strong><code>null</code></strong>，将会直接输出原始图象流。</p>
      </dd>
 
     
@@ -126,7 +122,7 @@
  <div class="refsect1 examples" id="refsect1-function.imagewebp-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-3083">
+   <div class="example" id="example-2642">
     <p><strong>Example #1 保存为 WebP 图像文件</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -143,7 +139,64 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="124925""></a>
+<div id="allnotes">  <a name="126837""></a>
+  <div class="note">
+   <strong class="user">JSix</strong>
+   <a href="#126837" class="date">09-Feb-2022 04:18</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Function to save any image to Webp<br />
+<br />
+public static function webpImage($source, $quality = 100, $removeOld = false)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $dir = pathinfo($source, PATHINFO_DIRNAME);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $name = pathinfo($source, PATHINFO_FILENAME);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $destination = $dir . DIRECTORY_SEPARATOR . $name . '.webp';<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $info = getimagesize($source);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $isAlpha = false;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ($info['mime'] == 'image/jpeg')<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $image = imagecreatefromjpeg($source);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; elseif ($isAlpha = $info['mime'] == 'image/gif') {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $image = imagecreatefromgif($source);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; } elseif ($isAlpha = $info['mime'] == 'image/png') {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $image = imagecreatefrompng($source);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return $source;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ($isAlpha) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; imagepalettetotruecolor($image);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; imagealphablending($image, true);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; imagesavealpha($image, true);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; imagewebp($image, $destination, $quality);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ($removeOld)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; unlink($source);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return $destination;<br />
+&nbsp;&nbsp;&nbsp; }</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="126189""></a>
+  <div class="note">
+   <strong class="user">Sam</strong>
+   <a href="#126189" class="date">24-Jun-2021 08:47</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Safari on mac now has limited support (limited to Safari 14+ on Big Sur or later)<br />
+<br />
+Safari on iOS 14.4 and higher has full support</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="124925""></a>
   <div class="note">
    <strong class="user">vinicius dot sizilio at gmail dot com</strong>
    <a href="#124925" class="date">18-Apr-2020 01:07</a>

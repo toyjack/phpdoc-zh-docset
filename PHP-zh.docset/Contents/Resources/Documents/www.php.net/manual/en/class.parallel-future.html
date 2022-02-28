@@ -36,7 +36,7 @@
     <p class="para">
      A Future represents the return value or uncaught exception from a task, and exposes an API for cancellation.
     </p>
-     <div class="example" id="example-3670">
+     <div class="example" id="example-3239">
       <p><strong>Example #1 Example showing Future as return value</strong></p>
       <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -55,7 +55,7 @@ Hello World
     <p class="para">
      The behaviour of a future also allows it to be used as a simple synchronization point even where the task does not return a value explicitly.
     </p>
-     <div class="example" id="example-3671">
+     <div class="example" id="example-3240">
       <p><strong>Example #2 Example showing Future as synchronization point</strong></p>
       <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -85,34 +85,23 @@ parent continues
     <div class="classsynopsisinfo">
      <span class="ooclass">
       <span class="modifier">final</span>
-      <strong class="classname">parallel\Future</strong>
+      <span class="modifier">class</span> <strong class="classname">parallel\Future</strong>
      </span>
      {</div>
 
    
     <div class="classsynopsisinfo classsynopsisinfo_comment">/* Resolution */</div>
     <div class="methodsynopsis dc-description">
-   <span class="modifier">public</span> <span class="methodname"><a href="parallel-future.value.html" class="methodname">value</a></span>
-    (
-   ) : <span class="type"><a href="language.types.declarations.html#language.types.declarations.mixed" class="type mixed">mixed</a></span></div>
+   <span class="modifier">public</span> <span class="methodname"><a href="parallel-future.value.html" class="methodname">value</a></span>(): <span class="type"><a href="language.types.declarations.html#language.types.declarations.mixed" class="type mixed">mixed</a></span></div>
 
 
     <div class="classsynopsisinfo classsynopsisinfo_comment">/* State */</div>
-    <div class="methodsynopsis dc-description">
-   <span class="modifier">public</span> <span class="methodname"><a href="parallel-future.cancelled.html" class="methodname">cancelled</a></span>
-    (
-   ) : <span class="type">bool</span></div>
-<div class="methodsynopsis dc-description">
-   <span class="modifier">public</span> <span class="methodname"><a href="parallel-future.done.html" class="methodname">done</a></span>
-    (
-   ) : <span class="type">bool</span></div>
+    <div class="methodsynopsis dc-description"><span class="modifier">public</span> <span class="methodname"><a href="parallel-future.cancelled.html" class="methodname">cancelled</a></span>(): <span class="type">bool</span></div>
+<div class="methodsynopsis dc-description"><span class="modifier">public</span> <span class="methodname"><a href="parallel-future.done.html" class="methodname">done</a></span>(): <span class="type">bool</span></div>
 
 
     <div class="classsynopsisinfo classsynopsisinfo_comment">/* Cancellation */</div>
-    <div class="methodsynopsis dc-description">
-   <span class="modifier">public</span> <span class="methodname"><a href="parallel-future.cancel.html" class="methodname">cancel</a></span>
-    (
-   ) : <span class="type">bool</span></div>
+    <div class="methodsynopsis dc-description"><span class="modifier">public</span> <span class="methodname"><a href="parallel-future.cancel.html" class="methodname">cancel</a></span>(): <span class="type">bool</span></div>
 
 
    }</div>
@@ -158,6 +147,127 @@ parent continues
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
- <div class="note">There are no user contributed notes for this page.</div>
+<div id="allnotes">  <a name="126583""></a>
+  <div class="note">
+   <strong class="user">Thierry Kauffmann</strong>
+   <a href="#126583" class="date">12-Nov-2021 02:37</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="comment">/**<br />
+&nbsp;* Sample parallel Runtime/Future processing<br />
+&nbsp;* using a generator to produce the list of items to process<br />
+&nbsp;* <br />
+&nbsp;* Items to process in parallel come from a generator<br />
+&nbsp;* It could be anything : e.g fetch a mysql array, a DirectoryIterator...<br />
+&nbsp;* Thus the number of items to process in parallel is NOT known in advance<br />
+&nbsp;* <br />
+&nbsp;* This algorithm attributes items to each parallel thread dynamically<br />
+&nbsp;* As soon as a thread has finished working<br />
+&nbsp;* It is assigned a new item to process<br />
+&nbsp;* until all items are processed (generator closes)<br />
+&nbsp;* <br />
+&nbsp;* In this example we process 50 items in 5 parallel threads<br />
+&nbsp;* It produces output in this form (output changes at each run) :<br />
+&nbsp;* <br />
+&nbsp;* ThreadId: 1 =&gt; Item: 1 (Start)<br />
+&nbsp;* ThreadId: 2 =&gt; Item: 2 (Start)<br />
+&nbsp;* ThreadId: 3 =&gt; Item: 3 (Start)<br />
+&nbsp;* ThreadId: 4 =&gt; Item: 4 (Start)<br />
+&nbsp;* ThreadId: 5 =&gt; Item: 5 (Start)<br />
+&nbsp;* ThreadId: 5 =&gt; Item: 5 Sleep: 3s (End)<br />
+&nbsp;* ThreadId: 5 =&gt; Item: 6 (Start)<br />
+&nbsp;* ThreadId: 3 =&gt; Item: 3 Sleep: 4s (End)<br />
+&nbsp;* ThreadId: 3 =&gt; Item: 7 (Start)<br />
+&nbsp;* ThreadId: 2 =&gt; Item: 2 Sleep: 6s (End)<br />
+&nbsp;* ThreadId: 2 =&gt; Item: 8 (Start)<br />
+&nbsp;* ...<br />
+&nbsp;* ThreadId: 4 =&gt; Item: 44 Sleep: 6s (End)<br />
+&nbsp;* ThreadId: 4 =&gt; Item: 49 (Start)<br />
+&nbsp;* ThreadId: 3 =&gt; Item: 46 Sleep: 5s (End)<br />
+&nbsp;* ThreadId: 3 =&gt; Item: 50 (Start)<br />
+&nbsp;* ThreadId: 2 =&gt; Item: 43 Sleep: 9s (End)<br />
+&nbsp;* Destroy ThreadId: 2<br />
+&nbsp;* ThreadId: 1 =&gt; Item: 47 Sleep: 5s (End)<br />
+&nbsp;* Destroy ThreadId: 1<br />
+&nbsp;* ThreadId: 4 =&gt; Item: 49 Sleep: 7s (End)<br />
+&nbsp;* Destroy ThreadId: 4<br />
+&nbsp;* ThreadId: 5 =&gt; Item: 48 Sleep: 10s (End)<br />
+&nbsp;* Destroy ThreadId: 5<br />
+&nbsp;* ThreadId: 3 =&gt; Item: 50 Sleep: 10s (End)<br />
+&nbsp;* Destroy ThreadId: 3<br />
+&nbsp;*/<br />
+<br />
+// Generate list of items to process with a generator<br />
+</span><span class="keyword">function </span><span class="default">generator</span><span class="keyword">(</span><span class="default">int $item_count</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"Item count: </span><span class="default">$item_count</span><span class="string">\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; for (</span><span class="default">$i</span><span class="keyword">=</span><span class="default">1</span><span class="keyword">; </span><span class="default">$i </span><span class="keyword">&lt;= </span><span class="default">$item_count</span><span class="keyword">; </span><span class="default">$i</span><span class="keyword">++) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; yield </span><span class="default">$i</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+function </span><span class="default">testConcurrency</span><span class="keyword">(</span><span class="default">int $concurrency</span><span class="keyword">, </span><span class="default">int $max_item_count</span><span class="keyword">) {<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// Set item_count to a random number so that each run is different<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$item_count</span><span class="keyword">= </span><span class="default">rand</span><span class="keyword">(</span><span class="default">1</span><span class="keyword">, </span><span class="default">$max_item_count</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// Create generator<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$generator </span><span class="keyword">= </span><span class="default">generator</span><span class="keyword">(</span><span class="default">$item_count</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// Function executing in each thread. Have a snap for a random time for example !<br />
+&nbsp;&nbsp;&nbsp; // You could make some calculation here or transfer files or whatever...<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$producer </span><span class="keyword">= function (</span><span class="default">int $item_id</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$seconds </span><span class="keyword">= </span><span class="default">rand</span><span class="keyword">(</span><span class="default">1</span><span class="keyword">, </span><span class="default">10</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">sleep</span><span class="keyword">(</span><span class="default">$seconds</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return [</span><span class="string">'item_id' </span><span class="keyword">=&gt; </span><span class="default">$item_id</span><span class="keyword">, </span><span class="string">'sleep_seconds' </span><span class="keyword">=&gt; </span><span class="default">$seconds</span><span class="keyword">];<br />
+&nbsp;&nbsp;&nbsp; };<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// Fill up threads with a single future initialized to 'false' value<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">for (</span><span class="default">$thread_id </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">; </span><span class="default">$thread_id </span><span class="keyword">&lt;= </span><span class="default">$concurrency</span><span class="keyword">; </span><span class="default">$thread_id</span><span class="keyword">++) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$threads</span><span class="keyword">[</span><span class="default">$thread_id</span><span class="keyword">] = [</span><span class="string">'runtime' </span><span class="keyword">=&gt; new \</span><span class="default">parallel</span><span class="keyword">\</span><span class="default">Runtime</span><span class="keyword">(), </span><span class="string">'future' </span><span class="keyword">=&gt; </span><span class="default">false</span><span class="keyword">];<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// Create infinite loop for the whole processing<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">while (</span><span class="default">true</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Loop through threads until generator closes and all threads are destroyed<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">foreach (</span><span class="default">$threads </span><span class="keyword">as </span><span class="default">$thread_id </span><span class="keyword">=&gt; &amp;</span><span class="default">$thread</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$thread</span><span class="keyword">[</span><span class="string">'future'</span><span class="keyword">] === </span><span class="default">false </span><span class="keyword">and </span><span class="default">$generator</span><span class="keyword">-&gt;</span><span class="default">valid</span><span class="keyword">()) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Thread is inactive and generator still has values : run something in the thread<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$item_id </span><span class="keyword">= </span><span class="default">$generator</span><span class="keyword">-&gt;</span><span class="default">current</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$thread</span><span class="keyword">[</span><span class="string">'future'</span><span class="keyword">] = </span><span class="default">$thread</span><span class="keyword">[</span><span class="string">'runtime'</span><span class="keyword">]-&gt;</span><span class="default">run</span><span class="keyword">(</span><span class="default">$producer</span><span class="keyword">, [</span><span class="default">$item_id</span><span class="keyword">]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"ThreadId: </span><span class="default">$thread_id</span><span class="string"> =&gt; Item: </span><span class="default">$item_id</span><span class="string"> (Start)\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$generator</span><span class="keyword">-&gt;</span><span class="default">next</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } elseif (</span><span class="default">$thread</span><span class="keyword">[</span><span class="string">'future'</span><span class="keyword">] === </span><span class="default">false</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Destroy thread in case generator is closed<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">echo </span><span class="string">"Destroy ThreadId: </span><span class="default">$thread_id</span><span class="string">\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; unset(</span><span class="default">$threads</span><span class="keyword">[</span><span class="default">$thread_id</span><span class="keyword">]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } elseif (</span><span class="default">$thread</span><span class="keyword">[</span><span class="string">'future'</span><span class="keyword">]-&gt;</span><span class="default">done</span><span class="keyword">()) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Thread finished working. Get result value.<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$item </span><span class="keyword">= </span><span class="default">$thread</span><span class="keyword">[</span><span class="string">'future'</span><span class="keyword">]-&gt;</span><span class="default">value</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">"ThreadId: </span><span class="default">$thread_id</span><span class="string"> =&gt; Item: </span><span class="keyword">{</span><span class="default">$item</span><span class="keyword">[</span><span class="string">'item_id'</span><span class="keyword">]}</span><span class="string"> Sleep: </span><span class="keyword">{</span><span class="default">$item</span><span class="keyword">[</span><span class="string">'sleep_seconds'</span><span class="keyword">]}</span><span class="string">s (End)\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Thread is ready to run again<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$thread</span><span class="keyword">[</span><span class="string">'future'</span><span class="keyword">] = </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Escape infinite loop when all threads are destroyed<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if (empty(</span><span class="default">$threads</span><span class="keyword">)) break;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">$concurrency </span><span class="keyword">= </span><span class="default">5</span><span class="keyword">;<br />
+</span><span class="default">$item_count </span><span class="keyword">= </span><span class="default">50</span><span class="keyword">;<br />
+<br />
+</span><span class="default">testConcurrency</span><span class="keyword">(</span><span class="default">$concurrency</span><span class="keyword">, </span><span class="default">$item_count</span><span class="keyword">);<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
 </div>
 </div></div></body></html>

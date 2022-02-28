@@ -1,0 +1,390 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>执行 PHP 文件</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="features.commandline.options.html">? 选项</a></li>
+      <li style="float: right;"><a href="features.commandline.io-streams.html">I/O 流 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="features.commandline.html">PHP 的命令行模式</a></li>
+    <li>执行 PHP 文件</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="features.commandline.usage" class="section">
+  <h2 class="title">执行 PHP 文件</h2>
+  
+  
+  <p class="para">
+   <acronym title="Command Line Interpreter/Interface">CLI</acronym> <acronym title="Server Application Programming Interface">SAPI</acronym> 有三种不同的方法执行 PHP 代码：
+   <ol type="1">
+    <li class="listitem">
+     <p class="para">
+      让 PHP 运行指定文件。
+     </p>
+     <div class="informalexample">
+      <div class="example-contents screen">
+<div class="cdata"><pre>
+$ php my_script.php
+
+$ php -f my_script.php
+</pre></div>
+      </div>
+     </div>
+     <p class="para">
+     以上两种方法（使用或不使用 <strong class="option unknown">-f</strong> 参数）都能够运行给定的
+     <var class="filename">my_script.php</var> 文件。注意，没有限制可以执行哪种文件，
+     特别是文件名也不必用 <code class="literal">.php</code> 作为扩展名。
+     </p>
+    </li>
+    <li class="listitem">
+     <p class="para">
+      在命令行中直接传递 PHP 代码执行。
+     </p>
+     <div class="informalexample">
+      <div class="example-contents screen">
+<div class="cdata"><pre>
+$ php -r &#039;print_r(get_defined_constants());&#039;
+</pre></div>
+      </div>
+     </div>
+     <p class="para">
+      必须特别注意 shell 变量的替代及引号的使用。
+     </p>
+     <blockquote class="note"><p><strong class="note">Note</strong>: 
+      <p class="para">
+       请仔细阅读以上范例，它们没有开始和结束标识符！加上
+       <strong class="option unknown">-r</strong> 参数后不需要这些标记符，并且加上它们还会导致语法错误。
+      </p>
+     </p></blockquote>
+    </li>
+    <li class="listitem">
+     <p class="para">
+      通过标准输入（<code class="literal">stdin</code>）提供需要运行的 PHP 代码。
+     </p>
+     <p class="para">
+      这为动态创建 PHP 代码并通过二进制文件执行提供了强大的能力，就像下面（虚构的）例子展示的一样：
+     </p>
+     <div class="informalexample">
+      <div class="example-contents screen">
+<div class="cdata"><pre>
+$ some_application | some_filter | php | sort -u &gt; final_output.txt
+</pre></div>
+      </div>
+     </div>
+    </li>
+   </ol>
+   以上三种运行代码的方法不能混合使用。
+  </p>
+  
+  <p class="para">
+  和所有的 shell 应用程序一样，PHP 的二进制文件及其 PHP 脚本能够接受一系列的参数。PHP
+  没有限制传送给脚本的参数的个数（ shell 对传递的字符数有限制，但通常都不会超过该限制）。传递给脚本的参数可在全局数组
+  <var class="varname"><a href="reserved.variables.argv.html" class="classname">$argv</a></var> 中获取。第一个索引（零）始终包含从命令行中调用的脚本名称。注意在命令行内使用 <strong class="option unknown">-r</strong>
+  执行 PHP 代码时， <var class="varname"><a href="reserved.variables.argv.html" class="classname">$argv[0]</a></var> 的值将是 <code class="literal">&quot;Standard input code&quot;</code>；
+  在 PHP 7.2.0 之前是破折号（<code class="literal">-</code>）。如果代码是通过来自 <code class="literal">STDIN</code> 的管道执行的，同样如此。
+  </p>
+
+  <p class="para">
+   另外，第二个全局变量 <var class="varname"><a href="reserved.variables.argc.html" class="classname">$argc</a></var> 包含 <var class="varname"><a href="reserved.variables.argv.html" class="classname">$argv</a></var>
+   数组中元素的个数（而<em class="emphasis">不是</em>传递给脚本的参数个数）。
+  </p>
+  
+  <p class="para">
+   只要传送给脚本的参数不是以 <code class="literal">-</code>
+   字符开头，就无需过多的注意什么。向脚本传递以
+   <code class="literal">-</code> 开头的参数会导致错误，因为 PHP
+   会认为在执行脚本之前应该由它自身来处理这些参数。为防止发生这种情况，可以用列表分隔符
+   <code class="literal">--</code> 参数来解决。在 PHP 解析此分隔符之后，
+   该符号后的所有参数将会被原样传递给脚本程序。
+  </p>
+  
+  <div class="informalexample">
+   <div class="example-contents screen">
+<div class="cdata"><pre>
+# 以下命令将不会运行 PHP 代码，而只显示 PHP 命令行模式的使用说明
+$ php -r &#039;var_dump($argv);&#039; -h
+Usage: php [options] [-f] &lt;file&gt; [args...]
+[...]
+
+# 将会传递 "-h" 参数传送给脚本，且 PHP 不会显示命令行模式的使用说明
+$ php -r &#039;var_dump($argv);&#039; -- -h
+array(2) {
+  [0]=&gt;
+  string(1) &quot;-&quot;
+  [1]=&gt;
+  string(2) &quot;-h&quot;
+}
+</pre></div>
+   </div>
+  </div>
+  
+  <p class="para">
+   然而，在 Unix 系统中还有一个将 PHP 用于 shell 脚本的方法：写个脚本，第一行以 <code class="literal">#!/usr/bin/php</code> 为开头
+   （如果 PHP <acronym title="Command Line Interpreter/Interface">CLI</acronym> 二进制文件路径不一样，则可以指定为任意实际的路径）。文件的剩余部分应该包含通用的 PHP 开始标签、正常的 
+   PHP 代码、PHP 结束标签。一旦设置正确的文件执行属性（例如 <strong class="command">chmod +x test</strong>），脚本就像其他 
+   shell/perl 脚本一样可以执行。
+  </p>
+  
+  <div class="example" id="example-456">
+   <p><strong>Example #1 PHP 脚本作为 shell 脚本执行</strong></p>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+#!/usr/bin/php<br /><span style="color: #0000BB">&lt;?php<br />var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$argv</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+   <div class="example-contents"><p>
+    假设在当前目录下，该文件名为 <var class="filename">test</var>，可以做如下操作：
+   </p></div>
+   <div class="example-contents screen">
+<div class="cdata"><pre>
+$ chmod +x test
+$ ./test -h -- foo
+array(4) {
+  [0]=&gt;
+  string(6) &quot;./test&quot;
+  [1]=&gt;
+  string(2) &quot;-h&quot;
+  [2]=&gt;
+  string(2) &quot;--&quot;
+  [3]=&gt;
+  string(3) &quot;foo&quot;
+}
+</pre></div>
+   </div>
+  </div>
+  
+  <p class="para">
+   正如看到的，在向该脚本传递以 <code class="literal">-</code> 开头的参数时，无需关心这种情况。
+  </p>
+  
+  <p class="para">
+   PHP 可执行文件可用于运行完全独立于 web 服务器的 PHP 脚本。在 Unix 系统上，需要在 PHP 脚本的第一行指定
+   <code class="literal">#!</code>（或者说 "shebang"）以便系统可以自动判断用哪个程序运行脚本。
+   在 Windows 平台上可以使用双击扩展名是<code class="literal">.php</code>的文件与 <var class="filename">php.exe</var> 
+   相关联，也可以编写一个批处理文件使用 PHP 运行脚本。为 Unix 系统增加的指定 shebang 的第一行代码不会影响 Windows （它也是 PHP 
+   注释的格式），因此也可以用该方法编写跨平台的程序。以下是编写的一个简单
+    PHP 命令行程序的示例。
+  </p>
+  
+  <p class="para">
+   <div class="example" id="example-457">
+    <p><strong>Example #2 试图以命令行方式运行的 PHP 脚本（script.php）</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+#!/usr/bin/php<br /><span style="color: #0000BB">&lt;?php<br /><br /></span><span style="color: #007700">if&nbsp;(</span><span style="color: #0000BB">$argc&nbsp;</span><span style="color: #007700">!=&nbsp;</span><span style="color: #0000BB">2&nbsp;</span><span style="color: #007700">||&nbsp;</span><span style="color: #0000BB">in_array</span><span style="color: #007700">(</span><span style="color: #0000BB">$argv</span><span style="color: #007700">[</span><span style="color: #0000BB">1</span><span style="color: #007700">],&nbsp;array(</span><span style="color: #DD0000">'--help'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'-help'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'-h'</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">'-?'</span><span style="color: #007700">)))&nbsp;{<br /></span><span style="color: #0000BB">?&gt;<br /></span><br />This&nbsp;is&nbsp;a&nbsp;command&nbsp;line&nbsp;PHP&nbsp;script&nbsp;with&nbsp;one&nbsp;option.<br /><br />&nbsp;&nbsp;Usage:<br />&nbsp;&nbsp;<span style="color: #0000BB">&lt;?php&nbsp;</span><span style="color: #007700">echo&nbsp;</span><span style="color: #0000BB">$argv</span><span style="color: #007700">[</span><span style="color: #0000BB">0</span><span style="color: #007700">];&nbsp;</span><span style="color: #0000BB">?&gt;</span>&nbsp;&lt;option&gt;<br /><br />&nbsp;&nbsp;&lt;option&gt;&nbsp;can&nbsp;be&nbsp;some&nbsp;word&nbsp;you&nbsp;would&nbsp;like<br />&nbsp;&nbsp;to&nbsp;print&nbsp;out.&nbsp;With&nbsp;the&nbsp;--help,&nbsp;-help,&nbsp;-h,<br />&nbsp;&nbsp;or&nbsp;-?&nbsp;options,&nbsp;you&nbsp;can&nbsp;get&nbsp;this&nbsp;help.<br /><br /><span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">}&nbsp;else&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #0000BB">$argv</span><span style="color: #007700">[</span><span style="color: #0000BB">1</span><span style="color: #007700">];<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+   </div>
+  </p>
+  
+  <p class="para">
+   在以上脚本中，用包含 Unix shebang 的第一行代码来指明该文件应该由 PHP
+   来执行。这里使用 <acronym title="Command Line Interpreter/Interface">CLI</acronym> 版本运行，因此不会输出 <acronym title="Hypertext Transfer Protocol">HTTP</acronym> 头。
+  </p>
+  
+  <p class="para">
+   程序首先检查是否有需要的参数（除了脚本名，因为它也会被计算进来）。如果没有参数或者参数是 <strong class="option unknown">--help</strong>、
+   <strong class="option unknown">-help</strong>、 <strong class="option unknown">-h</strong>、 <strong class="option unknown">-?</strong>，将会打印出帮助消息，
+   在命令行上使用 <var class="varname"><a href="reserved.variables.argv.html" class="classname">$argv[0]</a></var> 动态输出脚本名称。否则参数将按照接收的方式进行准确回显。
+  </p>
+  
+  <p class="para">
+   如果在 Unix 下运行以上脚本，它必须有可执行权限，并简单的以 <strong class="command">script.php echothis</strong> 或者
+   <strong class="command">script.php -h</strong> 方式调用。在 Windows 下，可以为此类任务编写与以下内容类似的批处理文件：
+  </p>
+  
+  <p class="para">
+   <div class="example" id="example-458">
+    <p><strong>Example #3 运行 PHP 命令行脚本的批处理文件（script.bat）</strong></p>
+    <div class="example-contents">
+<div class="shellcode"><pre class="shellcode">@echo OFF
+&quot;C:\php\php.exe&quot; script.php %*</pre>
+</div>
+    </div>
+
+   </div>
+  </p>
+  
+  <p class="para">
+   假设将上述程序名为 <var class="filename">script.php</var>，且
+   <acronym title="Command Line Interpreter/Interface">CLI</acronym> 版的 <var class="filename">php.exe</var> 位于 <var class="filename">C:\php\php.exe</var>，
+   该批处理文件将会运行并传递所有追加选项：
+   <strong class="command">script.bat echothis</strong> 或者 <strong class="command">script.bat -h</strong>。
+  </p>
+  
+  <p class="para">
+   参阅 <a href="ref.readline.html" class="link">Readline</a> 扩展文档获取更多函数，以用于 PHP
+   中增强命令行应用程序。
+  </p>
+  
+  <p class="para">
+   在 Windows 上， PHP 可以配置为无需提供 <var class="filename">C:\php\php.exe</var> 或者
+   扩展名为 <code class="literal">.php</code> 的文件运行，如 
+   <a href="install.windows.commandline.html" class="link">PHP 在 Microsoft Windows 下的命令行方式</a>中所述。
+  </p>
+
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <p class="para">
+    在 Windows 上，推荐在真实用户账户下运行 PHP。在网络服务下运行某些操作时将会失败，
+    因为"帐户名与安全标识间无任何映射完成"。
+   </p>
+  </p></blockquote>
+ </div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="125998""></a>
+  <div class="note">
+   <strong class="user">email at alexander-bombis dot de</strong>
+   <a href="#125998" class="date">09-Apr-2021 06:47</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+For Windows:<br />
+<br />
+After the years I also have the fact that I have to use double quotation marks after php -r on Windows shell.<br />
+<br />
+But in the Powershell you can use single or double quotation!</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="123019""></a>
+  <div class="note">
+   <strong class="user">synnus at gmail dot com</strong>
+   <a href="#123019" class="date">08-Aug-2018 12:46</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+in php.ini use auto_prepend_file="init.php" <br />
+first start script</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="120251""></a>
+  <div class="note">
+   <strong class="user">gabriel at figdice dot org</strong>
+   <a href="#120251" class="date">01-Dec-2016 11:02</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Regarding shebang:<br />
+<br />
+In both Linux and Windows, when you execute a script in CLI with:<br />
+<br />
+&nbsp;&nbsp;&nbsp; php script.php<br />
+<br />
+then PHP will ignore the very first line of your script if it starts with:<br />
+<br />
+&nbsp;&nbsp;&nbsp; #!<br />
+<br />
+So, this line is not only absorbed by the kernel when the script file is executable, but it is also ignored by the PHP engine itself.<br />
+<br />
+However, the engine will NOT ignore the first #! line of any included files withing your "outer" script.php.<br />
+Any "shebang" line in an included script, will result in simply outputting the line to STDOUT, just as any other text residing outside a <span class="default">&lt;?php </span><span class="keyword">...&nbsp; </span><span class="default">?&gt;</span> block.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119609""></a>
+  <div class="note">
+   <strong class="user">david at frankieandshadow dot com</strong>
+   <a href="#119609" class="date">15-Jul-2016 10:27</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+A gotcha when using #!/usr/bin/php at the start of the file as noted above:<br />
+<br />
+if you originally edited the file on Windows and then attempt to use it on Unix, it won't work because the #! line requires a Unix line ending. Bash gives you the following error message if it has DOS line endings:<br />
+"bash: /usr/local/bin/wpreplace.php: /usr/bin/php^M: bad interpreter: No such file or directory"<br />
+<br />
+(In Emacs I used "CTRL-X ENTER f" then type "unix" and ENTER to convert)</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="111816""></a>
+  <div class="note">
+   <strong class="user">php at richardneill dot org</strong>
+   <a href="#111816" class="date">01-Apr-2013 04:43</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+On Linux, the shebang (#!) line is parsed by the kernel into at most two parts. <br />
+For example:<br />
+<br />
+1:&nbsp; #!/usr/bin/php<br />
+2:&nbsp; #!/usr/bin/env&nbsp; php<br />
+3:&nbsp; #!/usr/bin/php -n<br />
+4:&nbsp; #!/usr/bin/php -ddisplay_errors=E_ALL<br />
+5:&nbsp; #!/usr/bin/php -n -ddisplay_errors=E_ALL<br />
+<br />
+1. is the standard way to start a script. (compare "#!/bin/bash".)<br />
+<br />
+2. uses "env" to find where PHP is installed: it might be elsewhere in the $PATH, such as /usr/local/bin.<br />
+<br />
+3. if you don't need to use env, you can pass ONE parameter here. For example, to ignore the system's PHP.ini, and go with the defaults, use "-n". (See "man php".)<br />
+<br />
+4.&nbsp; or, you can set exactly one configuration variable. I recommend this one, because display_errors actually takes effect if it is set here. Otherwise, the only place you can enable it is system-wide in php.ini. If you try to use ini_set() in your script itself, it's too late: if your script has a parse error, it will silently die. <br />
+<br />
+5. This will not (as of 2013) work on Linux. It acts as if the whole string, "-n -ddisplay_errors=E_ALL" were a single argument. But in BSD, the shebang line can take more than 2 arguments, and so it may work as intended.<br />
+<br />
+Summary: use (2) for maximum portability, and (4) for maximum debugging.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="105433""></a>
+  <div class="note">
+   <strong class="user">petruzanautico at yah00 dot com dot ar</strong>
+   <a href="#105433" class="date">17-Aug-2011 01:06</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+As you can't use -r and -f together, you can circumvent this by doing the following:<br />
+php -r '$foo = 678; include("your_script.php");'</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="105286""></a>
+  <div class="note">
+   <strong class="user">spencer at aninternetpresence dot net</strong>
+   <a href="#105286" class="date">07-Aug-2011 05:03</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you are running the CLI on Windows and use the "-r" option, be sure to enclose your PHP code in double (not single) quotes. Otherwise, your code will not run.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

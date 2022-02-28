@@ -72,43 +72,25 @@
     <div class="classsynopsisinfo">
      <span class="ooclass">
       <span class="modifier">final</span>
-      <strong class="classname">parallel\Runtime</strong>
+      <span class="modifier">class</span> <strong class="classname">parallel\Runtime</strong>
      </span>
      {</div>
 
 
     <div class="classsynopsisinfo classsynopsisinfo_comment">/* Create */</div>
     <div class="constructorsynopsis dc-description">
-   <span class="modifier">public</span> <span class="methodname"><a href="parallel-runtime.construct.html" class="methodname">__construct</a></span>
-    (
-   )</div>
-<div class="constructorsynopsis dc-description">
-   <span class="modifier">public</span> <span class="methodname"><a href="parallel-runtime.construct.html" class="methodname">__construct</a></span>
-    ( <span class="methodparam"><span class="type">string</span> <code class="parameter">$bootstrap</code></span>
-   )</div>
+   <span class="modifier">public</span> <span class="methodname"><a href="parallel-runtime.construct.html" class="methodname">__construct</a></span>()</div>
+<div class="constructorsynopsis dc-description"><span class="modifier">public</span> <span class="methodname"><a href="parallel-runtime.construct.html" class="methodname">__construct</a></span>(<span class="methodparam"><span class="type">string</span> <code class="parameter">$bootstrap</code></span>)</div>
 
 
     <div class="classsynopsisinfo classsynopsisinfo_comment">/* Execute */</div>
-    <div class="methodsynopsis dc-description">
-   <span class="modifier">public</span> <span class="methodname"><a href="parallel-runtime.run.html" class="methodname">run</a></span>
-    ( <span class="methodparam"><span class="type"><a href="class.closure.html" class="type Closure">Closure</a></span> <code class="parameter">$task</code></span>
-   ) : <span class="type"><span class="type"><span class="type Future">Future</span></span>|<span class="type">null</span></span></div>
-<div class="methodsynopsis dc-description">
-   <span class="modifier">public</span> <span class="methodname"><a href="parallel-runtime.run.html" class="methodname">run</a></span>
-    ( <span class="methodparam"><span class="type"><a href="class.closure.html" class="type Closure">Closure</a></span> <code class="parameter">$task</code></span>
-   , <span class="methodparam"><span class="type">array</span> <code class="parameter">$argv</code></span>
-   ) : <span class="type"><span class="type"><span class="type Future">Future</span></span>|<span class="type">null</span></span></div>
+    <div class="methodsynopsis dc-description"><span class="modifier">public</span> <span class="methodname"><a href="parallel-runtime.run.html" class="methodname">run</a></span>(<span class="methodparam"><span class="type"><a href="class.closure.html" class="type Closure">Closure</a></span> <code class="parameter">$task</code></span>): <span class="type"><span class="type">?</span><span class="type"><span class="type Future">Future</span></span></span></div>
+<div class="methodsynopsis dc-description"><span class="modifier">public</span> <span class="methodname"><a href="parallel-runtime.run.html" class="methodname">run</a></span>(<span class="methodparam"><span class="type"><a href="class.closure.html" class="type Closure">Closure</a></span> <code class="parameter">$task</code></span>, <span class="methodparam"><span class="type">array</span> <code class="parameter">$argv</code></span>): <span class="type"><span class="type">?</span><span class="type"><span class="type Future">Future</span></span></span></div>
 
 
     <div class="classsynopsisinfo classsynopsisinfo_comment">/* Join */</div>
-    <div class="methodsynopsis dc-description">
-   <span class="modifier">public</span> <span class="methodname"><a href="parallel-runtime.close.html" class="methodname">close</a></span>
-    (
-   ) : <span class="type"><span class="type void">void</span></span></div>
-<div class="methodsynopsis dc-description">
-   <span class="modifier">public</span> <span class="methodname"><a href="parallel-runtime.kill.html" class="methodname">kill</a></span>
-    (
-   ) : <span class="type"><span class="type void">void</span></span></div>
+    <div class="methodsynopsis dc-description"><span class="modifier">public</span> <span class="methodname"><a href="parallel-runtime.close.html" class="methodname">close</a></span>(): <span class="type"><span class="type void">void</span></span></div>
+<div class="methodsynopsis dc-description"><span class="modifier">public</span> <span class="methodname"><a href="parallel-runtime.kill.html" class="methodname">kill</a></span>(): <span class="type"><span class="type void">void</span></span></div>
 
    }</div>
 
@@ -152,7 +134,119 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="124434""></a>
+<div id="allnotes">  <a name="126411""></a>
+  <div class="note">
+   <strong class="user">gam6itko</strong>
+   <a href="#126411" class="date">10-Sep-2021 05:54</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="comment">// make sure that is really parallel execution (showcase2).<br />
+// Then you use echo within task-function there is a real chance that the application will hang.<br />
+// We should control Futures to avoid this behaviour.<br />
+// You will get different output on each execution.<br />
+<br />
+</span><span class="keyword">use </span><span class="default">parallel</span><span class="keyword">\{</span><span class="default">Future</span><span class="keyword">, </span><span class="default">Runtime</span><span class="keyword">};<br />
+<br />
+const </span><span class="default">THREADS_COUNT </span><span class="keyword">= </span><span class="default">10</span><span class="keyword">;<br />
+const </span><span class="default">THREADS_I_MAX </span><span class="keyword">= </span><span class="default">100</span><span class="keyword">;<br />
+<br />
+</span><span class="comment">// executed within thread<br />
+</span><span class="default">$task </span><span class="keyword">= static function (</span><span class="default">int $i</span><span class="keyword">, </span><span class="default">int $to</span><span class="keyword">): </span><span class="default">void </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"[enter</span><span class="default">$i</span><span class="string">]"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; for (</span><span class="default">$j </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">; </span><span class="default">$j </span><span class="keyword">&lt; </span><span class="default">$to</span><span class="keyword">; </span><span class="default">$j</span><span class="keyword">++) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="default">$i</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"[exit</span><span class="default">$i</span><span class="string">]"</span><span class="keyword">;<br />
+};<br />
+<br />
+</span><span class="comment">// creating a few threads<br />
+</span><span class="default">$runtimeList </span><span class="keyword">= [];<br />
+for (</span><span class="default">$i </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">; </span><span class="default">$i </span><span class="keyword">&lt; </span><span class="default">THREADS_COUNT</span><span class="keyword">; </span><span class="default">$i</span><span class="keyword">++) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$runtimeList</span><span class="keyword">[] = new </span><span class="default">Runtime</span><span class="keyword">();<br />
+}<br />
+</span><span class="comment">// run all threads<br />
+</span><span class="default">$futureList </span><span class="keyword">= [];<br />
+foreach (</span><span class="default">$runtimeList </span><span class="keyword">as </span><span class="default">$i </span><span class="keyword">=&gt; </span><span class="default">$runtime</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"[run</span><span class="default">$i</span><span class="string">]"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$futureList</span><span class="keyword">[] = </span><span class="default">$runtime</span><span class="keyword">-&gt;</span><span class="default">run</span><span class="keyword">(</span><span class="default">$task</span><span class="keyword">, [</span><span class="default">$i</span><span class="keyword">, </span><span class="default">THREADS_I_MAX</span><span class="keyword">]);<br />
+}<br />
+<br />
+</span><span class="comment">// waiting until all threads are done<br />
+// if you delete code bellow then your script will hang<br />
+</span><span class="keyword">do {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">usleep</span><span class="keyword">(</span><span class="default">1</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$allDone </span><span class="keyword">= </span><span class="default">array_reduce</span><span class="keyword">(<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$futureList</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; function (</span><span class="default">bool $c</span><span class="keyword">, </span><span class="default">Future $future</span><span class="keyword">): </span><span class="default">bool </span><span class="keyword">{<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$c </span><span class="keyword">&amp;&amp; </span><span class="default">$future</span><span class="keyword">-&gt;</span><span class="default">done</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; },<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">true<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">);<br />
+} while (</span><span class="default">false </span><span class="keyword">=== </span><span class="default">$allDone</span><span class="keyword">);<br />
+echo </span><span class="string">"done\n"</span><span class="keyword">;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="126410""></a>
+  <div class="note">
+   <strong class="user">gam6itko</strong>
+   <a href="#126410" class="date">10-Sep-2021 04:58</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="comment">// make sure that is really parallel execution<br />
+// you will get different output on each script run<br />
+<br />
+</span><span class="keyword">use </span><span class="default">parallel</span><span class="keyword">\{</span><span class="default">Channel</span><span class="keyword">, </span><span class="default">Runtime</span><span class="keyword">};<br />
+<br />
+const </span><span class="default">THREADS_COUNT </span><span class="keyword">= </span><span class="default">5</span><span class="keyword">;<br />
+const </span><span class="default">THREADS_I_MAX </span><span class="keyword">= </span><span class="default">10</span><span class="keyword">;<br />
+<br />
+</span><span class="default">$ch </span><span class="keyword">= new </span><span class="default">Channel</span><span class="keyword">();<br />
+<br />
+</span><span class="comment">// executed within thread<br />
+</span><span class="default">$task </span><span class="keyword">= static function (</span><span class="default">Channel $ch</span><span class="keyword">, </span><span class="default">int $i</span><span class="keyword">, </span><span class="default">int $to</span><span class="keyword">): </span><span class="default">void </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"[enter: </span><span class="default">$i</span><span class="string">]\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; for (</span><span class="default">$j </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">; </span><span class="default">$j </span><span class="keyword">&lt; </span><span class="default">$to</span><span class="keyword">; </span><span class="default">$j</span><span class="keyword">++) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$ch</span><span class="keyword">-&gt;</span><span class="default">send</span><span class="keyword">(</span><span class="default">$i</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"[exit: </span><span class="default">$i</span><span class="string">]\n"</span><span class="keyword">;<br />
+};<br />
+<br />
+</span><span class="comment">// creating a few threads<br />
+</span><span class="default">$runtimeList </span><span class="keyword">= [];<br />
+for (</span><span class="default">$i </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">; </span><span class="default">$i </span><span class="keyword">&lt; </span><span class="default">THREADS_COUNT</span><span class="keyword">; </span><span class="default">$i</span><span class="keyword">++) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$runtimeList</span><span class="keyword">[] = new </span><span class="default">Runtime</span><span class="keyword">();<br />
+}<br />
+</span><span class="comment">// run all threads<br />
+</span><span class="keyword">foreach (</span><span class="default">$runtimeList </span><span class="keyword">as </span><span class="default">$i </span><span class="keyword">=&gt; </span><span class="default">$runtime</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"[run: </span><span class="default">$i</span><span class="string">]\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$runtime</span><span class="keyword">-&gt;</span><span class="default">run</span><span class="keyword">(</span><span class="default">$task</span><span class="keyword">, [</span><span class="default">$ch</span><span class="keyword">, </span><span class="default">$i</span><span class="keyword">, </span><span class="default">THREADS_I_MAX</span><span class="keyword">]);<br />
+}<br />
+<br />
+</span><span class="comment">// reading messages from channel<br />
+</span><span class="default">$queue </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">;<br />
+for (</span><span class="default">$i </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">; </span><span class="default">$i </span><span class="keyword">&lt; </span><span class="default">THREADS_COUNT </span><span class="keyword">* </span><span class="default">THREADS_I_MAX</span><span class="keyword">; </span><span class="default">$i</span><span class="keyword">++) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$queue </span><span class="keyword">.= </span><span class="default">$ch</span><span class="keyword">-&gt;</span><span class="default">recv</span><span class="keyword">();<br />
+}<br />
+</span><span class="default">$ch</span><span class="keyword">-&gt;</span><span class="default">close</span><span class="keyword">();<br />
+<br />
+echo </span><span class="default">$queue </span><span class="keyword">. </span><span class="default">PHP_EOL</span><span class="keyword">;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="124434""></a>
   <div class="note">
    <strong class="user">Luciano Vettoretti</strong>
    <a href="#124434" class="date">25-Nov-2019 08:27</a>

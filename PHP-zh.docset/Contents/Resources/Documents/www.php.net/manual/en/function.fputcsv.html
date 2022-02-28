@@ -33,12 +33,7 @@
  <div class="refsect1 description" id="refsect1-function.fputcsv-description">
   <h3 class="title">说明</h3>
   <div class="methodsynopsis dc-description">
-   <span class="methodname"><strong>fputcsv</strong></span>
-    ( <span class="methodparam"><span class="type">resource</span> <code class="parameter">$handle</code></span>
-   , <span class="methodparam"><span class="type">array</span> <code class="parameter">$fields</code></span>
-   , <span class="methodparam"><span class="type">string</span> <code class="parameter">$delimiter</code><span class="initializer"> = &#039;,&#039;</span></span>
-   , <span class="methodparam"><span class="type">string</span> <code class="parameter">$enclosure</code><span class="initializer"> = &#039;&quot;&#039;</span></span>
-   ) : <span class="type">int</span></div>
+   <span class="methodname"><strong>fputcsv</strong></span>(<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="methodparam"><span class="type">resource</span> <code class="parameter">$handle</code></span>,<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="methodparam"><span class="type">array</span> <code class="parameter">$fields</code></span>,<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="methodparam"><span class="type">string</span> <code class="parameter">$delimiter</code><span class="initializer"> = &#039;,&#039;</span></span>,<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="methodparam"><span class="type">string</span> <code class="parameter">$enclosure</code><span class="initializer"> = &#039;&quot;&#039;</span></span><br>): <span class="type">int</span></div>
 
   <p class="para rdfs-comment">
    <span class="function"><strong>fputcsv()</strong></span> 将一行（用
@@ -53,7 +48,6 @@
   <h3 class="title">参数</h3>
   <p class="para">
    <dl>
-
     
      <dt>
 <code class="parameter">handle</code></dt>
@@ -120,7 +114,7 @@
  <div class="refsect1 examples" id="refsect1-function.fputcsv-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-2562">
+   <div class="example" id="example-2117">
     <p><strong>Example #1 <span class="function"><strong>fputcsv()</strong></span> 例子</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -164,7 +158,61 @@ aaa,bbb,ccc,dddd
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="125399""></a>
+<div id="allnotes">  <a name="126647""></a>
+  <div class="note">
+   <strong class="user">encode</strong>
+   <a href="#126647" class="date">30-Nov-2021 12:26</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Regarding Excel and UTF-16LE encoding<br />
+<br />
+For complete Excel compatibility (umlauts, cyrillic, chinese alphabet etc.) one needs to encode their .csv to UTF-16LE, use tabulators (\t) as the separator and include a UTF-16LE BOM at the start of the file. <br />
+<br />
+This however can not be done by simply encoding the input for putcsv, since separators and enclosure characters will still be written in the default encoding, and fputcsv will not accept utf-16 encoded separator/enclosure characters.<br />
+<br />
+The simple solution is to roll your own implementation of fputcsv with escaping etc., or possibly to encode the generated .csv file after the fact.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="126454""></a>
+  <div class="note">
+   <strong class="user">johannes dot kingma at gmail dot com</strong>
+   <a href="#126454" class="date">23-Sep-2021 09:52</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+In all those cases you need a bug free csv writer with custom record seperating capability:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">/**<br />
+&nbsp;* Custom fputcsv<br />
+&nbsp;* @param int $handle filehandle<br />
+&nbsp;* @param mixed[] $fields array of values to write<br />
+&nbsp;* @param string $delimiter field delimiter<br />
+&nbsp;* @param string $enclosure field enclosures<br />
+&nbsp;* @param string $escape_char escape enclosure chars in fields<br />
+&nbsp;* @param string $record_seperator <br />
+&nbsp;* @return int characters written<br />
+&nbsp;*/<br />
+</span><span class="keyword">function </span><span class="default">_fputcsv</span><span class="keyword">(</span><span class="default">$handle</span><span class="keyword">, </span><span class="default">$fields</span><span class="keyword">, </span><span class="default">$delimiter </span><span class="keyword">= </span><span class="string">","</span><span class="keyword">, </span><span class="default">$enclosure </span><span class="keyword">= </span><span class="string">'"'</span><span class="keyword">, </span><span class="default">$escape_char </span><span class="keyword">= </span><span class="string">"\\"</span><span class="keyword">, </span><span class="default">$record_seperator </span><span class="keyword">= </span><span class="string">"\r\n"</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">= [];<br />
+&nbsp;&nbsp;&nbsp; foreach (</span><span class="default">$fields </span><span class="keyword">as </span><span class="default">$field</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$result</span><span class="keyword">[] = </span><span class="default">$enclosure </span><span class="keyword">. </span><span class="default">str_replace</span><span class="keyword">(</span><span class="default">$enclosure</span><span class="keyword">, </span><span class="default">$escape_char </span><span class="keyword">. </span><span class="default">$enclosure</span><span class="keyword">, </span><span class="default">$field</span><span class="keyword">) . </span><span class="default">$enclosure</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">fwrite</span><span class="keyword">(</span><span class="default">$handle</span><span class="keyword">, </span><span class="default">implode</span><span class="keyword">(</span><span class="default">$delimiter</span><span class="keyword">, </span><span class="default">$result</span><span class="keyword">) . </span><span class="default">$record_seperator</span><span class="keyword">);<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="125399""></a>
   <div class="note">
    <strong class="user">reinhold dot egenter at gmail dot com</strong>
    <a href="#125399" class="date">30-Sep-2020 01:05</a>

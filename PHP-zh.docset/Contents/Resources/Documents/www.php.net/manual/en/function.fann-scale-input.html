@@ -34,10 +34,7 @@
  <div class="refsect1 description" id="refsect1-function.fann-scale-input-description">
   <h3 class="title">说明</h3>
   <div class="methodsynopsis dc-description">
-   <span class="methodname"><strong>fann_scale_input</strong></span>
-    ( <span class="methodparam"><span class="type">resource</span> <code class="parameter">$ann</code></span>
-   , <span class="methodparam"><span class="type">array</span> <code class="parameter">$input_vector</code></span>
-   ) : <span class="type">bool</span></div>
+   <span class="methodname"><strong>fann_scale_input</strong></span>(<span class="methodparam"><span class="type">resource</span> <code class="parameter">$ann</code></span>, <span class="methodparam"><span class="type">array</span> <code class="parameter">$input_vector</code></span>): <span class="type">bool</span></div>
 
   <p class="para rdfs-comment">
    在以前计算参数的基础上，在训练之前放大输入向量中的数据。
@@ -48,7 +45,6 @@
  <div class="refsect1 parameters" id="refsect1-function.fann-scale-input-parameters">
   <h3 class="title">参数</h3>
   <dl>
-
    
     <dt>
 <code class="parameter">ann</code></dt>
@@ -98,7 +94,283 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="124448""></a>
+<div id="allnotes">  <a name="126121""></a>
+  <div class="note">
+   <strong class="user">geekgirl dot joy at gmail dot com</strong>
+   <a href="#126121" class="date">29-May-2021 06:27</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="comment">// This example will use the XOR dataset with negative one represented <br />
+// as zero and one represented as one-hundred and demonstrate how to<br />
+// scale those values so that FANN can understand them and then how <br />
+// to de-scale the value FANN returns so that you can understand them.<br />
+<br />
+// Scaling allows you to take raw data numbers like -1234.975 or 4502012 <br />
+// in your dataset and convert them into an input/output range that<br />
+// your neural network can understand. <br />
+<br />
+// De-scaling lets you take the scaled data and convert it back into <br />
+// the original range.<br />
+<br />
+// scale_test.data<br />
+// Note the values are "raw" or un-scaled.<br />
+/*<br />
+4 2 1<br />
+0 0<br />
+0<br />
+0 100<br />
+100<br />
+100 0<br />
+100<br />
+100 100<br />
+0<br />
+*/<br />
+<br />
+////////////////////<br />
+// Configure ANN&nbsp; //<br />
+////////////////////<br />
+<br />
+// New ANN<br />
+</span><span class="default">$ann </span><span class="keyword">= </span><span class="default">fann_create_standard_array</span><span class="keyword">(</span><span class="default">3</span><span class="keyword">, [</span><span class="default">2</span><span class="keyword">,</span><span class="default">3</span><span class="keyword">,</span><span class="default">1</span><span class="keyword">]);<br />
+<br />
+</span><span class="comment">// Set activation functions<br />
+</span><span class="default">fann_set_activation_function_hidden</span><span class="keyword">(</span><span class="default">$ann</span><span class="keyword">, </span><span class="default">FANN_SIGMOID_SYMMETRIC</span><span class="keyword">);<br />
+</span><span class="default">fann_set_activation_function_output</span><span class="keyword">(</span><span class="default">$ann</span><span class="keyword">, </span><span class="default">FANN_SIGMOID_SYMMETRIC</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// Read raw (un-scaled) training data from file<br />
+</span><span class="default">$train_data </span><span class="keyword">= </span><span class="default">fann_read_train_from_file</span><span class="keyword">(</span><span class="string">"scale_test.data"</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// Scale the data range to -1 to 1<br />
+</span><span class="default">fann_set_input_scaling_params</span><span class="keyword">(</span><span class="default">$ann </span><span class="keyword">, </span><span class="default">$train_data</span><span class="keyword">, -</span><span class="default">1</span><span class="keyword">, </span><span class="default">1</span><span class="keyword">);<br />
+</span><span class="default">fann_set_output_scaling_params</span><span class="keyword">(</span><span class="default">$ann </span><span class="keyword">, </span><span class="default">$train_data</span><span class="keyword">, -</span><span class="default">1</span><span class="keyword">, </span><span class="default">1</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">///////////<br />
+// Train //<br />
+///////////<br />
+<br />
+// Presumably you would train here (uncomment to perform training)...<br />
+<br />
+// fann_train_on_data($ann, $train_data, 100, 10, 0.01);<br />
+<br />
+// But it's not needed to test the scaling because the training file <br />
+// in this case is just used to compute/derive the scale range. <br />
+// However, doing the training will improve the answer the ANN gives<br />
+// in correlation to the training data.<br />
+<br />
+//////////<br />
+// Test //<br />
+//////////<br />
+<br />
+</span><span class="default">$raw_input </span><span class="keyword">= array(</span><span class="default">0</span><span class="keyword">, </span><span class="default">100</span><span class="keyword">); </span><span class="comment">// test XOR (0,100) input<br />
+</span><span class="default">$scaled_input </span><span class="keyword">= </span><span class="default">fann_scale_input </span><span class="keyword">(</span><span class="default">$ann </span><span class="keyword">, </span><span class="default">$raw_input</span><span class="keyword">); </span><span class="comment">// scaled XOR (-1,1) input<br />
+</span><span class="default">$descaled_input </span><span class="keyword">= </span><span class="default">fann_descale_input </span><span class="keyword">(</span><span class="default">$ann </span><span class="keyword">, </span><span class="default">$scaled_input</span><span class="keyword">); </span><span class="comment">// de-scaled XOR (0,100) input<br />
+</span><span class="default">$raw_output </span><span class="keyword">= </span><span class="default">fann_run</span><span class="keyword">(</span><span class="default">$ann</span><span class="keyword">, </span><span class="default">$scaled_input</span><span class="keyword">); </span><span class="comment">// get the answer/output from the ANN<br />
+</span><span class="default">$output_descale </span><span class="keyword">= </span><span class="default">fann_descale_output</span><span class="keyword">(</span><span class="default">$ann</span><span class="keyword">, </span><span class="default">$raw_output</span><span class="keyword">); </span><span class="comment">// de-scale the output <br />
+<br />
+////////////////////<br />
+// Report Results //<br />
+////////////////////<br />
+</span><span class="keyword">echo </span><span class="string">'The raw_input:' </span><span class="keyword">. </span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$raw_input</span><span class="keyword">); <br />
+<br />
+echo </span><span class="string">'The raw_input Scaled then De-Scaled (values are unchanged/correct):' </span><span class="keyword">. </span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$descaled_input</span><span class="keyword">); <br />
+<br />
+echo </span><span class="string">'The Scaled input:' </span><span class="keyword">. </span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$scaled_input</span><span class="keyword">); <br />
+<br />
+echo </span><span class="string">"The raw_output of the ANN (Scaled input):" </span><span class="keyword">. </span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$raw_output</span><span class="keyword">);<br />
+&nbsp;<br />
+echo </span><span class="string">'The De-Scaled output:' </span><span class="keyword">. </span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$output_descale</span><span class="keyword">); <br />
+&nbsp;<br />
+&nbsp;<br />
+</span><span class="comment">////////////////////<br />
+// Example Output //<br />
+////////////////////<br />
+<br />
+&nbsp;/*<br />
+The raw_input:<br />
+array(2) {<br />
+&nbsp; [0]=&gt;<br />
+&nbsp; float(0)<br />
+&nbsp; [1]=&gt;<br />
+&nbsp; float(100)<br />
+}<br />
+The raw_input Scaled then De-Scaled (values are unchanged/correct):<br />
+array(2) {<br />
+&nbsp; [0]=&gt;<br />
+&nbsp; float(0)<br />
+&nbsp; [1]=&gt;<br />
+&nbsp; float(100)<br />
+}<br />
+The Scaled input:<br />
+array(2) {<br />
+&nbsp; [0]=&gt;<br />
+&nbsp; float(-1)<br />
+&nbsp; [1]=&gt;<br />
+&nbsp; float(1)<br />
+}<br />
+The raw_output of the ANN (Scaled input):<br />
+array(1) {<br />
+&nbsp; [0]=&gt;<br />
+&nbsp; float(1)<br />
+}<br />
+The De-Scaled output:<br />
+array(1) {<br />
+&nbsp; [0]=&gt;<br />
+&nbsp; float(100)<br />
+}<br />
+*/</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="126120""></a>
+  <div class="note">
+   <strong class="user">geekgirl dot joy at gmail dot com</strong>
+   <a href="#126120" class="date">29-May-2021 06:27</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="comment">// This example will use the XOR dataset with negative one represented <br />
+// as zero and one represented as one-hundred and demonstrate how to<br />
+// scale those values so that FANN can understand them and then how <br />
+// to de-scale the value FANN returns so that you can understand them.<br />
+<br />
+// Scaling allows you to take raw data numbers like -1234.975 or 4502012 <br />
+// in your dataset and convert them into an input/output range that<br />
+// your neural network can understand. <br />
+<br />
+// De-scaling lets you take the scaled data and convert it back into <br />
+// the original range.<br />
+<br />
+// scale_test.data<br />
+// Note the values are "raw" or un-scaled.<br />
+/*<br />
+4 2 1<br />
+0 0<br />
+0<br />
+0 100<br />
+100<br />
+100 0<br />
+100<br />
+100 100<br />
+0<br />
+*/<br />
+<br />
+////////////////////<br />
+// Configure ANN&nbsp; //<br />
+////////////////////<br />
+<br />
+// New ANN<br />
+</span><span class="default">$ann </span><span class="keyword">= </span><span class="default">fann_create_standard_array</span><span class="keyword">(</span><span class="default">3</span><span class="keyword">, [</span><span class="default">2</span><span class="keyword">,</span><span class="default">3</span><span class="keyword">,</span><span class="default">1</span><span class="keyword">]);<br />
+<br />
+</span><span class="comment">// Set activation functions<br />
+</span><span class="default">fann_set_activation_function_hidden</span><span class="keyword">(</span><span class="default">$ann</span><span class="keyword">, </span><span class="default">FANN_SIGMOID_SYMMETRIC</span><span class="keyword">);<br />
+</span><span class="default">fann_set_activation_function_output</span><span class="keyword">(</span><span class="default">$ann</span><span class="keyword">, </span><span class="default">FANN_SIGMOID_SYMMETRIC</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// Read raw (un-scaled) training data from file<br />
+</span><span class="default">$train_data </span><span class="keyword">= </span><span class="default">fann_read_train_from_file</span><span class="keyword">(</span><span class="string">"scale_test.data"</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">// Scale the data range to -1 to 1<br />
+</span><span class="default">fann_set_input_scaling_params</span><span class="keyword">(</span><span class="default">$ann </span><span class="keyword">, </span><span class="default">$train_data</span><span class="keyword">, -</span><span class="default">1</span><span class="keyword">, </span><span class="default">1</span><span class="keyword">);<br />
+</span><span class="default">fann_set_output_scaling_params</span><span class="keyword">(</span><span class="default">$ann </span><span class="keyword">, </span><span class="default">$train_data</span><span class="keyword">, -</span><span class="default">1</span><span class="keyword">, </span><span class="default">1</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">///////////<br />
+// Train //<br />
+///////////<br />
+<br />
+// Presumably you would train here (uncomment to perform training)...<br />
+<br />
+// fann_train_on_data($ann, $train_data, 100, 10, 0.01);<br />
+<br />
+// But it's not needed to test the scaling because the training file <br />
+// in this case is just used to compute/derive the scale range. <br />
+// However, doing the training will improve the answer the ANN gives<br />
+// in correlation to the training data.<br />
+<br />
+//////////<br />
+// Test //<br />
+//////////<br />
+<br />
+</span><span class="default">$raw_input </span><span class="keyword">= array(</span><span class="default">0</span><span class="keyword">, </span><span class="default">100</span><span class="keyword">); </span><span class="comment">// test XOR (0,100) input<br />
+</span><span class="default">$scaled_input </span><span class="keyword">= </span><span class="default">fann_scale_input </span><span class="keyword">(</span><span class="default">$ann </span><span class="keyword">, </span><span class="default">$raw_input</span><span class="keyword">); </span><span class="comment">// scaled XOR (-1,1) input<br />
+</span><span class="default">$descaled_input </span><span class="keyword">= </span><span class="default">fann_descale_input </span><span class="keyword">(</span><span class="default">$ann </span><span class="keyword">, </span><span class="default">$scaled_input</span><span class="keyword">); </span><span class="comment">// de-scaled XOR (0,100) input<br />
+</span><span class="default">$raw_output </span><span class="keyword">= </span><span class="default">fann_run</span><span class="keyword">(</span><span class="default">$ann</span><span class="keyword">, </span><span class="default">$scaled_input</span><span class="keyword">); </span><span class="comment">// get the answer/output from the ANN<br />
+</span><span class="default">$output_descale </span><span class="keyword">= </span><span class="default">fann_descale_output</span><span class="keyword">(</span><span class="default">$ann</span><span class="keyword">, </span><span class="default">$raw_output</span><span class="keyword">); </span><span class="comment">// de-scale the output <br />
+<br />
+////////////////////<br />
+// Report Results //<br />
+////////////////////<br />
+</span><span class="keyword">echo </span><span class="string">'The raw_input:' </span><span class="keyword">. </span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$raw_input</span><span class="keyword">); <br />
+<br />
+echo </span><span class="string">'The raw_input Scaled then De-Scaled (values are unchanged/correct):' </span><span class="keyword">. </span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$descaled_input</span><span class="keyword">); <br />
+<br />
+echo </span><span class="string">'The Scaled input:' </span><span class="keyword">. </span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$scaled_input</span><span class="keyword">); <br />
+<br />
+echo </span><span class="string">"The raw_output of the ANN (Scaled input):" </span><span class="keyword">. </span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$raw_output</span><span class="keyword">);<br />
+&nbsp;<br />
+echo </span><span class="string">'The De-Scaled output:' </span><span class="keyword">. </span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$output_descale</span><span class="keyword">); <br />
+&nbsp;<br />
+&nbsp;<br />
+</span><span class="comment">////////////////////<br />
+// Example Output //<br />
+////////////////////<br />
+<br />
+&nbsp;/*<br />
+The raw_input:<br />
+array(2) {<br />
+&nbsp; [0]=&gt;<br />
+&nbsp; float(0)<br />
+&nbsp; [1]=&gt;<br />
+&nbsp; float(100)<br />
+}<br />
+The raw_input Scaled then De-Scaled (values are unchanged/correct):<br />
+array(2) {<br />
+&nbsp; [0]=&gt;<br />
+&nbsp; float(0)<br />
+&nbsp; [1]=&gt;<br />
+&nbsp; float(100)<br />
+}<br />
+The Scaled input:<br />
+array(2) {<br />
+&nbsp; [0]=&gt;<br />
+&nbsp; float(-1)<br />
+&nbsp; [1]=&gt;<br />
+&nbsp; float(1)<br />
+}<br />
+The raw_output of the ANN (Scaled input):<br />
+array(1) {<br />
+&nbsp; [0]=&gt;<br />
+&nbsp; float(1)<br />
+}<br />
+The De-Scaled output:<br />
+array(1) {<br />
+&nbsp; [0]=&gt;<br />
+&nbsp; float(100)<br />
+}<br />
+*/</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="124448""></a>
   <div class="note">
    <strong class="user">saakyanalexandr at gmail dot com</strong>
    <a href="#124448" class="date">27-Nov-2019 08:38</a>

@@ -34,7 +34,8 @@
  <div class="refsect1 description" id="refsect1-reserved.variables.globals-description">
   <h3 class="title">说明</h3>
   <p class="para">
-   一个包含了全部变量的全局组合<span class="type"><span class="type 数组">数组</span></span>。变量的名字就是数组的键。
+   关联数组 <span class="type">array</span>，包含当前脚本内定义成全局范围的所有变量的引用。
+   数组的键就是变量的名字。
   </p>
  </div>
 
@@ -42,7 +43,7 @@
  <div class="refsect1 examples" id="refsect1-reserved.variables.globals-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-328">
+   <div class="example" id="variable.globals.basic">
     <p><strong>Example #1 <var class="varname">$GLOBALS</var> 范例</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -60,6 +61,21 @@ $foo in current scope: local variable
     </div>
    </div>
   </p>
+  <div class="warning"><strong class="warning">Warning</strong>
+   <p class="para">
+    从 PHP 8.1.0 起，不再支持对整个 <var class="varname">$GLOBALS</var> 数组的写访问：
+    <div class="example" id="variable.globals.entire_write_error">
+     <p><strong>Example #2 写入整个 <var class="varname">$GLOBALS</var> 将会导致错误。</strong></p>
+     <div class="example-contents">
+ <div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />&nbsp;</span><span style="color: #FF8000">//&nbsp;生成编译时错误：<br />&nbsp;</span><span style="color: #0000BB">$GLOBALS&nbsp;</span><span style="color: #007700">=&nbsp;[];<br />&nbsp;</span><span style="color: #0000BB">$GLOBALS&nbsp;</span><span style="color: #007700">+=&nbsp;[];<br />&nbsp;</span><span style="color: #0000BB">$GLOBALS&nbsp;</span><span style="color: #007700">=&amp;&nbsp;</span><span style="color: #0000BB">$x</span><span style="color: #007700">;<br />&nbsp;</span><span style="color: #0000BB">$x&nbsp;</span><span style="color: #007700">=&amp;&nbsp;</span><span style="color: #0000BB">$GLOBALS</span><span style="color: #007700">;<br />&nbsp;unset(</span><span style="color: #0000BB">$GLOBALS</span><span style="color: #007700">);<br />&nbsp;</span><span style="color: #0000BB">array_pop</span><span style="color: #007700">(</span><span style="color: #0000BB">$GLOBALS</span><span style="color: #007700">);<br />&nbsp;</span><span style="color: #FF8000">//&nbsp;...以及对&nbsp;$GLOBALS&nbsp;的任何其他写入/读写操作<br />&nbsp;</span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+     </div>
+
+    </div>
+   </p>
+  </div>
  </div>
 
  
@@ -71,6 +87,22 @@ $foo in current scope: local variable
    <strong>变量可用性</strong><br />
    <p class="para">
     与所有其他<a href="language.variables.superglobals.html" class="link">超全局变量</a>不同，<var class="varname">$GLOBALS</var>在PHP中总是可用的。
+    </p>
+  </p></blockquote>
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <p class="para">
+     从 PHP 8.1.0 起， <var class="varname">$GLOBALS</var> 现在是全局符号表的只读副本。
+     也就是说，全局变量不能通过副本进行修改。
+     在之前的版本中，<var class="varname">$GLOBALS</var> 数组和 PHP 数组通常传值的行为不一样，全局变量可通过副本修改。
+     <div class="informalexample">
+     <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">//&nbsp;PHP&nbsp;8.1.0&nbsp;之前<br /></span><span style="color: #0000BB">$a&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$globals&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$GLOBALS</span><span style="color: #007700">;&nbsp;</span><span style="color: #FF8000">//&nbsp;表面意义的按值复制<br /></span><span style="color: #0000BB">$globals</span><span style="color: #007700">[</span><span style="color: #DD0000">'a'</span><span style="color: #007700">]&nbsp;=&nbsp;</span><span style="color: #0000BB">2</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$a</span><span style="color: #007700">);&nbsp;</span><span style="color: #FF8000">//&nbsp;int(2)<br /><br />//&nbsp;从&nbsp;PHP&nbsp;8.1.0&nbsp;起<br />//&nbsp;这不再修改&nbsp;$a。先前的行为违反了按值语义。<br /></span><span style="color: #0000BB">$globals&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$GLOBALS</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$globals</span><span style="color: #007700">[</span><span style="color: #DD0000">'a'</span><span style="color: #007700">]&nbsp;=&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">;<br /><br /></span><span style="color: #FF8000">//&nbsp;要恢复以前的行为，请迭代其副本并将每个属性分配回&nbsp;$GLOBALS。<br /></span><span style="color: #007700">foreach&nbsp;(</span><span style="color: #0000BB">$globals&nbsp;</span><span style="color: #007700">as&nbsp;</span><span style="color: #0000BB">$key&nbsp;</span><span style="color: #007700">=&gt;&nbsp;</span><span style="color: #0000BB">$value</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$GLOBALS</span><span style="color: #007700">[</span><span style="color: #0000BB">$key</span><span style="color: #007700">]&nbsp;=&nbsp;</span><span style="color: #0000BB">$value</span><span style="color: #007700">;<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+     </div>
+
+    </div>
    </p>
   </p></blockquote>
  </div>

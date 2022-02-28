@@ -32,17 +32,28 @@
   </p>
   <p class="para">
   如果紧跟反斜线的数字小于 10， 它总是一个后向引用，
-  并且如果在模式中没有这么多的捕获组会引发一个错误。 换一种说法，
+  并且如果在模式中没有足够多的捕获组，将会引发一个错误。换而言之，
   被引用的括号不能少于被引用的小于 10 的数量。
+
+   A &quot;forward back reference&quot; can make sense when a repetition
+   is involved and the subpattern to the right has participated
+   in an earlier iteration.
   查看上面的"反斜线"部分查看具体的数字处理方式。
   </p>
   <p class="para">
   一个后向引用会直接匹配被引用捕获组在目标字符串中实际捕获到的内容，
-  而不是匹配子组模式的内容。因此，模式<code class="literal">(sens|respons)e and
-  \1ibility</code>将会匹配 "sense and sensibility" 和 "response and responsibility"，
+  而不是匹配子组模式的内容。因此，模式
+
+   <code class="literal">(sens|respons)e and \1ibility</code>
+
+   将会匹配 "sense and sensibility" 和 "response and responsibility"，
   而不会匹配 "sense and responsibility"。
   如果在后向引用时被强制进行了大小写敏感匹配,
-  比如 <code class="literal">((?i)rah)\s+\1</code> 匹配 "rah
+  比如
+
+   <code class="literal">((?i)rah)\s+\1</code>
+
+   匹配 "rah
   rah"和"RAH RAH"，但是不会匹配 "RAH rah"，
   即使原始捕获子组自身是不区分大小写的。 译注：
   这里其实要考虑的是后向引用期望得到的内容是和那个被引用的捕获子组得到的内容是完全一致的(当然，
@@ -54,26 +65,35 @@
   可能会有超过一个的后向引用引用相同的子组。
   一个子组可能并不会真正的用于特定的匹配，此时，
   任何对这个子组的后向引用也都会失败。 比如，
-  模式 <code class="literal">(a|(bc))\2</code> 总是在匹配 "a" 开头而不是 "bc" 开头的字符串时失败。
+  模式
+
+   <code class="literal">(a|(bc))\2</code>
+
+   总是在匹配 "a" 开头而不是 "bc" 开头的字符串时失败。
   因为可能会有多达 99 个后向引用，
   所有紧跟反斜线后的数字都可能是一个潜在的后向引用计数。
   如果模式在后向引用之后紧接着还是一个数值字符，
-  那么必须使用一些分隔符用于终结后向引用语法。 如果 <a href="reference.pcre.pattern.modifiers.html" class="link">PCRE_EXTENDED</a> 选项被设置了，
+  那么必须使用一些分隔符用于终结后向引用语法。 如果设置了 <a href="reference.pcre.pattern.modifiers.html" class="link">PCRE_EXTENDED</a> 选项，
   可以使用空格来做。其他情况下可以使用一个空的注释。
   </p>
   <p class="para">
   如果一个后向引用出现在它所引用的子组内部， 它的匹配就会失败。比如，
    (a\1) 就不会得到任何匹配。然而这种引用可以用于内部的子模式重复。比如，
-  模式 <code class="literal">(a|b\1)+</code> 会匹配任意数量的 "a" 组成的字符串以及 "aba"， "ababba" 等等(译注：
+  模式
+
+   <code class="literal">(a|b\1)+</code>
+
+   会匹配任意数量的 "a" 组成的字符串以及 "aba"， "ababba" 等等(译注：
   因为子组内部有一个可选路径，可选路径中有一条路能够完成匹配，在匹配完成后，
   后向引用就能够引用到内容了)。在每次子模式的迭代过程中，
   后向引用匹配上一次迭代时这个子组匹配到的字符串。为了做这种工作，
   模式必须满足这样一个条件，模式在第一次迭代的时候，
   必须能够保证不需要匹配后向引用。
-  这种条件可以像上面的例子用可选路径来实现，也可以通过使用最小值为 0 的量词修饰后向引用的方式来完成。
+  这种条件可以像上面的例子用可选路径来实现，也可以通过使用最小值为 0
+   的量词修饰后向引用的方式来完成。
   </p>
   <p class="para">
-  在 PHP 5.2.2之后， <code class="literal">\g</code> 转义序列可以用于子模式的绝对和相对引用。
+   转义序列 <code class="literal">\g</code> 可以用于子模式的绝对引用和相对引用。
   这个转义序列必须紧跟一个无符号数字或一个负数，
   可以选择性的使用括号对数字进行包裹。 序列<code class="literal">\1</code>，
   <code class="literal">\g1</code>，<code class="literal">\g{1}</code> 之间是同义词关系。
@@ -85,13 +105,16 @@
   <p class="para">
   <code class="literal">\g</code> 转义序列紧跟一个负数代表一个相对的后向引用。比如：
   <code class="literal">(foo)(bar)\g{-1}</code> 可以匹配字符串 "foobarbar"，
-  <code class="literal">(foo)(bar)\g{-2}</code> 可以匹配 "foobarfoo"。 这在长的模式中作为一个可选方案，
+  <code class="literal">(foo)(bar)\g{-2}</code> 可以匹配 "foobarfoo"。
+  这在长的模式中作为一个可选方案，
   用来保持对之前一个特定子组的引用的子组序号的追踪。
   </p>
   <p class="para">
-  后向引用也支持使用子组名称的语法方式描述,
-  比如 <code class="literal">(?P=name)</code> 或者 PHP 5.2.2 开始可以实用<code class="literal">\k&lt;name&gt;</code> 或 <code class="literal">\k'name'</code>。
-  另外在 PHP 5.2.4 中加入了对<code class="literal">\k{name}</code> 和 <code class="literal">\g{name}</code> 的支持。
+  后向引用也支持使用子组名称的语法方式描述：
+   <code class="literal">(?P=name)</code>、<code class="literal">\k&lt;name&gt;</code>、
+   <code class="literal">\k'name'</code>、<code class="literal">\k{name}</code>、
+   <code class="literal">\g{name}</code>、<code class="literal">\g&lt;name&gt;</code>、
+   <code class="literal">\g&#039;name&#039;</code>。
   </p>
  </div><div id="usernotes">
  <div class="head">

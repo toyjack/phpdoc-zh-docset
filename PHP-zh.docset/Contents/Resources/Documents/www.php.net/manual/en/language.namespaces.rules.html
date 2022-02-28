@@ -12,7 +12,7 @@
   <div class="navbar-inner clearfix">
     <ul class="nav" style="width: 100%">
       <li style="float: left;"><a href="language.namespaces.fallback.html">? 使用命名空间：后备全局函数/常量</a></li>
-      <li style="float: right;"><a href="language.namespaces.faq.html">FAQ: things you need to know about namespaces ?</a></li>
+      <li style="float: right;"><a href="language.namespaces.faq.html">FAQ：命名空间必知必会 ?</a></li>
     </ul>
   </div>
 </div>
@@ -30,11 +30,10 @@
   <p class="para">
    在说明名称解析规则之前，我们先看一些重要的定义：
    <dl>
-
     <strong class="title">命名空间名称定义</strong>
     
      <dt>
-非限定名称 Unqualified name</dt>
+非限定名称（Unqualified name）</dt>
 
      <dd>
 
@@ -46,7 +45,7 @@
     
     
      <dt>
-限定名称 Qualified name</dt>
+限定名称（Qualified name）</dt>
 
      <dd>
 
@@ -58,13 +57,27 @@
     
     
      <dt>
-完全限定名称 Fully qualified name</dt>
+完全限定名称（Fully qualified name）</dt>
 
      <dd>
 
       <p class="para">
        名称中包含命名空间分隔符，并以命名空间分隔符开始的标识符，例如 <code class="literal">\Foo\Bar</code>。
        <code class="literal">namespace\Foo</code> 也是一个完全限定名称。
+      </p>
+     </dd>
+
+    
+    
+     <dt>
+相对名称（Relative name）</dt>
+
+     <dd>
+
+      <p class="para">
+       这是个以 <code class="literal">namespace</code> 开头的标识符，
+       例如
+       <code class="literal">namespace\Foo\Bar</code>。
       </p>
      </dd>
 
@@ -77,89 +90,78 @@
    <ol type="1">
     <li class="listitem">
      <span class="simpara">
-      对完全限定名称的函数，类和常量的调用在编译时解析。例如 
-      <code class="literal">new \A\B</code> 解析为类 <code class="literal">A\B</code>。
+       完全限定名称总是会解析成没有前缀符号的命名空间名称。
+       <code class="literal">\A\B</code> 解析为 <code class="literal">A\B</code>。
      </span>
     </li>
     <li class="listitem">
      <span class="simpara">
-     所有的非限定名称和限定名称（非完全限定名称）根据当前的导入规则在编译时进行转换。例如，如果命名空间
-     <code class="literal">A\B\C</code> 被导入为 <code class="literal">C</code>，那么对 <code class="literal">C\D\e()</code> 
-     的调用就会被转换为 <code class="literal">A\B\C\D\e()</code>。
+      解析相对名称时，会用当前命名空间的名称替换掉 <code class="literal">namespace</code>。
+      如果名称出现在全局命名空间，会截掉 <code class="literal">namespace\</code> 前缀。
+      例如，在命名空间 <code class="literal">X\Y</code> 里的 <code class="literal">namespace\A</code> 会被解析成 <code class="literal">X\Y\A</code>。
+      在全局命名空间里，同样的名字却被解析成 <code class="literal">A</code>。
      </span>
     </li>
     <li class="listitem">
      <span class="simpara">
-     在命名空间内部，所有的没有根据导入规则转换的限定名称均会在其前面加上当前的命名空间名称。例如，在命名空间 
-     <code class="literal">A\B</code> 内部调用 <code class="literal">C\D\e()</code>，则 <code class="literal">C\D\e()</code> 
-     会被转换为 <code class="literal">A\B\C\D\e()</code> 。
+      对于限定名称，名字的第一段会根据当前 class/namespace 导入表进行翻译。
+      比如命名空间 <code class="literal">A\B\C</code> 被导入为 <code class="literal">C</code>，
+      名称 <code class="literal">C\D\E</code> 会被翻译成
+      <code class="literal">A\B\C\D\E</code>。
      </span>
     </li>
     <li class="listitem">
      <span class="simpara">
-     非限定类名根据当前的导入规则在编译时转换（用全名代替短的导入名称）。例如，如果命名空间
-     <code class="literal">A\B\C</code> 导入为C，则 <code class="literal">new C()</code>
-     被转换为 <code class="literal">new A\B\C() </code>。
+      对于限定名称，如果没有应用导入规则，就将当前命名空间添加为名称的前缀。
+      例如，位于命名空间 <code class="literal">A\B</code> 内的名称 <code class="literal">C\D\E</code>
+      会解析成 <code class="literal">A\B\C\D\E</code>。
      </span>
     </li>
     <li class="listitem">
      <span class="simpara">
-      在命名空间内部（例如A\B），对非限定名称的函数调用是在运行时解析的。例如对函数
-      <code class="literal">foo()</code> 的调用是这样解析的：
+      根据符号类型和对应的当前导入表，解析非限定名称。
+      这也就是说，根据 class/namespace 导入表翻译类名称；
+      根据函数导入表翻译函数名称；
+      根据常量导入表翻译常量名称。
+      比如，在
+      <code class="literal">use A\B\C;</code> 后，类似 <code class="literal">new C()</code> 这样的名称会解析为
+      <code class="literal">A\B\C()</code>。
+      类似的，<code class="literal">use function A\B\fn;</code> 后，
+      <code class="literal">fn()</code> 的用法，解析名称为 <code class="literal">A\B\fn</code>。
      </span>
-      <ol type="1">
-       <li class="listitem">
-        <span class="simpara">
-         在当前命名空间中查找名为 <code class="literal">A\B\foo()</code> 的函数
-        </span>
-       </li>
-       <li class="listitem">
-        <span class="simpara">
-        尝试查找并调用 <em class="emphasis">全局(global)</em> 空间中的函数 <code class="literal">foo()</code>。
-        </span>
-       </li>
-      </ol>
     </li>
     <li class="listitem">
      <span class="simpara">
-      在命名空间（例如<code class="literal">A\B</code>）内部对非限定名称或限定名称类（非完全限定名称）的调用是在运行时解析的。下面是调用
-      <code class="literal">new C()</code> 及 <code class="literal">new D\E()</code> 的解析过程：
-      <code class="literal"> new C()</code> 的解析:
+      如果没有应用导入规则，对于类似 class 符号的非限定名称，会添加当前命名空间作为前缀。
+      比如命名空间 <code class="literal">A\B</code> 内的 <code class="literal">new C()</code> 
+      会把名称解析为 <code class="literal">A\B\C</code>。
+     </span>
+    </li>
+    <li class="listitem">
+     <span class="simpara">
+      如果没有应用导入规则，非限定名称指向函数或常量，且代码位于全局命名空间之外，则会在运行时解析名称。
+      假设代码位于命名空间 <code class="literal">A\B</code> 中，
+      下面演示了调用函数
+      <code class="literal">foo()</code> 是如何解析的：
      </span>
      <ol type="1">
       <li class="listitem">
        <span class="simpara">
-        在当前命名空间中查找<code class="literal">A\B\C</code>类。
+        在当前命名空间中查找函数：
+        <code class="literal">A\B\foo()</code>。
        </span>
       </li>
       <li class="listitem">
        <span class="simpara">
-        尝试自动装载类<code class="literal">A\B\C</code>。
+        它会尝试找到并调用 <em class="emphasis">全局</em> 的函数
+        <code class="literal">foo()</code>。
        </span>
       </li>
      </ol>
-     <span class="simpara">
-      <code class="literal"> new D\E()</code>的解析:
-     </span>
-     <ol type="1">
-      <li class="listitem">
-       <span class="simpara">
-        在类名称前面加上当前命名空间名称变成：<code class="literal">A\B\D\E</code>，然后查找该类。
-       </span>
-      </li>
-      <li class="listitem">
-       <span class="simpara">
-        尝试自动装载类 <code class="literal">A\B\D\E</code>。
-       </span>
-      </li>
-     </ol>
-     <span class="simpara">
-      为了引用全局命名空间中的全局类，必须使用完全限定名称 <code class="literal">new \C()</code>。
-     </span>
     </li>
    </ol>
   </p>
-  <div class="example" id="example-288">
+  <div class="example" id="example-306">
    <p><strong>Example #1 名称解析示例</strong></p>
    <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">

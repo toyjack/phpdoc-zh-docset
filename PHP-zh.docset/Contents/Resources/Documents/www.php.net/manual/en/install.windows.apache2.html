@@ -1,0 +1,1052 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>Microsoft Windows 下的 Apache 2.x</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="install.windows.commandline.html">? PHP 在 Microsoft Windows 下的命令行方式</a></li>
+      <li style="float: right;"><a href="install.windows.troubleshooting.html">Windows 下 PHP 故障排除 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="install.windows.html">Windows 系统下的安装</a></li>
+    <li>Microsoft Windows 下的 Apache 2.x</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="install.windows.apache2" class="sect1">
+ <h2 class="title">Microsoft Windows 下的 Apache 2.x</h2>
+ <p class="para">
+  本节包括在 Microsoft Windows 系统中针对 Apache 2.x 安装 PHP 的指导与说明。
+ </p>
+ <blockquote class="note"><p><strong class="note">Note</strong>: 
+  <p class="para">
+   请先阅读<a href="install.windows.manual.html" class="link">手工安装步骤</a>！
+  </p>
+ </p></blockquote>
+ <p class="para">
+  强烈建议阅读 <a href="http://httpd.apache.org/docs/current/" class="link external" title="Link : http://httpd.apache.org/docs/current/">&raquo;&nbsp;Apache 文档</a> 来加深对
+  Apache 2.x 服务器的基本理解。此外在继续下去之前考虑先阅读一下 Apache 2.x 的 
+  <a href="http://httpd.apache.org/docs/current/platform/windows.html" class="link external" title="Link : http://httpd.apache.org/docs/current/platform/windows.html">&raquo;&nbsp;Windows 下使用说明</a>。
+ </p>
+
+ <p class="para">
+  下载最新版本的 <a href="https://www.apachelounge.com/download/" class="link external" title="Link : https://www.apachelounge.com/download/">&raquo;&nbsp;Apache 2.x</a>
+  以及适合的 PHP 版本。先完成<a href="install.windows.manual.html" class="link">手工安装步骤</a>后再回来继续将
+  PHP 集成入 Apache。
+ </p>
+ 
+ <p class="para">
+  Windows 下有三种方法使 PHP 工作于 Apache 2.x 之中。可以以 handler、CGI、或者 FastCGI 方式运行 PHP。
+ </p>
+
+ <blockquote class="note"><p><strong class="note">Note</strong>: <span class="simpara">记住当在
+Windows 环境下的 Apache 配置文件中添加路径值时，所有的反斜线，如
+<var class="filename">c:\directory\file.ext</var>，应转换为正斜线：
+<var class="filename">c:/directory/file.ext</var>。对目录来说，也必须由斜线结尾。</span></p></blockquote>
+
+ <div class="sect2" id="install.windows.apache2.module">
+  <h3 class="title">以 Apache handler 方式安装</h3>
+  <p class="para">
+   需要将以下几行加入到 Apache 的 <var class="filename">httpd.conf</var> 配置文件中以加载 Apache 2.x 的 PHP 模块：
+   <div class="example" id="example-21">
+    <p><strong>Example #1 PHP 在 Apache 2.x 中作为 handler</strong></p>
+    <div class="example-contents">
+<div class="apache-confcode"><pre class="apache-confcode"># 在 PHP 8.0.0 之前，模块的名称是 php7_module
+LoadModule php_module &quot;c:/php/php8apache2_4.dll&quot;
+&lt;FilesMatch \.php$&gt;
+    SetHandler application/x-httpd-php
+&lt;/FilesMatch&gt;
+# 配置 php.ini 的路径
+PHPIniDir &quot;C:/php&quot;</pre>
+</div>
+    </div>
+
+   </div>
+  </p>
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <span class="simpara">
+    必须使用实际的 PHP 路径替换掉上例中的 <var class="filename">c:/php/</var>。
+    确保在 <code class="literal">LoadModule</code> 指令中引用的文件位于所指定的位置。
+    PHP 7 使用 <var class="filename">php7apache2_4.dll</var>，
+    PHP 8 使用  <var class="filename">php8apache2_4.dll</var>。
+   </span>
+  </p></blockquote>
+ </div>
+
+ <div class="sect2" id="install.windows.apache2.cgi">
+  <h3 class="title">以 CGI 方式运行 PHP</h3>
+  <p class="para">
+   要更好地理解在 Apache 下运行 CGI，请参阅
+   <a href="http://httpd.apache.org/docs/current/howto/cgi.html" class="link external" title="Link : http://httpd.apache.org/docs/current/howto/cgi.html">&raquo;&nbsp;Apache CGI 文档</a>。
+  </p>
+  <p class="para">
+   要将 PHP 以 CGI 方式运行，需要将 php-cgi 文件放入到用
+   ScriptAlias 指令所指定的 CGI 目录中。
+  </p>
+  <p class="para">
+   然后需要给 PHP 文件中添加 <code class="literal">#!</code> 的一行来指明 PHP 可执行文件的位置：
+   <div class="example" id="example-22">
+    <p><strong>Example #2 Apache 2.x 下 CGI 方式的 PHP</strong></p>
+    <div class="example-contents">
+<div class="cdata"><pre>
+#!C:/php/php.exe
+&lt;?php
+  phpinfo();
+?&gt;
+</pre></div>
+    </div>
+
+   </div>
+  </p>
+  <div class="warning"><strong class="warning">Warning</strong><p class="para">服务器使用 CGI 方式进行部署可能存在几个公开的缺陷。请阅读
+<a href="security.cgi-bin.html" class="link">CGI 安全</a>一章 以学习 如何抵御这些攻击。</p></div>
+ </div>
+
+ <div class="sect2" id="install.windows.apache2.fastcgi">
+  <h3 class="title">以 FastCGI 方式运行 PHP</h3>
+
+  <p class="para">
+   以 FastCGI 方式运行 PHP 比起 CGI 方式有很多优点。设定的方式很直接：
+  </p>
+  <p class="para">
+   从 <a href="https://www.apachelounge.com/download/" class="link external" title="Link : https://www.apachelounge.com/download/">&raquo;&nbsp;https://www.apachelounge.com</a>
+   取得 <code class="literal">mod_fcgid</code>，该站点有 Win32 可执行文件的下载。按照下载文件中的指示安装此模块。
+  </p>
+  <p class="para">
+   按以下方法配置 web 服务器，注意用自己系统上的路径替换其中相应的内容：
+   
+   <div class="example" id="example-23">
+    <p><strong>Example #3 配置 Apache 以 FastCGI 方式运行 PHP</strong></p>
+    <div class="example-contents">
+<div class="cdata"><pre>
+LoadModule fcgid_module modules/mod_fcgid.so  
+
+# php.ini 文件的位置
+FcgidInitialEnv PHPRC        &quot;c:/php&quot; 
+
+&lt;FilesMatch \.php$&gt;
+    SetHandler fcgid-script
+&lt;/FilesMatch&gt;
+FcgidWrapper &quot;c:/php/php-cgi.exe&quot; .php  
+</pre></div>
+   </div>
+
+   </div>
+   此时具有 .php 后缀的文件将被 PHP FastCGI 所解析执行。
+  </p>
+ </div>
+</div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+<div id="allnotes">  <a name="122512""></a>
+  <div class="note">
+   <strong class="user">alx dot suvorov at gmail dot com</strong>
+   <a href="#122512" class="date">14-Mar-2018 07:28</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+For PHP 7 configuration just add these lines to the end of httpd.conf file (of Apache):<br />
+<br />
+PHPIniDir "/alex/apps/php-7.2.3/"<br />
+LoadModule php7_module "C:/alex/apps/php-7.2.3/php7apache2_4.dll"<br />
+&lt;FilesMatch \.php$&gt;<br />
+&nbsp;&nbsp;&nbsp; SetHandler application/x-httpd-php<br />
+&lt;/FilesMatch&gt;<br />
+<br />
+Here "/alex/apps/php-7.2.3/" is PHP path.<br />
+<br />
+Then:<br />
+1. Rename php.ini-development or php.ini-production to php.ini<br />
+2. Uncomment / set extension_dir parameter in php.ini<br />
+; Directory in which the loadable extensions (modules) reside.<br />
+; <a href="http://php.net/extension-dir" rel="nofollow" target="_blank">http://php.net/extension-dir</a><br />
+; extension_dir = "./"<br />
+; On windows:<br />
+extension_dir = "ext"<br />
+<br />
+You are set. Just re/start Apache server (httpd -k restart).</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="119966""></a>
+  <div class="note">
+   <strong class="user">gmatwy at gmail dot com</strong>
+   <a href="#119966" class="date">30-Sep-2016 06:24</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+version<br />
+httpd-2.4.23-win32-VC14.zip<br />
+php-5.6.26-ts-Win32-VC11-x86.zip<br />
+<br />
+install path c:/wamp/<br />
+php path c:/wamp/php<br />
+apache path c:/wamp/Apache24<br />
+used as Apache handler<br />
+<br />
+modify as below<br />
+<br />
+#below for apache<br />
+#modify c:/ to c:/wamp/<br />
+#modify ServerName to localhost:80 and remove#<br />
+#DirectoryIndex insert index.php<br />
+<br />
+#below for php<br />
+#rename file php.ini-production to php.ini<br />
+LoadModule php5_module "C:/wamp/php/php5apache2_4.dll"<br />
+PHPIniDir "C:/wamp/php/"<br />
+<br />
+AddType application/x-httpd-php .php<br />
+AddType application/x-httpd-php .html<br />
+<br />
+AddHandler application/x-httpd-php .php<br />
+<br />
+And things goes well !</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="118522""></a>
+  <div class="note">
+   <strong class="user">a user</strong>
+   <a href="#118522" class="date">20-Dec-2015 02:32</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you are having issues getting the PHPIniDir or LoadModule directives to work and all the suggestions already given do not help, double-check if you are not using fancy quotes around your paths (' '&nbsp; " ").<br />
+<br />
+This happened to me because I copied the statements from a random website. In my text editor the difference was barely noticeable, but to Apache it certainly is!<br />
+<br />
+For example, this will not work:<br />
+PHPIniDir "C:/PHP7"<br />
+<br />
+But this will work:<br />
+PHPIniDir "C:/PHP7"</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117707""></a>
+  <div class="note">
+   <strong class="user">ohcc at 163 dot com</strong>
+   <a href="#117707" class="date">25-Jul-2015 04:48</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you come with an error like this: Wrapper xxxx cannot be accessed: blah blah blah when starting Apache.<br />
+<br />
+You have 3 choices to solve this problem. Any one of them would work.<br />
+<br />
+1. Reinstall your applictions in paths that do not contain spaces.<br />
+<br />
+2. Place a backslash before every space in the path set to the FcgidWrapper directive in httpd.conf, like:<br />
+<br />
+FcgidWrapper "C:/Program\ Files/PHPServer/PHP/php-cgi.exe" .php<br />
+<br />
+3. Use mklink (or junction for windows XP/2003) to create a symbol link to the path of php-cgi.exe's containing folder.<br />
+<br />
+run cmd.exe and type this command:<br />
+<br />
+mklink /j C:\php\ "C:\Program Files\PHPServer\PHP". <br />
+<br />
+or this command if you are on Windows XP/2003<br />
+<br />
+junction C:\php\ "C:\Program Files\PHPServer\PHP"<br />
+<br />
+Remember this : you need to download junction.exe to use it. Don't know where to download? Google it.<br />
+<br />
+Then the FcgidWrapper directive should be like this:<br />
+<br />
+FcgidWrapper "C:/php/php-cgi.exe" .php<br />
+<br />
+Don't forget to change the paths above to your working paths.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="117704""></a>
+  <div class="note">
+   <strong class="user">ohcc at 163 dot com</strong>
+   <a href="#117704" class="date">25-Jul-2015 07:55</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you come with an error like this: Wrapper xxxx cannot be accessed: blah blah blah when starting Apache.<br />
+<br />
+You have 3 choices to solve this problem. Any one of them would work.<br />
+<br />
+1. Install your applictions in paths that do not contains spaces.<br />
+<br />
+2. Place a backslash before every space in the path set to Wrapper, like:<br />
+<br />
+FctidWrapper "C:/Program\ Files/PHPServer/PHP/php-cgi.exe" .php<br />
+<br />
+3. Use mklink (or junction for windows XP/2003) to create a link to the path you have installed php in. <br />
+<br />
+run cmd.exe and type this command:<br />
+<br />
+&nbsp;mklink /j C:\php\ "C:\Program Files\PHPServer\PHP". <br />
+<br />
+&nbsp;or this command if you are on Windows XP/2003<br />
+<br />
+&nbsp;junction C:\php\ "C:\Program Files\PHPServer\PHP"<br />
+<br />
+&nbsp;Remember this : you have to download online to use this application. Don't know where to download? Go and Google it.<br />
+<br />
+Then the FctidWrapper directive should be like this:<br />
+<br />
+FctidWrapper "C:/php/php-cgi.exe" .php<br />
+<br />
+Don't forget to change the paths above to your working paths.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116832""></a>
+  <div class="note">
+   <strong class="user">BuggedApache</strong>
+   <a href="#116832" class="date">06-Mar-2015 10:39</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Windows Apache 2.4.12 (x64) PHP 5.6.5 (x64)<br />
+If your Apache still outputs code instead of parsing a script. Make sure you put a trailing "\" at the end of the PHPIniDir value and use ONLY "\" in path to PHPIniDir. And "/" in LoadModule. A very subtle "feature" of Apache module. Lost several hours after upgrading to apache x64 to resolve the issue.<br />
+<br />
+httpd.conf<br />
+###############################################<br />
+PHPIniDir "C:\folder\to\hold\php\"<br />
+LoadModule php5_module "C:/folder/to/hold/php/php5apache2_4.dll"<br />
+AddHandler application/x-httpd-php .php<br />
+###############################################</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="116571""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#116571" class="date">23-Jan-2015 03:10</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+With Apache 2.4 in Windows, it seems that PHPIniDir directive must come before LoadModule directive to be used. Also, name of the DLL file seems to be php5apache2_4.dll, not php5apache2.dll.<br />
+<br />
+This configuration in httpd.conf works for me (Apache 2.4.10, PHP 5.6.5):<br />
+<br />
+PHPIniDir "C:\PHP"<br />
+<br />
+LoadModule php5_module "c:/php/php5apache2_4.dll"<br />
+&lt;FilesMatch \.php$&gt;<br />
+&nbsp;&nbsp; &nbsp;&nbsp; SetHandler application/x-httpd-php<br />
+&lt;/FilesMatch&gt;</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="115155""></a>
+  <div class="note">
+   <strong class="user">kynetikmedia at gmail dot com</strong>
+   <a href="#115155" class="date">04-Jun-2014 02:47</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+****Installed and Working 1- Fell Swoop - UPDATED****<br />
+Installed on Windows 8.1 XPS 12 - Dell 8GB RAM 128GB SSD - <br />
+Notes - Complications due to Apache latest version causes issues with the PHP handler on install.&nbsp; Following below will get it run right off the bat.&nbsp; <br />
+<br />
+Getting and installing Apache<br />
+<br />
+1&nbsp; In your browser go to h t t p : / / h t t p d . a p a c h e . o r g / d o w n l o a d . c g i<br />
+&nbsp;&nbsp; (without the spaces) - You will need to go 'Other Files' , 'Binaries' , 'W32', and then your installer MSI will be listed as below.&nbsp; <br />
+2&nbsp; Click on&nbsp; httpd-2.2.25-win32-x86-no_ssl.msi<br />
+&nbsp;&nbsp; (this is a self-installing executable file without crypto ... no Secure Socket Layer)<br />
+&nbsp;&nbsp; (2.2.25was the latest version on June 4, 2014)<br />
+3&nbsp; Click on the httpd-2.2.25-win32-x86-no_ssl.msi file after it downloads <br />
+&nbsp;&nbsp; (single click on the file tab in Chrome or double click on the actual file in Downloads)<br />
+4&nbsp; Click Next<br />
+5&nbsp; Click I accept the terms in the license agreement<br />
+6&nbsp; Click Next<br />
+7&nbsp; Click Next<br />
+8&nbsp; Type localhost in the top box<br />
+9&nbsp; Type localhost in the middle box<br />
+10 Type admin@localhost.com in the bottom box<br />
+11 Click Next<br />
+12 Click Next<br />
+13 Click Next<br />
+14 Click Install and wait<br />
+15 Cick Yes to allow the program to make changes<br />
+16 Click Finish<br />
+<br />
+Testing Apache<br />
+<br />
+1&nbsp; Type localhost in your browser location box (I use Chrome) or type h t t p : / / l o c a l h o s t<br />
+&nbsp;&nbsp; (without the spaces)<br />
+2&nbsp; The message It works! should appear.<br />
+<br />
+Getting and installing PHP<br />
+<br />
+1&nbsp; In your browser go to h t t p : / / w i n d o w s . p h p . n e t / d o w n l o a d /<br />
+&nbsp;&nbsp; (without the spaces)<br />
+2&nbsp; Click on the Installer link under PHP 5.3 (5.3.10)&nbsp;&nbsp; VC9 x86 Thread Safe<br />
+&nbsp;&nbsp; (Ignore the Do NOT use VC9 version with apache.org binaries comment on the side panel)<br />
+3&nbsp; Click on the php-5.3.10-Win32-VC9-x86.msi file after in downloads<br />
+&nbsp;&nbsp; (single click on the file tab in Chrome or double click on the actual file in Downloads)<br />
+4&nbsp; Click Next<br />
+5&nbsp; Click I accept the terms in the License Agreement<br />
+6&nbsp; Click Next<br />
+7&nbsp; Click Next<br />
+8&nbsp; Click Apache 2.2.x Module<br />
+9&nbsp; Click Next<br />
+10 Click Browse<br />
+11 Double click Apache Software Foundation<br />
+12 Double click Apache 2.2<br />
+13 Double click conf<br />
+14 Click OK<br />
+15 Click Next<br />
+16 Click Next<br />
+17 Click Install and wait<br />
+18 Cick Yes to allow the program to make changes<br />
+19 Click Finish<br />
+<br />
+Testing PHP with Apache<br />
+<br />
+1&nbsp; Open Notepad<br />
+2&nbsp; Type 'left bracket character'?php phpinfo(); ?'right bracket character'<br />
+3&nbsp; Save the file to C:\Program Files (x86)\Apache Software Foundation\Apache2.2\htdocs as test.php<br />
+4&nbsp; Type localhost/test.php in your browser location box (I use Chrome) or type h t t p : / / l o c a l h o s t / t e s t . p h p<br />
+5&nbsp; A table with title PHP Version ... should appear<br />
+<br />
+DONE</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="114919""></a>
+  <div class="note">
+   <strong class="user">jangirashok at gmail dot com</strong>
+   <a href="#114919" class="date">27-Apr-2014 05:15</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Can anyone tell me: Why PHP + Apache 2.2.x installation is such a big deal. I am a Java Developer and currently I am trying to learn PHP, but I am not able to install PHP and use it the way we use Java. I could use steps mentioned in comments and run home.php from htdocs folder of apache. But, could anyone please tell me DO I HAVE TO PUT EVERY FILE IN THE SAME FOLDER? Can't I make my workbench where I can put a good project hierarchy and use it like other languages. Its horrible. May be my question is little silly, but I need help for sure.<br />
+Thanks...</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="114317""></a>
+  <div class="note">
+   <strong class="user">tmnuwan12 at yahoo dot com</strong>
+   <a href="#114317" class="date">06-Feb-2014 03:13</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I am very new to PHP. I was looking to start a Drupal project and spend almost 4 hours to get Apache and Drupal talk each other.<br />
+What I found out was there are lots of mismatch in documentation and snapshots.<br />
+<br />
+As I am using Windows I found out following two installation bundles works without any issue.<br />
+<br />
+php-5.3.28-Win32-VC9-x86.msi<br />
+httpd-2.2.25-win32-x86-openssl-0.9.8y.msi<br />
+<br />
+Make sure you install your packages directly into into C: drive in Windows machine (If there are spaces in the file paths it would cause issues).<br />
+<br />
+Hope this would help someone.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="114118""></a>
+  <div class="note">
+   <strong class="user">wolfeh1994 at yahoo dot com</strong>
+   <a href="#114118" class="date">13-Jan-2014 02:11</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Please for the love of god, download the threaded version. I spent over an hour trying to figure out why php5apache2.dll could not be found, and while desperately looking through manuals I went into the php 5 structure and found that it doesn't exist in the non-threaded version.<br />
+<br />
+This really could use a mention somewhere other than the PHP 5 structure, like the paragraph to the left of the homepage which talks about which PHP version to choose, or this part of the manual which covers Apache... Anywhere but structure, seriously. I would have never guessed to look there.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="113320""></a>
+  <div class="note">
+   <strong class="user">compleatguru at gmail dot com</strong>
+   <a href="#113320" class="date">27-Sep-2013 03:05</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I am using Windows 8 x64, running Apache 2.2 and php 5.4.20<br />
+<br />
+I found that it is necessary to add System Environment Variable PHPRC=[PHP path], so that php.ini is loaded using your PHP path, instead of C:\Windows.<br />
+<br />
+This is how I do for my laptop<br />
+Go to Control Panel\System and Security\System\Advanced System Settings\Environment Variables<br />
+<br />
+Add New System Variable<br />
+Name: PHPRC<br />
+Value: C:\php-5.4.20<br />
+<br />
+Hope it relieve those who keep having empty string for Loaded Configuration File under phpinfo();</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="112895""></a>
+  <div class="note">
+   <strong class="user">Guillermo Tallano</strong>
+   <a href="#112895" class="date">03-Aug-2013 05:15</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Hi guys, <br />
+In my case, it work right away when I change the version to thread-safe. <br />
+I spent some time trying the different things that were posted here and I was kind of lazy about downloading a different version, but once I test it with a thead-safe it started right away. So be sure you try this.<br />
+<br />
+I was on Apache 2.2, XP and php 5.2.17 thread-safe<br />
+<br />
+This is my conf: <br />
+LoadModule php5_module "c:/php5/php5apache2_2.dll"<br />
+AddHandler application/x-httpd-php .php<br />
+#configure the path to php.ini<br />
+PHPIniDir 'C:\php5\'<br />
+<br />
+Good luck!</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="111787""></a>
+  <div class="note">
+   <strong class="user">Amaroq</strong>
+   <a href="#111787" class="date">28-Mar-2013 10:53</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Like someone else mentioned, on the Windows download page for PHP, ignore the warning about not downloading the VC9 compiled installers for the Apache.org version of Apache.<br />
+<br />
+Whoever wrote that is guaranteeing that people install a PHP that breaks their Apache server. (On Windows 7 anyway.) The installer failed to write the correct path info to httpd.conf, and even after fixing that manually, Apache wouldn't start because of missing dlls.<br />
+<br />
+Ignore that dumb warning and get the newest installer anyway. Everything just plain works with no hassle and no hunting down dll files over google.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="111269""></a>
+  <div class="note">
+   <strong class="user">Maw</strong>
+   <a href="#111269" class="date">31-Jan-2013 09:26</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Good God finally I was able to make PHP 5.2 work on Apache 2.4. For those still having problems with "You don't have permission to run php-cgi.exe", you must replace "Order allow,deny" and "Allow from all" from the PHP directory block with "Require all granted". They must have changed the format with Apache 2.4 since the old method used to work just fine for me before.<br />
+<br />
+So the usual method of setting up CGI, I'm sure you already know that you should add these 3 lines to httpd.conf:<br />
+ScriptAlias /php/ "c:/php/" <br />
+AddType application/x-httpd-php .php<br />
+Action application/x-httpd-php "/php/php-cgi.exe"<br />
+<br />
+And now add the directory for PHP:<br />
+&lt;Directory "c:/php"&gt;<br />
+&nbsp;&nbsp;&nbsp; AllowOverride None<br />
+&nbsp;&nbsp;&nbsp; Options None<br />
+&nbsp;&nbsp;&nbsp; Require all granted<br />
+&lt;/Directory&gt;<br />
+<br />
+Important: Notice that instead of "Order allow,deny" and "Allow from all" added into the PHP directory as usual, I replaced them with "Require all granted" as I mentioned above.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="108429""></a>
+  <div class="note">
+   <strong class="user">a solution for simpletons like me</strong>
+   <a href="#108429" class="date">25-Apr-2012 07:54</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Installing Apache and PHP on Windows 7 Home Premium on a Gateway NV75S laptop with a quad AMD A6-3400M<br />
+<br />
+All I need to do with these programs is to test my website out on my laptop.&nbsp; I have HTML and PHP files. I do not need MySQL as I use html5 storage.<br />
+<br />
+Getting and installing Apache<br />
+<br />
+1&nbsp; In your browser go to h t t p : / / h t t p d . a p a c h e . o r g / d o w n l o a d . c g i<br />
+&nbsp;&nbsp; (without the spaces)<br />
+2&nbsp; Click on&nbsp; httpd-2.2.22-win32-x86-no_ssl.msi<br />
+&nbsp;&nbsp; (this is a self-installing executable file without crypto ... no Secure Socket Layer)<br />
+&nbsp;&nbsp; (2.2.22 was the latest version on April 25, 2012)<br />
+3&nbsp; Click on the httpd-2.2.22-win32-x86-no_ssl.msi file after it downloads <br />
+&nbsp;&nbsp; (single click on the file tab in Chrome or double click on the actual file in Downloads)<br />
+4&nbsp; Click Next<br />
+5&nbsp; Click I accept the terms in the license agreement<br />
+6&nbsp; Click Next<br />
+7&nbsp; Click Next<br />
+8&nbsp; Type localhost in the top box<br />
+9&nbsp; Type localhost in the middle box<br />
+10 Type admin@localhost.com in the bottom box<br />
+11 Click Next<br />
+12 Click Next<br />
+13 Click Next<br />
+14 Click Install and wait<br />
+15 Cick Yes to allow the program to make changes<br />
+16 Click Finish<br />
+<br />
+Testing Apache<br />
+<br />
+1&nbsp; Type localhost in your browser location box (I use Chrome) or type h t t p : / / l o c a l h o s t<br />
+&nbsp;&nbsp; (without the spaces)<br />
+2&nbsp; The message It works! should appear.<br />
+<br />
+Getting and installing PHP<br />
+<br />
+1&nbsp; In your browser go to h t t p : / / w i n d o w s . p h p . n e t / d o w n l o a d /<br />
+&nbsp;&nbsp; (without the spaces)<br />
+2&nbsp; Click on the Installer link under PHP 5.3 (5.3.10)&nbsp;&nbsp; VC9 x86 Thread Safe<br />
+&nbsp;&nbsp; (Ignore the Do NOT use VC9 version with apache.org binaries comment on the side panel)<br />
+3&nbsp; Click on the php-5.3.10-Win32-VC9-x86.msi file after in downloads<br />
+&nbsp;&nbsp; (single click on the file tab in Chrome or double click on the actual file in Downloads)<br />
+4&nbsp; Click Next<br />
+5&nbsp; Click I accept the terms in the License Agreement<br />
+6&nbsp; Click Next<br />
+7&nbsp; Click Next<br />
+8&nbsp; Click Apache 2.2.x Module<br />
+9&nbsp; Click Next<br />
+10 Click Browse<br />
+11 Double click Apache Software Foundation<br />
+12 Double click Apache 2.2<br />
+13 Double click conf<br />
+14 Click OK<br />
+15 Click Next<br />
+16 Click Next<br />
+17 Click Install and wait<br />
+18 Cick Yes to allow the program to make changes<br />
+19 Click Finish<br />
+<br />
+Testing PHP with Apache<br />
+<br />
+1&nbsp; Open Notepad<br />
+2&nbsp; Type 'left bracket character'?php phpinfo(); ?'right bracket character'<br />
+3&nbsp; Save the file to C:\Program Files (x86)\Apache Software Foundation\Apache2.2\htdocs as test.php<br />
+4&nbsp; Type localhost/test.php in your browser location box (I use Chrome) or type h t t p : / / l o c a l h o s t / t e s t . p h p<br />
+5&nbsp; A table with title PHP Version ... should appear<br />
+<br />
+DONE</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="107935""></a>
+  <div class="note">
+   <strong class="user">Bechesa at gmail dot com</strong>
+   <a href="#107935" class="date">15-Mar-2012 11:56</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Just a note <br />
+It might be important you include the absolute path to the php.ini&nbsp; file inside the httpd.conf file so that php may load all the module(s).<br />
+<br />
+below is an example <br />
+<br />
+#BEGIN PHP INSTALLER EDITS - REMOVE ONLY ON UNINSTALL<br />
+PHPIniDir 'C:\PHP\php.ini'<br />
+LoadModule php5_module "c:/php/php5apache2_2.dll"<br />
+AddHandler application/x-httpd-php .php<br />
+#END PHP INSTALLER EDITS - REMOVE ONLY ON UNINSTALL<br />
+<br />
+OS: windows 2008<br />
+webserver: apache2.2</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="107796""></a>
+  <div class="note">
+   <strong class="user">bdav</strong>
+   <a href="#107796" class="date">05-Mar-2012 02:23</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+After spending few hours finally figured out that PHPINIDir path should be in single quotes and with backslash and php module with double quotes and regular slashes:<br />
+<br />
+PHPIniDir 'c:\apps\php\'<br />
+LoadModule php5_module "c:/apps/php/php5apache2_2.dll"<br />
+AddHandler application/x-httpd-php .php</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="107376""></a>
+  <div class="note">
+   <strong class="user">Z Carlos at Fortaleza</strong>
+   <a href="#107376" class="date">04-Feb-2012 10:09</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+A Thread Safe version should be used if you install PHP as an Apache module. The Non Thread Safe version should be used if you install PHP as a CGI binary.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="106370""></a>
+  <div class="note">
+   <strong class="user">bradley dot henke at colorado dot edu</strong>
+   <a href="#106370" class="date">31-Oct-2011 01:38</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I was able to get apache up and running without any problems. Then I tried installing php and it crashed trying to read "C:/php/php5apache2.dll".<br />
+<br />
+Fixed the problem by switching it to "C:/php/php5apache2_2.dll"<br />
+<br />
+Hope that helps!</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="105610""></a>
+  <div class="note">
+   <strong class="user">Cooldude</strong>
+   <a href="#105610" class="date">31-Aug-2011 07:56</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Also had an exception problem when trying to use mysql with apache and php5. <br />
+<br />
+I had to add:<br />
+<br />
+"&lt;my MySQL folder&gt;\bin" folder to path<br />
+"&lt;my php folder&gt;\ext" to path<br />
+<br />
+that fixed it</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="103976""></a>
+  <div class="note">
+   <strong class="user">Cameron</strong>
+   <a href="#103976" class="date">14-May-2011 11:37</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Here is yet another aspect of the "faulting module php5ts.dll" crash when trying to start apache.<br />
+I installed Apache 2.2.18, Mysql 5.1.57 and PHP 5.2.17 (apache module, VC6 thread-safe - initially with no extensions) on a fresh WinXP SP3 system. The versions chosen were because I was trying to replicate as near as possible apps on my Linux server.<br />
+<br />
+Everything configured and ran properly without php extensions, so I then reran the msi installer and chose the necessary extensions.&nbsp; I reconfigured httpd.conf&nbsp; but apache then just kept crashing.<br />
+Eventually I came across the "fix" mentioned elsewhere "copy libmysql.dll to apache folder" and suddenly it worked. But why? I checked and the php installation folder was in the system path. The answer was simply that I had never rebooted. It seems that whatever process controls windows services only reads the path at boot time.&nbsp; I was thrown by assuming that if I started httpd from the command line then it would inherit that path.<br />
+<br />
+Here are a few diagnostic tips that helped me along the way:<br />
+<br />
+Try the CLI command:<br />
+php -m<br />
+and see that the command line version loads all the modules you asked for.<br />
+<br />
+in php.ini, enable <br />
+display_errors = On<br />
+and<br />
+display_startup_errors = On<br />
+The latter pops up a window saying which extension it has trouble loading. Of course it is not perfectly clear, because it says something like 'unable to load "C:\php\ext\php_mysql.dll" - The specified module could not be found'. It lies - it really does find that dll, but it must have failed on the dependency of libmysql.dll.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="101019""></a>
+  <div class="note">
+   <strong class="user">farinspace</strong>
+   <a href="#101019" class="date">20-Nov-2010 11:36</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Running PHP under FastCGI:<br />
+<br />
+Besides the following in your httpd.conf<br />
+<br />
+&nbsp;&nbsp;&nbsp; LoadModule fcgid_module modules/mod_fcgid.so&nbsp; <br />
+&nbsp;&nbsp;&nbsp; FcgidInitialEnv PHPRC "c:/php" <br />
+&nbsp;&nbsp;&nbsp; AddHandler fcgid-script .php&nbsp; <br />
+&nbsp;&nbsp;&nbsp; FcgidWrapper "c:/php/php-cgi.exe" .php<br />
+<br />
+Remember to add the following to the default &lt;Directory "C:/apache/htdocs"&gt; block (or virtual host blocks):<br />
+<br />
+&nbsp;&nbsp;&nbsp; Options ExecCGI</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="100953""></a>
+  <div class="note">
+   <strong class="user">lebovskiy at ua dot fm</strong>
+   <a href="#100953" class="date">16-Nov-2010 10:59</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I install httpd-2.2.17-win32-x86-openssl-0.9.8o.msi and after<br />
+php-5.3.3-Win32-VC9-x86.msi on WinXP SP3. PHP installation add to httpd.conf next lines:<br />
+<br />
+LoadModule php5_module "C:/PHP/php5apache2_2.dll<br />
+"PHPIniDir "C:/PHP"<br />
+<br />
+After it Apache don`t starts. If remove PHPIniDir line Apache&nbsp; starts ok, but C:/PHP/php.ini don`t loaded. So you can`t use any extension (for me it's MySQL).<br />
+<br />
+I uninstall VC9 version and install VC6 (php-5.3.3-Win32-VC6-x86.msi) version. All works fine now.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="100918""></a>
+  <div class="note">
+   <strong class="user">halmai</strong>
+   <a href="#100918" class="date">15-Nov-2010 03:42</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I wanted to install PHP5.3 for Apache2.2 with PostgreSql 9.0 support on WindowsXP. It took me hours to solve it. <br />
+<br />
+The following possible problems occur:<br />
+- You should use the VC6-compiled version of php instead of VC9. The later one does not work properly with apache.<br />
+- the postgres handler dlls are not working in PHP5.3. <br />
+<br />
+The symptom was a misleading and very confusing error message:<br />
+<br />
+Unable to load dynamic library 'c:\Progra~1\PHP\ext\php_pgsql.dll'<br />
+<br />
+The dll itself was there but when it started to load the other dll (libpq.dll) from the php directory then this caused an error. This error was misinterpreted internally in the above message.<br />
+<br />
+The solution was NOT to use the libpq.dll from php but use it from postgres distribution instead. <br />
+<br />
+For this purpose I inserted the following line into the apache httpd conf:<br />
+<br />
+LoadFile "C:/Progra~1/PostgreSQL/9.0/bin/libpq.dll"<br />
+<br />
+This preloads the dll. When php_pgsql.dll would load his own libpq.dll, then there is the preloaded version of this file in the memory already. This prevents us from using the bad version of dll.<br />
+<br />
+I hope I helped.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="98454""></a>
+  <div class="note">
+   <strong class="user">Nick</strong>
+   <a href="#98454" class="date">16-Jun-2010 06:48</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+After using the Windows installer for Apache 2.2 and PHP 5.3.2, and installing PHP as an Apache module (not CGI), Apache would crash and fail to start. There were two problems with the configuration files for Apache and PHP.<br />
+<br />
+First, make sure your Apache configuration file reads something similar to:<br />
+<br />
+LoadModule php5_module "C:/Program Files/PHP/php5apache2_2.dll"<br />
+PHPIniDir "C:/Program Files/PHP/"<br />
+<br />
+While other users have disabled some or all of the MySQL extensions to prevent all three from running at the same time, I have all of them enabled. However, I do not have PostgreSQL, so I needed to comment out loading the php_pgsql.dll in my php.ini file, as follows:<br />
+<br />
+;[PHP_PGSQL]<br />
+;extension=php_pgsql.dll<br />
+<br />
+This stopped Apache from crashing and started successfully.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="96529""></a>
+  <div class="note">
+   <strong class="user">Michael</strong>
+   <a href="#96529" class="date">03-Mar-2010 09:48</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The value for FcgidWrapper cannot contain spaces..
+<br />
+
+<br />
+This won't work:
+<br />
+FcgidWrapper "c:/program files (x86)/php/php-cgi.exe" .php
+<br />
+
+<br />
+But this will:
+<br />
+FcgidWrapper "c:/progra~2/php/php-cgi.exe" .php</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="96376""></a>
+  <div class="note">
+   <strong class="user">Steve</strong>
+   <a href="#96376" class="date">23-Feb-2010 04:53</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I also had a problem with the PHPIniDir declaration.&nbsp; This is with Apache 2.2 on XP.&nbsp; I had to include a final slash, as in PHPIniDir "C:\Program Files\php\".&nbsp; Apache failed to start if I did not include the slash after php.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="95039""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#95039" class="date">10-Dec-2009 01:25</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If anybody here encounters an error regarding PHPIniDir, change PHPIniDir "C:/php/" to PHPIniDir "C:\php\".</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="92064""></a>
+  <div class="note">
+   <strong class="user">nicolas dot grasset at gmail dot com</strong>
+   <a href="#92064" class="date">07-Jul-2009 10:08</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Here is how I created a silent install for Apache2.2 and PHP5.2.10 on Windows XP (running on a MacBook Pro):<br />
+<br />
+Download Apache2 and PHP5 installer files in a directory and update the msi file names in the following commands.<br />
+<br />
+To have PHP installer find Apache2, do not forget APACHEDIR!<br />
+<br />
+msiexec /i apache_2.2.11-win32-x86-no_ssl.msi /passive ALLUSERS=1 SERVERADMIN=admin@localhost SERVERNAME=localhost SERVERDOMAIN=localhost SERVERPORT=80 INSTALLDIR=c:\apache<br />
+msiexec /i php-5.2.10-win32-installer.msi /qn APACHEDIR=c:\apache INSTALLDIR=c:\php ADDLOCAL=ext_php_mssql,apache22<br />
+net stop "Apache2.2"<br />
+net start "Apache2.2"</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="89208""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#89208" class="date">26-Feb-2009 06:32</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+i followed henke37's way to for the httpd.conf<br />
+<br />
+I added all this at the very end of httpd.conf<br />
+<br />
+# For PHP 5 <br />
+#load the php main library to avoid dll hell<br />
+Loadfile "C:\php-5.2.8-Win32\php5ts.dll"<br />
+<br />
+#load the sapi so that apache can use php<br />
+LoadModule php5_module "C:\php-5.2.8-Win32\php5apache2_2.dll"<br />
+<br />
+#set the php.ini location so that you don't have to waste time guessing where it is<br />
+PHPIniDir "C:\php-5.2.8-Win32"<br />
+<br />
+#Hook the php file extensions<br />
+AddHandler application/x-httpd-php .php<br />
+AddHandler application/x-httpd-php-source .phps <br />
+<br />
+Also i didn't use short open tags as they are disabled in <br />
+"php.ini-recommended" if you don't change anything<br />
+So use this to test <br />
+<span class="default">&lt;?php<br />
+&nbsp;phpinfo</span><span class="keyword">();<br />
+</span><span class="default">?&gt;<br />
+</span>NOT <br />
+&lt;? phpinfo(); ?&gt; short open tags<br />
+<br />
+added my php directory to the PATH system variable and i start apache manually not as a service<br />
+<br />
+It works for me hope it helps you!</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="80644""></a>
+  <div class="note">
+   <strong class="user">mjm at alum dot mit dot edu</strong>
+   <a href="#80644" class="date">26-Jan-2008 08:33</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you use the PHP 5 installer, you'll notice that it uses the wrong type of slash on Windows!<br />
+<br />
+Change C:/Program Files/PHP/" to C:\Program Files\PHP\" and everything works great!</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="78203""></a>
+  <div class="note">
+   <strong class="user">packard_bell_nec at hotmail dot com</strong>
+   <a href="#78203" class="date">02-Oct-2007 08:24</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you install PHP as an Apache CGI binary, you can add: <br />
+AddHandler cgi-script .php<br />
+into Apache httpd.conf, and add shebang line to every PHP scripts like: <br />
+#!php<br />
+<span class="default">&lt;?php<br />
+phpinfo</span><span class="keyword">();<br />
+</span><span class="default">?&gt;<br />
+</span>. But adding shebang line has a disadvantage that if you decided to install PHP as an Apache module afterwards, then the shebang line WILL appear in the web page. <br />
+In fact, you do NOT need to add shebang line to every PHP script even if you install PHP as an Apache CGI binary, because you can add: <br />
+ScriptInterpreterSource Registry-Strict<br />
+into Apache httpd.conf, and make the registry file and merge it like: <br />
+Windows Registry Editor Version 5.00<br />
+[HKEY_CLASSES_ROOT\.php\Shell\ExecCGI\Command]<br />
+@="\"C:\\Program Files\\PHP\\php-cgi.exe\""<br />
+. Then you will NOT need to change the PHP scripts which do not contain shebang line.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
+</div>
+</div></div></body></html>

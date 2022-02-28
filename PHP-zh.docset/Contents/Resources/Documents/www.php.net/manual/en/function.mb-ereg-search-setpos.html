@@ -34,9 +34,7 @@
  <div class="refsect1 description" id="refsect1-function.mb-ereg-search-setpos-description">
   <h3 class="title">说明</h3>
   <div class="methodsynopsis dc-description">
-   <span class="methodname"><strong>mb_ereg_search_setpos</strong></span>
-    ( <span class="methodparam"><span class="type">int</span> <code class="parameter">$offset</code></span>
-   ) : <span class="type">bool</span></div>
+   <span class="methodname"><strong>mb_ereg_search_setpos</strong></span>(<span class="methodparam"><span class="type">int</span> <code class="parameter">$offset</code></span>): <span class="type">bool</span></div>
 
   <p class="simpara">
    <span class="function"><strong>mb_ereg_search_setpos()</strong></span> sets the starting
@@ -49,7 +47,6 @@
   <h3 class="title">参数</h3>
   <p class="para">
    <dl>
-
     
      <dt>
 <code class="parameter">offset</code></dt>
@@ -126,6 +123,78 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
- <div class="note">There are no user contributed notes for this page.</div>
+<div id="allnotes">  <a name="126450""></a>
+  <div class="note">
+   <strong class="user">phpnet at osps dot net</strong>
+   <a href="#126450" class="date">22-Sep-2021 04:25</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+This method, like mb_ereg_search_pos, appears to use byte offsets, not character offsets. This seems counter intuitive for the mb_* methods, which inherently take a "character" view of strings, as opposed to a "byte" based view. Even the mb_strpos method returns a character offset.<br />
+<br />
+The following code reveals this byte-oriented behaviour:<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; $x </span><span class="keyword">= </span><span class="string">'abc456789'</span><span class="keyword">. </span><span class="string">"\u{1000}" </span><span class="keyword">.</span><span class="string">'abc4567890'</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$re </span><span class="keyword">= </span><span class="string">'ab.'</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">'x='</span><span class="keyword">. </span><span class="default">$x </span><span class="keyword">.</span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">'re='</span><span class="keyword">. </span><span class="default">$re </span><span class="keyword">.</span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">mb_ereg_search_init</span><span class="keyword">( </span><span class="default">$x </span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">mb_internal_encoding</span><span class="keyword">( </span><span class="default">mb_detect_encoding</span><span class="keyword">( </span><span class="default">$x</span><span class="keyword">) );<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">'mb_strlen='</span><span class="keyword">. </span><span class="default">mb_strlen</span><span class="keyword">( </span><span class="default">$x </span><span class="keyword">) .</span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">'strlen='</span><span class="keyword">. </span><span class="default">strlen</span><span class="keyword">( </span><span class="default">$x </span><span class="keyword">) .</span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; foreach ( array( </span><span class="default">0</span><span class="keyword">, </span><span class="default">9</span><span class="keyword">, </span><span class="default">10</span><span class="keyword">, </span><span class="default">11</span><span class="keyword">, </span><span class="default">12</span><span class="keyword">, </span><span class="default">13 </span><span class="keyword">) as </span><span class="default">$o </span><span class="keyword">) {<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">mb_ereg_search_setpos</span><span class="keyword">( </span><span class="default">$o </span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="string">'Offset='</span><span class="keyword">. </span><span class="default">$o<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">.</span><span class="string">' mb_substr='</span><span class="keyword">. </span><span class="default">mb_substr</span><span class="keyword">( </span><span class="default">$x</span><span class="keyword">, </span><span class="default">$o </span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; .</span><span class="string">' substr='</span><span class="keyword">. </span><span class="default">substr</span><span class="keyword">( </span><span class="default">$x</span><span class="keyword">, </span><span class="default">$o </span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; .</span><span class="string">' mb_ereg_search_regs='</span><span class="keyword">. </span><span class="default">print_r</span><span class="keyword">( </span><span class="default">mb_ereg_search_regs</span><span class="keyword">( </span><span class="default">$re </span><span class="keyword">), </span><span class="default">true&nbsp; </span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; .</span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span>With character offsets, we would expect offsets 11 and above to return no search result, whereas what we see is:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">=</span><span class="default">abc456789?abc4567890<br />
+re</span><span class="keyword">=</span><span class="default">ab</span><span class="keyword">.<br />
+</span><span class="default">mb_strlen</span><span class="keyword">=</span><span class="default">20<br />
+strlen</span><span class="keyword">=</span><span class="default">22<br />
+Offset</span><span class="keyword">=</span><span class="default">0 mb_substr</span><span class="keyword">=</span><span class="default">abc456789?abc4567890 substr</span><span class="keyword">=</span><span class="default">abc456789?abc4567890 mb_ereg_search_regs</span><span class="keyword">=Array<br />
+(<br />
+&nbsp;&nbsp;&nbsp; [</span><span class="default">0</span><span class="keyword">] =&gt; </span><span class="default">abc<br />
+</span><span class="keyword">)<br />
+<br />
+</span><span class="default">Offset</span><span class="keyword">=</span><span class="default">9 mb_substr</span><span class="keyword">=</span><span class="default">?abc4567890 substr</span><span class="keyword">=</span><span class="default">?abc4567890 mb_ereg_search_regs</span><span class="keyword">=Array<br />
+(<br />
+&nbsp;&nbsp;&nbsp; [</span><span class="default">0</span><span class="keyword">] =&gt; </span><span class="default">abc<br />
+</span><span class="keyword">)<br />
+<br />
+</span><span class="default">Offset</span><span class="keyword">=</span><span class="default">10 mb_substr</span><span class="keyword">=</span><span class="default">abc4567890 substr</span><span class="keyword">=</span><span class="default">??abc4567890 mb_ereg_search_regs</span><span class="keyword">=Array<br />
+(<br />
+&nbsp;&nbsp;&nbsp; [</span><span class="default">0</span><span class="keyword">] =&gt; </span><span class="default">abc<br />
+</span><span class="keyword">)<br />
+<br />
+</span><span class="default">Offset</span><span class="keyword">=</span><span class="default">11 mb_substr</span><span class="keyword">=</span><span class="default">bc4567890 substr</span><span class="keyword">=</span><span class="default">?abc4567890 mb_ereg_search_regs</span><span class="keyword">=Array<br />
+(<br />
+&nbsp;&nbsp;&nbsp; [</span><span class="default">0</span><span class="keyword">] =&gt; </span><span class="default">abc<br />
+</span><span class="keyword">)<br />
+<br />
+</span><span class="default">Offset</span><span class="keyword">=</span><span class="default">12 mb_substr</span><span class="keyword">=</span><span class="default">c4567890 substr</span><span class="keyword">=</span><span class="default">abc4567890 mb_ereg_search_regs</span><span class="keyword">=Array<br />
+(<br />
+&nbsp;&nbsp;&nbsp; [</span><span class="default">0</span><span class="keyword">] =&gt; </span><span class="default">abc<br />
+</span><span class="keyword">)<br />
+<br />
+</span><span class="default">Offset</span><span class="keyword">=</span><span class="default">13 mb_substr</span><span class="keyword">=</span><span class="default">4567890 substr</span><span class="keyword">=</span><span class="default">bc4567890 mb_ereg_search_regs</span><span class="keyword">=<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+</div>
 </div>
 </div></div></body></html>

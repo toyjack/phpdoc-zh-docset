@@ -2,7 +2,7 @@
 <html>
  <head>
   <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
-  <title>Transfers a result set from a prepared statement</title>
+  <title>Stores a result set in an internal buffer</title>
 <link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
 <link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -20,7 +20,7 @@
   <ul class="breadcrumbs-container">
     <li><a href="index.html">PHP Manual</a></li>
     <li><a href="class.mysqli-stmt.html">MySQLi_STMT</a></li>
-    <li>Transfers a result set from a prepared statement</li>
+    <li>Stores a result set in an internal buffer</li>
   </ul>
 </div>
 <div id="layout">
@@ -28,7 +28,7 @@
  <div class="refnamediv">
   <h1 class="refname">mysqli_stmt::store_result</h1>
   <h1 class="refname">mysqli_stmt_store_result</h1>
-  <p class="verinfo">(PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">mysqli_stmt::store_result</span> -- <span class="refname">mysqli_stmt_store_result</span> &mdash; <span class="dc-title">Transfers a result set from a prepared statement</span></p>
+  <p class="verinfo">(PHP 5, PHP 7, PHP 8)</p><p class="refpurpose"><span class="refname">mysqli_stmt::store_result</span> -- <span class="refname">mysqli_stmt_store_result</span> &mdash; <span class="dc-title">Stores a result set in an internal buffer</span></p>
 
  </div>
 
@@ -36,21 +36,16 @@
   <h3 class="title">说明</h3>
   <p class="para">面向对象风格</p>
   <div class="methodsynopsis dc-description">
-   <span class="modifier">public</span> <span class="methodname"><strong>mysqli_stmt::store_result</strong></span>
-    (
-   ) : <span class="type">bool</span></div>
+   <span class="modifier">public</span> <span class="methodname"><strong>mysqli_stmt::store_result</strong></span>(): <span class="type">bool</span></div>
 
   <p class="para rdfs-comment">过程化风格</p>
-  <div class="methodsynopsis dc-description">
-   <span class="methodname"><strong>mysqli_stmt_store_result</strong></span>
-    ( <span class="methodparam"><span class="type"><a href="class.mysqli-stmt.html" class="type mysqli_stmt">mysqli_stmt</a></span> <code class="parameter">$stmt</code></span>
-   ) : <span class="type">bool</span></div>
+  <div class="methodsynopsis dc-description"><span class="methodname"><strong>mysqli_stmt_store_result</strong></span>(<span class="methodparam"><span class="type"><a href="class.mysqli-stmt.html" class="type mysqli_stmt">mysqli_stmt</a></span> <code class="parameter">$statement</code></span>): <span class="type">bool</span></div>
 
   <p class="para rdfs-comment">
-   You must call <span class="function"><strong>mysqli_stmt_store_result()</strong></span> for every query that
-   successfully produces a result set (<code class="literal">SELECT, SHOW, DESCRIBE, EXPLAIN</code>),
-   if and only if you want to buffer the complete result set by the client,
-   so that the subsequent <span class="function"><a href="mysqli-stmt.fetch.html" class="function">mysqli_stmt_fetch()</a></span> call returns buffered data.
+   This function should be called for queries that successfully 
+   produce a result set (e.g. <code class="literal">SELECT, SHOW, DESCRIBE, EXPLAIN</code>)
+   only if the complete result set needs to be buffered in PHP. Each subsequent
+   <span class="function"><a href="mysqli-stmt.fetch.html" class="function">mysqli_stmt_fetch()</a></span> call will return buffered data.
   </p>
   <blockquote class="note"><p><strong class="note">Note</strong>: 
    <p class="para">
@@ -67,13 +62,12 @@
   <h3 class="title">参数</h3>
   <p class="para">
    <dl>
-
     <dt>
-<code class="parameter">
-stmt</code></dt>
+
+<code class="parameter">statement</code></dt>
 <dd>
 <p class="para">仅以过程化样式：由
-<span class="function"><a href="mysqli.stmt-init.html" class="function">mysqli_stmt_init()</a></span> 返回的 statement 标识。</p></dd>
+<span class="function"><a href="mysqli.stmt-init.html" class="function">mysqli_stmt_init()</a></span> 返回的 <span class="classname"><a href="class.mysqli-stmt.html" class="classname">mysqli_stmt</a></span> 对象。</p></dd>
 
    </dl>
 
@@ -91,21 +85,21 @@ stmt</code></dt>
 
  <div class="refsect1 examples" id="refsect1-mysqli-stmt.store-result-examples">
   <h3 class="title">范例</h3>
-  <div class="example" id="example-1686">
+  <div class="example" id="example-1482">
    <p><strong>Example #1 面向对象风格</strong></p>
    <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
-<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">/*&nbsp;Open&nbsp;a&nbsp;connection&nbsp;*/<br /></span><span style="color: #0000BB">$mysqli&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">mysqli</span><span style="color: #007700">(</span><span style="color: #DD0000">"localhost"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"my_user"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"my_password"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"world"</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">/*&nbsp;check&nbsp;connection&nbsp;*/<br /></span><span style="color: #007700">if&nbsp;(</span><span style="color: #0000BB">mysqli_connect_errno</span><span style="color: #007700">())&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">printf</span><span style="color: #007700">(</span><span style="color: #DD0000">"Connect&nbsp;failed:&nbsp;%s\n"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">mysqli_connect_error</span><span style="color: #007700">());<br />&nbsp;&nbsp;&nbsp;&nbsp;exit();<br />}<br /><br /></span><span style="color: #0000BB">$query&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">"SELECT&nbsp;Name,&nbsp;CountryCode&nbsp;FROM&nbsp;City&nbsp;ORDER&nbsp;BY&nbsp;Name&nbsp;LIMIT&nbsp;20"</span><span style="color: #007700">;<br />if&nbsp;(</span><span style="color: #0000BB">$stmt&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">prepare</span><span style="color: #007700">(</span><span style="color: #0000BB">$query</span><span style="color: #007700">))&nbsp;{<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;execute&nbsp;query&nbsp;*/<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">execute</span><span style="color: #007700">();<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;store&nbsp;result&nbsp;*/<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">store_result</span><span style="color: #007700">();<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">printf</span><span style="color: #007700">(</span><span style="color: #DD0000">"Number&nbsp;of&nbsp;rows:&nbsp;%d.\n"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">num_rows</span><span style="color: #007700">);<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;free&nbsp;result&nbsp;*/<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">free_result</span><span style="color: #007700">();<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;close&nbsp;statement&nbsp;*/<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">close</span><span style="color: #007700">();<br />}<br /><br /></span><span style="color: #FF8000">/*&nbsp;close&nbsp;connection&nbsp;*/<br /></span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">close</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">?&gt;</span>
+<span style="color: #0000BB">&lt;?php<br /><br />mysqli_report</span><span style="color: #007700">(</span><span style="color: #0000BB">MYSQLI_REPORT_ERROR&nbsp;</span><span style="color: #007700">|&nbsp;</span><span style="color: #0000BB">MYSQLI_REPORT_STRICT</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$mysqli&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">mysqli</span><span style="color: #007700">(</span><span style="color: #DD0000">"localhost"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"my_user"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"my_password"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"world"</span><span style="color: #007700">);<br /><br /></span><span style="color: #0000BB">$query&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">"SELECT&nbsp;Name,&nbsp;CountryCode&nbsp;FROM&nbsp;City&nbsp;ORDER&nbsp;BY&nbsp;Name&nbsp;LIMIT&nbsp;20"</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$stmt&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">prepare</span><span style="color: #007700">(</span><span style="color: #0000BB">$query</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">execute</span><span style="color: #007700">();<br /><br /></span><span style="color: #FF8000">/*&nbsp;store&nbsp;the&nbsp;result&nbsp;in&nbsp;an&nbsp;internal&nbsp;buffer&nbsp;*/<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">store_result</span><span style="color: #007700">();<br /><br /></span><span style="color: #0000BB">printf</span><span style="color: #007700">(</span><span style="color: #DD0000">"Number&nbsp;of&nbsp;rows:&nbsp;%d.\n"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">num_rows</span><span style="color: #007700">);</span>
 </span>
 </code></div>
    </div>
 
   </div>
-  <div class="example" id="example-1687">
+  <div class="example" id="example-1483">
    <p><strong>Example #2 过程化风格</strong></p>
    <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
-<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">/*&nbsp;Open&nbsp;a&nbsp;connection&nbsp;*/<br /></span><span style="color: #0000BB">$link&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">mysqli_connect</span><span style="color: #007700">(</span><span style="color: #DD0000">"localhost"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"my_user"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"my_password"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"world"</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">/*&nbsp;check&nbsp;connection&nbsp;*/<br /></span><span style="color: #007700">if&nbsp;(</span><span style="color: #0000BB">mysqli_connect_errno</span><span style="color: #007700">())&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">printf</span><span style="color: #007700">(</span><span style="color: #DD0000">"Connect&nbsp;failed:&nbsp;%s\n"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">mysqli_connect_error</span><span style="color: #007700">());<br />&nbsp;&nbsp;&nbsp;&nbsp;exit();<br />}<br /><br /></span><span style="color: #0000BB">$query&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">"SELECT&nbsp;Name,&nbsp;CountryCode&nbsp;FROM&nbsp;City&nbsp;ORDER&nbsp;BY&nbsp;Name&nbsp;LIMIT&nbsp;20"</span><span style="color: #007700">;<br />if&nbsp;(</span><span style="color: #0000BB">$stmt&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">mysqli_prepare</span><span style="color: #007700">(</span><span style="color: #0000BB">$link</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$query</span><span style="color: #007700">))&nbsp;{<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;execute&nbsp;query&nbsp;*/<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">mysqli_stmt_execute</span><span style="color: #007700">(</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">);<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;store&nbsp;result&nbsp;*/<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">mysqli_stmt_store_result</span><span style="color: #007700">(</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">);<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">printf</span><span style="color: #007700">(</span><span style="color: #DD0000">"Number&nbsp;of&nbsp;rows:&nbsp;%d.\n"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">mysqli_stmt_num_rows</span><span style="color: #007700">(</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">));<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;free&nbsp;result&nbsp;*/<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">mysqli_stmt_free_result</span><span style="color: #007700">(</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">);<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;close&nbsp;statement&nbsp;*/<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">mysqli_stmt_close</span><span style="color: #007700">(</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">);<br />}<br /><br /></span><span style="color: #FF8000">/*&nbsp;close&nbsp;connection&nbsp;*/<br /></span><span style="color: #0000BB">mysqli_close</span><span style="color: #007700">(</span><span style="color: #0000BB">$link</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+<span style="color: #0000BB">&lt;?php<br /><br />mysqli_report</span><span style="color: #007700">(</span><span style="color: #0000BB">MYSQLI_REPORT_ERROR&nbsp;</span><span style="color: #007700">|&nbsp;</span><span style="color: #0000BB">MYSQLI_REPORT_STRICT</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$link&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">mysqli_connect</span><span style="color: #007700">(</span><span style="color: #DD0000">"localhost"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"my_user"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"my_password"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"world"</span><span style="color: #007700">);<br /><br /></span><span style="color: #0000BB">$query&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">"SELECT&nbsp;Name,&nbsp;CountryCode&nbsp;FROM&nbsp;City&nbsp;ORDER&nbsp;BY&nbsp;Name&nbsp;LIMIT&nbsp;20"</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$stmt&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">mysqli_prepare</span><span style="color: #007700">(</span><span style="color: #0000BB">$link</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$query</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">mysqli_stmt_execute</span><span style="color: #007700">(</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">/*&nbsp;store&nbsp;the&nbsp;result&nbsp;in&nbsp;an&nbsp;internal&nbsp;buffer&nbsp;*/<br /></span><span style="color: #0000BB">mysqli_stmt_store_result</span><span style="color: #007700">(</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">);<br /><br /></span><span style="color: #0000BB">printf</span><span style="color: #007700">(</span><span style="color: #DD0000">"Number&nbsp;of&nbsp;rows:&nbsp;%d.\n"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">mysqli_stmt_num_rows</span><span style="color: #007700">(</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">));</span>
 </span>
 </code></div>
    </div>
@@ -136,24 +130,7 @@ Number of rows: 20.
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="121869""></a>
-  <div class="note">
-   <strong class="user">user at NOSPAM dot example dot com</strong>
-   <a href="#121869" class="date">15-Nov-2017 02:15</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-This statement in the docs...<br />
-<br />
-"You can detect whether the query produced a result set by checking if mysqli_stmt_result_metadata() returns NULL. "<br />
-<br />
-...might need updated.&nbsp; I get FALSE instead of NULL.</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="117546""></a>
+<div id="allnotes">  <a name="117546""></a>
   <div class="note">
    <strong class="user">kitlum AT ukr DOT net</strong>
    <a href="#117546" class="date">26-Jun-2015 10:18</a>
@@ -176,19 +153,6 @@ Idea, which works is using store_result<br />
 &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
 &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
 Hope will helpful for such newbies as me</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="113426""></a>
-  <div class="note">
-   <strong class="user">Lars Gyrup Brink Nielsen</strong>
-   <a href="#113426" class="date">09-Oct-2013 10:10</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Actually, mysqli_stmt_result_metadata() returns FALSE, not NULL, when the query/statement doesn't produce a result set. You would have to check the if the $mysqliObject-&gt;error is an empty string to see whether the FALSE return means that the query does not produce a result set or that an error occured.</span>
 </code>
     </div>
    </div>
@@ -452,11 +416,7 @@ Good Luck,</span>
    <div class="text">
     <div class="phpcode">
 <code><span class="html">
-fetch_fields() does not seem to be compatible with prepared statements like those used here. Makes things difficult if you're using a wildcard. I guess that's better for security in some obscure way.
-<br />
-
-<br />
--Alex Boese</span>
+fetch_fields() does not seem to be compatible with prepared statements like those used here. Makes things difficult if you're using a wildcard. I guess that's better for security in some obscure way.</span>
 </code>
     </div>
    </div>

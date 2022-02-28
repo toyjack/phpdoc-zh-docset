@@ -34,10 +34,7 @@
  <div class="refsect1 description" id="refsect1-function.openssl-dh-compute-key-description">
   <h3 class="title">说明</h3>
   <div class="methodsynopsis dc-description">
-   <span class="methodname"><strong>openssl_dh_compute_key</strong></span>
-    ( <span class="methodparam"><span class="type">string</span> <code class="parameter">$pub_key</code></span>
-   , <span class="methodparam"><span class="type">resource</span> <code class="parameter">$dh_key</code></span>
-   ) : <span class="type">string</span></div>
+   <span class="methodname"><strong>openssl_dh_compute_key</strong></span>(<span class="methodparam"><span class="type">string</span> <code class="parameter">$pub_key</code></span>, <span class="methodparam"><span class="type">resource</span> <code class="parameter">$dh_key</code></span>): <span class="type">string</span></div>
 
 
   <div class="warning"><strong class="warning">Warning</strong><p class="simpara">本函数还未编写文档，仅有参数列表。</p></div>
@@ -49,7 +46,6 @@
   <h3 class="title">参数</h3>
   <p class="para">
    <dl>
-
     
      <dt>
 <code class="parameter">pub_key</code></dt>
@@ -92,7 +88,96 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="125714""></a>
+<div id="allnotes">  <a name="126645""></a>
+  <div class="note">
+   <strong class="user">k.s.swaminathan at live dot com</strong>
+   <a href="#126645" class="date">30-Nov-2021 12:53</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+// Purpose: Provide a working example of Diffie-Hellman, entirely in php.<br />
+<br />
+// This function generates a configuration for Diffie-Hellman keypair<br />
+// We start with an empty config and have openssl_pkey_new create <br />
+// a prime and a generator. This is a time consuming step. <br />
+<br />
+function get_DH_params ($keylength=2048, $digest_alg="sha512")<br />
+{<br />
+&nbsp;&nbsp;&nbsp; $pkey = openssl_pkey_new(["digest_alg" =&gt; $digest_alg,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; "private_key_bits" =&gt; $keylength,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; "private_key_type" =&gt; OPENSSL_KEYTYPE_DH]);<br />
+&nbsp;&nbsp;&nbsp; $details = openssl_pkey_get_details($pkey);<br />
+&nbsp;&nbsp;&nbsp; return [<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; "digest_alg" =&gt; $digest_alg,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; "private_key_bits" =&gt; $keylength,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; "dh" =&gt; array('p' =&gt; $details['dh']['p'], 'g' =&gt; $details['dh']['g']),<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; "private_key_type" =&gt; OPENSSL_KEYTYPE_DH,<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; ];<br />
+}<br />
+<br />
+// Now Alice and Bob can create their respective keypairs<br />
+function get_DH_keyPair ($DH_params) <br />
+{<br />
+&nbsp;&nbsp;&nbsp; $pkey = openssl_pkey_new($DH_params);&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; $privkey = openssl_pkey_get_private($pkey);<br />
+&nbsp;&nbsp;&nbsp; $pubkey = openssl_pkey_get_details($pkey)['dh']['pub_key'];<br />
+&nbsp;&nbsp;&nbsp; return (object) compact('pubkey','privkey');<br />
+}<br />
+<br />
+// Now Alice and Bob can create a mutual secret<br />
+function get_DH_mutualsecret($peers_public, $my_private)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; return bin2hex(openssl_dh_compute_key($peers_public, $my_private));<br />
+}<br />
+<br />
+// Usage<br />
+&gt;&gt;&gt; $dh_params = get_DH_params();<br />
+=&gt; [<br />
+&nbsp;&nbsp; &nbsp; "digest_alg" =&gt; "sha512",<br />
+&nbsp;&nbsp; &nbsp; "private_key_bits" =&gt; 2048,<br />
+&nbsp;&nbsp; &nbsp; "dh" =&gt; [<br />
+&nbsp;&nbsp; &nbsp; &nbsp; "p" =&gt; b"ó??'#e\x18\x04?_?\t?yáZàx\x15\x14\x11?┬l=ü┤H\0",<br />
+&nbsp;&nbsp; &nbsp; &nbsp; "g" =&gt; "\x02",<br />
+&nbsp;&nbsp; &nbsp; ],<br />
+&nbsp;&nbsp; &nbsp; "private_key_type" =&gt; 2,<br />
+&nbsp;&nbsp; ]<br />
+<br />
+// Alice &amp; Bob generate their keys from the same dh_params.<br />
+// Binary values truncated.<br />
+<br />
+&gt;&gt;&gt; $alice = get_DH_keypair($dh_params);<br />
+=&gt; {#3773<br />
+&nbsp;&nbsp; &nbsp; +"pubkey": b"""E?ü?Se???╚ùà5üLü$┘▄±ü6]",<br />
+&nbsp;&nbsp; &nbsp; +"privkey": OpenSSLAsymmetricKey {#3771},<br />
+&nbsp;&nbsp; }<br />
+<br />
+&gt;&gt;&gt; $bob = get_DH_keypair($dh_params);<br />
+=&gt; {#3774<br />
+&nbsp;&nbsp; &nbsp; +"pubkey": b"'ua￥ao\ê\x11║OM&copy;\vó╣?üW?ít3e÷:\t9?\rB┌\x13",<br />
+&nbsp;&nbsp; &nbsp; +"privkey": OpenSSLAsymmetricKey {#3765},<br />
+&nbsp;&nbsp; }<br />
+<br />
+&gt;&gt;&gt; $alice_secret = get_DH_mutualsecret($bob-&gt;pubkey, $alice-&gt;privkey);<br />
+=&gt; "5fbf9df2f13da103f106.&nbsp; ....."<br />
+<br />
+&gt;&gt;&gt; $bob_secret = get_DH_mutualsecret($alice-&gt;pubkey, $bob-&gt;privkey);<br />
+=&gt; "5fbf9df2f13da103f106.&nbsp; ....."<br />
+<br />
+&gt;&gt;&gt; $bob_secret == $alice_secret;<br />
+=&gt; true<br />
+<br />
+// Now Alice and Bob have a shared secret which they can use as a symmetric key. The key will be 2048 bits long (same as the DH key length parameter). They can hash it to get a shorter key if they want. <br />
+<br />
+// A third person, Charlie, can also create a key pair like Alice and Bob. <br />
+// And Charlie and Alice can create their own Alice and Bob did.<br />
+// And Charlie and Bob can create their own (separate) secret. <br />
+//</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="125714""></a>
   <div class="note">
    <strong class="user">vangelier at hotmail dot com</strong>
    <a href="#125714" class="date">23-Jan-2021 07:35</a>

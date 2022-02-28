@@ -33,27 +33,18 @@
  <div class="refsect1 description" id="refsect1-function.shuffle-description">
   <h3 class="title">说明</h3>
   <div class="methodsynopsis dc-description">
-   <span class="methodname"><strong>shuffle</strong></span>
-    ( <span class="methodparam"><span class="type">array</span> <code class="parameter reference">&$array</code></span>
-   ) : <span class="type">bool</span></div>
+   <span class="methodname"><strong>shuffle</strong></span>(<span class="methodparam"><span class="type">array</span> <code class="parameter reference">&$array</code></span>): <span class="type">bool</span></div>
 
     <p class="para rdfs-comment">
      本函数打乱（随机排列单元的顺序）一个数组。
      它使用的是伪随机数产生器，并不适合密码学的场合。
     </p>
-  <blockquote class="note"><p><strong class="note">Note</strong>: 
- <p class="para">
-  如果两个成员完全相同，那么它们在排序数组中的相对顺序是未定义的。
- </p>
-</p></blockquote>
-
    </div>
 
  <div class="refsect1 parameters" id="refsect1-function.shuffle-parameters">
   <h3 class="title">参数</h3>
   <p class="para">
    <dl>
-
     
      <dt>
 <code class="parameter">array</code></dt>
@@ -95,7 +86,7 @@
       <tr>
        <td>7.1.0</td>
        <td>
-        <a href="migration71.incompatible.html#migration71.incompatible.rand-srand-aliases" class="link">内置的随机数产生算法从 libc rand 函数改成 <a href="http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt.html" class="link external" title="Link : http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt.html">&raquo;&nbsp;梅森旋转</a>伪随机数生成算法。</a>
+        内置的随机数产生算法从 libc rand 函数<a href="migration71.incompatible.html#migration71.incompatible.rand-srand-aliases" class="link">改成</a><a href="http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt.html" class="link external" title="Link : http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt.html">&raquo;&nbsp;梅森旋转</a>伪随机数生成算法。
        </td>
       </tr>
 
@@ -110,7 +101,7 @@
  <div class="refsect1 examples" id="refsect1-function.shuffle-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-5347">
+   <div class="example" id="example-4895">
     <p><strong>Example #1 <span class="function"><strong>shuffle()</strong></span> 例子</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -127,13 +118,19 @@
   <h3 class="title">注释</h3>
   <blockquote class="note"><p><strong class="note">Note</strong>: <span class="simpara">此函数为 <code class="parameter">array</code>
 中的元素赋与新的键名。这将删除原有的键名，而不是仅仅将键名重新排序。</span></p></blockquote>
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+ <p class="para">
+    重置数组中的内部指针，指向第一个元素。
+ </p>
+</p></blockquote>
+
  </div>
 
  <div class="refsect1 seealso" id="refsect1-function.shuffle-seealso">
   <h3 class="title">参见</h3>
   <p class="para">
    <ul class="simplelist">
-        <li class="member"><span class="function"><a href="function.array-rand.html" class="function" rel="rdfs-seeAlso">array_rand()</a> - 从数组中随机取出一个或多个单元</span></li>
+    <li class="member"><span class="function"><a href="function.array-rand.html" class="function" rel="rdfs-seeAlso">array_rand()</a> - 从数组中随机取出一个或多个随机键</span></li>
     <li class="member"><a href="array.sorting.html" class="link">数组排序函数对比</a></li>
    </ul>
   </p>
@@ -143,19 +140,39 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="121088""></a>
+<div id="allnotes">  <a name="126260""></a>
   <div class="note">
-   <strong class="user">thomas dot sahlin at invented dot se</strong>
-   <a href="#121088" class="date">16-May-2017 08:20</a>
+   <strong class="user">DiosDe</strong>
+   <a href="#126260" class="date">21-Jul-2021 05:03</a>
    <div class="text">
     <div class="phpcode">
 <code><span class="html">
-Here's a simple one liner for shuffling associative arrays:<br />
+implementation of shuffle() using random_int()<br />
 <br />
 <span class="default">&lt;?php<br />
 <br />
-uksort</span><span class="keyword">(</span><span class="default">$myArray</span><span class="keyword">, function (</span><span class="default">$a</span><span class="keyword">, </span><span class="default">$b</span><span class="keyword">) {return </span><span class="default">mt_rand</span><span class="keyword">(-</span><span class="default">10</span><span class="keyword">, </span><span class="default">10</span><span class="keyword">);});<br />
+</span><span class="keyword">function </span><span class="default">random_int_shuffle </span><span class="keyword">( array </span><span class="default">$array </span><span class="keyword">): array<br />
+{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$array </span><span class="keyword">= </span><span class="default">array_values</span><span class="keyword">(</span><span class="default">$array</span><span class="keyword">);<br />
 <br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">= [];<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$skip_indexes </span><span class="keyword">= [];<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$sizeof_array </span><span class="keyword">= </span><span class="default">count</span><span class="keyword">(</span><span class="default">$array</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp;&nbsp; for ( </span><span class="default">$i </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">; </span><span class="default">$i </span><span class="keyword">&lt; </span><span class="default">$sizeof_array</span><span class="keyword">; </span><span class="default">$i</span><span class="keyword">++ )<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; do <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$random_index </span><span class="keyword">= </span><span class="default">random_int</span><span class="keyword">(</span><span class="default">0</span><span class="keyword">, </span><span class="default">$sizeof_array</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; } while ( </span><span class="default">in_array</span><span class="keyword">(</span><span class="default">$random_index</span><span class="keyword">, </span><span class="default">$skip_indexes</span><span class="keyword">) );<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$skip_indexes</span><span class="keyword">[] = </span><span class="default">$random_index</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$result</span><span class="keyword">[] = </span><span class="default">$array</span><span class="keyword">[</span><span class="default">$random_index</span><span class="keyword">];<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$result</span><span class="keyword">;<br />
+}<br />
 </span><span class="default">?&gt;</span>
 </span>
 </code>
@@ -268,21 +285,6 @@ This seems to do reasonably well as a shuffle() that preserves index assocation:
 </span><span class="default">?&gt;<br />
 </span><br />
 Obviously only works if PHP has closures enabled...</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="105309""></a>
-  <div class="note">
-   <strong class="user">timtrinidad at gmail dot com</strong>
-   <a href="#105309" class="date">08-Aug-2011 12:38</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-It appears that the suhosin extensions &gt;= 0.9.26 that have the suhosin.mt_srand.ignore and suhosin.srand.ignore settings set to "Off" do not affect shuffle().<br />
-<br />
-In other words, the only way I was able to get pseudo-random and predictable results through shuffle() was to disable the extension.</span>
 </code>
     </div>
    </div>
@@ -514,152 +516,6 @@ bool kshuffle&nbsp; (&nbsp; array &amp;$array&nbsp; )<br />
 </span><span class="default">$array </span><span class="keyword">= array(</span><span class="string">'first'</span><span class="keyword">, </span><span class="string">'second'</span><span class="keyword">, </span><span class="string">'third'</span><span class="keyword">);<br />
 </span><span class="default">kshuffle</span><span class="keyword">(</span><span class="default">$array</span><span class="keyword">);<br />
 </span><span class="default">print_r</span><span class="keyword">(</span><span class="default">$array</span><span class="keyword">); </span><span class="comment">// [1] =&gt; second [2] =&gt; third [0] =&gt; first<br />
-<br />
-</span><span class="default">?&gt;</span>
-</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="98742""></a>
-  <div class="note">
-   <strong class="user">m0gr14 at gmail dot com</strong>
-   <a href="#98742" class="date">04-Jul-2010 10:39</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-This function shuffles an associative array recursive.<br />
-<br />
-<span class="default">&lt;?php<br />
-<br />
-</span><span class="comment">/**<br />
-* Shuffles an associative array recursive<br />
-* @author Mogria &lt;m0gr14@gmail.com&gt;<br />
-* @param array $array<br />
-* @return array<br />
-*<br />
-*/<br />
-<br />
-</span><span class="keyword">function </span><span class="default">rec_assoc_shuffle</span><span class="keyword">(</span><span class="default">$array</span><span class="keyword">)<br />
-{<br />
-&nbsp; </span><span class="default">$ary_keys </span><span class="keyword">= </span><span class="default">array_keys</span><span class="keyword">(</span><span class="default">$array</span><span class="keyword">);<br />
-&nbsp; </span><span class="default">$ary_values </span><span class="keyword">= </span><span class="default">array_values</span><span class="keyword">(</span><span class="default">$array</span><span class="keyword">);<br />
-&nbsp; </span><span class="default">shuffle</span><span class="keyword">(</span><span class="default">$ary_values</span><span class="keyword">);<br />
-&nbsp; foreach(</span><span class="default">$ary_keys </span><span class="keyword">as </span><span class="default">$key </span><span class="keyword">=&gt; </span><span class="default">$value</span><span class="keyword">) {<br />
-&nbsp;&nbsp;&nbsp; if (</span><span class="default">is_array</span><span class="keyword">(</span><span class="default">$ary_values</span><span class="keyword">[</span><span class="default">$key</span><span class="keyword">]) AND </span><span class="default">$ary_values</span><span class="keyword">[</span><span class="default">$key</span><span class="keyword">] != </span><span class="default">NULL</span><span class="keyword">) {<br />
-&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$ary_values</span><span class="keyword">[</span><span class="default">$key</span><span class="keyword">] = </span><span class="default">rec_assoc_shuffle</span><span class="keyword">(</span><span class="default">$ary_values</span><span class="keyword">[</span><span class="default">$key</span><span class="keyword">]);<br />
-&nbsp;&nbsp;&nbsp; }<br />
-&nbsp;&nbsp;&nbsp; </span><span class="default">$new</span><span class="keyword">[</span><span class="default">$value</span><span class="keyword">] = </span><span class="default">$ary_values</span><span class="keyword">[</span><span class="default">$key</span><span class="keyword">];<br />
-&nbsp; }<br />
-&nbsp; return </span><span class="default">$new</span><span class="keyword">;<br />
-}<br />
-<br />
-</span><span class="default">?&gt;<br />
-</span><br />
-Example of use:<br />
-<span class="default">&lt;?php<br />
-$array </span><span class="keyword">=<br />
-&nbsp;&nbsp;&nbsp; Array(<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">1</span><span class="keyword">,<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; Array(<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">1</span><span class="keyword">,<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">2</span><span class="keyword">,<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">3</span><span class="keyword">,<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">4</span><span class="keyword">,<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; Array(<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">1</span><span class="keyword">,<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">2</span><span class="keyword">,<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">3</span><span class="keyword">,<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">4</span><span class="keyword">,<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">5<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">)<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; ),<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">2</span><span class="keyword">,<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">3</span><span class="keyword">,<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; Array(<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">0</span><span class="keyword">,<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">1</span><span class="keyword">,<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; Array(<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">1</span><span class="keyword">,<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">2</span><span class="keyword">,<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">3</span><span class="keyword">,<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">4</span><span class="keyword">,<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; Array(<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">1</span><span class="keyword">,<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">6</span><span class="keyword">,<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">5</span><span class="keyword">,<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">2</span><span class="keyword">,<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">1</span><span class="keyword">,<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">3<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">)<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; )<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; ),<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">4</span><span class="keyword">,<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">5</span><span class="keyword">,<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">6</span><span class="keyword">,<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">7<br />
-&nbsp;&nbsp;&nbsp; </span><span class="keyword">);<br />
-</span><span class="default">$array </span><span class="keyword">= </span><span class="default">rec_assoc_shuffle</span><span class="keyword">(</span><span class="default">$array</span><span class="keyword">);<br />
-echo </span><span class="string">'&lt;pre&gt;'</span><span class="keyword">;<br />
-</span><span class="default">print_r</span><span class="keyword">(</span><span class="default">$array</span><span class="keyword">);<br />
-echo </span><span class="string">'&lt;/pre&gt;'</span><span class="keyword">;<br />
-<br />
-</span><span class="comment">/*<br />
-Returns:<br />
-Array<br />
-(<br />
-&nbsp;&nbsp;&nbsp; [0] =&gt; 6<br />
-&nbsp;&nbsp;&nbsp; [1] =&gt; 5<br />
-&nbsp;&nbsp;&nbsp; [2] =&gt; Array<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; (<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [0] =&gt; 1<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [1] =&gt; 3<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [2] =&gt; Array<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; (<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [0] =&gt; 3<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [1] =&gt; 1<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [2] =&gt; 2<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [3] =&gt; 4<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [4] =&gt; 5<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; )<br />
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [3] =&gt; 2<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [4] =&gt; 4<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; )<br />
-<br />
-&nbsp;&nbsp;&nbsp; [3] =&gt; 3<br />
-&nbsp;&nbsp;&nbsp; [4] =&gt; Array<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; (<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [0] =&gt; Array<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; (<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [0] =&gt; 3<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [1] =&gt; 1<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [2] =&gt; 4<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [3] =&gt; Array<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; (<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [0] =&gt; 5<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [1] =&gt; 1<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [2] =&gt; 3<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [3] =&gt; 6<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [4] =&gt; 1<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [5] =&gt; 2<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; )<br />
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [4] =&gt; 2<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; )<br />
-<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [1] =&gt; 1<br />
-&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; [2] =&gt; 0<br />
-&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; )<br />
-<br />
-&nbsp;&nbsp;&nbsp; [5] =&gt; 2<br />
-&nbsp;&nbsp;&nbsp; [6] =&gt; 1<br />
-&nbsp;&nbsp;&nbsp; [7] =&gt; 4<br />
-&nbsp;&nbsp;&nbsp; [8] =&gt; 7<br />
-)<br />
-<br />
-*/<br />
 <br />
 </span><span class="default">?&gt;</span>
 </span>
@@ -1334,72 +1190,6 @@ Another shuffle() implementation that preserves keys, does not use extra memory 
 <br />
 </span><span class="default">?&gt;</span>
 </span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="67432""></a>
-  <div class="note">
-   
-   <a href="#67432" class="date">07-Jun-2006 02:53</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Posted below is code that you would expect to work<br />
-<br />
-<span class="default">&lt;?php<br />
-<br />
-$keys </span><span class="keyword">= </span><span class="default">shuffle</span><span class="keyword">(</span><span class="default">array_keys</span><span class="keyword">(</span><span class="default">$arr</span><span class="keyword">));<br />
-<br />
-foreach (</span><span class="default">$keys </span><span class="keyword">as </span><span class="default">$key</span><span class="keyword">) {<br />
-<br />
-&nbsp; </span><span class="default">$arr_elem </span><span class="keyword">= </span><span class="default">$arr</span><span class="keyword">[</span><span class="default">$key</span><span class="keyword">];<br />
-&nbsp; </span><span class="comment">// do what you want with the array element<br />
-<br />
-</span><span class="keyword">}<br />
-<br />
-</span><span class="default">?&gt;<br />
-</span><br />
-This in fact does not work because shuffle returns a boolean true or false. More accurate code using this method would be:<br />
-<br />
-<span class="default">&lt;?php<br />
-<br />
-$keys </span><span class="keyword">= </span><span class="default">array_keys</span><span class="keyword">(</span><span class="default">$arr</span><span class="keyword">);<br />
-</span><span class="default">shuffle</span><span class="keyword">(</span><span class="default">$keys</span><span class="keyword">);<br />
-<br />
-foreach (</span><span class="default">$keys </span><span class="keyword">as </span><span class="default">$key</span><span class="keyword">) {<br />
-<br />
-&nbsp; </span><span class="default">$arr_elem </span><span class="keyword">= </span><span class="default">$arr</span><span class="keyword">[</span><span class="default">$key</span><span class="keyword">];<br />
-&nbsp; </span><span class="comment">// do what you want with the array element<br />
-<br />
-</span><span class="keyword">}<br />
-<br />
-</span><span class="default">?&gt;</span>
-</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="57068""></a>
-  <div class="note">
-   <strong class="user">bill at SWScripts dot com</strong>
-   <a href="#57068" class="date">22-Sep-2005 09:45</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-Just a quick note to let people know that shuffle() will work on multidimensional associative arrays provided that the first key is already numeric.<br />
-<br />
-So this array can be shuffled without losing any of the secondary keys or their values:<br />
-<br />
-$array[0]['color'], $array[0]['size'], $array[0]['fabric']<br />
-. . .<br />
-$array[50]['color'], $array[50]['size'], $array[50]['fabric']<br />
-<br />
-I recently ran up against needing to randomize this array and tried shuffle even though it's not really for associative arrays.<br />
-<br />
-Hope it helps somebody out there.</span>
 </code>
     </div>
    </div>

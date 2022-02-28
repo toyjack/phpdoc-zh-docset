@@ -33,9 +33,7 @@
  <div class="refsect1 description" id="refsect1-function.sys-getloadavg-description">
   <h3 class="title">说明</h3>
   <div class="methodsynopsis dc-description">
-   <span class="methodname"><strong>sys_getloadavg</strong></span>
-    (
-   ) : <span class="type">array</span></div>
+   <span class="methodname"><strong>sys_getloadavg</strong></span>(): <span class="type">array</span></div>
 
   <p class="para rdfs-comment">
    返回三个系统负载（系统运行队列中的进程数）的样本数据，分别是1分钟、5分钟和15分钟之前。
@@ -54,7 +52,7 @@
  <div class="refsect1 examples" id="refsect1-function.sys-getloadavg-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-3866">
+   <div class="example" id="example-3416">
     <p><strong>Example #1 <span class="function"><strong>sys_getloadavg()</strong></span> 的例子</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -78,7 +76,70 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="125595""></a>
+<div id="allnotes">  <a name="126473""></a>
+  <div class="note">
+   <strong class="user">Anonymous</strong>
+   <a href="#126473" class="date">04-Oct-2021 08:50</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+simple function to get the cpu load with availability to most os platforms because I haven't actually been able to find a similar protocol if you happen to be testing out various os platforms...<br />
+<br />
+function cpu_load():?string {<br />
+&nbsp;&nbsp;&nbsp; $load='';<br />
+&nbsp;&nbsp;&nbsp; if(strtolower(PHP_OS_FAMILY)=="windows") {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; exec("wmic cpu get loadpercentage /all",$out);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if($out) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; foreach($out as $line) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if($line&amp;&amp;preg_match("/^[0-9]+\$/",$line)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $load=$line;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $load=sys_getloadavg();<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; return $load;<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="126283""></a>
+  <div class="note">
+   <strong class="user">Chris Wheeler</strong>
+   <a href="#126283" class="date">28-Jul-2021 10:28</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+It is important to note that sys_getloadavg() does not return a percentage, and the numbers that it returns are completely meaningless if you do not know the number of CPU cores. To get the number as a percentage you need to divide the value by the number of CPU cores in the system. (eg: if the value is 0.5 and you have two cores, then you are using 25% of the CPU on average). Here is a simple function to get the values as a percent:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">percentloadavg</span><span class="keyword">(){<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$cpu_count </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; if(</span><span class="default">is_file</span><span class="keyword">(</span><span class="string">'/proc/cpuinfo'</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$cpuinfo </span><span class="keyword">= </span><span class="default">file_get_contents</span><span class="keyword">(</span><span class="string">'/proc/cpuinfo'</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">preg_match_all</span><span class="keyword">(</span><span class="string">'/^processor/m'</span><span class="keyword">, </span><span class="default">$cpuinfo</span><span class="keyword">, </span><span class="default">$matches</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$cpu_count </span><span class="keyword">= </span><span class="default">count</span><span class="keyword">(</span><span class="default">$matches</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">]);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$sys_getloadavg </span><span class="keyword">= </span><span class="default">sys_getloadavg</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$sys_getloadavg</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">] = </span><span class="default">$sys_getloadavg</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">] / </span><span class="default">$cpu_count</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$sys_getloadavg</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">] = </span><span class="default">$sys_getloadavg</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">] / </span><span class="default">$cpu_count</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$sys_getloadavg</span><span class="keyword">[</span><span class="default">2</span><span class="keyword">] = </span><span class="default">$sys_getloadavg</span><span class="keyword">[</span><span class="default">2</span><span class="keyword">] / </span><span class="default">$cpu_count</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$sys_getloadavg</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="125595""></a>
   <div class="note">
    <strong class="user">wowabbs+php at gmail dot com</strong>
    <a href="#125595" class="date">11-Dec-2020 03:02</a>

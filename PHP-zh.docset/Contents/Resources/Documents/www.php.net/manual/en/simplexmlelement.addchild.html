@@ -35,11 +35,7 @@
  <div class="refsect1 description" id="refsect1-simplexmlelement.addchild-description">
   <h3 class="title">说明</h3>
   <div class="methodsynopsis dc-description">
-   <span class="modifier">public</span> <span class="methodname"><strong>SimpleXMLElement::addChild</strong></span>
-    ( <span class="methodparam"><span class="type">string</span> <code class="parameter">$name</code></span>
-   , <span class="methodparam"><span class="type">string</span> <code class="parameter">$value</code> = ?</span>
-   , <span class="methodparam"><span class="type">string</span> <code class="parameter">$namespace</code> = ?</span>
-   ) : <span class="type"><a href="class.simplexmlelement.html" class="type SimpleXMLElement">SimpleXMLElement</a></span></div>
+   <span class="modifier">public</span> <span class="methodname"><strong>SimpleXMLElement::addChild</strong></span>(<span class="methodparam"><span class="type">string</span> <code class="parameter">$qualifiedName</code></span>, <span class="methodparam"><span class="type">?</span><span class="type"><span class="type">string</span><span class="type"></span></span> <code class="parameter">$value</code><span class="initializer"> = <strong><code>null</code></strong></span></span>, <span class="methodparam"><span class="type">?</span><span class="type"><span class="type">string</span><span class="type"></span></span> <code class="parameter">$namespace</code><span class="initializer"> = <strong><code>null</code></strong></span></span>): <span class="type"><span class="type">?</span><span class="type"><a href="class.simplexmlelement.html" class="type SimpleXMLElement">SimpleXMLElement</a></span></span></div>
 
   <p class="para rdfs-comment">
    Adds a child element to the node and returns a SimpleXMLElement of the child.
@@ -51,10 +47,9 @@
   <h3 class="title">参数</h3>
   <p class="para">
    <dl>
-
     
      <dt>
-<code class="parameter">name</code></dt>
+<code class="parameter">qualifiedName</code></dt>
 
      <dd>
 
@@ -98,7 +93,7 @@
   <h3 class="title">返回值</h3>
   <p class="para">
    The <code class="literal">addChild</code> method returns a <span class="type"><a href="class.simplexmlelement.html" class="type SimpleXMLElement">SimpleXMLElement</a></span>
-   object representing the child added to the XML node.
+   object representing the child added to the XML node on success; <strong><code>null</code></strong> on failure.
   </p>
  </div>
 
@@ -113,7 +108,7 @@
      of the <a href="simplexml.examples-basic.html" class="link">basic usage</a> guide.
     </p>
    </p></blockquote>
-   <div class="example" id="example-5749">
+   <div class="example" id="example-5260">
     <p><strong>Example #1 Add attributes and children to a SimpleXML element</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -183,7 +178,63 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="121840""></a>
+<div id="allnotes">  <a name="126032""></a>
+  <div class="note">
+   <strong class="user">carlos dot eduardo dot debiasi at gmail dot com</strong>
+   <a href="#126032" class="date">22-Apr-2021 01:23</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+I create this function so you can through and array build the XML, this allows multiple keys with the same value.<br />
+The structure must follow <br />
+<br />
+[<br />
+&nbsp;&nbsp;&nbsp; 'key' =&gt; 'nameOfTheKey',<br />
+&nbsp;&nbsp;&nbsp; 'attributes' =&gt; ['id' =&gt; '1'], <br />
+&nbsp;&nbsp;&nbsp; 'fields' =&gt; [<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; ['key' =&gt; 'fieldSamName', 'value' =&gt; '1'],<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; ['key' =&gt; 'fieldSamName', 'value' =&gt; '1'],<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; ['key' =&gt; 'fieldSamName', 'value' =&gt; '2'],<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; ['key' =&gt; 'fieldWithChild', 'fields' =&gt; [ <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; ['key' =&gt; 'car', 'value' =&gt; '2'],<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; ['key' =&gt; 'human', 'value' =&gt; '3'],<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; ]],<br />
+&nbsp;&nbsp;&nbsp; ]<br />
+];<br />
+<br />
+Function:<br />
+&nbsp;function toXml(\SimpleXMLElement $node, array $data)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach ($data as $key =&gt; $value) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $key = $value['key'];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (isset($value['value'])) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $newNode = $node-&gt;addChild($key, $value['value']);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (isset($value['attributes'])) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; foreach ($value['attributes'] as $keyAttr =&gt; $valueAttr) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $newNode-&gt;addAttribute($keyAttr, $valueAttr);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $newNode = $node-&gt;addChild($key);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (isset($value['attributes'])) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; foreach ($value['attributes'] as $keyAttr =&gt; $valueAttr) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $newNode-&gt;addAttribute($keyAttr, $valueAttr);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (isset($value['fields'])) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; foreach ($value['fields'] as $keyField =&gt; $valueField) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;toXml($newNode, [$keyField =&gt; $valueField]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="121840""></a>
   <div class="note">
    <strong class="user">nwarap</strong>
    <a href="#121840" class="date">07-Nov-2017 02:46</a>

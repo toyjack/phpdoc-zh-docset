@@ -35,14 +35,7 @@
    <div class="refsect1 description" id="refsect1-function.proc-open-description">
     <h3 class="title">说明</h3>
      <div class="methodsynopsis dc-description">
-      <span class="methodname"><strong>proc_open</strong></span>
-       ( <span class="methodparam"><span class="type">string</span> <code class="parameter">$cmd</code></span>
-      , <span class="methodparam"><span class="type">array</span> <code class="parameter">$descriptorspec</code></span>
-      , <span class="methodparam"><span class="type">array</span> <code class="parameter reference">&$pipes</code></span>
-      , <span class="methodparam"><span class="type">string</span> <code class="parameter">$cwd</code><span class="initializer"> = <strong><code>null</code></strong></span></span>
-      , <span class="methodparam"><span class="type">array</span> <code class="parameter">$env</code><span class="initializer"> = <strong><code>null</code></strong></span></span>
-      , <span class="methodparam"><span class="type">array</span> <code class="parameter">$other_options</code><span class="initializer"> = <strong><code>null</code></strong></span></span>
-      ) : <span class="type">resource</span></div>
+      <span class="methodname"><strong>proc_open</strong></span>(<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="methodparam"><span class="type"><a href="language.types.declarations.html#language.types.declarations.mixed" class="type mixed">mixed</a></span> <code class="parameter">$cmd</code></span>,<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="methodparam"><span class="type">array</span> <code class="parameter">$descriptorspec</code></span>,<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="methodparam"><span class="type">array</span> <code class="parameter reference">&$pipes</code></span>,<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="methodparam"><span class="type">string</span> <code class="parameter">$cwd</code><span class="initializer"> = <strong><code>null</code></strong></span></span>,<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="methodparam"><span class="type">array</span> <code class="parameter">$env</code><span class="initializer"> = <strong><code>null</code></strong></span></span>,<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="methodparam"><span class="type">array</span> <code class="parameter">$other_options</code><span class="initializer"> = <strong><code>null</code></strong></span></span><br>): <span class="type">resource</span></div>
 
     <p class="para rdfs-comment">
      类似 <span class="function"><a href="function.popen.html" class="function">popen()</a></span> 函数，
@@ -58,7 +51,6 @@
   <h3 class="title">参数</h3>
   <p class="para">
    <dl>
-
     
      <dt>
 <code class="parameter">cmd</code></dt>
@@ -66,8 +58,30 @@
      <dd>
 
       <p class="para">
-       要执行的命令
+       以 <span class="type">string</span> 形式执行的命令行。特殊字符必须经过转义，并且使用正确的引号。
       </p>
+      <blockquote class="note"><p><strong class="note">Note</strong>: 
+       <span class="simpara">
+        在 <em class="emphasis">Windows</em> 上, 除非在 <code class="parameter">other_options</code> 中
+        把 <code class="literal">bypass_shell</code> 设置为  <strong><code>true</code></strong>
+        ，否则 <code class="parameter">cmd</code> 会被传递给 <strong class="command">cmd.exe</strong> （实际上是 <code class="literal">%ComSpec%</code>）
+        其中的 <code class="literal">/c</code> 标志是 <em class="emphasis">未加引号的</em> 字符串 （也就是和 <span class="function"><strong>proc_open()</strong></span> 一样）。
+        这可能会导致 <strong class="command">cmd.exe</strong> 删除 <code class="parameter">cmd</code> 中的引号 （详见 <strong class="command">cmd.exe</strong> 文档），
+        从而导致意外的，甚至是潜在的危险行为，因为
+        <strong class="command">cmd.exe</strong> 错误消息可能包含 （部分） 传递的 <code class="parameter">cmd</code> （见下面的例子）。
+       </span>
+      </p></blockquote>
+      <p class="para">
+       从 PHP 7.4.0 开始，<code class="parameter">cmd</code> 参数可以使用 <span class="type">array</span> 类型传递。
+       在这种情况下，进程将直接打开（不通过 shell ）。
+       而 PHP 会处理任何必要的参数转义。
+      </p>
+      <blockquote class="note"><p><strong class="note">Note</strong>: 
+       <p class="para">
+        在 Windows 上， <span class="type">array</span> 元素的参数转义假定
+        执行命令的命令行解析与 VC 运行时进行的命令行参数解析兼容。
+       </p>
+      </p></blockquote>
      </dd>
 
     
@@ -86,7 +100,7 @@
        数组中的元素可以是：
        <ul class="simplelist">
         <li class="member">
-          包含了要传送至进程的管道的描述信息。
+          包含了要传送至进程的管道的描述信息的数组。
           第一个元素为描述符类型，
           第二个元素是针对该描述符的选项。
           有效的类型有：<code class="literal">pipe</code> 
@@ -169,6 +183,18 @@
          <code class="literal">bypass_shell</code> （仅用于 Windows 平台）：
          设置为 <strong><code>true</code></strong> 表示绕过 <code class="literal">cmd.exe</code> shell。
         </li>
+        <li class="member">
+         <code class="literal">blocking_pipes</code> （仅用于 Windows 平台）：
+         设置为 <strong><code>true</code></strong> 表示强制堵塞管道。
+        </li>
+        <li class="member">
+         <code class="literal">create_process_group</code> （仅用于 Windows 平台）：
+         设置为 <strong><code>true</code></strong> 表示允许子进程处理 <code class="literal">CTRL</code> 事件。
+        </li>
+        <li class="member">
+         <code class="literal">create_new_console</code> （仅用于 Windows 平台）：
+         表示新进程有一个新的控制台，用于代替父进程的控制台。
+        </li>
        </ul>
       </p>
      </dd>
@@ -205,9 +231,23 @@
 
      <tbody class="tbody">
       <tr>
-       <td>5.2.1</td>
+       <td>7.4.4</td>
        <td>
-        为 <code class="parameter">other_options</code> 参数增加 <code class="literal">bypass_shell</code> 选项。
+        为 <code class="parameter">other_options</code> 参数增加 <code class="literal">create_new_console</code> 选项。
+       </td>
+      </tr>
+
+      <tr>
+       <td>7.4.0</td>
+       <td>
+        <span class="function"><strong>proc_open()</strong></span> 的 <code class="parameter">cmd</code> 参数现在也允许数组类型。
+       </td>
+      </tr>
+
+      <tr>
+       <td>7.4.0</td>
+       <td>
+        为 <code class="parameter">other_options</code> 参数增加 <code class="literal">create_process_group</code> 选项。
        </td>
       </tr>
 
@@ -222,7 +262,7 @@
  <div class="refsect1 examples" id="refsect1-function.proc-open-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-3667">
+   <div class="example" id="example-3235">
     <p><strong>Example #1 <span class="function"><strong>proc_open()</strong></span> 例程</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -244,6 +284,40 @@ Array
 command returned 0
 </pre></div>
     </div>
+   </div>
+  </p>
+
+  <p class="para">
+   <div class="example" id="example-3236">
+    <p><strong>Example #2 <span class="function"><strong>proc_open()</strong></span> 在 Windows 上的怪异行为</strong></p>
+    <div class="example-contents"><p>
+     虽然人们可能期望下面的程序能够搜索文件
+     <var class="filename">filename.txt</var> 进行文本搜索，
+     并打印结果，但它的行为相当不同。
+    </p></div>
+    <div class="example-contents">
+     <div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$descriptorspec&nbsp;</span><span style="color: #007700">=&nbsp;[</span><span style="color: #0000BB">STDIN</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">STDOUT</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">STDOUT</span><span style="color: #007700">];<br /></span><span style="color: #0000BB">$cmd&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'"findstr"&nbsp;"search"&nbsp;"filename.txt"'</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$proc&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">proc_open</span><span style="color: #007700">(</span><span style="color: #0000BB">$cmd</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$descriptorspec</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$pipes</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">proc_close</span><span style="color: #007700">(</span><span style="color: #0000BB">$proc</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+    <div class="example-contents"><p>以上例程会输出：</p></div>
+    <div class="example-contents screen">
+     <div class="cdata"><pre>
+&#039;findstr&quot; &quot;search&quot; &quot;filename.txt&#039; is not recognized as an internal or external command,
+operable program or batch file.
+</pre></div>
+    </div>
+    <div class="example-contents"><p>
+     要解决该行为，通常只需将 <code class="parameter">cmd</code> 加上引号：
+    </p></div>
+    <div class="example-contents">
+     <div class="phpcode"><code><span style="color: #000000">
+$cmd&nbsp;=&nbsp;'""findstr"&nbsp;"search"&nbsp;"filename.txt""';</span>
+</code></div>
+    </div>
+
    </div>
   </p>
 
@@ -280,8 +354,8 @@ command returned 0
     <li class="member"><span class="function"><a href="function.system.html" class="function" rel="rdfs-seeAlso">system()</a> - 执行外部程序，并且显示输出</span></li>
     <li class="member"><span class="function"><a href="function.passthru.html" class="function" rel="rdfs-seeAlso">passthru()</a> - 执行外部程序并且显示原始输出</span></li>
     <li class="member"><span class="function"><a href="function.stream-select.html" class="function" rel="rdfs-seeAlso">stream_select()</a> - Runs the equivalent of the select() system call on the given
-   arrays of streams with a timeout specified by tv_sec and tv_usec</span></li>
-    <li class="member">The <a href="language.operators.execution.html" class="link">执行操作符</a></li>
+   arrays of streams with a timeout specified by seconds and microseconds</span></li>
+    <li class="member">The <a href="language.operators.execution.html" class="link">执行运算符</a></li>
    </ul>
   </p>
  </div>

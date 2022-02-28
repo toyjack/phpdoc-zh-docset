@@ -34,10 +34,7 @@
  <div class="refsect1 description" id="refsect1-function.parse-str-description">
   <h3 class="title">说明</h3>
   <div class="methodsynopsis dc-description">
-   <span class="methodname"><strong>parse_str</strong></span>
-    ( <span class="methodparam"><span class="type">string</span> <code class="parameter">$string</code></span>
-   , <span class="methodparam"><span class="type">array</span> <code class="parameter reference">&$result</code></span>
-   ) : <span class="type"><span class="type void">void</span></span></div>
+   <span class="methodname"><strong>parse_str</strong></span>(<span class="methodparam"><span class="type">string</span> <code class="parameter">$string</code></span>, <span class="methodparam"><span class="type">array</span> <code class="parameter reference">&$result</code></span>): <span class="type"><span class="type void">void</span></span></div>
 
   <p class="para rdfs-comment">
    如果 <code class="parameter">string</code> 是 URL 传递入的查询字符串（query string），则将它解析为变量并设置到当前作用域（如果提供了 <code class="parameter">result</code> 则会设置到该数组里 ）。
@@ -49,7 +46,6 @@
   <h3 class="title">参数</h3>
   <p class="para">
    <dl>
-
     
      <dt>
 <code class="parameter">string</code></dt>
@@ -136,7 +132,7 @@
  <div class="refsect1 examples" id="refsect1-function.parse-str-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-5156">
+   <div class="example" id="example-4698">
     <p><strong>Example #1 <span class="function"><strong>parse_str()</strong></span> 的使用</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -150,7 +146,7 @@
   <p class="para">
    由于 PHP 的变量名不能带「点」和「空格」，所以它们会被转化成下划线。
    用本函数带 <code class="parameter">result</code> 参数，也会应用同样规则到数组的键名。
-   <div class="example" id="example-5157">
+   <div class="example" id="example-4699">
     <p><strong>Example #2 <span class="function"><strong>parse_str()</strong></span> 名称改写</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -208,7 +204,134 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="122294""></a>
+<div id="allnotes">  <a name="126789""></a>
+  <div class="note">
+   <strong class="user">Roemer Lievaart</strong>
+   <a href="#126789" class="date">21-Jan-2022 09:20</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+If you need the key names preserved and don't want spaces or . or unmatched [ or ] replaced by an underscore, yet you want all the other goodies of parse_str(), like turning matched [] into array elements, you can use this code as a base for that.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">const </span><span class="default">periodPlaceholder </span><span class="keyword">= </span><span class="string">'QQleQPunT'</span><span class="keyword">;<br />
+const </span><span class="default">spacePlaceholder </span><span class="keyword">= </span><span class="string">'QQleQSpaTIE'</span><span class="keyword">;<br />
+<br />
+function </span><span class="default">parse_str_clean</span><span class="keyword">(</span><span class="default">$querystr</span><span class="keyword">): array {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// without the converting of spaces and dots etc to underscores.<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$qquerystr </span><span class="keyword">= </span><span class="default">str_ireplace</span><span class="keyword">([</span><span class="string">'.'</span><span class="keyword">,</span><span class="string">'%2E'</span><span class="keyword">,</span><span class="string">'+'</span><span class="keyword">,</span><span class="string">' '</span><span class="keyword">,</span><span class="string">'%20'</span><span class="keyword">], [</span><span class="default">periodPlaceholder</span><span class="keyword">,</span><span class="default">periodPlaceholder</span><span class="keyword">,</span><span class="default">spacePlaceholder</span><span class="keyword">,</span><span class="default">spacePlaceholder</span><span class="keyword">,</span><span class="default">spacePlaceholder</span><span class="keyword">], </span><span class="default">$querystr</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$arr </span><span class="keyword">= </span><span class="default">null </span><span class="keyword">; </span><span class="default">parse_str</span><span class="keyword">(</span><span class="default">$qquerystr</span><span class="keyword">, </span><span class="default">$arr</span><span class="keyword">);<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">sanitizeKeys</span><span class="keyword">(</span><span class="default">$arr</span><span class="keyword">, </span><span class="default">$querystr</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$arr</span><span class="keyword">;<br />
+}<br />
+<br />
+function </span><span class="default">sanitizeKeys</span><span class="keyword">(&amp;</span><span class="default">$arr</span><span class="keyword">, </span><span class="default">$querystr</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; foreach(</span><span class="default">$arr </span><span class="keyword">as </span><span class="default">$key</span><span class="keyword">=&gt;</span><span class="default">$val</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// restore values to original<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$newval </span><span class="keyword">= </span><span class="default">$val </span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ( </span><span class="default">is_string</span><span class="keyword">(</span><span class="default">$val</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$newval </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">([</span><span class="default">periodPlaceholder</span><span class="keyword">,</span><span class="default">spacePlaceholder</span><span class="keyword">], [</span><span class="string">"."</span><span class="keyword">,</span><span class="string">" "</span><span class="keyword">], </span><span class="default">$val</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$newkey </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">([</span><span class="default">periodPlaceholder</span><span class="keyword">,</span><span class="default">spacePlaceholder</span><span class="keyword">], [</span><span class="string">"."</span><span class="keyword">,</span><span class="string">" "</span><span class="keyword">], </span><span class="default">$key</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ( </span><span class="default">str_contains</span><span class="keyword">(</span><span class="default">$newkey</span><span class="keyword">, </span><span class="string">'_'</span><span class="keyword">) ) { <br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// periode of space or [ or ] converted to _. Restore with querystring<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$regex </span><span class="keyword">= </span><span class="string">'/&amp;('</span><span class="keyword">.</span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">'_'</span><span class="keyword">, </span><span class="string">'[ \.\[\]]'</span><span class="keyword">, </span><span class="default">preg_quote</span><span class="keyword">(</span><span class="default">$newkey</span><span class="keyword">, </span><span class="string">'/'</span><span class="keyword">)).</span><span class="string">')=/'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$matches </span><span class="keyword">= </span><span class="default">null </span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if ( </span><span class="default">preg_match_all</span><span class="keyword">(</span><span class="default">$regex</span><span class="keyword">, </span><span class="string">"&amp;"</span><span class="keyword">.</span><span class="default">urldecode</span><span class="keyword">(</span><span class="default">$querystr</span><span class="keyword">), </span><span class="default">$matches</span><span class="keyword">) ) {<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if ( </span><span class="default">count</span><span class="keyword">(</span><span class="default">array_unique</span><span class="keyword">(</span><span class="default">$matches</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">])) === </span><span class="default">1 </span><span class="keyword">&amp;&amp; </span><span class="default">$key </span><span class="keyword">!= </span><span class="default">$matches</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">][</span><span class="default">0</span><span class="keyword">] ) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$newkey </span><span class="keyword">= </span><span class="default">$matches</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">][</span><span class="default">0</span><span class="keyword">] ;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ( </span><span class="default">$newkey </span><span class="keyword">!= </span><span class="default">$key </span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; unset(</span><span class="default">$arr</span><span class="keyword">[</span><span class="default">$key</span><span class="keyword">]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$arr</span><span class="keyword">[</span><span class="default">$newkey</span><span class="keyword">] = </span><span class="default">$newval </span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; } elseif( </span><span class="default">$val </span><span class="keyword">!= </span><span class="default">$newval </span><span class="keyword">) <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$arr</span><span class="keyword">[</span><span class="default">$key</span><span class="keyword">] = </span><span class="default">$newval</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ( </span><span class="default">is_array</span><span class="keyword">(</span><span class="default">$val</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">sanitizeKeys</span><span class="keyword">(</span><span class="default">$arr</span><span class="keyword">[</span><span class="default">$newkey</span><span class="keyword">], </span><span class="default">$querystr</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+For example:<br />
+<br />
+parse_str_clean("code.1=printr%28hahaha&amp;code 1=448044&amp;test.mijn%5B%5D%5B2%5D=test%20Roemer&amp;test%5Bmijn=test%202e%20Roemer");<br />
+<br />
+Produces:<br />
+<br />
+array(4) {<br />
+&nbsp; ["code.1"]=&gt;<br />
+&nbsp; string(13) "printr(hahaha"<br />
+&nbsp; ["code 1"]=&gt;<br />
+&nbsp; string(6) "448044"<br />
+&nbsp; ["test.mijn"]=&gt;<br />
+&nbsp; array(1) {<br />
+&nbsp;&nbsp;&nbsp; [0]=&gt;<br />
+&nbsp;&nbsp;&nbsp; array(1) {<br />
+&nbsp;&nbsp; &nbsp;&nbsp; [2]=&gt;<br />
+&nbsp;&nbsp; &nbsp;&nbsp; string(11) "test Roemer"<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp; }<br />
+&nbsp; ["test[mijn"]=&gt;<br />
+&nbsp; string(14) "test 2e Roemer"<br />
+}<br />
+<br />
+Whereas if you feed the same querystring to parse_str, you will get<br />
+<br />
+array(2) {<br />
+&nbsp; ["code_1"]=&gt;<br />
+&nbsp; string(6) "448044"<br />
+&nbsp; ["test_mijn"]=&gt;<br />
+&nbsp; string(14) "test 2e Roemer"<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="126160""></a>
+  <div class="note">
+   <strong class="user">kawewong at gmail dot com</strong>
+   <a href="#126160" class="date">11-Jun-2021 09:11</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Warning: `parse_str()` can cause "Input variables exceeded 1000" error (1000 is default php.ini setting for `max_input_vars`).<br />
+<br />
+Test code.<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+$inputString </span><span class="keyword">= </span><span class="string">'first=firstvalue'</span><span class="keyword">;<br />
+<br />
+for (</span><span class="default">$i </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">; </span><span class="default">$i </span><span class="keyword">&lt;= </span><span class="default">1100</span><span class="keyword">; </span><span class="default">$i</span><span class="keyword">++) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$inputString </span><span class="keyword">.= </span><span class="string">'&amp;arrLoopNumber[]=' </span><span class="keyword">. </span><span class="default">$i</span><span class="keyword">;<br />
+}<br />
+unset(</span><span class="default">$i</span><span class="keyword">);<br />
+<br />
+echo </span><span class="string">'input string: &lt;code&gt;' </span><span class="keyword">. </span><span class="default">$inputString </span><span class="keyword">. </span><span class="string">'&lt;/code&gt;&lt;br&gt;' </span><span class="keyword">. </span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+echo </span><span class="string">'&lt;h5&gt;doing &lt;code&gt;parse_str()&lt;/code&gt;&lt;/h5&gt;' </span><span class="keyword">. </span><span class="default">PHP_EOL</span><span class="keyword">;<br />
+<br />
+</span><span class="default">$output </span><span class="keyword">= [];<br />
+</span><span class="default">parse_str</span><span class="keyword">(</span><span class="default">$inputString</span><span class="keyword">, </span><span class="default">$output</span><span class="keyword">);<br />
+</span><span class="comment">// errors!!<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="122294""></a>
   <div class="note">
    <strong class="user">twiddly</strong>
    <a href="#122294" class="date">21-Jan-2018 10:54</a>
@@ -1012,7 +1135,7 @@ If you are trying to preserve a complex array, the function serialize might be b
  <div class="foot"></div>
   <a name="54275""></a>
   <div class="note">
-   <strong class="user"></strong>
+   <strong class="user">Tore Bj?lseth</strong>
    <a href="#54275" class="date">29-Jun-2005 05:59</a>
    <div class="text">
     <div class="phpcode">

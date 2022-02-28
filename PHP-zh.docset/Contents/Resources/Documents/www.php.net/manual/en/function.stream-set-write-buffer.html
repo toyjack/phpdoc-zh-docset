@@ -33,14 +33,11 @@
  <div class="refsect1 description" id="refsect1-function.stream-set-write-buffer-description">
   <h3 class="title">说明</h3>
   <div class="methodsynopsis dc-description">
-   <span class="methodname"><strong>stream_set_write_buffer</strong></span>
-    ( <span class="methodparam"><span class="type">resource</span> <code class="parameter">$stream</code></span>
-   , <span class="methodparam"><span class="type">int</span> <code class="parameter">$buffer</code></span>
-   ) : <span class="type">int</span></div>
+   <span class="methodname"><strong>stream_set_write_buffer</strong></span>(<span class="methodparam"><span class="type">resource</span> <code class="parameter">$stream</code></span>, <span class="methodparam"><span class="type">int</span> <code class="parameter">$size</code></span>): <span class="type">int</span></div>
 
   <p class="para rdfs-comment">
    Sets the buffering for write operations on the given <code class="parameter">stream</code>
-   to <code class="parameter">buffer</code> bytes.
+   to <code class="parameter">size</code> bytes.
   </p>
  </div>
 
@@ -49,7 +46,6 @@
   <h3 class="title">参数</h3>
   <p class="para">
    <dl>
-
     
      <dt>
 <code class="parameter">stream</code></dt>
@@ -64,12 +60,12 @@
     
     
      <dt>
-<code class="parameter">buffer</code></dt>
+<code class="parameter">size</code></dt>
 
      <dd>
 
       <p class="para">
-       The number of bytes to buffer. If <code class="parameter">buffer</code>
+       The number of bytes to buffer. If <code class="parameter">size</code>
        is 0 then write operations are unbuffered.  This ensures that all writes
        with <span class="function"><a href="function.fwrite.html" class="function">fwrite()</a></span> are completed before other processes are
        allowed to write to that output stream.
@@ -94,7 +90,7 @@
  <div class="refsect1 examples" id="refsect1-function.stream-set-write-buffer-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-4144">
+   <div class="example" id="example-3693">
     <p><strong>Example #1 <span class="function"><strong>stream_set_write_buffer()</strong></span> example</strong></p>
     <div class="example-contents"><p>
      The following example demonstrates how to use
@@ -125,7 +121,98 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="122748""></a>
+<div id="allnotes">  <a name="126518""></a>
+  <div class="note">
+   <strong class="user">MOX</strong>
+   <a href="#126518" class="date">20-Oct-2021 12:56</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The stream_set_write_buffer() function has been broken since PHP 4.3.0. As a workaround, I would suggest using a php_user_filter as an output buffer. By using the following class I have measured over 50% performance improvements with scripts that generate large text files by writing them one line at a time:<br />
+<br />
+class my_output_buffer extends php_user_filter<br />
+{<br />
+&nbsp;&nbsp;&nbsp; protected static $BUFFER_SIZE = 4096;<br />
+<br />
+&nbsp;&nbsp;&nbsp; function onCreate( ) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;bff = [];<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;len = 0;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return true;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function filter($in, $out, &amp;$consumed, $closing)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $rv = PSFS_FEED_ME; /* assume no output */<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; /* process input */<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; while ($bucket = stream_bucket_make_writeable($in)) {<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; /* bucket is too big for the buffer? */<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $space = static::$BUFFER_SIZE - $this-&gt;len;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if ($bucket-&gt;datalen &gt;= $space) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; /* consume data by placing it into internal buffers */<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;bff[] = substr($bucket-&gt;data, 0, $space);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;len += $space;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $overflow = substr($bucket-&gt;data, $space);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $ovfl_len = $bucket-&gt;datalen - $space;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $consumed += $bucket-&gt;datalen;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; assert($this-&gt;len == static::$BUFFER_SIZE);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; /* make one big bucket */<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $bucket-&gt;data = implode('', $this-&gt;bff);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $bucket-&gt;datalen = static::$BUFFER_SIZE;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; stream_bucket_append($out, $bucket);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $rv = PSFS_PASS_ON; /* we have output! */<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; /* handle overflow */<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;bff = [$overflow];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;len = $ovfl_len;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; /* consume data by placing it into internal buffers */<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;bff[] = $bucket-&gt;data;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;len += $bucket-&gt;datalen;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $consumed += $bucket-&gt;datalen;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; /* stream is closing and we have data? */<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ($closing &amp;&amp; $this-&gt;len &gt; 0) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; /* make one last bucket */<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $data = implode('', $this-&gt;bff);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $bucket = stream_bucket_new($this-&gt;stream, $data);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; stream_bucket_append($out, $bucket);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $rv = PSFS_PASS_ON; /* we have output! */<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; /* clear internal buffer */<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;bff = [];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $this-&gt;len = 0;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return $rv;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+$fp = fopen('foobar.txt', 'w');<br />
+<br />
+/* enable filtering */<br />
+stream_filter_register('output.buffer', 'my_output_buffer');<br />
+stream_filter_append($fp, 'output.buffer');<br />
+<br />
+/* a lot of small writes */<br />
+for ($i = 0; $i &lt; 10000; $i++) {<br />
+&nbsp;&nbsp;&nbsp; fwrite($fp, 'x');<br />
+}<br />
+<br />
+fclose($fp);</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="122748""></a>
   <div class="note">
    <strong class="user">kevin at bonnevillessei dot com</strong>
    <a href="#122748" class="date">20-May-2018 12:15</a>

@@ -2,8 +2,8 @@
 <html>
  <head>
   <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
-  <title>Returns the total number of rows changed, deleted, or
-  inserted by the last executed statement</title>
+  <title>Returns the total number of rows changed, deleted, inserted, or
+  matched by the last statement executed</title>
 <link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
 <link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -21,8 +21,8 @@
   <ul class="breadcrumbs-container">
     <li><a href="index.html">PHP Manual</a></li>
     <li><a href="class.mysqli-stmt.html">MySQLi_STMT</a></li>
-    <li>Returns the total number of rows changed, deleted, or
-  inserted by the last executed statement</li>
+    <li>Returns the total number of rows changed, deleted, inserted, or
+  matched by the last statement executed</li>
   </ul>
 </div>
 <div id="layout">
@@ -30,8 +30,8 @@
  <div class="refnamediv">
   <h1 class="refname">mysqli_stmt::$affected_rows</h1>
   <h1 class="refname">mysqli_stmt_affected_rows</h1>
-  <p class="verinfo">(PHP 5, PHP 7)</p><p class="refpurpose"><span class="refname">mysqli_stmt::$affected_rows</span> -- <span class="refname">mysqli_stmt_affected_rows</span> &mdash; <span class="dc-title">Returns the total number of rows changed, deleted, or
-  inserted by the last executed statement
+  <p class="verinfo">(PHP 5, PHP 7, PHP 8)</p><p class="refpurpose"><span class="refname">mysqli_stmt::$affected_rows</span> -- <span class="refname">mysqli_stmt_affected_rows</span> &mdash; <span class="dc-title">Returns the total number of rows changed, deleted, inserted, or
+  matched by the last statement executed
   </span></p>
 
  </div>
@@ -39,22 +39,17 @@
  <div class="refsect1 description" id="refsect1-mysqli-stmt.affected-rows-description">
   <h3 class="title">说明</h3>
   <p class="para">面向对象风格</p>
-  <div class="fieldsynopsis"><span class="type">int</span> <var class="varname"><a href="mysqli-stmt.affected-rows.html">$mysqli_stmt-&gt;affected_rows</a></var>;</div>
+  <div class="fieldsynopsis"><span class="type"><span class="type">int</span>|<span class="type">string</span></span> <var class="varname"><a href="mysqli-stmt.affected-rows.html">$mysqli_stmt-&gt;affected_rows</a></var>;</div>
 
   <p class="para">过程化风格</p>
   <div class="methodsynopsis dc-description">
-   <span class="methodname"><strong>mysqli_stmt_affected_rows</strong></span>
-    ( <span class="methodparam"><span class="type"><a href="class.mysqli-stmt.html" class="type mysqli_stmt">mysqli_stmt</a></span> <code class="parameter">$stmt</code></span>
-   ) : <span class="type">int</span></div>
+   <span class="methodname"><strong>mysqli_stmt_affected_rows</strong></span>(<span class="methodparam"><span class="type"><a href="class.mysqli-stmt.html" class="type mysqli_stmt">mysqli_stmt</a></span> <code class="parameter">$statement</code></span>): <span class="type"><span class="type">int</span>|<span class="type">string</span></span></div>
 
   <p class="para rdfs-comment">
    Returns the number of rows affected by <code class="literal">INSERT</code>,
    <code class="literal">UPDATE</code>, or <code class="literal">DELETE</code> query. 
-  </p>
-  <p class="para">
-   This function only works with queries which update a table. In order to
-   get the number of rows from a SELECT query, use 
-   <span class="function"><a href="mysqli-stmt.num-rows.html" class="function">mysqli_stmt_num_rows()</a></span> instead.
+   Works like <span class="function"><a href="mysqli-stmt.num-rows.html" class="function">mysqli_stmt_num_rows()</a></span> for
+   <code class="literal">SELECT</code> statements.
   </p>
  </div>
 
@@ -63,13 +58,12 @@
   <h3 class="title">参数</h3>
   <p class="para">
    <dl>
-
     <dt>
-<code class="parameter">
-stmt</code></dt>
+
+<code class="parameter">statement</code></dt>
 <dd>
 <p class="para">仅以过程化样式：由
-<span class="function"><a href="mysqli.stmt-init.html" class="function">mysqli_stmt_init()</a></span> 返回的 statement 标识。</p></dd>
+<span class="function"><a href="mysqli.stmt-init.html" class="function">mysqli_stmt_init()</a></span> 返回的 <span class="classname"><a href="class.mysqli-stmt.html" class="classname">mysqli_stmt</a></span> 对象。</p></dd>
 
    </dl>
 
@@ -81,15 +75,17 @@ stmt</code></dt>
   <h3 class="title">返回值</h3>
   <p class="para">
    An integer greater than zero indicates the number of rows affected or
-   retrieved.
-   Zero indicates that no records where updated for an UPDATE/DELETE
-   statement, no rows matched the WHERE clause in the query or that no query
-   has yet been executed. -1 indicates that the query has returned an error.
-   NULL indicates an invalid argument was supplied to the function.
+   retrieved. Zero indicates that no records were updated for an 
+   <code class="literal">UPDATE</code> statement, no rows matched the
+   <code class="literal">WHERE</code> clause in the query or that no query has yet been
+   executed. <code class="literal">-1</code> indicates that the query returned an error or
+   that, for a <code class="literal">SELECT</code> query,
+   <span class="function"><strong>mysqli_stmt_affected_rows()</strong></span> was called prior to calling
+   <span class="function"><a href="mysqli-stmt.store-result.html" class="function">mysqli_stmt_store_result()</a></span>.
   </p>
   <blockquote class="note"><p><strong class="note">Note</strong>: 
    <p class="para">
-    If the number of affected rows is greater than maximal PHP int value, the
+    If the number of affected rows is greater than maximum PHP int value, the
     number of affected rows will be returned as a string value.
    </p>
   </p></blockquote>
@@ -98,21 +94,20 @@ stmt</code></dt>
 
  <div class="refsect1 examples" id="refsect1-mysqli-stmt.affected-rows-examples">
  <h3 class="title">范例</h3>
-  <div class="example" id="example-1653">
-   <p><strong>Example #1 面向对象风格</strong></p>
+  <div class="example" id="example-1451">
+   <p><strong>Example #1 <span class="methodname"><strong>mysqli_stmt_affected_rows()</strong></span> example</strong></p>
+   <div class="example-contents"><p>面向对象风格</p></div>
    <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
-<span style="color: #0000BB">&lt;?php<br />$mysqli&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">mysqli</span><span style="color: #007700">(</span><span style="color: #DD0000">"localhost"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"my_user"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"my_password"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"world"</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">/*&nbsp;check&nbsp;connection&nbsp;*/<br /></span><span style="color: #007700">if&nbsp;(</span><span style="color: #0000BB">mysqli_connect_errno</span><span style="color: #007700">())&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">printf</span><span style="color: #007700">(</span><span style="color: #DD0000">"Connect&nbsp;failed:&nbsp;%s\n"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">mysqli_connect_error</span><span style="color: #007700">());<br />&nbsp;&nbsp;&nbsp;&nbsp;exit();<br />}<br /><br /></span><span style="color: #FF8000">/*&nbsp;create&nbsp;temp&nbsp;table&nbsp;*/<br /></span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #DD0000">"CREATE&nbsp;TEMPORARY&nbsp;TABLE&nbsp;myCountry&nbsp;LIKE&nbsp;Country"</span><span style="color: #007700">);<br /><br /></span><span style="color: #0000BB">$query&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">"INSERT&nbsp;INTO&nbsp;myCountry&nbsp;SELECT&nbsp;*&nbsp;FROM&nbsp;Country&nbsp;WHERE&nbsp;Code&nbsp;LIKE&nbsp;?"</span><span style="color: #007700">;<br /><br /></span><span style="color: #FF8000">/*&nbsp;prepare&nbsp;statement&nbsp;*/<br /></span><span style="color: #007700">if&nbsp;(</span><span style="color: #0000BB">$stmt&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">prepare</span><span style="color: #007700">(</span><span style="color: #0000BB">$query</span><span style="color: #007700">))&nbsp;{<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;Bind&nbsp;variable&nbsp;for&nbsp;placeholder&nbsp;*/<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$code&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'A%'</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">bind_param</span><span style="color: #007700">(</span><span style="color: #DD0000">"s"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$code</span><span style="color: #007700">);<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;execute&nbsp;statement&nbsp;*/<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">execute</span><span style="color: #007700">();<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">printf</span><span style="color: #007700">(</span><span style="color: #DD0000">"rows&nbsp;inserted:&nbsp;%d\n"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">affected_rows</span><span style="color: #007700">);<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;close&nbsp;statement&nbsp;*/<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">close</span><span style="color: #007700">();<br />}<br /><br /></span><span style="color: #FF8000">/*&nbsp;close&nbsp;connection&nbsp;*/<br /></span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">close</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">?&gt;</span>
+<span style="color: #0000BB">&lt;?php<br /><br />mysqli_report</span><span style="color: #007700">(</span><span style="color: #0000BB">MYSQLI_REPORT_ERROR&nbsp;</span><span style="color: #007700">|&nbsp;</span><span style="color: #0000BB">MYSQLI_REPORT_STRICT</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$mysqli&nbsp;</span><span style="color: #007700">=&nbsp;new&nbsp;</span><span style="color: #0000BB">mysqli</span><span style="color: #007700">(</span><span style="color: #DD0000">"localhost"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"my_user"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"my_password"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"world"</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">/*&nbsp;create&nbsp;temp&nbsp;table&nbsp;*/<br /></span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">query</span><span style="color: #007700">(</span><span style="color: #DD0000">"CREATE&nbsp;TEMPORARY&nbsp;TABLE&nbsp;myCountry&nbsp;LIKE&nbsp;Country"</span><span style="color: #007700">);<br /><br /></span><span style="color: #0000BB">$query&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">"INSERT&nbsp;INTO&nbsp;myCountry&nbsp;SELECT&nbsp;*&nbsp;FROM&nbsp;Country&nbsp;WHERE&nbsp;Code&nbsp;LIKE&nbsp;?"</span><span style="color: #007700">;<br /><br /></span><span style="color: #FF8000">/*&nbsp;prepare&nbsp;statement&nbsp;*/<br /></span><span style="color: #0000BB">$stmt&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$mysqli</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">prepare</span><span style="color: #007700">(</span><span style="color: #0000BB">$query</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">/*&nbsp;Bind&nbsp;variable&nbsp;for&nbsp;placeholder&nbsp;*/<br /></span><span style="color: #0000BB">$code&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'A%'</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">bind_param</span><span style="color: #007700">(</span><span style="color: #DD0000">"s"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$code</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">/*&nbsp;execute&nbsp;statement&nbsp;*/<br /></span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">execute</span><span style="color: #007700">();<br /><br /></span><span style="color: #0000BB">printf</span><span style="color: #007700">(</span><span style="color: #DD0000">"Rows&nbsp;inserted:&nbsp;%d\n"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">-&gt;</span><span style="color: #0000BB">affected_rows</span><span style="color: #007700">);</span>
 </span>
 </code></div>
    </div>
 
-  </div>
-  <div class="example" id="example-1654">
-   <p><strong>Example #2 过程化风格</strong></p>
+   <div class="example-contents"><p>过程化风格</p></div>
    <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
-<span style="color: #0000BB">&lt;?php<br />$link&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">mysqli_connect</span><span style="color: #007700">(</span><span style="color: #DD0000">"localhost"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"my_user"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"my_password"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"world"</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">/*&nbsp;check&nbsp;connection&nbsp;*/<br /></span><span style="color: #007700">if&nbsp;(</span><span style="color: #0000BB">mysqli_connect_errno</span><span style="color: #007700">())&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">printf</span><span style="color: #007700">(</span><span style="color: #DD0000">"Connect&nbsp;failed:&nbsp;%s\n"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">mysqli_connect_error</span><span style="color: #007700">());<br />&nbsp;&nbsp;&nbsp;&nbsp;exit();<br />}<br /><br /></span><span style="color: #FF8000">/*&nbsp;create&nbsp;temp&nbsp;table&nbsp;*/<br /></span><span style="color: #0000BB">mysqli_query</span><span style="color: #007700">(</span><span style="color: #0000BB">$link</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"CREATE&nbsp;TEMPORARY&nbsp;TABLE&nbsp;myCountry&nbsp;LIKE&nbsp;Country"</span><span style="color: #007700">);<br /><br /></span><span style="color: #0000BB">$query&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">"INSERT&nbsp;INTO&nbsp;myCountry&nbsp;SELECT&nbsp;*&nbsp;FROM&nbsp;Country&nbsp;WHERE&nbsp;Code&nbsp;LIKE&nbsp;?"</span><span style="color: #007700">;<br /><br /></span><span style="color: #FF8000">/*&nbsp;prepare&nbsp;statement&nbsp;*/<br /></span><span style="color: #007700">if&nbsp;(</span><span style="color: #0000BB">$stmt&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">mysqli_prepare</span><span style="color: #007700">(</span><span style="color: #0000BB">$link</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$query</span><span style="color: #007700">))&nbsp;{<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;Bind&nbsp;variable&nbsp;for&nbsp;placeholder&nbsp;*/<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$code&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'A%'</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">mysqli_stmt_bind_param</span><span style="color: #007700">(</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"s"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$code</span><span style="color: #007700">);<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;execute&nbsp;statement&nbsp;*/<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">mysqli_stmt_execute</span><span style="color: #007700">(</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">);<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">printf</span><span style="color: #007700">(</span><span style="color: #DD0000">"rows&nbsp;inserted:&nbsp;%d\n"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">mysqli_stmt_affected_rows</span><span style="color: #007700">(</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">));<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">/*&nbsp;close&nbsp;statement&nbsp;*/<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">mysqli_stmt_close</span><span style="color: #007700">(</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">);<br />}<br /><br /></span><span style="color: #FF8000">/*&nbsp;close&nbsp;connection&nbsp;*/<br /></span><span style="color: #0000BB">mysqli_close</span><span style="color: #007700">(</span><span style="color: #0000BB">$link</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+<span style="color: #0000BB">&lt;?php<br /><br />mysqli_report</span><span style="color: #007700">(</span><span style="color: #0000BB">MYSQLI_REPORT_ERROR&nbsp;</span><span style="color: #007700">|&nbsp;</span><span style="color: #0000BB">MYSQLI_REPORT_STRICT</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">$link&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">mysqli_connect</span><span style="color: #007700">(</span><span style="color: #DD0000">"localhost"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"my_user"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"my_password"</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"world"</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">/*&nbsp;create&nbsp;temp&nbsp;table&nbsp;*/<br /></span><span style="color: #0000BB">mysqli_query</span><span style="color: #007700">(</span><span style="color: #0000BB">$link</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"CREATE&nbsp;TEMPORARY&nbsp;TABLE&nbsp;myCountry&nbsp;LIKE&nbsp;Country"</span><span style="color: #007700">);<br /><br /></span><span style="color: #0000BB">$query&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">"INSERT&nbsp;INTO&nbsp;myCountry&nbsp;SELECT&nbsp;*&nbsp;FROM&nbsp;Country&nbsp;WHERE&nbsp;Code&nbsp;LIKE&nbsp;?"</span><span style="color: #007700">;<br /><br /></span><span style="color: #FF8000">/*&nbsp;prepare&nbsp;statement&nbsp;*/<br /></span><span style="color: #0000BB">$stmt&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">mysqli_prepare</span><span style="color: #007700">(</span><span style="color: #0000BB">$link</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$query</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">/*&nbsp;Bind&nbsp;variable&nbsp;for&nbsp;placeholder&nbsp;*/<br /></span><span style="color: #0000BB">$code&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'A%'</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">mysqli_stmt_bind_param</span><span style="color: #007700">(</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"s"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$code</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">/*&nbsp;execute&nbsp;statement&nbsp;*/<br /></span><span style="color: #0000BB">mysqli_stmt_execute</span><span style="color: #007700">(</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">);<br /><br /></span><span style="color: #0000BB">printf</span><span style="color: #007700">(</span><span style="color: #DD0000">"Rows&nbsp;inserted:&nbsp;%d\n"</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">mysqli_stmt_affected_rows</span><span style="color: #007700">(</span><span style="color: #0000BB">$stmt</span><span style="color: #007700">));</span>
 </span>
 </code></div>
    </div>
@@ -120,7 +115,7 @@ stmt</code></dt>
    <div class="example-contents"><p>以上例程会输出：</p></div>
    <div class="example-contents screen">
 <div class="cdata"><pre>
-rows inserted: 17
+Rows inserted: 17
 </pre></div>
    </div>
   </div>
@@ -131,8 +126,8 @@ rows inserted: 17
   <h3 class="title">参见</h3>
   <p class="para">
    <ul class="simplelist">
-    <li class="member"><span class="function"><a href="mysqli-stmt.num-rows.html" class="function" rel="rdfs-seeAlso">mysqli_stmt_num_rows()</a> - Return the number of rows in statements result set</span></li>
-    <li class="member"><span class="function"><a href="mysqli.prepare.html" class="function" rel="rdfs-seeAlso">mysqli_prepare()</a> - 准备执行一个 SQL 语句</span></li>
+    <li class="member"><span class="function"><a href="mysqli-stmt.num-rows.html" class="function" rel="rdfs-seeAlso">mysqli_stmt_num_rows()</a> - Returns the number of rows fetched from the server</span></li>
+    <li class="member"><span class="function"><a href="mysqli-stmt.store-result.html" class="function" rel="rdfs-seeAlso">mysqli_stmt_store_result()</a> - Stores a result set in an internal buffer</span></li>
    </ul>
   </p>
  </div>
@@ -142,20 +137,7 @@ rows inserted: 17
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="116595""></a>
-  <div class="note">
-   <strong class="user">gerbawn at 163 dot com</strong>
-   <a href="#116595" class="date">27-Jan-2015 06:47</a>
-   <div class="text">
-    <div class="phpcode">
-<code><span class="html">
-I find should add $stmt-&gt;store_result() after $stmt-&gt;execute(), otherwise you can't get right results when use $stmt-&gt;affected_rows</span>
-</code>
-    </div>
-   </div>
-  </div>
- <div class="foot"></div>
-  <a name="74819""></a>
+<div id="allnotes">  <a name="74819""></a>
   <div class="note">
    <strong class="user">Chuck</strong>
    <a href="#74819" class="date">28-Apr-2007 10:51</a>

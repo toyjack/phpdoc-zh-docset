@@ -27,16 +27,14 @@
   <div id="layout-content"><div id="splfileobject.seek" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">SplFileObject::seek</h1>
-  <p class="verinfo">(PHP 5 &gt;= 5.1.0, PHP 7)</p><p class="refpurpose"><span class="refname">SplFileObject::seek</span> &mdash; <span class="dc-title">Seek to specified line</span></p>
+  <p class="verinfo">(PHP 5 &gt;= 5.1.0, PHP 7, PHP 8)</p><p class="refpurpose"><span class="refname">SplFileObject::seek</span> &mdash; <span class="dc-title">Seek to specified line</span></p>
 
  </div>
 
  <div class="refsect1 description" id="refsect1-splfileobject.seek-description">
   <h3 class="title">说明</h3>
   <div class="methodsynopsis dc-description">
-   <span class="modifier">public</span> <span class="methodname"><strong>SplFileObject::seek</strong></span>
-    ( <span class="methodparam"><span class="type">int</span> <code class="parameter">$line_pos</code></span>
-   ) : <span class="type"><span class="type void">void</span></span></div>
+   <span class="modifier">public</span> <span class="methodname"><strong>SplFileObject::seek</strong></span>(<span class="methodparam"><span class="type">int</span> <code class="parameter">$line</code></span>): <span class="type"><span class="type void">void</span></span></div>
 
   <p class="para rdfs-comment">
    Seek to specified line in the file.
@@ -48,10 +46,9 @@
   <h3 class="title">参数</h3>
   <p class="para">
    <dl>
-
     
      <dt>
-<code class="parameter">line_pos</code></dt>
+<code class="parameter">line</code></dt>
 
      <dd>
 
@@ -78,8 +75,8 @@
  <div class="refsect1 errors" id="refsect1-splfileobject.seek-errors">
   <h3 class="title">错误／异常</h3>
   <p class="para">
-   Throws a <a href="class.logicexception.html" class="classname">LogicException</a> if the 
-   <code class="parameter">line_pos</code> is negative.
+   Throws a <span class="classname"><a href="class.logicexception.html" class="classname">LogicException</a></span> if the 
+   <code class="parameter">line</code> is negative.
   </p>
  </div>
 
@@ -87,7 +84,7 @@
  <div class="refsect1 examples" id="refsect1-splfileobject.seek-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="splfileobject.fputcsv.examples.basic">
+   <div class="example" id="example-3638">
     <p><strong>Example #1 <span class="methodname"><strong>SplFileObject::seek()</strong></span> example</strong></p>
     <div class="example-contents"><p>This example outputs the third line of the script which is found at position 2.</p></div>
     <div class="example-contents">
@@ -127,7 +124,58 @@ $file-&gt;seek(2);
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="121666""></a>
+<div id="allnotes">  <a name="126365""></a>
+  <div class="note">
+   <strong class="user">info at inatica dot com</strong>
+   <a href="#126365" class="date">26-Aug-2021 12:02</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+there is a bug using fseek on previos versions of PHP8.0.1<br />
+See:<br />
+<br />
+https://bugs.php.net/bug.php?id=46569<br />
+<br />
+https://3v4l.org/O89dJ<br />
+<br />
+I solved it with a function:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">/**<br />
+* SEEK an Spl object<br />
+* There is a bug in php for seeking files<br />
+* seems solved php_version &gt; PHP8.0.1<br />
+* See https://bugs.php.net/bug.php?id=46569<br />
+* &amp; https://3v4l.org/O89dJ<br />
+*<br />
+* $Spl-&gt;seek() Works ok in all versions with offset 0 (first row)<br />
+* On PHP_VERSION &lt; 8.0.1:<br />
+*&nbsp; - Offset 1: seek() cannot seek at row 1. It will be done manually, rewind file and reading first row<br />
+*&nbsp; - Rest of Offsets: The cursor remains at next row of $Offset<br />
+*<br />
+* @param SplObject $Spl<br />
+* @param int $Offset<br />
+*/<br />
+<br />
+</span><span class="keyword">function </span><span class="default">seek_spl</span><span class="keyword">(</span><span class="default">$Spl</span><span class="keyword">, </span><span class="default">$Offset</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">version_compare</span><span class="keyword">(</span><span class="default">PHP_VERSION</span><span class="keyword">, </span><span class="string">'8.0.1'</span><span class="keyword">, </span><span class="string">'&gt;='</span><span class="keyword">) || </span><span class="default">$Offset </span><span class="keyword">== </span><span class="default">0</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$Spl</span><span class="keyword">-&gt;</span><span class="default">seek</span><span class="keyword">(</span><span class="default">$Offset</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if( </span><span class="default">$Offset </span><span class="keyword">== </span><span class="default">1 </span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$Spl</span><span class="keyword">-&gt;</span><span class="default">rewind</span><span class="keyword">(); </span><span class="comment">// Ensure to go at first row before exit<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$Spl</span><span class="keyword">-&gt;</span><span class="default">fgets</span><span class="keyword">(); </span><span class="comment">// Read line 0. Cursor remains now at line 1<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">} else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$Spl</span><span class="keyword">-&gt;</span><span class="default">seek</span><span class="keyword">(</span><span class="default">$Offset</span><span class="keyword">-</span><span class="default">1</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="121666""></a>
   <div class="note">
    <strong class="user">ahmad_maqsood at waku-2 dot com</strong>
    <a href="#121666" class="date">21-Sep-2017 09:19</a>

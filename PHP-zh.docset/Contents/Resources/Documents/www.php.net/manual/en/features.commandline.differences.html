@@ -1,0 +1,229 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
+  <title>和其它 SAPI 模块的区别</title>
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
+<link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link media="all" rel="stylesheet" type="text/css" href="style.css"/>
+ </head>
+ <body class="docs" class="docs"><div class="navbar navbar-fixed-top">
+  <div class="navbar-inner clearfix">
+    <ul class="nav" style="width: 100%">
+      <li style="float: left;"><a href="features.commandline.introduction.html">? 如何得知自己使用的是哪个 SAPI？</a></li>
+      <li style="float: right;"><a href="features.commandline.options.html">选项 ?</a></li>
+    </ul>
+  </div>
+</div>
+<div id="breadcrumbs" class="clearfix">
+  <ul class="breadcrumbs-container">
+    <li><a href="index.html">PHP Manual</a></li>
+    <li><a href="features.commandline.html">PHP 的命令行模式</a></li>
+    <li>和其它 SAPI 模块的区别</li>
+  </ul>
+</div>
+<div id="layout">
+  <div id="layout-content"><div id="features.commandline.differences" class="section">
+<h2 class="title">和其它 <acronym title="Server Application Programming Interface">SAPI</acronym> 模块的区别</h2>
+
+ <p class="para">
+  以下为 <acronym title="Command Line Interpreter/Interface">CLI</acronym> <acronym title="Server Application Programming Interface">SAPI</acronym> 和其它 <acronym title="Server Application Programming Interface">SAPI</acronym> 模块相比的显著区别：
+  <ul class="itemizedlist">
+   <li class="listitem">
+    <p class="para">
+     与 <acronym title="Common Gateway Interface">CGI</acronym> <acronym title="Server Application Programming Interface">SAPI</acronym> 不同，其输出没有任何头信息。
+    </p>
+    <p class="para">
+     尽管 <acronym title="Common Gateway Interface">CGI</acronym> <acronym title="Server Application Programming Interface">SAPI</acronym> 提供了取消 HTTP 头信息的方法，但在
+     <acronym title="Command Line Interpreter/Interface">CLI</acronym> <acronym title="Server Application Programming Interface">SAPI</acronym> 中并不存在类似的方法以开启 HTTP 头信息的输出。
+    </p>
+    <p class="para">
+     <acronym title="Command Line Interpreter/Interface">CLI</acronym> 默认以安静模式开始，但为了保证兼容性，<strong class="option unknown">-q</strong> 和
+     <strong class="option unknown">--no-header</strong> 参数为了向后兼容仍然保留，使得可以使用旧的 <acronym title="Common Gateway Interface">CGI</acronym> 脚本。
+    </p>
+    <p class="para">
+     在运行时，不会把工作目录改为脚本的当前目录（可以使用
+     <strong class="option unknown">-C</strong> 和 <strong class="option unknown">--no-chdir</strong> 参数来兼容 CGI 模式）。
+    </p>
+    <p class="para">
+     出错时输出纯文本的错误信息（非 <acronym title="Hyper Text Markup Language">HTML</acronym> 格式）。
+    </p>
+   </li>
+
+   <li class="listitem">
+    <p class="para">
+     <acronym title="Command Line Interpreter/Interface">CLI</acronym> <acronym title="Server Application Programming Interface">SAPI</acronym> 强制覆盖了 <var class="filename">php.ini</var>
+     中的某些设置，因为这些设置在外壳环境下是没有意义的。
+    </p>
+    <p class="para">
+     <table class="doctable table">
+      <caption><strong>覆盖 <var class="filename">php.ini</var> 设置选项</strong></caption>
+      
+       <thead>
+        <tr>
+         <th>设置选项</th>
+         <th><acronym title="Command Line Interpreter/Interface">CLI</acronym> <acronym title="Server Application Programming Interface">SAPI</acronym> 默认值</th>
+         <th>备注</th>
+        </tr>
+
+       </thead>
+
+       <tbody class="tbody">
+        <tr>
+         <td><a href="errorfunc.configuration.html#ini.html-errors" class="link">html_errors</a></td>
+         <td><strong><code>false</code></strong></td>
+         <td>
+          无意义的 <acronym title="Hyper Text Markup Language">HTML</acronym>
+          标记符会使得出错信息很凌乱，所以在外壳下阅读报错信息是十分困难的。因此将该选项的默认值改为 <strong><code>false</code></strong>。
+         </td>
+        </tr>
+
+        <tr>
+         <td><a href="outcontrol.configuration.html#ini.implicit-flush" class="link">implicit_flush</a></td>
+         <td><strong><code>true</code></strong></td>
+         <td>
+          在命令行模式下，所有来自 <a href="function.print.html" class="link"><code class="literal">print</code></a> 和
+          <a href="function.echo.html" class="link"><code class="literal">echo</code></a> 的输出将被立即写到输出端，而不作任何地缓冲操作。如果希望延缓或控制标准输出，仍然可以使用
+          <a href="ref.outcontrol.html" class="link">output buffering</a> 设置项。
+         </td>
+        </tr>
+
+        <tr>
+         <td><a href="info.configuration.html#ini.max-execution-time" class="link">max_execution_time</a></td>
+         <td>0（无限值）</td>
+         <td>
+          鉴于在外壳环境下使用 PHP 的无穷的可能性，最大运行时间被设置为了无限值。为
+          web 开发的应用程序可能只需运行几秒钟时间，而外壳应用程序的运行时间可能会长的多。
+         </td>
+        </tr>
+
+        <tr>
+         <td><a href="ini.core.html#ini.register-argc-argv" class="link">register_argc_argv</a></td>
+         <td><strong><code>true</code></strong></td>
+         <td>
+         <p class="para">
+         由于该设置为 <strong><code>true</code></strong>，将总是可以在 <acronym title="Command Line Interpreter/Interface">CLI</acronym> <acronym title="Server Application Programming Interface">SAPI</acronym>
+         中访问到 <em class="emphasis">argc</em>（传送给应用程序参数的个数）和
+         <em class="emphasis">argv</em>（包含有实际参数的数组）。
+         </p>
+         <p class="para">
+          在使用 <acronym title="Command Line Interpreter/Interface">CLI</acronym> <acronym title="Server Application Programming Interface">SAPI</acronym> 时，PHP 变量
+          <code class="literal">$argc</code> 和 <code class="literal">$argv</code>
+          已被注册并且设定了对应的值。随时可以通过
+          <var class="varname"><a href="reserved.variables.server.html" class="classname">$_SERVER</a></var> 数组
+          来访问它们，例如：<var class="varname"><a href="reserved.variables.server.html" class="classname">$_SERVER['argv']</a></var>
+         </p>
+         </td>
+        </tr>
+
+        <tr>
+         <td><a href="outcontrol.configuration.html#ini.output-buffering" class="link">output_buffering</a></td>
+         <td><strong><code>false</code></strong></td>
+         <td>
+          <p class="para">
+           虽然 <var class="filename">php.ini</var> 设置已经硬编码为 <strong><code>false</code></strong>，
+           <a href="book.outcontrol.html" class="link">输出缓冲控制</a>函数仍然有效。
+          </p>
+         </td>
+        </tr>
+
+        <tr>
+         <td><a href="info.configuration.html#ini.max-input-time" class="link">max_input_time</a></td>
+         <td><strong><code>false</code></strong></td>
+         <td>
+          <p class="para">
+           PHP <acronym title="Command Line Interpreter/Interface">CLI</acronym> 不支持 GET、POST、文件上传。
+          </p>
+         </td>
+        </tr>
+
+       </tbody>
+      
+     </table>
+
+    </p>
+    <blockquote class="note"><p><strong class="note">Note</strong>: 
+     <p class="para">
+      这些设置无法在设置文件 <var class="filename">php.ini</var>
+      或任何指定的其它文件中被初始化为其它值。这些默认值被限制在所有其它的设置文件被解析后改变。
+      不过，它们的值可以在程序运行的过程中被改变
+      （尽管对于该运行过程来说，这些设置项是没有意义的，例如 <a href="ini.core.html#ini.register-argc-argv" class="link">register_argc_argv</a>）。
+     </p>
+    </p></blockquote>
+    <blockquote class="note"><p><strong class="note">Note</strong>: 
+     <p class="para">
+      推荐命令行脚本设置
+      <a href="misc.configuration.html#ini.ignore-user-abort" class="link">ignore_user_abort</a>。
+      更多信息参见 <span class="function"><a href="function.ignore-user-abort.html" class="function">ignore_user_abort()</a></span>。
+     </p>
+    </p></blockquote>
+   </li>
+
+   <li class="listitem">
+    <p class="para">
+     为了减轻外壳环境下的工作，我们为 <a href="features.commandline.io-streams.html" class="link">I/O 流
+    </a>定义了一系列常量。
+    </p>
+   </li>
+
+   <li class="listitem">
+    <p class="para">
+     <acronym title="Command Line Interpreter/Interface">CLI</acronym> <acronym title="Server Application Programming Interface">SAPI</acronym>
+     <em class="emphasis">不会</em>将当前目录改为已运行的脚本所在的目录。
+    </p>
+    <p class="para">
+     以下范例显示了本模块与 <acronym title="Common Gateway Interface">CGI</acronym>
+     <acronym title="Server Application Programming Interface">SAPI</acronym> 模块之间的不同：
+     <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">//&nbsp;名为&nbsp;test.php&nbsp;的简单测试程序<br /></span><span style="color: #007700">echo&nbsp;</span><span style="color: #0000BB">getcwd</span><span style="color: #007700">(),&nbsp;</span><span style="color: #DD0000">"\n"</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+     </div>
+
+    </p>
+    <p class="para">
+     在使用 <code class="literal">CGI</code> 版本时，其输出为
+     <div class="example-contents screen">
+<div class="cdata"><pre>
+$ pwd
+/tmp
+
+$ php-cgi -f another_directory/test.php
+/tmp/another_directory
+</pre></div>
+     </div>
+    </p>
+    <p class="para">
+     明显可以看到 PHP 将当前目录改成了刚刚运行过的脚本所在的目录。
+    </p>
+    <p class="para">
+     使用 <acronym title="Command Line Interpreter/Interface">CLI</acronym> <acronym title="Server Application Programming Interface">SAPI</acronym> 模式，得到：
+     <div class="example-contents screen">
+<div class="cdata"><pre>
+$ pwd
+/tmp
+
+$ php -q another_directory/test.php
+/tmp
+</pre></div>
+     </div>
+     这使得在利用 PHP 编写外壳工具时获得了很大的便利。
+    </p>
+    <blockquote class="note"><p><strong class="note">Note</strong>: 
+     <p class="para">
+      可以在命令行运行时给该 <acronym title="Common Gateway Interface">CGI</acronym> <acronym title="Server Application Programming Interface">SAPI</acronym> 加上
+      <strong class="option unknown">-C</strong> 参数，使其支持 <acronym title="Command Line Interpreter/Interface">CLI</acronym> <acronym title="Server Application Programming Interface">SAPI</acronym> 的功能。
+     </p>
+    </p></blockquote>
+   </li>
+  </ul>
+ </p>
+</div><div id="usernotes">
+ <div class="head">
+  <h3 class="title">User Contributed Notes</h3>
+ </div>
+ <div class="note">There are no user contributed notes for this page.</div>
+</div>
+</div></div></body></html>

@@ -2,7 +2,7 @@
 <html>
  <head>
   <meta http-equiv="content-type" content="text/html; CHARSET=gb2312">
-  <title>Encrypt a message</title>
+  <title>Anonymous public-key encryption</title>
 <link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-base.css" />
 <link media="all" rel="stylesheet" type="text/css" href="styles/03e73060321a0a848018724a6c83de7f-theme-medium.css" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -20,30 +20,39 @@
   <ul class="breadcrumbs-container">
     <li><a href="index.html">PHP Manual</a></li>
     <li><a href="ref.sodium.html">Sodium 函数</a></li>
-    <li>Encrypt a message</li>
+    <li>Anonymous public-key encryption</li>
   </ul>
 </div>
 <div id="layout">
   <div id="layout-content"><div id="function.sodium-crypto-box-seal" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">sodium_crypto_box_seal</h1>
-  <p class="verinfo">(PHP 7 &gt;= 7.2.0, PHP 8)</p><p class="refpurpose"><span class="refname">sodium_crypto_box_seal</span> &mdash; <span class="dc-title">Encrypt a message</span></p>
+  <p class="verinfo">(PHP 7 &gt;= 7.2.0, PHP 8)</p><p class="refpurpose"><span class="refname">sodium_crypto_box_seal</span> &mdash; <span class="dc-title">Anonymous public-key encryption</span></p>
 
  </div>
 
  <div class="refsect1 description" id="refsect1-function.sodium-crypto-box-seal-description">
   <h3 class="title">说明</h3>
   <div class="methodsynopsis dc-description">
-   <span class="methodname"><strong>sodium_crypto_box_seal</strong></span>
-    ( <span class="methodparam"><span class="type">string</span> <code class="parameter">$message</code></span>
-   , <span class="methodparam"><span class="type">string</span> <code class="parameter">$key_pair</code></span>
-   ) : <span class="type">string</span></div>
+   <span class="methodname"><strong>sodium_crypto_box_seal</strong></span>(<span class="methodparam"><span class="type">string</span> <code class="parameter">$message</code></span>, <span class="methodparam"><span class="type">string</span> <code class="parameter">$public_key</code></span>): <span class="type">string</span></div>
 
   <p class="para rdfs-comment">
-
+   Encrypt a message such that only the recipient can decrypt it.
   </p>
-
-  <div class="warning"><strong class="warning">Warning</strong><p class="simpara">本函数还未编写文档，仅有参数列表。</p></div>
+  <p class="para">
+   Unlike with <span class="function"><a href="function.sodium-crypto-box.html" class="function">sodium_crypto_box()</a></span>, you only need to know the recipient&#039;s
+   public key to use <span class="function"><strong>sodium_crypto_box_seal()</strong></span>. One consequence of this
+   convenience, however, is that the ciphertext isn&#039;t bound to a static public key,
+   and is therefore not authenticated. Hence, anonymous public-key encryption.
+  </p>
+  <p class="para">
+   <span class="function"><strong>sodium_crypto_box_seal()</strong></span> still provides ciphertext integrity. Just not
+   sender identity authentication.
+  </p>
+  <p class="para">
+   If you also need sender authentication, the <span class="function"><a href="function.sodium-crypto-sign.html" class="function">sodium_crypto_sign()</a></span> functions
+   are likely the best place to start.
+  </p>
 
  </div>
 
@@ -51,7 +60,6 @@
  <div class="refsect1 parameters" id="refsect1-function.sodium-crypto-box-seal-parameters">
   <h3 class="title">参数</h3>
   <dl>
-
    
     <dt>
 <code class="parameter">message</code></dt>
@@ -59,19 +67,19 @@
     <dd>
 
      <p class="para">
-      
+      The message to encrypt.
      </p>
     </dd>
 
    
    
     <dt>
-<code class="parameter">key_pair</code></dt>
+<code class="parameter">public_key</code></dt>
 
     <dd>
 
      <p class="para">
-      
+      The public key that corresponds to the only key that can decrypt the message.
      </p>
     </dd>
 
@@ -84,10 +92,31 @@
  <div class="refsect1 returnvalues" id="refsect1-function.sodium-crypto-box-seal-returnvalues">
   <h3 class="title">返回值</h3>
   <p class="para">
-   
+   A ciphertext string in the format of (one-time public key, encrypted message, authentication tag).
   </p>
  </div>
 
+
+ <div class="refsect1 examples" id="refsect1-function.sodium-crypto-box-seal-examples">
+  <h3 class="title">范例</h3>
+  <div class="example" id="sodium-crypto-box-seal.example.basic">
+   <p><strong>Example #1 <span class="function"><strong>sodium_crypto_box_seal()</strong></span> example</strong></p>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$keypair&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">sodium_crypto_box_keypair</span><span style="color: #007700">();<br /></span><span style="color: #0000BB">$public_key&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">sodium_crypto_box_publickey</span><span style="color: #007700">(</span><span style="color: #0000BB">$keypair</span><span style="color: #007700">);<br /><br /></span><span style="color: #FF8000">//&nbsp;Obfuscated&nbsp;plaintext&nbsp;to&nbsp;make&nbsp;the&nbsp;example&nbsp;more&nbsp;fun<br /></span><span style="color: #0000BB">$plaintext_b64&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">"V3JpdGluZyBzb2Z0d2FyZSBpbiBQSFAgY2FuIGJlIGEgZGVsaWdodCE="</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$decoded_plaintext&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">sodium_base642bin</span><span style="color: #007700">(</span><span style="color: #0000BB">$plaintext_b64</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">SODIUM_BASE64_VARIANT_ORIGINAL</span><span style="color: #007700">);<br /><br /></span><span style="color: #0000BB">$sealed&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">sodium_crypto_box_seal</span><span style="color: #007700">(</span><span style="color: #0000BB">$decoded_plaintext</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$public_key</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">base64_encode</span><span style="color: #007700">(</span><span style="color: #0000BB">$sealed</span><span style="color: #007700">));<br /><br /></span><span style="color: #0000BB">$opened&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">sodium_crypto_box_seal_open</span><span style="color: #007700">(</span><span style="color: #0000BB">$sealed</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$keypair</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">var_dump</span><span style="color: #007700">(</span><span style="color: #0000BB">$opened</span><span style="color: #007700">);<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+   <div class="example-contents"><p>以上例程的输出类似于：</p></div>
+   <div class="example-contents screen">
+<div class="cdata"><pre>
+string(120) &quot;oRBXXAV4iQBrxlV4A21Bord8Yo/D8ZlrIIGNyaRCcGBfpz0map52I3xq6l+CST+1NSgQkbV+HiYyFjXWiWiaCGupGf+zl4bgWj/A9Adtem7Jt3h3emrMsLw=&quot;
+string(41) &quot;Writing software in PHP can be a delight!&quot;
+</pre></div>
+   </div>
+  </div>
+ </div>
 
 
 </div><div id="usernotes">

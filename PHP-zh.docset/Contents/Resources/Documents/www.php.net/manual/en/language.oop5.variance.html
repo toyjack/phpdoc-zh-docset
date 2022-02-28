@@ -35,6 +35,34 @@
   协变使子类比父类方法能返回更具体的类型；
   逆变使子类比父类方法参数类型能接受更模糊的类型。
  </p>
+ <p class="para">
+  在以下情况下，类型声明被认为更具体：
+  <ul class="itemizedlist">
+   <li class="listitem">
+    <span class="simpara">
+     在 <a href="language.types.declarations.html#language.types.declarations.composite.union" class="link">联合类型</a> 中删除类型
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     在
+     <a href="language.types.declarations.html#language.types.declarations.composite.intersection" class="link">交集类型</a> 中添加类型
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     类类型（class type）修改为子类类型
+    </span>
+   </li>
+   <li class="listitem">
+    <span class="simpara">
+     <span class="type"><a href="language.types.iterable.html" class="type iterable">iterable</a></span> 修改为 <span class="type">array</span> 或者 <span class="classname"><a href="class.traversable.html" class="classname">Traversable</a></span>
+    </span>
+   </li>
+  </ul>
+
+  如果情况相反，则类型类被认为是模糊的。
+ </p>
 
  <div class="sect2" id="language.oop5.variance.covariance">
   <h3 class="title">协变</h3>
@@ -157,7 +185,72 @@ Fatal error: Uncaught TypeError: Argument 1 passed to Animal::eat() must be an i
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="125704""></a>
+<div id="allnotes">  <a name="125983""></a>
+  <div class="note">
+   <strong class="user">maxim dot kainov at gmail dot com</strong>
+   <a href="#125983" class="date">04-Apr-2021 05:57</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+This example will not work:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">class </span><span class="default">CatFood </span><span class="keyword">extends </span><span class="default">AnimalFood </span><span class="keyword">{ }<br />
+<br />
+class </span><span class="default">Cat </span><span class="keyword">extends </span><span class="default">Animal<br />
+</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">eat</span><span class="keyword">(</span><span class="default">CatFood $food</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">name </span><span class="keyword">. </span><span class="string">" eats " </span><span class="keyword">. </span><span class="default">get_class</span><span class="keyword">(</span><span class="default">$food</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+The reason is:<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">class </span><span class="default">DogFood </span><span class="keyword">extends </span><span class="default">AnimalFood </span><span class="keyword">{ }<br />
+&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; function </span><span class="default">feedAnimal</span><span class="keyword">(</span><span class="default">Animal $animal</span><span class="keyword">, </span><span class="default">AnimalFood $food</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$animal</span><span class="keyword">-&gt;</span><span class="default">eat</span><span class="keyword">(</span><span class="default">$food</span><span class="keyword">);&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$cat </span><span class="keyword">= new </span><span class="default">Cat</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$dogFood </span><span class="keyword">= new </span><span class="default">DogFood</span><span class="keyword">();&nbsp;&nbsp; <br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">feedAnimal</span><span class="keyword">(</span><span class="default">$cat</span><span class="keyword">, </span><span class="default">$dogFood</span><span class="keyword">);&nbsp; &nbsp; <br />
+</span><span class="default">?&gt;<br />
+</span><br />
+But you can do it with traits, like this:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">trait </span><span class="default">AnimalTrait <br />
+</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">eat</span><span class="keyword">(</span><span class="default">AnimalFood $food</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">name </span><span class="keyword">. </span><span class="string">" ест " </span><span class="keyword">. </span><span class="default">get_class</span><span class="keyword">(</span><span class="default">$food</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+class </span><span class="default">Cat<br />
+</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; use </span><span class="default">AnimalTrait</span><span class="keyword">;<br />
+<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">eat</span><span class="keyword">(</span><span class="default">CatFood $food</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">name </span><span class="keyword">. </span><span class="string">" eats " </span><span class="keyword">. </span><span class="default">get_class</span><span class="keyword">(</span><span class="default">$food</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="125704""></a>
   <div class="note">
    <strong class="user">phpnet-at-kennel17-dotco-dotuk</strong>
    <a href="#125704" class="date">20-Jan-2021 05:51</a>

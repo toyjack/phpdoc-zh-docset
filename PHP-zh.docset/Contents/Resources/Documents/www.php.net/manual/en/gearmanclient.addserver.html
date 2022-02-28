@@ -34,10 +34,7 @@
  <div class="refsect1 description" id="refsect1-gearmanclient.addserver-description">
   <h3 class="title">说明</h3>
   <div class="methodsynopsis dc-description">
-   <span class="modifier">public</span> <span class="methodname"><strong>GearmanClient::addServer</strong></span>
-    ( <span class="methodparam"><span class="type">string</span> <code class="parameter">$host</code><span class="initializer"> = 127.0.0.1</span></span>
-   , <span class="methodparam"><span class="type">int</span> <code class="parameter">$port</code><span class="initializer"> = 4730</span></span>
-   ) : <span class="type">bool</span></div>
+   <span class="modifier">public</span> <span class="methodname"><strong>GearmanClient::addServer</strong></span>(<span class="methodparam"><span class="type">string</span> <code class="parameter">$host</code><span class="initializer"> = 127.0.0.1</span></span>, <span class="methodparam"><span class="type">int</span> <code class="parameter">$port</code><span class="initializer"> = 4730</span></span>): <span class="type">bool</span></div>
 
   <p class="para rdfs-comment">
    Adds a job server to a list of servers that can be used to run a task.  No socket
@@ -51,7 +48,6 @@
   <h3 class="title">参数</h3>
   <p class="para">
    <dl>
-
     
      <dt>
 <code class="parameter">host</code></dt>
@@ -93,7 +89,7 @@
  <div class="refsect1 examples" id="refsect1-gearmanclient.addserver-examples">
   <h3 class="title">范例</h3>
   <p class="para">
-   <div class="example" id="example-4657">
+   <div class="example" id="example-4212">
     <p><strong>Example #1 Adding two job servers</strong></p>
     <div class="example-contents">
 <div class="phpcode"><code><span style="color: #000000">
@@ -121,7 +117,49 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="123868""></a>
+<div id="allnotes">  <a name="126851""></a>
+  <div class="note">
+   <strong class="user">iloveapplepie</strong>
+   <a href="#126851" class="date">12-Feb-2022 06:52</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Sometimes you want the job server to start even if not all servers are available.&nbsp; The reason is that if at a later point the server comes back gearman will use it, even if if failed during the add server operation. <br />
+<br />
+class SmartGearmanWorker extends GearmanWorker<br />
+{<br />
+&nbsp;&nbsp;&nbsp; function addServer($host = '127.0.0.1', $port = 4730):bool<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; try {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; parent::addServer($host, $port);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; echo "\nSERVER $host WORKED";<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; } catch (GearmanException $e) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; echo "\nSERVER $host FAILED";<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return true;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+class SmartGearmanClient extends GearmanClient <br />
+{<br />
+&nbsp;&nbsp;&nbsp; function addServer($host = '127.0.0.1', $port = 4730,&nbsp; bool $setupExceptionHandler = false):bool<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; try {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; parent::addServer($host, $port, $setupExceptionHandler);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; echo "\nSERVER $host WORKED";<br />
+&nbsp;&nbsp;&nbsp; } catch (GearmanException $e) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; echo "\nSERVER $host FAILED"; //this does not get called even if the server is down<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return true;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="123868""></a>
   <div class="note">
    <strong class="user">michael at butlerpc dot net</strong>
    <a href="#123868" class="date">21-May-2019 05:23</a>

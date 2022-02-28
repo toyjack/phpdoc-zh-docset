@@ -27,8 +27,7 @@
   <div id="layout-content"><div id="reserved.variables.files" class="refentry">
  <div class="refnamediv">
   <h1 class="refname">$_FILES</h1>
-  <h1 class="refname">$HTTP_POST_FILES [已弃用]</h1>
-  <p class="refpurpose"><span class="refname">$_FILES</span> -- <span class="refname">$HTTP_POST_FILES [已弃用]</span> &mdash; <span class="dc-title">HTTP 文件上传变量</span></p>
+  <p class="refpurpose"><span class="refname">$_FILES</span> &mdash; <span class="dc-title">HTTP 文件上传变量</span></p>
 
  </div>
  
@@ -39,12 +38,6 @@
    此数组的概况在 
    <a href="features.file-upload.post-method.html" class="link">POST 方法上传</a> 章节中有描述。
   </p>
-
-  <p class="simpara">
-   <var class="varname">$HTTP_POST_FILES</var> 包含相同的信息，但它不是一个<a href="language.variables.superglobals.html" class="link">超全局变量</a>。
-   (注意 <var class="varname">$HTTP_POST_FILES</var> 和 <var class="varname">$_FILES</var> 是不同的变量，PHP 处理它们的方式不同)
-  </p>
-
  </div>
 
  
@@ -71,7 +64,218 @@
  <div class="head">
   <h3 class="title">User Contributed Notes</h3>
  </div>
-<div id="allnotes">  <a name="124446""></a>
+<div id="allnotes">  <a name="126149""></a>
+  <div class="note">
+   <strong class="user">ASchmidt at Anamera dot net</strong>
+   <a href="#126149" class="date">07-Jun-2021 07:56</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+The attached "new FILES_flattened" class flattens the $_FILES array, for any combination of "single" files, multi-file arrays with given indices [i] or multi-file array with [] indices, even multi-level multi-file arrays [i][j]...[n].<br />
+<br />
+An additional element "pos" in the flattened array will hold the "node path" for each file of a multi-file array, e.g. 'pos' =&gt; [ i, j ], so that it can be used for proper disposition of the file in database array, or for creating automated names that append each index level.<br />
+<br />
+Most importantly, the HTML input "name" property and all other information remains fully intact.<br />
+<br />
+HTML &lt;form&gt; snippet:<br />
+&nbsp;&lt;input type="hidden" name="MAX_FILE_SIZE" value="2500000" title="Permitted bytes per file." /&gt;<br />
+&nbsp;&lt;input type="file" name="pictures[4]" accept="image/*"/&gt;<br />
+&nbsp;&lt;input type="file" name="thumb" accept="image/*" /&gt;<br />
+&nbsp;&lt;input type="file" name="pictures[]" accept="image/*" /&gt;<br />
+&nbsp;&lt;input type="file" name="pictures[10][5]" accept="image/*" /&gt;<br />
+&nbsp;&lt;input type="file" name="pictures[17]" accept="image/*" /&gt;<br />
+<br />
+Result :<br />
+A flat array, one element per &lt;input&gt; field, each will have this structure:<br />
+<br />
+...<br />
+'pictures' =&gt; array (size=6)<br />
+&nbsp; 'name' =&gt; 'ClientFilename.jpg' <br />
+&nbsp; 'type' =&gt; 'image/jpeg' (<br />
+&nbsp; 'tmp_name' =&gt; '...\php8D2C.tmp' <br />
+&nbsp; 'error' =&gt; 0<br />
+&nbsp; 'size' =&gt; 1274994<br />
+&nbsp; 'pos' =&gt; array (size=2)<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 0 =&gt; 10<br />
+&nbsp;&nbsp; &nbsp;&nbsp; 1 =&gt; 5<br />
+...<br />
+<br />
+with nothing more than a simple foreach:<br />
+<br />
+<span class="default">&lt;?php <br />
+</span><span class="keyword">foreach( new </span><span class="default">RecursiveIteratorIterator</span><span class="keyword">( new </span><span class="default">FILES_flattened </span><span class="keyword">) as </span><span class="default">$key </span><span class="keyword">=&gt; </span><span class="default">$data </span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">var_dump</span><span class="keyword">( </span><span class="default">$key</span><span class="keyword">, </span><span class="default">$data </span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// Here's how to use the "pos" element, to generate an automated name<br />
+&nbsp;&nbsp;&nbsp; // that incorporates the "node path", e.g. "picture[10][5]"<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">echo </span><span class="default">$key</span><span class="keyword">.( empty( </span><span class="default">$data</span><span class="keyword">[ </span><span class="string">'pos' </span><span class="keyword">] ) ? </span><span class="string">'' </span><span class="keyword">: </span><span class="string">'['</span><span class="keyword">. </span><span class="default">implode</span><span class="keyword">( </span><span class="string">']['</span><span class="keyword">, </span><span class="default">$data</span><span class="keyword">[ </span><span class="string">'pos' </span><span class="keyword">] ) . </span><span class="string">']' </span><span class="keyword">);<br />
+}</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="126148""></a>
+  <div class="note">
+   <strong class="user">ASchmidt at Anamera dot net</strong>
+   <a href="#126148" class="date">07-Jun-2021 07:50</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Comprehensive iterator for direct "flat" access for any-level arrayed &lt;input&gt;, in any combination: <br />
+<br />
+<span class="default">&lt;?php <br />
+</span><span class="keyword">foreach( new </span><span class="default">RecursiveIteratorIterator</span><span class="keyword">( new </span><span class="default">FILES_flattened </span><span class="keyword">) as </span><span class="default">$key </span><span class="keyword">=&gt; </span><span class="default">$data </span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">var_dump</span><span class="keyword">( </span><span class="default">$key</span><span class="keyword">, </span><span class="default">$data </span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// Here's how to generate an automated name that incorporates the "node path", e.g. "picture[10][5]"<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">echo </span><span class="default">$key</span><span class="keyword">.( empty( </span><span class="default">$data</span><span class="keyword">[ </span><span class="string">'pos' </span><span class="keyword">] ) ? </span><span class="string">'' </span><span class="keyword">: </span><span class="string">'['</span><span class="keyword">. </span><span class="default">implode</span><span class="keyword">( </span><span class="string">']['</span><span class="keyword">, </span><span class="default">$data</span><span class="keyword">[ </span><span class="string">'pos' </span><span class="keyword">] ) . </span><span class="string">']' </span><span class="keyword">);<br />
+}<br />
+<br />
+class </span><span class="default">FILES_flattened </span><span class="keyword">implements </span><span class="default">RecursiveIterator <br />
+</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; protected </span><span class="default">$list_array</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; protected </span><span class="default">$basename</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; protected </span><span class="default">$current</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__construct</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">list_array </span><span class="keyword">= </span><span class="default">$_FILES</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">rewind</span><span class="keyword">(): </span><span class="default">void<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">{<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ( </span><span class="default">false </span><span class="keyword">=== </span><span class="default">$current </span><span class="keyword">= </span><span class="default">reset</span><span class="keyword">( </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">list_array </span><span class="keyword">) or </span><span class="default">null </span><span class="keyword">=== </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">basename </span><span class="keyword">= </span><span class="default">key</span><span class="keyword">( </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">list_array </span><span class="keyword">) ) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">current </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$current</span><span class="keyword">[ </span><span class="string">'pos' </span><span class="keyword">] = array();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">current </span><span class="keyword">= </span><span class="default">$current</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">next</span><span class="keyword">(): </span><span class="default">void<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">{<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ( </span><span class="default">false </span><span class="keyword">=== </span><span class="default">$current </span><span class="keyword">= </span><span class="default">next</span><span class="keyword">( </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">list_array </span><span class="keyword">) or </span><span class="default">null </span><span class="keyword">=== </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">basename </span><span class="keyword">= </span><span class="default">key</span><span class="keyword">( </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">list_array </span><span class="keyword">) ) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">current </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$current</span><span class="keyword">[ </span><span class="string">'pos' </span><span class="keyword">] = array();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">current </span><span class="keyword">= </span><span class="default">$current</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">valid</span><span class="keyword">(): </span><span class="default">bool<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">{<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">null </span><span class="keyword">!== </span><span class="default">key</span><span class="keyword">( </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">list_array </span><span class="keyword">);&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="comment">// End of array (inc. empty array).<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">}<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">hasChildren</span><span class="keyword">(): </span><span class="default">bool<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">{<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">is_array</span><span class="keyword">( </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">current</span><span class="keyword">[ </span><span class="string">'name' </span><span class="keyword">] );<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">getChildren</span><span class="keyword">(): </span><span class="default">FILES_nested<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">{<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return new </span><span class="default">FILES_nested</span><span class="keyword">( </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">basename</span><span class="keyword">, </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">current </span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">current</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">current</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">key</span><span class="keyword">()<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">basename</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+class </span><span class="default">FILES_nested </span><span class="keyword">extends </span><span class="default">FILES_flattened </span><span class="keyword">implements </span><span class="default">RecursiveIterator<br />
+</span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; private </span><span class="default">$node_array</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; private </span><span class="default">$position</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__construct</span><span class="keyword">( </span><span class="default">string $basename</span><span class="keyword">, array </span><span class="default">$node_array </span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">basename </span><span class="keyword">= </span><span class="default">$basename</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">list_array </span><span class="keyword">= </span><span class="default">$node_array</span><span class="keyword">[ </span><span class="string">'name' </span><span class="keyword">];<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">position </span><span class="keyword">= </span><span class="default">$node_array</span><span class="keyword">[ </span><span class="string">'pos' </span><span class="keyword">];<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; unset( </span><span class="default">$node_array</span><span class="keyword">[ </span><span class="string">'pos' </span><span class="keyword">] );<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">node_array </span><span class="keyword">= </span><span class="default">$node_array</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">rewind</span><span class="keyword">(): </span><span class="default">void<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">{<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ( </span><span class="default">false </span><span class="keyword">=== </span><span class="default">reset</span><span class="keyword">( </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">list_array </span><span class="keyword">) or </span><span class="default">null </span><span class="keyword">=== </span><span class="default">$key </span><span class="keyword">= </span><span class="default">key</span><span class="keyword">( </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">list_array </span><span class="keyword">) ) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">current </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">current </span><span class="keyword">= </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">normalize</span><span class="keyword">( </span><span class="default">$key </span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">next</span><span class="keyword">(): </span><span class="default">void<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">{<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ( </span><span class="default">false </span><span class="keyword">=== </span><span class="default">next</span><span class="keyword">( </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">list_array </span><span class="keyword">) or </span><span class="default">null </span><span class="keyword">=== </span><span class="default">$key </span><span class="keyword">= </span><span class="default">key</span><span class="keyword">( </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">list_array </span><span class="keyword">) ) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">current </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">current </span><span class="keyword">= </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">normalize</span><span class="keyword">( </span><span class="default">$key </span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; private function </span><span class="default">normalize</span><span class="keyword">( </span><span class="default">$key </span><span class="keyword">): array <br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$normalized </span><span class="keyword">= </span><span class="default">array_combine</span><span class="keyword">( </span><span class="default">array_keys</span><span class="keyword">( </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">node_array </span><span class="keyword">), </span><span class="default">array_column</span><span class="keyword">( </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">node_array</span><span class="keyword">, </span><span class="default">$key</span><span class="keyword">) );<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$position </span><span class="keyword">= </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">position</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$position</span><span class="keyword">[] = </span><span class="default">$key</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$normalized</span><span class="keyword">[ </span><span class="string">'pos' </span><span class="keyword">] = </span><span class="default">$position</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$normalized</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="125930""></a>
+  <div class="note">
+   <strong class="user">emre</strong>
+   <a href="#125930" class="date">14-Mar-2021 09:21</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+this is frustrating that the explanations redirected by anchors are providing unsufficient information or even worst is provide nothing. instead, looking for people to make the resources locale, you MUST provide approprate documentation for everybody.</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="125857""></a>
+  <div class="note">
+   <strong class="user">ymlmau at gmail dot com</strong>
+   <a href="#125857" class="date">23-Feb-2021 05:17</a>
+   <div class="text">
+    <div class="phpcode">
+<code><span class="html">
+Best way to check if $_FILES is empty or not is to check if the name of the index 0 is set. <br />
+<br />
+<span class="default">&lt;?php <br />
+</span><span class="keyword">if (</span><span class="default">$_FILES</span><span class="keyword">[</span><span class="string">'fieldname'</span><span class="keyword">][</span><span class="string">'name'</span><span class="keyword">][</span><span class="default">0</span><span class="keyword">] != </span><span class="string">""</span><span class="keyword">){<br />
+&nbsp;</span><span class="comment">//Code goes here!<br />
+</span><span class="keyword">}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code>
+    </div>
+   </div>
+  </div>
+ <div class="foot"></div>
+  <a name="124446""></a>
   <div class="note">
    <strong class="user">dariusakafest at gmail dot com</strong>
    <a href="#124446" class="date">27-Nov-2019 12:30</a>
